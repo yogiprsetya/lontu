@@ -36,17 +36,17 @@
 
 ## Phase 2: Core Expense Flow
 
-- [ ] **Task 3: Create the mobile home screen shell**
+- [x] **Task 3: Create the mobile home screen shell**
   - Acceptance:
-    - [ ] `app/page.tsx` renders the mobile-first dashboard shell.
-    - [ ] Auth guard works (anonymous users see `/login` or are redirected).
-    - [ ] Layout is usable down to 375px width.
+    - [x] `app/app/page.tsx` renders the mobile-first dashboard shell.
+    - [x] Auth guard works (anonymous users see `/login` or are redirected).
+    - [x] Layout is usable down to 375px width.
   - Verify:
-    - [ ] Run `pnpm dev`, open Chrome DevTools at 375px width, confirm layout.
-    - [ ] Visit `/` in an incognito window and confirm redirect/login prompt.
-    - [ ] Run `pnpm lint`.
+    - [x] Run `pnpm dev`, open Chrome DevTools at 375px width, confirm layout.
+    - [x] Visit `/` in an incognito window and confirm redirect/login prompt.
+    - [x] Run `pnpm lint`.
   - Depends on: Task 2
-  - Files: `app/page.tsx`, `app/layout.tsx`, `components/dashboard/*.tsx`
+  - Files: `app/app/page.tsx`, `app/app/layout.tsx`, `components/dashboard/*.tsx`
 
 - [ ] **Task 4: Implement the add-expense flow (3 taps)**
   - Acceptance:

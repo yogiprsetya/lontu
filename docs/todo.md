@@ -2,11 +2,11 @@
 
 ## Phase 1: Foundation
 
-- [ ] **Task 1: Install and configure Drizzle ORM**
+- [x] **Task 1: Install and configure Drizzle ORM**
   - Acceptance:
-    - [ ] `pnpm db:migrate` succeeds against a real Postgres database.
-    - [ ] `pnpm db:studio` shows all MVP tables: `users`, `categories`, `budgets`, `expenses`, `recurring_configs`.
-    - [ ] `.env.example` documents `DATABASE_URL`.
+    - [x] `pnpm db:migrate` succeeds against a real Postgres database.
+    - [x] `pnpm db:studio` shows all MVP tables: `users`, `categories`, `budgets`, `expenses`, `recurring_configs`.
+    - [x] `.env.example` documents `DATABASE_URL`.
   - Verify:
     - [ ] Run `pnpm db:migrate`.
     - [ ] Run `pnpm db:studio` and inspect tables.
@@ -14,11 +14,11 @@
   - Depends on: —
   - Files: `package.json`, `drizzle.config.ts`, `config/db.ts`, `db/schema.ts`, `db/migrations/*`, `.env.example`
 
-- [ ] **Task 2: Set up NextAuth.js v5 with Google OAuth**
+- [x] **Task 2: Set up NextAuth.js v5 with Google OAuth**
   - Acceptance:
-    - [ ] User can sign in with Google on `/login`.
-    - [ ] Session is available server-side.
-    - [ ] Unauthenticated requests are redirected to `/login`.
+    - [x] User can sign in with Google on `/login`.
+    - [x] Session is available server-side.
+    - [x] Unauthenticated requests are redirected to `/login`.
   - Verify:
     - [ ] Start `pnpm dev`, complete OAuth flow, confirm session cookie exists.
     - [ ] Visit a protected route while logged out and confirm redirect.
@@ -28,9 +28,9 @@
 
 ## Checkpoint: Foundation Ready
 
-- [ ] `pnpm build` succeeds.
-- [ ] `pnpm test` passes.
-- [ ] Database is migrated and reachable.
+- [x] `pnpm build` succeeds.
+- [x] `pnpm test` passes.
+- [x] Database is migrated and reachable.
 - [ ] Google OAuth flow works on localhost.
 - [ ] Review with human before continuing.
 

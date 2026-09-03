@@ -1,19 +1,19 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "~/auth";
-import HomeShell from "~/components/dashboard/home-shell";
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '~/auth';
+import HomeShell from '~/components/dashboard/home-shell';
 
 export default async function AppPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    redirect("/login");
+    redirect('/login');
   }
 
   return (
     <HomeShell
       user={{
-        name: session.user.name ?? session.user.email.split("@")[0],
+        name: session.user.name ?? session.user.email.split('@')[0],
         image: session.user.image ?? null,
       }}
     />

@@ -7,7 +7,7 @@ import { cn } from '~/utils/css';
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
-  weight: '400',
+  weight: ['400', '600'],
 });
 
 export const metadata: Metadata = {

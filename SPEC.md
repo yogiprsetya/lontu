@@ -69,13 +69,14 @@ pnpm test
 
 ```
 app/
-  (auth)/             → Auth-related routes (login, callback)
   api/                → API routes
+  app/                → Main apps
+  login/              → Auth page
   globals.css         → Global styles / Tailwind imports
   layout.tsx          → Root layout
-  page.tsx            → Home / dashboard
+  page.tsx            → landing page
 components/
-  _ui/                 → shadcn/ui base components
+  _ui/                → shadcn/ui base components
   expense/            → Expense-specific components
   budget/             → Budget-specific components
   subscription/       → Recurring/subscription components
@@ -83,7 +84,7 @@ config/
   db.ts               → Database client / connection
 utils/
   auth.ts             → Google OAuth helpers
-  css.ts            → Shared utilities
+  css.ts              → Shared utilities
   validators.ts       → Input validation schemas
 db/
   schema.ts           → Database schema definition
@@ -116,18 +117,14 @@ CLAUDE.md
 
 ```tsx
 // components/expense/expense-form.tsx
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface ExpenseFormProps {
   className?: string;
 }
 
 export function ExpenseForm({ className }: ExpenseFormProps) {
-  return (
-    <form className={cn("grid gap-4", className)}>
-      {/* amount, category, note, save */}
-    </form>
-  );
+  return <form className={cn('grid gap-4', className)}>{/* amount, category, note, save */}</form>;
 }
 ```
 

@@ -1,13 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-test("auth config exports signIn, auth, handlers, and Google provider", async () => {
+test("auth config exports authOptions and default handler", async () => {
   const authModule = await import("../auth");
 
-  assert.ok(authModule.handlers, "handlers is exported");
-  assert.ok(authModule.auth, "auth is exported");
-  assert.ok(authModule.signIn, "signIn is exported");
-  assert.ok(authModule.signOut, "signOut is exported");
+  assert.ok(authModule.authOptions, "authOptions is exported");
+  assert.ok(authModule.default, "default NextAuth handler is exported");
 });
 
 test("auth API route exposes GET and POST handlers", async () => {
@@ -20,5 +18,9 @@ test("auth API route exposes GET and POST handlers", async () => {
 test("login page is the default export", async () => {
   const pageModule = await import("../app/login/page");
 
-  assert.equal(typeof pageModule.default, "function", "login page default export is a function");
+  assert.equal(
+    typeof pageModule.default,
+    "function",
+    "login page default export is a function",
+  );
 });

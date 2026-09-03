@@ -10,4 +10,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Need to avoid
 
-- Dont create a commit, provide commit message only, let me check changes manually
+- Dont create a commit or push changes, provide commit message only, let me check changes manually

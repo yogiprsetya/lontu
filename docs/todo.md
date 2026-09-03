@@ -14,7 +14,7 @@
   - Depends on: —
   - Files: `package.json`, `drizzle.config.ts`, `config/db.ts`, `db/schema.ts`, `db/migrations/*`, `.env.example`
 
-- [x] **Task 2: Set up NextAuth.js v5 with Google OAuth**
+- [x] **Task 2: Set up NextAuth.js v4 with Google OAuth**
   - Acceptance:
     - [x] User can sign in with Google on `/login`.
     - [x] Session is available server-side.

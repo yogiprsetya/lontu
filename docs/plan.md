@@ -22,7 +22,7 @@ This plan covers the MVP of the expense tracker: build the foundation (database,
 ## Architecture Decisions
 
 - **Database access:** Drizzle ORM with PostgreSQL, because the spec calls for persistence, multi-user-ready schema, and typed queries. SQLite with mocking is rejected in favor of real persistence.
-- **Auth:** NextAuth.js v5 (Auth.js) with Google provider, because it handles OAuth callbacks, refresh tokens, and session management with less boilerplate than a manual flow.
+- **Auth:** NextAuth.js v4 (Auth.js) with Google provider, because it handles OAuth callbacks, refresh tokens, and session management with less boilerplate than a manual flow.
 - **Currency:** Single currency IDR for v1, stored as integer cents/rupiah.
 - **Testing:** Unit tests via `pnpm test` for pure utilities and DB queries; manual/mobile verification for the 3-tap flow.
 - **Project paths:** Keep `~/utils/css` as the alias for shared utilities; align existing `app/layout.tsx` `cn` import to `~/utils/css` in a later style-cleanup task to avoid drift.
@@ -64,7 +64,7 @@ Drizzle config + schema.ts
   - **Files likely touched:** `package.json`, `drizzle.config.ts`, `config/db.ts`, `db/schema.ts`, `db/migrations/*`, `.env.example`.
   - **Estimated scope:** M.
 
-- [ ] **Task 2: Set up NextAuth.js v5 with Google OAuth**
+- [ ] **Task 2: Set up NextAuth.js v4 with Google OAuth**
   - Install `@auth/core` / `next-auth` v5 beta and configure `auth.ts`.
   - Create `app/api/auth/[...nextauth]/route.ts`.
   - Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env.example`.

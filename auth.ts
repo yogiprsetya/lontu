@@ -1,14 +1,16 @@
 import { eq } from "drizzle-orm";
 import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 import { db } from "./config/db";
 import { usersTable } from "./db/schema";
+import type { NextAuthOptions } from "next-auth";
+import type { GoogleProfile } from "next-auth/providers/google";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       authorization: {
         params: {
           access_type: "offline",
@@ -17,12 +19,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  trustHost: process.env.AUTH_TRUST_HOST === "true",
   session: { strategy: "jwt" },
   callbacks: {
     async signIn({ account, profile }) {
       if (account?.provider === "google") {
-        return Boolean(profile?.email_verified);
+        return Boolean((profile as GoogleProfile | undefined)?.email_verified);
       }
       return true;
     },
@@ -57,4 +58,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-});
+};
+
+export default NextAuth(authOptions);

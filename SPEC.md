@@ -36,7 +36,7 @@ Single user (you) for now. The auth layer and data model must be designed so mul
 - **ORM / query builder:** Drizzle
 - **Deploy target:** VPS
 - **Package manager:** pnpm 10.34.1
-- **Auth library:** NextAuth.js v5
+- **Auth library:** NextAuth.js v4
 - **Currency:** Single currency (IDR) for v1
 - **Offline strategy:** can view latest data
 - **Test database:** mocking json

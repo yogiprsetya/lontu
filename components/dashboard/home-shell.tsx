@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Button } from '../ui/button';
+import ExpenseDashboard from '../expense/expense-dashboard';
 
 interface HomeShellProps {
   user: {
@@ -43,28 +43,14 @@ export default function HomeShell({ user }: HomeShellProps): ReactNode {
         </div>
       </header>
 
-      <section className="bg-primary text-primary-foreground mb-6 rounded-2xl p-5">
-        <p className="text-sm opacity-90">This month</p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight">Rp0</p>
-      </section>
+      <div className="mx-auto w-full max-w-2xl">
+        <section className="bg-primary text-primary-foreground mb-6 rounded-2xl p-5">
+          <p className="text-sm opacity-90">This month</p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight">Rp0</p>
+        </section>
 
-      <section className="mb-4">
-        <h2 className="text-foreground mb-3 text-base font-semibold">Categories</h2>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-          {['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'].map((category) => (
-            <Button key={category}>
-              <span className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
-                {category[0]}
-              </span>
-              {category}
-            </Button>
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-auto">
-        <Button>Add expense</Button>
-      </section>
+        <ExpenseDashboard />
+      </div>
     </main>
   );
 }

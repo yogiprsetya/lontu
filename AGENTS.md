@@ -8,6 +8,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# Code convention
+
+- Always use named export
+- Use arrow body function
+- Immediately return if possible
+- Declare `useState` on top of react component
+
 # Need to avoid
 
 - Dont create a commit or push changes, provide commit message only, let me check changes manually

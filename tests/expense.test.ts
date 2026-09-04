@@ -14,6 +14,7 @@ test('validateExpenseInput rejects invalid or non-positive amounts', async () =>
   assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: '0' }), /amount/);
   assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: '-5000' }), /amount/);
   assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: 'abc' }), /amount/);
+  assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: '2147483648' }), /amount/);
 });
 
 test('validateExpenseInput accepts positive integer amount and returns parsed data', async () => {

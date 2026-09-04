@@ -26,6 +26,8 @@ export interface ValidatedExpenseUpdateInput {
   spentAt?: Date;
 }
 
+const MAX_EXPENSE_AMOUNT = 2147483647;
+
 export function validateExpenseInput(input: ExpenseInput): ValidatedExpenseInput {
   if (!input.categoryName || typeof input.categoryName !== 'string' || input.categoryName.trim().length === 0) {
     throw new Error('categoryName is required');
@@ -37,7 +39,7 @@ export function validateExpenseInput(input: ExpenseInput): ValidatedExpenseInput
     throw new Error('amount is required');
   }
   const parsed = Number(rawAmount);
-  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0 || parsed > MAX_EXPENSE_AMOUNT) {
     throw new Error('amount must be a positive integer');
   }
   const amount = parsed;
@@ -73,7 +75,7 @@ export function validateExpenseUpdateInput(input: ExpenseUpdateInput): Validated
       throw new Error('amount is required');
     }
     const parsed = Number(rawAmount);
-    if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+    if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed <= 0 || parsed > MAX_EXPENSE_AMOUNT) {
       throw new Error('amount must be a positive integer');
     }
     result.amount = parsed;

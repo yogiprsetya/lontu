@@ -48,14 +48,14 @@
   - Depends on: Task 2
   - Files: `app/app/page.tsx`, `app/app/layout.tsx`, `components/dashboard/*.tsx`
 
-- [ ] **Task 4: Implement the add-expense flow (3 taps)**
+- [x] **Task 4: Implement the add-expense flow (3 taps)**
   - Acceptance:
-    - [ ] Category + amount + save creates a persisted expense.
-    - [ ] Invalid amounts are rejected.
-    - [ ] New expense appears in the UI immediately after save.
+    - [x] Category + amount + save creates a persisted expense.
+    - [x] Invalid amounts are rejected.
+    - [x] New expense appears in the UI immediately after save.
   - Verify:
     - [ ] Manual mobile-emulator test: tap category → type amount → tap save.
-    - [ ] Unit test for amount validation in `tests/expense*.test.ts`.
+    - [x] Unit test for amount validation in `tests/expense*.test.ts`.
     - [ ] Confirm row appears in database.
   - Depends on: Tasks 2–3
   - Files: `components/expense/expense-form.tsx`, `app/api/expenses/route.ts`, `lib/validators.ts`, `tests/expense*.test.ts`

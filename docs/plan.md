@@ -6,15 +6,15 @@ This plan covers the MVP of the expense tracker: build the foundation (database,
 
 ## Capability Map
 
-| Module id | Responsibility | Depends on |
-|---|---|---|
-| `db` | Drizzle ORM config, schema, migrations | — |
-| `auth` | Google OAuth sign-in, sessions, callback route | — |
-| `expense` | Add, edit, delete, list expenses | `db`, `auth` |
-| `category` | Custom categories with create/archive | `db`, `auth` |
-| `budget` | Monthly budgets + burn warnings | `category` |
-| `subscription` | Recurring configs + subscriptions view | `expense`, `category` |
-| `pwa` | Manifest, icons, service worker, offline | app shell |
+| Module id      | Responsibility                                 | Depends on            |
+| -------------- | ---------------------------------------------- | --------------------- |
+| `db`           | Drizzle ORM config, schema, migrations         | —                     |
+| `auth`         | Google OAuth sign-in, sessions, callback route | —                     |
+| `expense`      | Add, edit, delete, list expenses               | `db`, `auth`          |
+| `category`     | Custom categories with create/archive          | `db`, `auth`          |
+| `budget`       | Monthly budgets + burn warnings                | `category`            |
+| `subscription` | Recurring configs + subscriptions view         | `expense`, `category` |
+| `pwa`          | Manifest, icons, service worker, offline       | app shell             |
 
 **Build order (MVP):** `db` → `auth` → `expense`  
 **Future order:** `category` → `budget` → `subscription` → `pwa`
@@ -106,13 +106,13 @@ Drizzle config + schema.ts
   - **Files likely touched:** `components/expense/expense-form.tsx`, `app/api/expenses/route.ts`, `lib/validators.ts`, `tests/expense*.test.ts`.
   - **Estimated scope:** M.
 
-- [ ] **Task 5: Implement expense history with edit and delete**
+- [x] **Task 5: Implement expense history with edit and delete**
   - Create `components/expense/expense-list.tsx` showing recent expenses grouped by date.
   - Add GET endpoint in `app/api/expenses/route.ts`.
   - Add PATCH and DELETE endpoints in `app/api/expenses/[id]/route.ts`.
   - Allow editing amount, category, note, and date; soft behavior for deletion (or hard delete with confirmation).
   - **Acceptance:** User can view, edit, and delete expenses; changes persist; list updates after mutation.
-  - **Verification:** Manual test edit/delete flows; run `pnpm test` for history ordering and mutation helpers.
+  - **Verification:** Manual test edit/delete flows; run `pnpm test` for history ordering and mutation helpers. Automated suite passes; manual flow remains pending.
   - **Dependencies:** Task 4.
   - **Files likely touched:** `components/expense/expense-list.tsx`, `components/expense/expense-card.tsx`, `app/api/expenses/route.ts`, `app/api/expenses/[id]/route.ts`, `tests/expense*.test.ts`.
   - **Estimated scope:** M.
@@ -160,12 +160,12 @@ Drizzle config + schema.ts
 
 ## Risks and Mitigations
 
-| Risk | Mitigation |
-|---|---|
-| NextAuth.js v5 beta instability | Pin an exact version; isolate auth config in `auth.ts`; keep fallback route if API changes. |
-| Schema changes after deployment | Treat schema as additive; use migrations; avoid destructive changes once data exists. |
-| Mobile UX feels slow | Use server actions or optimistic UI; keep form fields minimal; test on real device. |
-| OAuth callback mismatch between localhost and production | Use env vars for origin; document callback URLs. |
+| Risk                                                     | Mitigation                                                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| NextAuth.js v5 beta instability                          | Pin an exact version; isolate auth config in `auth.ts`; keep fallback route if API changes. |
+| Schema changes after deployment                          | Treat schema as additive; use migrations; avoid destructive changes once data exists.       |
+| Mobile UX feels slow                                     | Use server actions or optimistic UI; keep form fields minimal; test on real device.         |
+| OAuth callback mismatch between localhost and production | Use env vars for origin; document callback URLs.                                            |
 
 ## Open Questions
 

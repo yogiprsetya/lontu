@@ -60,16 +60,16 @@
   - Depends on: Tasks 2–3
   - Files: `components/expense/expense-form.tsx`, `app/api/expenses/route.ts`, `lib/validators.ts`, `tests/expense*.test.ts`
 
-- [ ] **Task 5: Implement expense history with edit and delete**
+- [x] **Task 5: Implement expense history with edit and delete**
   - Acceptance:
-    - [ ] Recent expenses are listed, grouped by date.
-    - [ ] User can edit amount, category, note, and date.
-    - [ ] User can delete an expense with confirmation.
-    - [ ] Mutations persist and list updates.
+    - [x] Recent expenses are listed, grouped by date.
+    - [x] User can edit amount, category, note, and date.
+    - [x] User can delete an expense with confirmation.
+    - [x] Mutations persist and list updates.
   - Verify:
     - [ ] Manual test edit and delete flows.
-    - [ ] Unit/integration test for history ordering and mutation helpers.
-    - [ ] Run `pnpm test`.
+    - [x] Unit/integration test for history ordering and mutation helpers.
+    - [x] Run `pnpm test`.
   - Depends on: Task 4
   - Files: `components/expense/expense-list.tsx`, `components/expense/expense-card.tsx`, `app/api/expenses/route.ts`, `app/api/expenses/[id]/route.ts`, `tests/expense*.test.ts`
 

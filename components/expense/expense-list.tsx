@@ -48,11 +48,15 @@ export function groupExpensesByDate(items: ExpenseListItem[]): GroupedExpenses[]
     map.get(key)!.push(item);
   }
 
-  return Array.from(map.entries()).map(([date, groupItems]) => ({
-    date,
-    label: formatGroupLabel(date),
-    items: groupItems,
-  }));
+  return Array.from(map.entries())
+    .sort(([firstDate], [secondDate]) => secondDate.localeCompare(firstDate))
+    .map(([date, groupItems]) => ({
+      date,
+      label: formatGroupLabel(date),
+      items: groupItems.sort(
+        (firstItem, secondItem) => new Date(secondItem.spentAt).getTime() - new Date(firstItem.spentAt).getTime()
+      ),
+    }));
 }
 
 async function loadExpenses(): Promise<ExpenseListItem[]> {

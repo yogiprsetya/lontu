@@ -66,6 +66,43 @@ test('expense list refreshes when refreshKey changes', async () => {
   assert.equal(typeof listModule.default, 'function', 'expense-list component accepts refreshKey');
 });
 
+test('groupExpensesByDate sorts history groups and items newest first', async () => {
+  const { groupExpensesByDate } = await import('../components/expense/expense-list');
+
+  const groups = groupExpensesByDate([
+    {
+      id: 1,
+      amount: 10000,
+      note: null,
+      spentAt: '2026-09-01T08:00:00.000Z',
+      categoryName: 'Food',
+    },
+    {
+      id: 2,
+      amount: 20000,
+      note: null,
+      spentAt: '2026-09-03T08:00:00.000Z',
+      categoryName: 'Transport',
+    },
+    {
+      id: 3,
+      amount: 30000,
+      note: null,
+      spentAt: '2026-09-03T06:00:00.000Z',
+      categoryName: 'Bills',
+    },
+  ]);
+
+  assert.deepEqual(
+    groups.map((group) => group.date),
+    ['2026-09-03', '2026-09-01']
+  );
+  assert.deepEqual(
+    groups[0].items.map((item) => item.id),
+    [2, 3]
+  );
+});
+
 test('expense dashboard component exports a default function', async () => {
   const dashboardModule = await import('../components/expense/expense-dashboard');
 

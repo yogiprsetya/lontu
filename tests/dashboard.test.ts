@@ -13,6 +13,24 @@ test('home shell component exports a default function', async () => {
   assert.equal(typeof shellModule.default, 'function', 'home-shell exports a default function');
 });
 
+test('home shell includes desktop navigation and an inset content area', async () => {
+  const fs = await import('node:fs/promises');
+  const shellSource = await fs.readFile(
+    new URL('../components/dashboard/home-shell.tsx', import.meta.url),
+    'utf8'
+  );
+  const sidebarSource = await fs.readFile(
+    new URL('../components/dashboard/dashboard-sidebar.tsx', import.meta.url),
+    'utf8'
+  );
+
+  assert.match(shellSource, /SidebarProvider/);
+  assert.match(shellSource, /<Sidebar/);
+  assert.match(shellSource, /SidebarInset/);
+  assert.match(sidebarSource, /Add expense/);
+  assert.match(sidebarSource, /History/);
+});
+
 test('root page exports a default function', async () => {
   const pageModule = await import('../app/page');
 

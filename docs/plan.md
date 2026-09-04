@@ -117,7 +117,7 @@ Drizzle config + schema.ts
   - **Files likely touched:** `components/expense/expense-list.tsx`, `components/expense/expense-card.tsx`, `app/api/expenses/route.ts`, `app/api/expenses/[id]/route.ts`, `tests/expense*.test.ts`.
   - **Estimated scope:** M.
 
-- [ ] **Task 6: Wire the 3-tap end-to-end flow and verify**
+- [x] **Task 6: Wire the 3-tap end-to-end flow and verify**
   - Connect home screen to expense form and list.
   - Add optimistic UI or revalidation so the screen feels instant.
   - Remove/redirect the default Next.js landing content.

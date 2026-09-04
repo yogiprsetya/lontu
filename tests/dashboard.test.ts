@@ -18,3 +18,10 @@ test('root page exports a default function', async () => {
 
   assert.equal(typeof pageModule.default, 'function', 'app/page.tsx exports a default function');
 });
+
+test('root page renders the protected dashboard entry point', async () => {
+  const rootPage = await import('../app/page');
+  const appPage = await import('../app/app/page');
+
+  assert.equal(rootPage.default, appPage.default, 'root and app routes share the dashboard page');
+});

@@ -1,5 +1,5 @@
 ---
-name: slash-build
+name: cmd-build
 description: Implement tasks incrementally — build, test, verify, write commit message.
 ---
 

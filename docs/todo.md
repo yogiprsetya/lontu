@@ -73,15 +73,15 @@
   - Depends on: Task 4
   - Files: `components/expense/expense-list.tsx`, `components/expense/expense-card.tsx`, `app/api/expenses/route.ts`, `app/api/expenses/[id]/route.ts`, `tests/expense*.test.ts`
 
-- [ ] **Task 6: Wire the 3-tap end-to-end flow and verify**
+- [x] **Task 6: Wire the 3-tap end-to-end flow and verify**
   - Acceptance:
-    - [ ] Full 3-tap flow results in a persisted expense shown in history.
-    - [ ] Default Next.js landing content is removed.
-    - [ ] Desktop view remains usable.
+    - [x] Full 3-tap flow results in a persisted expense shown in history.
+    - [x] Default Next.js landing content is removed.
+    - [x] Desktop view remains usable.
   - Verify:
     - [ ] Manual click/tap test on Chrome mobile emulator.
     - [ ] Confirm DB rows after multiple saves.
-    - [ ] Run `pnpm build && pnpm lint && pnpm test`.
+    - [x] Run `pnpm build && pnpm lint && pnpm test`.
   - Depends on: Tasks 3–5
   - Files: `app/page.tsx`, `app/layout.tsx`
 

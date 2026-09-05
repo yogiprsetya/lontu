@@ -5,6 +5,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { useCategoryList } from '~/components/category/use-category-list';
+import { formatIdr } from '~/utils/format';
 import { useBudgetData, type Budget } from './use-budget-data';
 
 const currentDate = new Date();
@@ -114,7 +115,7 @@ export const BudgetManager = () => {
           <article key={budget.id} className="bg-card flex items-center justify-between rounded-xl border p-4">
             <div>
               <h2 className="font-medium">{budget.categoryName}</h2>
-              <p className="text-muted-foreground text-sm">Rp{budget.amount.toLocaleString('id-ID')} this month</p>
+              <p className="text-muted-foreground text-sm">{formatIdr(budget.amount)} this month</p>
             </div>
 
             <div className="flex gap-1">

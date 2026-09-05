@@ -12,6 +12,12 @@ test('budget validator accepts integer IDR amounts and calendar months', async (
   });
 });
 
+test('IDR formatter centralizes currency display', async () => {
+  const { formatIdr } = await import('../utils/format');
+
+  assert.equal(formatIdr(25000), 'Rp25.000');
+});
+
 test('budget validator rejects invalid amounts, months, and category ids', async () => {
   const { validateBudgetInput } = await import('../utils/validators');
 

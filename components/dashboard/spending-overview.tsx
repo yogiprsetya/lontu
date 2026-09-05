@@ -3,6 +3,8 @@
 import useSWR from 'swr';
 import { useBudgetData } from '~/components/budget/use-budget-data';
 import { getBudgetBurnState, getMonthlyBudgetTotals } from '~/utils/budget-math';
+import { formatIdr } from '~/utils/format';
+import { Progress, ProgressLabel, ProgressValue } from '~/components/ui/progress';
 
 interface Expense {
   categoryId: number;
@@ -43,50 +45,14 @@ export const SpendingOverview = () => {
         <div className="flex flex-col gap-4">
           {totals.map((total) => {
             const burn = getBudgetBurnState(total);
-            const amountSummary =
-              burn.status === 'over-limit'
-                ? `Rp${burn.overage.toLocaleString('id-ID')} over`
-                : burn.status === 'neutral'
-                  ? 'No budget set'
-                  : `Rp${burn.remaining.toLocaleString('id-ID')} left`;
-            const progressColor =
-              burn.status === 'over-limit'
-                ? 'bg-destructive'
-                : burn.status === 'near-limit'
-                  ? 'bg-amber-500'
-                  : 'bg-primary';
+            const valued = `${formatIdr(total.spent)}${total.budget > 0 ? ` / ${formatIdr(total.budget)}` : ' spent'}`;
 
             return (
               <div key={total.categoryId}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-medium">{total.categoryName}</span>
-                  <span
-                    className={
-                      burn.status === 'over-limit' ? 'text-destructive font-medium' : 'text-muted-foreground'
-                    }
-                  >
-                    Rp{total.spent.toLocaleString('id-ID')}
-                    {total.budget > 0 ? ` / Rp${total.budget.toLocaleString('id-ID')}` : ' spent'}
-                  </span>
-                </div>
-                <div className="bg-muted h-2 overflow-hidden rounded-full">
-                  <div
-                    className={`h-full rounded-full ${progressColor}`}
-                    style={{ width: `${Math.min(burn.percentage, 100)}%` }}
-                  />
-                </div>
-                <p
-                  className={`mt-1 text-xs ${
-                    burn.status === 'over-limit'
-                      ? 'text-destructive'
-                      : burn.status === 'near-limit'
-                        ? 'text-amber-600'
-                        : 'text-muted-foreground'
-                  }`}
-                >
-                  {burn.percentage > 0 ? `${burn.percentage}% used · ` : ''}
-                  {amountSummary}
-                </p>
+                <Progress value={burn.percentage} className="w-full">
+                  <ProgressLabel>{total.categoryName}</ProgressLabel>
+                  <ProgressValue>{() => valued}</ProgressValue>
+                </Progress>
               </div>
             );
           })}
@@ -95,7 +61,7 @@ export const SpendingOverview = () => {
 
       <div className="text-muted-foreground mt-6 flex items-center justify-between text-xs">
         <span>{totals.filter((total) => total.budget > 0).length} budgeted categories</span>
-        <span>{totals.reduce((sum, total) => sum + total.spent, 0).toLocaleString('id-ID')} IDR spent</span>
+        <span>{formatIdr(totals.reduce((sum, total) => sum + total.spent, 0))} spent</span>
       </div>
     </section>
   );

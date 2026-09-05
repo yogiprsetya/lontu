@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { mutate } from 'swr';
 import { Button } from '~/components/ui/button';
 import { useCategoryList } from '~/components/category/use-category-list';
+import { formatIdr } from '~/utils/format';
 
 interface ExpenseFormProps {
   categories?: string[];
@@ -18,10 +19,6 @@ interface SavedExpense {
 }
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
-
-const formatRupiah = (amount: number): string => {
-  return `Rp${amount.toLocaleString('id-ID')}`;
-};
 
 export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
   const { categories: savedCategories } = useCategoryList();
@@ -149,7 +146,7 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
                 className="bg-card text-card-foreground flex items-center justify-between rounded-xl border px-4 py-3"
               >
                 <span className="text-sm font-medium">{expense.categoryName}</span>
-                <span className="text-sm font-semibold">{formatRupiah(expense.amount)}</span>
+                <span className="text-sm font-semibold">{formatIdr(expense.amount)}</span>
               </li>
             ))}
           </ul>

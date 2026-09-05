@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RiCheckLine, RiCloseLine, RiDeleteBinLine, RiEditLine } from '@remixicon/react';
 import { Button } from '~/components/ui/button';
+import { formatIdr } from '~/utils/format';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
@@ -25,10 +26,6 @@ const toDatetimeLocal = (isoString: string): string => {
   const offset = date.getTimezoneOffset();
   const local = new Date(date.getTime() - offset * 60 * 1000);
   return local.toISOString().slice(0, 16);
-};
-
-const formatRupiah = (amount: number): string => {
-  return `Rp${amount.toLocaleString('id-ID')}`;
 };
 
 export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate }: ExpenseCardProps) => {
@@ -200,7 +197,7 @@ export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold">{formatRupiah(expense.amount)}</span>
+        <span className="text-sm font-semibold">{formatIdr(expense.amount)}</span>
 
         {isConfirmingDelete ? (
           <div className="flex gap-1">

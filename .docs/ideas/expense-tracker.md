@@ -1,6 +1,6 @@
 # Expense Tracker — Implementation Plan / Architecture Notes
 
-Companion to [docs/intent/expense-tracker.md](../intent/expense-tracker.md). This doc covers how we build it: options considered, decisions made, phased rollout, schema, and risks.
+Companion to [.docs/intent/expense-tracker.md](../intent/expense-tracker.md). This doc covers how we build it: options considered, decisions made, phased rollout, schema, and risks.
 
 ## Strategic options we deliberately did not pick
 

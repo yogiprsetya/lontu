@@ -91,7 +91,7 @@ db/
   migrations/         → Migration files
 tests/
   *.test.ts           → Unit / integration tests
-docs/
+.docs/
   intent/             → Confirmed intent documents
   ideas/              → Architecture notes and decisions
 public/

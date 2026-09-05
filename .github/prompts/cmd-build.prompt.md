@@ -25,4 +25,4 @@ Additional skill (pick if relate only):
 
 If any step fails, follow the debugging-and-error-recovery skill.
 
-Task file `.docs/todo.md` and `.docs/plan.md`.
+Task file `.docs/todo.md` (Ignore line 1-96) and `.docs/plan.md` (Ignore line 1-38).

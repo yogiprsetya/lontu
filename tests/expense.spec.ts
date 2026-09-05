@@ -108,3 +108,50 @@ test('expense dashboard component exports a default function', async () => {
 
   assert.equal(typeof dashboardModule.ExpenseDashboard, 'function', 'expense-dashboard exports');
 });
+
+test('category validator trims names and accepts hex colors', async () => {
+  const { validateCategoryInput } = await import('../utils/validators');
+
+  assert.deepEqual(validateCategoryInput({ name: '  Groceries  ', color: '#12Abef' }), {
+    name: 'Groceries',
+    color: '#12Abef',
+  });
+  assert.throws(() => validateCategoryInput({ name: '   ' }), /name/);
+  assert.throws(() => validateCategoryInput({ name: 'Bills', color: 'blue' }), /color/);
+});
+
+test('category API exposes authenticated collection and item handlers', async () => {
+  const collectionRoute = await import('../app/api/categories/route');
+  const itemRoute = await import('../app/api/categories/[id]/route');
+
+  assert.equal(typeof collectionRoute.GET, 'function');
+  assert.equal(typeof collectionRoute.POST, 'function');
+  assert.equal(typeof itemRoute.PATCH, 'function');
+  assert.equal(typeof itemRoute.DELETE, 'function');
+});
+
+test('category management component exports a function', async () => {
+  const categoryModule = await import('../components/category/category-manager');
+
+  assert.equal(typeof categoryModule.CategoryManager, 'function');
+});
+
+test('api response helpers centralize resource, collection, and empty responses', async () => {
+  const responses = await import('../utils/api-response');
+
+  assert.equal(typeof responses.resourceResponse, 'function');
+  assert.equal(typeof responses.collectionResponse, 'function');
+  assert.equal(typeof responses.noContentResponse, 'function');
+
+  const resource = responses.resourceResponse('category', { id: 1 }, 201);
+  assert.equal(resource.status, 201);
+  const resourceBody = await resource.json();
+  assert.equal(resourceBody.success, true);
+  assert.deepEqual(resourceBody.data, { category: { id: 1 } });
+
+  const collection = responses.collectionResponse('categories', [{ id: 1 }]);
+  const collectionBody = await collection.json();
+  assert.equal(collectionBody.success, true);
+  assert.deepEqual(collectionBody.data, { categories: [{ id: 1 }] });
+  assert.equal(responses.noContentResponse().status, 204);
+});

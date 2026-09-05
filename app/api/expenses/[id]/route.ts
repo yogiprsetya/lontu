@@ -1,20 +1,16 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { and, eq } from 'drizzle-orm';
-import { authOptions } from '~/auth';
 import { db } from '~/config/db';
 import { categoriesTable, expensesTable } from '~/db/schema';
-import { badRequestResponse, expenseResponse, notFoundResponse, unauthorizedResponse } from '~/utils/api-response';
+import {
+  badRequestResponse,
+  collectionResponse,
+  noContentResponse,
+  notFoundResponse,
+  unauthorizedResponse,
+} from '~/utils/api-response';
+import { getServerUserId } from '~/utils/server-auth';
 import { validateExpenseUpdateInput } from '~/utils/validators';
-
-interface SessionUser {
-  id?: number;
-}
-
-const getUserId = async (): Promise<number | null> => {
-  const session = await getServerSession(authOptions);
-  return (session?.user as SessionUser | undefined)?.id ?? null;
-};
 
 const resolveCategory = async (userId: number, name: string): Promise<number> => {
   const existing = await db
@@ -32,7 +28,8 @@ const resolveCategory = async (userId: number, name: string): Promise<number> =>
 };
 
 export const PATCH = async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
-  const userId = await getUserId();
+  const userId = await getServerUserId();
+
   if (!userId) {
     return unauthorizedResponse();
   }
@@ -68,33 +65,57 @@ export const PATCH = async (request: NextRequest, context: { params: Promise<{ i
     return notFoundResponse();
   }
 
+  if (validated.categoryName !== undefined) {
+    const archivedCategory = await db
+      .select({ id: categoriesTable.id })
+      .from(categoriesTable)
+      .where(
+        and(
+          eq(categoriesTable.userId, userId),
+          eq(categoriesTable.name, validated.categoryName),
+          eq(categoriesTable.isArchived, 1)
+        )
+      )
+      .limit(1);
+
+    if (archivedCategory.length > 0) {
+      return badRequestResponse('Archived categories cannot be assigned to new expenses');
+    }
+  }
+
   const updateValues: Partial<typeof expensesTable.$inferInsert> = {};
+
   if (validated.amount !== undefined) {
     updateValues.amount = validated.amount;
   }
+
   if (validated.note !== undefined) {
     updateValues.note = validated.note;
   }
+
   if (validated.spentAt !== undefined) {
     updateValues.spentAt = validated.spentAt;
   }
+
   if (validated.categoryName !== undefined) {
     updateValues.categoryId = await resolveCategory(userId, validated.categoryName);
   }
 
   const updated = await db.update(expensesTable).set(updateValues).where(eq(expensesTable.id, id)).returning();
 
-  return expenseResponse(updated[0]);
+  return collectionResponse('expense', updated[0]);
 };
 
 export const DELETE = async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
-  const userId = await getUserId();
+  const userId = await getServerUserId();
+
   if (!userId) {
     return unauthorizedResponse();
   }
 
   const { id: idParam } = await context.params;
   const id = Number(idParam);
+
   if (!Number.isFinite(id)) {
     return badRequestResponse('Invalid id');
   }
@@ -111,5 +132,5 @@ export const DELETE = async (request: NextRequest, context: { params: Promise<{ 
 
   await db.delete(expensesTable).where(eq(expensesTable.id, id));
 
-  return new Response(null, { status: 204 });
+  return noContentResponse();
 };

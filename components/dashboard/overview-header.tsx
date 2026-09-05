@@ -19,7 +19,7 @@ const items = [
 ];
 
 export const OverviewHeader = () => {
-  const { data } = useSession();
+  const { data, status } = useSession();
 
   const userName = data?.user?.name ?? 'User';
 
@@ -52,12 +52,18 @@ export const OverviewHeader = () => {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <div className="bg-primary flex size-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold">
+              <button
+                type="button"
+                aria-label="Open account menu"
+                aria-busy={status === 'loading'}
+                disabled={status ? status === 'loading' : true}
+                className="bg-primary flex size-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold"
+              >
                 <Avatar>
                   <AvatarImage src={data?.user?.image ?? ''} alt={userName} width={40} height={40} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
-              </div>
+              </button>
             }
           />
 

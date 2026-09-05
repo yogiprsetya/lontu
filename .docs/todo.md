@@ -96,7 +96,7 @@
 
 ## Phase 3: Categories and Budgets
 
-- [ ] **Task 7: Manage user-owned categories**
+- [x] **Task 7: Manage user-owned categories**
   - Acceptance: Authenticated category CRUD validates ownership; users can create, rename, and archive categories; archived categories remain visible on history but are excluded from new expense choices.
   - Verify: Add category validator/route tests; run `pnpm test` and `pnpm lint`; manually exercise category management at 375px width.
   - Depends on: Tasks 1–6

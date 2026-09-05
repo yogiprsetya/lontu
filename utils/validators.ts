@@ -26,7 +26,36 @@ export interface ValidatedExpenseUpdateInput {
   spentAt?: Date;
 }
 
+interface CategoryInput {
+  name: string;
+  color?: string | null;
+}
+
+interface ValidatedCategoryInput {
+  name: string;
+  color?: string;
+}
+
 const MAX_EXPENSE_AMOUNT = 2147483647;
+const CATEGORY_NAME_MAX_LENGTH = 100;
+const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+export const validateCategoryInput = (input: CategoryInput): ValidatedCategoryInput => {
+  if (typeof input.name !== 'string' || input.name.trim().length === 0) {
+    throw new Error('name is required');
+  }
+
+  const name = input.name.trim();
+  if (name.length > CATEGORY_NAME_MAX_LENGTH) {
+    throw new Error('name is too long');
+  }
+
+  if (input.color !== undefined && input.color !== null && !HEX_COLOR_PATTERN.test(input.color)) {
+    throw new Error('color must be a hex color');
+  }
+
+  return { name, ...(input.color ? { color: input.color } : {}) };
+};
 
 export const validateExpenseInput = (input: ExpenseInput): ValidatedExpenseInput => {
   if (!input.categoryName || typeof input.categoryName !== 'string' || input.categoryName.trim().length === 0) {

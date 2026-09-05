@@ -142,7 +142,7 @@ The completed Tasks 1–6 above are the baseline. The following tasks are the pr
 
 ### Phase 3: Categories and Budgets
 
-#### Task 7: Manage user-owned categories
+#### Task 7: Manage user-owned categories [x]
 
 **Description:** Add an authenticated category API and management UI so a user can create, rename, and archive custom categories without exposing another user's data. Preserve archived categories on existing expenses and exclude them from quick-add choices by default.
 

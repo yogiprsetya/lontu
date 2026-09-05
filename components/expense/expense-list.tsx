@@ -2,6 +2,7 @@
 
 import { ExpenseCard } from './expense-card';
 import { useExpenseList } from './use-expense-list';
+import { useCategoryList } from '~/components/category/use-category-list';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
@@ -61,6 +62,7 @@ export const groupExpensesByDate = (items: ExpenseListItem[]): GroupedExpenses[]
 
 export const ExpenseList = () => {
   const { data, error, isLoading, mutate } = useExpenseList();
+  const { categories } = useCategoryList();
   const expenses = data?.expenses ?? [];
 
   const grouped = groupExpensesByDate(expenses);
@@ -87,7 +89,9 @@ export const ExpenseList = () => {
               <ExpenseCard
                 key={expense.id}
                 expense={expense}
-                categories={DEFAULT_CATEGORIES}
+                categories={
+                  categories.length > 0 ? categories.map((category) => category.name) : DEFAULT_CATEGORIES
+                }
                 onMutate={() => mutate()}
               />
             ))}

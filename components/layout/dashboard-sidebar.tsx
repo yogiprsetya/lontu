@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
 } from '~/components/ui/sidebar';
 
-const menuItems = [
+const navigationItems = [
   { label: 'Overview', href: '/app', icon: RiBarChartBoxLine },
   { label: 'Spending', href: '/app/spending', icon: RiCashLine },
 ];
@@ -48,7 +48,7 @@ export const DashboardSidebar = () => {
 
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {menuItems.map((item) => (
+              {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     render={<a href={item.href} className="font-semibold" />}

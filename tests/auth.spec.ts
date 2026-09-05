@@ -20,3 +20,10 @@ test('login page is the default export', async () => {
 
   assert.equal(typeof pageModule.default, 'function', 'login page default export is a function');
 });
+
+test('server auth helpers expose the shared session and user id boundary', async () => {
+  const authModule = await import('../utils/server-auth');
+
+  assert.equal(typeof authModule.getServerAuthSession, 'function');
+  assert.equal(typeof authModule.getServerUserId, 'function');
+});

@@ -7,10 +7,11 @@ const fetcher = async <T,>(url: string): Promise<T> => {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || 'Request failed');
+    throw new Error(data.error?.message || 'Request failed');
   }
 
-  return response.json();
+  const data = await response.json();
+  return data.data ?? data;
 };
 
 export const SwrProvider = ({ children }: { children: React.ReactNode }) => {

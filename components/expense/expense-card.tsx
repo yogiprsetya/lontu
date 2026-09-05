@@ -60,7 +60,7 @@ export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update expense');
+        throw new Error(data.error?.message || 'Failed to update expense');
       }
 
       setIsEditing(false);
@@ -83,7 +83,7 @@ export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to delete expense');
+        throw new Error(data.error?.message || 'Failed to delete expense');
       }
 
       onMutate();

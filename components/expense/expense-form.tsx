@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { mutate } from 'swr';
 import { Button } from '~/components/ui/button';
+import { useCategoryList } from '~/components/category/use-category-list';
 
 interface ExpenseFormProps {
   categories?: string[];
@@ -23,6 +24,9 @@ const formatRupiah = (amount: number): string => {
 };
 
 export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
+  const { categories: savedCategories } = useCategoryList();
+  const availableCategories =
+    savedCategories.length > 0 ? savedCategories.map((category) => category.name) : categories;
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -52,16 +56,17 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save expense');
+        throw new Error(data.error?.message || 'Failed to save expense');
       }
 
+      const expense = data.data?.expense ?? data.expense;
       setRecent((prev) => [
         {
-          id: data.expense.id,
-          amount: data.expense.amount,
+          id: expense.id,
+          amount: expense.amount,
           categoryName: selectedCategory,
-          note: data.expense.note,
-          spentAt: data.expense.spentAt,
+          note: expense.note,
+          spentAt: expense.spentAt,
         },
         ...prev,
       ]);
@@ -81,7 +86,7 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
       <section>
         <h2 className="text-foreground mb-2.5 text-base font-semibold">Categories</h2>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {categories.map((category) => {
+          {availableCategories.map((category) => {
             const isSelected = selectedCategory === category;
 
             return (

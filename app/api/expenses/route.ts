@@ -1,19 +1,18 @@
 import { NextRequest } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { and, desc, eq } from 'drizzle-orm';
-import { authOptions } from '~/auth';
 import { db } from '~/config/db';
 import { categoriesTable, expensesTable } from '~/db/schema';
-import { badRequestResponse, expenseResponse, expensesResponse, unauthorizedResponse } from '~/utils/api-response';
+import {
+  badRequestResponse,
+  collectionResponse,
+  resourceResponse,
+  unauthorizedResponse,
+} from '~/utils/api-response';
+import { getServerUserId } from '~/utils/server-auth';
 import { validateExpenseInput } from '~/utils/validators';
 
-interface SessionUser {
-  id?: number;
-}
-
 export const GET = async () => {
-  const session = await getServerSession(authOptions);
-  const userId = (session?.user as SessionUser | undefined)?.id;
+  const userId = await getServerUserId();
   if (!userId) {
     return unauthorizedResponse();
   }
@@ -34,12 +33,11 @@ export const GET = async () => {
     .where(eq(expensesTable.userId, userId))
     .orderBy(desc(expensesTable.spentAt));
 
-  return expensesResponse(rows);
+  return collectionResponse('expenses', rows);
 };
 
 export const POST = async (request: NextRequest) => {
-  const session = await getServerSession(authOptions);
-  const userId = (session?.user as SessionUser | undefined)?.id;
+  const userId = await getServerUserId();
 
   if (!userId) {
     return unauthorizedResponse();
@@ -65,7 +63,13 @@ export const POST = async (request: NextRequest) => {
   const existingCategory = await db
     .select()
     .from(categoriesTable)
-    .where(and(eq(categoriesTable.userId, userId), eq(categoriesTable.name, validated.categoryName)))
+    .where(
+      and(
+        eq(categoriesTable.userId, userId),
+        eq(categoriesTable.name, validated.categoryName),
+        eq(categoriesTable.isArchived, 0)
+      )
+    )
     .limit(1);
 
   let categoryId: number;
@@ -88,5 +92,5 @@ export const POST = async (request: NextRequest) => {
     })
     .returning();
 
-  return expenseResponse(inserted[0], 201);
+  return resourceResponse('expense', inserted[0], 201);
 };

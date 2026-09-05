@@ -49,3 +49,26 @@ test('monthly budget totals combine budgets and expenses by category', async () 
     ]
   );
 });
+
+test('budget burn states expose neutral, near-limit, and over-limit amounts', async () => {
+  const { getBudgetBurnState } = await import('../utils/budget-math');
+
+  assert.deepEqual(getBudgetBurnState({ budget: 0, spent: 100 }), {
+    percentage: 0,
+    remaining: 0,
+    overage: 0,
+    status: 'neutral',
+  });
+  assert.deepEqual(getBudgetBurnState({ budget: 500000, spent: 400000 }), {
+    percentage: 80,
+    remaining: 100000,
+    overage: 0,
+    status: 'near-limit',
+  });
+  assert.deepEqual(getBudgetBurnState({ budget: 500000, spent: 550000 }), {
+    percentage: 110,
+    remaining: 0,
+    overage: 50000,
+    status: 'over-limit',
+  });
+});

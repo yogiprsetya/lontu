@@ -108,7 +108,7 @@
   - Depends on: Task 7
   - Files: `app/api/budgets/`, `utils/validators.ts`, `components/budget/`, `components/dashboard/spending-overview.tsx`, `tests/budget.spec.ts`
 
-- [ ] **Task 9: Add budget burn warnings**
+- [x] **Task 9: Add budget burn warnings**
   - Acceptance: Current-month integer math shows burn percentage and remaining/overage amounts; near-limit and over-limit states are visible; unbudgeted categories remain neutral.
   - Verify: Test month boundaries and limit states; manually verify mobile and desktop warning presentation.
   - Depends on: Task 8

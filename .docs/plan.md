@@ -178,15 +178,15 @@ The completed Tasks 1–6 above are the baseline. The following tasks are the pr
 
 **Estimated scope:** M.
 
-#### Task 9: Add budget burn warnings to the core flow
+#### Task 9: Add budget burn warnings to the core flow [x]
 
 **Description:** Calculate current-month spend against each budget and expose clear near-limit and over-limit states in the dashboard without changing expense logging behavior.
 
 **Acceptance criteria:**
 
-- [ ] Burn percentage and remaining/overage amounts use integer IDR math and current calendar month boundaries.
-- [ ] Warning states appear at the agreed near-limit threshold and when spending exceeds budget.
-- [ ] Categories without a budget remain usable and do not produce misleading warnings.
+- [x] Burn percentage and remaining/overage amounts use integer IDR math and current calendar month boundaries.
+- [x] Warning states appear at the agreed near-limit threshold and when spending exceeds budget.
+- [x] Categories without a budget remain usable and do not produce misleading warnings.
 
 **Verification:** Unit-test month boundaries, zero/large budgets, exact-limit, near-limit, and over-limit cases; manually verify warning states with representative data at mobile and desktop widths.
 

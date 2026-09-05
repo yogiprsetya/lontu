@@ -16,6 +16,28 @@ interface BudgetTotal {
   spent: number;
 }
 
+type BudgetBurnStatus = 'neutral' | 'on-track' | 'near-limit' | 'over-limit';
+
+interface BudgetBurnState {
+  percentage: number;
+  remaining: number;
+  overage: number;
+  status: BudgetBurnStatus;
+}
+
+export const getBudgetBurnState = ({ budget, spent }: Pick<BudgetTotal, 'budget' | 'spent'>): BudgetBurnState => {
+  if (budget <= 0) {
+    return { percentage: 0, remaining: 0, overage: 0, status: 'neutral' };
+  }
+
+  const percentage = Math.round((spent / budget) * 100);
+  const remaining = Math.max(budget - spent, 0);
+  const overage = Math.max(spent - budget, 0);
+  const status = spent > budget ? 'over-limit' : percentage >= 80 ? 'near-limit' : 'on-track';
+
+  return { percentage, remaining, overage, status };
+};
+
 export const getMonthlyBudgetTotals = (
   budgets: BudgetTotalInput[],
   expenses: ExpenseTotalInput[]

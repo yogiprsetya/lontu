@@ -80,10 +80,10 @@ export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <section>
-        <h2 className="text-foreground mb-3 text-base font-semibold">Categories</h2>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+        <h2 className="text-foreground mb-2.5 text-base font-semibold">Categories</h2>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {categories.map((category) => {
             const isSelected = selectedCategory === category;
 
@@ -94,7 +94,7 @@ export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }
                 variant={isSelected ? 'default' : 'outline'}
                 aria-pressed={isSelected}
                 onClick={() => setSelectedCategory(category)}
-                className="flex h-auto flex-col items-center gap-2 py-3"
+                className="flex h-auto flex-col items-center gap-1.5 py-2.5"
               >
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
@@ -127,7 +127,7 @@ export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0"
-          className="bg-muted text-foreground focus:ring-ring h-12 rounded-lg px-4 text-lg outline-none focus:ring-2"
+          className="bg-muted text-foreground focus:ring-ring h-11 rounded-lg px-4 text-lg outline-none focus:ring-2"
         />
       </section>
 

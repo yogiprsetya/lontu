@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { RiCheckLine, RiCloseLine, RiDeleteBinLine, RiEditLine } from '@remixicon/react';
 import { Button } from '~/components/ui/button';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
@@ -211,7 +212,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
               disabled={isSaving}
               aria-label="Confirm delete"
             >
-              ✓
+              <RiCheckLine aria-hidden="true" />
             </Button>
             <Button
               type="button"
@@ -221,7 +222,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
               disabled={isSaving}
               aria-label="Cancel delete"
             >
-              ✕
+              <RiCloseLine aria-hidden="true" />
             </Button>
           </div>
         ) : (
@@ -233,7 +234,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
               onClick={() => setIsEditing(true)}
               aria-label="Edit expense"
             >
-              ✎
+              <RiEditLine aria-hidden="true" />
             </Button>
             <Button
               type="button"
@@ -242,7 +243,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
               onClick={() => setIsConfirmingDelete(true)}
               aria-label="Delete expense"
             >
-              🗑
+              <RiDeleteBinLine aria-hidden="true" />
             </Button>
           </div>
         )}

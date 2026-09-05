@@ -16,11 +16,12 @@ Pick the next pending task from the plan. Then:
 7. Write a descriptive commit message
 8. Mark the task complete and stop
 
-Additional skill (pick with related task only):
+Additional skill (pick if relate only):
 
-- frontend related task -> gpt-taste design-taste-frontend
-- backend related task -> api-and-interface-design
-- responsive web related task -> imagegen-frontend-mobile
+- Frontend related task -> `gpt-taste` `design-taste-frontend`
+- Backend related task -> `api-and-interface-design`
+- Responsive web related task -> `imagegen-frontend-mobile`
+- API integration -> `swr`
 
 If any step fails, follow the debugging-and-error-recovery skill.
 

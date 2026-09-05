@@ -1,8 +1,22 @@
 'use client';
 
-import { RiCalendarLine, RiDownloadLine } from '@remixicon/react';
+import { RiCalendarLine } from '@remixicon/react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useSession } from 'next-auth/react';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu';
+
+const items = [
+  { label: 'Setting', href: '/app/setting' },
+  { label: 'Subscription', href: '/app/subscription' },
+];
 
 export const OverviewHeader = () => {
   const { data } = useSession();
@@ -30,32 +44,35 @@ export const OverviewHeader = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="bg-card text-foreground hidden h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium shadow-sm sm:flex"
-        >
+        <Button size="lg" variant="outline">
           <RiCalendarLine aria-hidden="true" className="size-4" />
           September 2026
-        </button>
+        </Button>
 
-        <button
-          type="button"
-          aria-label="Export report"
-          className="bg-card text-foreground hidden size-9 items-center justify-center rounded-lg border shadow-sm sm:flex"
-        >
-          <RiDownloadLine aria-hidden="true" className="size-4" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <div className="bg-primary flex size-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold">
+                <Avatar>
+                  <AvatarImage src={data?.user?.image ?? ''} alt={userName} width={40} height={40} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+              </div>
+            }
+          />
 
-        <div className="bg-primary flex size-10 items-center justify-center rounded-full text-sm font-semibold">
-          {data?.user?.image ? (
-            <Avatar>
-              <AvatarImage src={data?.user.image} alt={userName} width={40} height={40} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          ) : (
-            initials
-          )}
-        </div>
+          <DropdownMenuContent className="w-48" align="end">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+
+              {items.map((item) => (
+                <DropdownMenuItem key={item.href} render={<a href={item.href} />}>
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

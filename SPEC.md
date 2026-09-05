@@ -71,6 +71,10 @@ pnpm test
 app/
   api/                → API routes
   app/                → Main apps
+    (overview)/
+    spending/
+    budget/
+    recurring/
   login/              → Auth page
   globals.css         → Global styles / Tailwind imports
   layout.tsx          → Root layout

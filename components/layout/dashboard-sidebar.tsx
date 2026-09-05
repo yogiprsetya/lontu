@@ -1,10 +1,15 @@
 'use client';
 
-import { RiBarChartBoxLine, RiCashLine, RiRedPacketLine, RiSettingsLine } from '@remixicon/react';
+import {
+  RiBarChartBoxLine,
+  RiCashLine,
+  RiRedPacketLine,
+  RiRefund2Line,
+  RiShoppingBasketLine,
+} from '@remixicon/react';
 import {
   Sidebar,
   SidebarContent,
-  // SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,11 +19,15 @@ import {
   SidebarMenuItem,
 } from '~/components/ui/sidebar';
 
-const navigationItems = [
+const menuItems = [
   { label: 'Overview', href: '/app', icon: RiBarChartBoxLine },
   { label: 'Spending', href: '/app/spending', icon: RiCashLine },
+];
+
+const planningItems = [
   { label: 'Budget', href: '/app/budget', icon: RiRedPacketLine },
-  { label: 'Settings', href: '#settings', icon: RiSettingsLine },
+  { label: 'Categories', href: '/app/categories', icon: RiShoppingBasketLine },
+  { label: 'Recurring', href: '/app/recurring', icon: RiRefund2Line },
 ];
 
 export const DashboardSidebar = () => {
@@ -39,7 +48,27 @@ export const DashboardSidebar = () => {
 
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {navigationItems.map((item) => (
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton
+                    render={<a href={item.href} className="font-semibold" />}
+                    tooltip={item.label}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Planning</SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {planningItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     render={<a href={item.href} className="font-semibold" />}
@@ -54,12 +83,6 @@ export const DashboardSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      {/* <SidebarFooter>
-        <p className="text-muted-foreground px-2 text-xs group-data-[collapsible=icon]:hidden">
-          Track it. Understand it.
-        </p>
-      </SidebarFooter> */}
     </Sidebar>
   );
 };

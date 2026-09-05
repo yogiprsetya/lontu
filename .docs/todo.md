@@ -127,15 +127,15 @@
   - Depends on: Tasks 7–9
   - Files: `utils/recurrence.ts`, `utils/validators.ts`, `app/api/expenses/[id]/route.ts`, `app/api/recurring/`, `components/expense/expense-form.tsx`, `tests/recurring.spec.ts`
 
-- [ ] **Task 11: Deliver subscriptions view and period tracking**
+- [x] **Task 11: Deliver subscriptions view and period tracking**
   - Acceptance: Active subscriptions show amount/category/frequency/next occurrence; users can deactivate items; current-period marking creates one linked expense idempotently.
-  - Verify: Test next-occurrence and idempotency calculations; run `pnpm test`, `pnpm lint`, and `pnpm build`; manually verify mobile navigation and repeated marking.
+  - Verify: Test next-occurrence and idempotency calculations; run `pnpm test`, `pnpm lint`, and `pnpm build`; manually verify mobile navigation and repeated marking. Automated verification complete; mobile manual review remains pending.
   - Depends on: Task 10
   - Files: `app/app/recurring/`, `app/api/recurring/`, `components/subscription/`, `utils/recurrence.ts`, `tests/recurring.spec.ts`
 
 ## Checkpoint: Recurring Lane
 
-- [ ] Recurrence boundary cases and repeated period marking pass tests.
+- [x] Recurrence boundary cases and repeated period marking pass tests.
 - [ ] Subscriptions are discoverable and usable at 375px width.
 
 ## Phase 5: PWA and Offline Read Support

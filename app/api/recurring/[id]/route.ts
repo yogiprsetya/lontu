@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { and, eq } from 'drizzle-orm';
 import { db } from '~/config/db';
-import { categoriesTable, recurringConfigsTable } from '~/db/schema';
+import { categoriesTable, expensesTable, recurringConfigsTable } from '~/db/schema';
 import {
   badRequestResponse,
   noContentResponse,
@@ -11,6 +11,7 @@ import {
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
 import { validateRecurringUpdateInput } from '~/utils/validators';
+import { getRecurringPeriodKey } from '~/utils/recurrence';
 
 const getRecurringId = async (context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params;
@@ -76,6 +77,58 @@ export const PATCH = async (request: NextRequest, context: { params: Promise<{ i
   return resourceResponse('recurring', recurring);
 };
 
+export const POST = async (_request: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const userId = await getServerUserId();
+  if (!userId) return unauthorizedResponse();
+
+  const recurringId = await getRecurringId(context);
+  if (!recurringId) return badRequestResponse('Invalid id');
+
+  const [recurring] = await db
+    .select()
+    .from(recurringConfigsTable)
+    .where(and(eq(recurringConfigsTable.id, recurringId), eq(recurringConfigsTable.userId, userId)))
+    .limit(1);
+  if (!recurring) return notFoundResponse();
+  if (!recurring.isActive) return badRequestResponse('Recurring expense is inactive');
+
+  const spentAt = new Date();
+  if (spentAt < recurring.startDate) return badRequestResponse('Recurring expense has not started');
+  const recurringPeriod = getRecurringPeriodKey(spentAt, recurring.frequency as 'monthly' | 'yearly');
+  const [expense] = await db
+    .insert(expensesTable)
+    .values({
+      userId,
+      categoryId: recurring.categoryId,
+      amount: recurring.amount,
+      note: recurring.note,
+      spentAt,
+      recurringConfigId: recurringId,
+      recurringPeriod,
+    })
+    .onConflictDoNothing({
+      target: [expensesTable.recurringConfigId, expensesTable.recurringPeriod],
+    })
+    .returning();
+
+  if (expense) return resourceResponse('expense', expense, 201);
+
+  const [existing] = await db
+    .select()
+    .from(expensesTable)
+    .where(
+      and(
+        eq(expensesTable.userId, userId),
+        eq(expensesTable.recurringConfigId, recurringId),
+        eq(expensesTable.recurringPeriod, recurringPeriod)
+      )
+    )
+    .limit(1);
+  if (!existing) return notFoundResponse();
+
+  return resourceResponse('expense', existing);
+};
+
 export const DELETE = async (_request: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const userId = await getServerUserId();
   if (!userId) return unauthorizedResponse();
@@ -83,11 +136,12 @@ export const DELETE = async (_request: NextRequest, context: { params: Promise<{
   const recurringId = await getRecurringId(context);
   if (!recurringId) return badRequestResponse('Invalid id');
 
-  const deleted = await db
-    .delete(recurringConfigsTable)
+  const deactivated = await db
+    .update(recurringConfigsTable)
+    .set({ isActive: 0 })
     .where(and(eq(recurringConfigsTable.id, recurringId), eq(recurringConfigsTable.userId, userId)))
     .returning({ id: recurringConfigsTable.id });
-  if (deleted.length === 0) return notFoundResponse();
+  if (deactivated.length === 0) return notFoundResponse();
 
   return noContentResponse();
 };

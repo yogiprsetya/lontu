@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { and, eq } from 'drizzle-orm';
 import { db } from '~/config/db';
-import { categoriesTable, expensesTable, recurringConfigsTable } from '~/db/schema';
+import { categoriesTable, expensesTable } from '~/db/schema';
 import {
   badRequestResponse,
   collectionResponse,
@@ -109,41 +109,6 @@ export const PATCH = async (request: NextRequest, context: { params: Promise<{ i
           .where(and(eq(expensesTable.id, id), eq(expensesTable.userId, userId)))
           .returning()
       : existing;
-
-  if (validated.recurring !== undefined) {
-    const expense = updated[0];
-    const recurringValues = {
-      userId,
-      expenseId: expense.id,
-      categoryId: expense.categoryId,
-      amount: expense.amount,
-      frequency: validated.recurring.frequency ?? 'monthly',
-      startDate: validated.recurring.startDate ?? expense.spentAt,
-      ...(validated.recurring.note !== undefined ? { note: validated.recurring.note } : {}),
-    };
-    const existingRecurring = await db
-      .select({ id: recurringConfigsTable.id })
-      .from(recurringConfigsTable)
-      .where(and(eq(recurringConfigsTable.expenseId, id), eq(recurringConfigsTable.userId, userId)))
-      .limit(1);
-
-    if (existingRecurring.length > 0) {
-      await db
-        .update(recurringConfigsTable)
-        .set({
-          ...(validated.recurring.frequency !== undefined ? { frequency: validated.recurring.frequency } : {}),
-          ...(validated.recurring.startDate !== undefined ? { startDate: validated.recurring.startDate } : {}),
-          ...(validated.recurring.note !== undefined ? { note: validated.recurring.note } : {}),
-          categoryId: expense.categoryId,
-          amount: expense.amount,
-        })
-        .where(
-          and(eq(recurringConfigsTable.id, existingRecurring[0].id), eq(recurringConfigsTable.userId, userId))
-        );
-    } else {
-      await db.insert(recurringConfigsTable).values(recurringValues);
-    }
-  }
 
   return collectionResponse('expense', updated[0]);
 };

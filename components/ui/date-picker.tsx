@@ -1,20 +1,20 @@
 'use client';
 
-import * as React from 'react';
 import { format } from 'date-fns';
-
 import { Button } from '~/components/ui/button';
 import { Calendar } from '~/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import { RiCalendar2Line } from '@remixicon/react';
+import type { ComponentProps } from 'react';
 
 interface DatePickerProps {
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
+  disabled?: ComponentProps<typeof Calendar>['disabled'];
 }
 
-export function DatePicker({ value, onChange, placeholder = 'Pick a date' }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = 'Pick a date', disabled }: DatePickerProps) {
   return (
     <Popover>
       <PopoverTrigger
@@ -32,7 +32,7 @@ export function DatePicker({ value, onChange, placeholder = 'Pick a date' }: Dat
       </PopoverTrigger>
 
       <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={value} onSelect={onChange} />
+        <Calendar mode="single" selected={value} onSelect={onChange} disabled={disabled} />
       </PopoverContent>
     </Popover>
   );

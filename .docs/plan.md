@@ -223,15 +223,15 @@ The completed Tasks 1–6 above are the baseline. The following tasks are the pr
 
 **Estimated scope:** M.
 
-#### Task 11: Deliver the subscriptions view and period tracking
+#### Task 11: Deliver the subscriptions view and period tracking [x]
 
 **Description:** Add a dedicated recurring view showing active subscriptions, next expected occurrence, and a user action to mark the current period as spent without creating duplicate configurations.
 
 **Acceptance criteria:**
 
-- [ ] Active recurring expenses are listed with amount, category, frequency, and next occurrence.
-- [ ] Users can deactivate a recurring item and identify which subscriptions need cancellation outside the app.
-- [ ] “Mark this period as spent” creates one correctly linked expense and is idempotent for that period.
+- [x] Active recurring expenses are listed with amount, category, frequency, and next occurrence.
+- [x] Users can deactivate a recurring item and identify which subscriptions need cancellation outside the app.
+- [x] “Mark this period as spent” creates one correctly linked expense and is idempotent for that period.
 
 **Verification:** Unit-test next-occurrence and idempotency calculations; add route contract tests; run `pnpm test`, `pnpm lint`, and `pnpm build`; manually verify the recurring lane from mobile navigation.
 
@@ -243,8 +243,8 @@ The completed Tasks 1–6 above are the baseline. The following tasks are the pr
 
 ### Checkpoint: Recurring Lane
 
-- [ ] Recurrence calculations cover monthly/yearly boundary cases and pass tests.
-- [ ] Current-period marking cannot duplicate a charge on repeated requests.
+- [x] Recurrence calculations cover monthly/yearly boundary cases and pass tests.
+- [x] Current-period marking cannot duplicate a charge on repeated requests.
 - [ ] Subscriptions are discoverable from the app shell and usable at 375px width.
 - [ ] Human review confirms the view supports identifying forgotten subscriptions; cancellation remains an external user action in v1.
 

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, or } from 'drizzle-orm';
 import { db } from '~/config/db';
 import { categoriesTable, expensesTable, recurringConfigsTable } from '~/db/schema';
 import {
@@ -11,15 +11,19 @@ import {
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
 import { validateRecurringInput } from '~/utils/validators';
+import { getNextOccurrence, getRecurringPeriodKey } from '~/utils/recurrence';
 
 export const GET = async () => {
   const userId = await getServerUserId();
   if (!userId) return unauthorizedResponse();
 
+  const currentDate = new Date();
+  const currentMonth = getRecurringPeriodKey(currentDate, 'monthly');
+  const currentYear = getRecurringPeriodKey(currentDate, 'yearly');
+
   const recurring = await db
     .select({
       id: recurringConfigsTable.id,
-      expenseId: recurringConfigsTable.expenseId,
       categoryId: recurringConfigsTable.categoryId,
       categoryName: categoriesTable.name,
       amount: recurringConfigsTable.amount,
@@ -27,15 +31,34 @@ export const GET = async () => {
       startDate: recurringConfigsTable.startDate,
       note: recurringConfigsTable.note,
       isActive: recurringConfigsTable.isActive,
+      markedExpenseId: expensesTable.id,
       createdAt: recurringConfigsTable.createdAt,
       updatedAt: recurringConfigsTable.updatedAt,
     })
     .from(recurringConfigsTable)
     .innerJoin(categoriesTable, eq(recurringConfigsTable.categoryId, categoriesTable.id))
+    .leftJoin(
+      expensesTable,
+      and(
+        eq(expensesTable.recurringConfigId, recurringConfigsTable.id),
+        or(
+          and(eq(recurringConfigsTable.frequency, 'monthly'), eq(expensesTable.recurringPeriod, currentMonth)),
+          and(eq(recurringConfigsTable.frequency, 'yearly'), eq(expensesTable.recurringPeriod, currentYear))
+        )
+      )
+    )
     .where(eq(recurringConfigsTable.userId, userId))
     .orderBy(asc(recurringConfigsTable.startDate));
 
-  return collectionResponse('recurring', recurring);
+  return collectionResponse(
+    'recurring',
+    recurring.map((item) => ({
+      ...item,
+      nextOccurrence: item.isActive
+        ? getNextOccurrence(item.startDate, item.frequency as 'monthly' | 'yearly')
+        : null,
+    }))
+  );
 };
 
 export const POST = async (request: NextRequest) => {
@@ -68,15 +91,6 @@ export const POST = async (request: NextRequest) => {
     )
     .limit(1);
   if (category.length === 0) return errorResponse('Category not found', 404);
-
-  if (validated.expenseId !== undefined) {
-    const expense = await db
-      .select({ id: expensesTable.id })
-      .from(expensesTable)
-      .where(and(eq(expensesTable.id, validated.expenseId), eq(expensesTable.userId, userId)))
-      .limit(1);
-    if (expense.length === 0) return errorResponse('Expense not found', 404);
-  }
 
   const [recurring] = await db
     .insert(recurringConfigsTable)

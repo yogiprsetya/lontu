@@ -8,21 +8,11 @@ interface ExpenseInput {
 type RecurringFrequency = 'monthly' | 'yearly';
 
 interface RecurringInput {
-  expenseId?: number | string;
   categoryId: number | string;
   amount: number | string;
   frequency: string;
   startDate: string | Date;
   note?: string | null;
-}
-
-interface ValidatedRecurringInput {
-  expenseId?: number;
-  categoryId: number;
-  amount: number;
-  frequency: RecurringFrequency;
-  startDate: Date;
-  note?: string;
 }
 
 interface RecurringUpdateInput {
@@ -31,6 +21,14 @@ interface RecurringUpdateInput {
   frequency?: string;
   startDate?: string | Date;
   note?: string | null;
+}
+
+interface ValidatedRecurringInput {
+  categoryId: number;
+  amount: number;
+  frequency: RecurringFrequency;
+  startDate: Date;
+  note?: string;
 }
 
 interface ValidatedRecurringUpdateInput {
@@ -53,7 +51,6 @@ interface ExpenseUpdateInput {
   amount?: string | number;
   note?: string;
   spentAt?: string | Date;
-  recurring?: RecurringUpdateInput;
 }
 
 interface ValidatedExpenseUpdateInput {
@@ -61,7 +58,6 @@ interface ValidatedExpenseUpdateInput {
   amount?: number;
   note?: string;
   spentAt?: Date;
-  recurring?: ValidatedRecurringUpdateInput;
 }
 
 interface CategoryInput {
@@ -102,7 +98,8 @@ interface ValidatedBudgetUpdateInput {
   month?: number;
 }
 
-const MAX_EXPENSE_AMOUNT = 2147483647;
+const MAX_INTEGER_VALUE = 2147483647;
+const MAX_EXPENSE_AMOUNT = MAX_INTEGER_VALUE;
 const CATEGORY_NAME_MAX_LENGTH = 100;
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 const RECURRING_FREQUENCIES = ['monthly', 'yearly'] as const;
@@ -110,7 +107,9 @@ const RECURRING_FREQUENCIES = ['monthly', 'yearly'] as const;
 const parsePositiveInteger = (value: number | string | undefined, field: string): number => {
   if (value === undefined || value === null || value === '') throw new Error(`${field} is required`);
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`${field} must be a positive integer`);
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > MAX_INTEGER_VALUE) {
+    throw new Error(`${field} must be a positive integer within the database range`);
+  }
   return parsed;
 };
 
@@ -145,7 +144,6 @@ export const validateRecurringInput = (input: RecurringInput): ValidatedRecurrin
     startDate: validateDate(input.startDate, 'startDate'),
   };
 
-  if (input.expenseId !== undefined) result.expenseId = parsePositiveInteger(input.expenseId, 'expenseId');
   if (input.note !== undefined && input.note !== null) result.note = String(input.note);
   return result;
 };
@@ -264,10 +262,6 @@ export const validateExpenseUpdateInput = (input: ExpenseUpdateInput): Validated
       throw new Error('spentAt is invalid');
     }
     result.spentAt = spentAt;
-  }
-
-  if (input.recurring !== undefined) {
-    result.recurring = validateRecurringUpdateInput(input.recurring);
   }
 
   return result;

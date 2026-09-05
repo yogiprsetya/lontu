@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -45,27 +45,37 @@ export const budgetsTable = pgTable('budgets', {
     .$onUpdate(() => new Date()),
 });
 
-export const expensesTable = pgTable('expenses', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => usersTable.id, { onDelete: 'cascade' }),
-  categoryId: integer('category_id')
-    .notNull()
-    .references(() => categoriesTable.id, { onDelete: 'cascade' }),
-  amount: integer('amount').notNull(),
-  note: text('note'),
-  spentAt: timestamp('spent_at', { withTimezone: true }).notNull().defaultNow(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
+export const expensesTable = pgTable(
+  'expenses',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    categoryId: integer('category_id')
+      .notNull()
+      .references(() => categoriesTable.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(),
+    note: text('note'),
+    spentAt: timestamp('spent_at', { withTimezone: true }).notNull().defaultNow(),
+    recurringConfigId: integer('recurring_config_id'),
+    recurringPeriod: varchar('recurring_period', { length: 7 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    recurringPeriodUnique: uniqueIndex('expenses_recurring_period_unique').on(
+      table.recurringConfigId,
+      table.recurringPeriod
+    ),
+  })
+);
 
 export const recurringConfigsTable = pgTable('recurring_configs', {
   id: serial('id').primaryKey(),
-  expenseId: integer('expense_id').references(() => expensesTable.id, { onDelete: 'cascade' }),
   userId: integer('user_id')
     .notNull()
     .references(() => usersTable.id, { onDelete: 'cascade' }),

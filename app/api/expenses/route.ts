@@ -4,8 +4,8 @@ import { and, desc, eq } from 'drizzle-orm';
 import { authOptions } from '~/auth';
 import { db } from '~/config/db';
 import { categoriesTable, expensesTable } from '~/db/schema';
-import { badRequestResponse, expenseResponse, expensesResponse, unauthorizedResponse } from '~/lib/api-response';
-import { validateExpenseInput } from '~/lib/validators';
+import { badRequestResponse, expenseResponse, expensesResponse, unauthorizedResponse } from '~/utils/api-response';
+import { validateExpenseInput } from '~/utils/validators';
 
 interface SessionUser {
   id?: number;

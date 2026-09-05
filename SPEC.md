@@ -76,7 +76,8 @@ app/
   layout.tsx          → Root layout
   page.tsx            → landing page
 components/
-  _ui/                → shadcn/ui base components
+  ui/                 → shadcn/ui base components
+  layout/             → application shell
   expense/            → Expense-specific components
   budget/             → Budget-specific components
   subscription/       → Recurring/subscription components
@@ -90,7 +91,7 @@ db/
   schema.ts           → Database schema definition
   migrations/         → Migration files
 tests/
-  *.test.ts           → Unit / integration tests
+  *.spec.ts           → Unit / integration tests
 .docs/
   intent/             → Confirmed intent documents
   ideas/              → Architecture notes and decisions

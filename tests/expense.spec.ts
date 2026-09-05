@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 test('expense validator module exports validateExpenseInput', async () => {
-  const validators = await import('../lib/validators');
+  const validators = await import('../utils/validators');
 
   assert.equal(typeof validators.validateExpenseInput, 'function', 'validateExpenseInput is exported');
 });
 
 test('validateExpenseInput rejects invalid or non-positive amounts', async () => {
-  const { validateExpenseInput } = await import('../lib/validators');
+  const { validateExpenseInput } = await import('../utils/validators');
 
   assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: '' }), /amount/);
   assert.throws(() => validateExpenseInput({ categoryName: 'Food', amount: '0' }), /amount/);
@@ -18,7 +18,7 @@ test('validateExpenseInput rejects invalid or non-positive amounts', async () =>
 });
 
 test('validateExpenseInput accepts positive integer amount and returns parsed data', async () => {
-  const { validateExpenseInput } = await import('../lib/validators');
+  const { validateExpenseInput } = await import('../utils/validators');
 
   const valid = validateExpenseInput({
     categoryName: 'Food',

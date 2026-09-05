@@ -2,33 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 test('app dashboard page exports a default server component', async () => {
-  const pageModule = await import('../app/app/page');
+  const pageModule = await import('../app/app/(overview)/page');
 
   assert.equal(typeof pageModule.default, 'function', 'app/app/page.tsx exports a default function');
 });
 
-test('home shell component exports a default function', async () => {
-  const shellModule = await import('../components/dashboard/home-shell');
-
-  assert.equal(typeof shellModule.default, 'function', 'home-shell exports a default function');
-});
-
-test('home shell includes desktop navigation and an inset content area', async () => {
+test('app shell owns layout orchestration', async () => {
   const fs = await import('node:fs/promises');
-  const shellSource = await fs.readFile(
-    new URL('../components/dashboard/home-shell.tsx', import.meta.url),
-    'utf8'
-  );
+  const overviewPageSource = await fs.readFile(new URL('../app/app/(overview)/page.tsx', import.meta.url), 'utf8');
+  const appShellSource = await fs.readFile(new URL('../components/layout/app-shell.tsx', import.meta.url), 'utf8');
   const sidebarSource = await fs.readFile(
-    new URL('../components/dashboard/dashboard-sidebar.tsx', import.meta.url),
+    new URL('../components/layout/dashboard-sidebar.tsx', import.meta.url),
     'utf8'
   );
 
-  assert.match(shellSource, /SidebarProvider/);
-  assert.match(shellSource, /<Sidebar/);
-  assert.match(shellSource, /SidebarInset/);
-  assert.match(sidebarSource, /Add expense/);
-  assert.match(sidebarSource, /History/);
+  assert.match(overviewPageSource, /next\/dynamic/);
+  assert.match(overviewPageSource, /OverviewSkeleton/);
+  assert.match(appShellSource, /SidebarProvider/);
+  assert.match(appShellSource, /DashboardSidebar/);
+  assert.match(appShellSource, /SidebarInset/);
+  assert.match(appShellSource, /SidebarTrigger/);
+  assert.match(sidebarSource, /navigationItems/);
 });
 
 test('root page exports a default function', async () => {
@@ -39,7 +33,7 @@ test('root page exports a default function', async () => {
 
 test('root page renders the protected dashboard entry point', async () => {
   const rootPage = await import('../app/page');
-  const appPage = await import('../app/app/page');
+  const appPage = await import('../app/app/(overview)/page');
 
   assert.equal(rootPage.default, appPage.default, 'root and app routes share the dashboard page');
 });

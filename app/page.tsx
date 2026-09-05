@@ -1,1 +1,5 @@
-export { default } from './app/page';
+const LandingPage = () => {
+  return <p>Landing page coming soon</p>;
+};
+
+export default LandingPage;

@@ -42,7 +42,7 @@ test('expenses API route exposes GET and POST handlers', async () => {
 test('expense form component exports a default function', async () => {
   const formModule = await import('../components/expense/expense-form');
 
-  assert.equal(typeof formModule.default, 'function', 'expense-form exports default');
+  assert.equal(typeof formModule.ExpenseForm, 'function', 'expense-form exports');
 });
 
 test('expense detail API route exposes PATCH and DELETE handlers', async () => {
@@ -56,14 +56,14 @@ test('expense list and card components export defaults', async () => {
   const listModule = await import('../components/expense/expense-list');
   const cardModule = await import('../components/expense/expense-card');
 
-  assert.equal(typeof listModule.default, 'function', 'expense-list exports default');
-  assert.equal(typeof cardModule.default, 'function', 'expense-card exports default');
+  assert.equal(typeof listModule.ExpenseList, 'function', 'expense-list exports');
+  assert.equal(typeof cardModule.ExpenseCard, 'function', 'expense-card exports');
 });
 
 test('expense list refreshes when refreshKey changes', async () => {
   const listModule = await import('../components/expense/expense-list');
 
-  assert.equal(typeof listModule.default, 'function', 'expense-list component accepts refreshKey');
+  assert.equal(typeof listModule.ExpenseList, 'function', 'expense-list component accepts refreshKey');
 });
 
 test('groupExpensesByDate sorts history groups and items newest first', async () => {
@@ -106,5 +106,5 @@ test('groupExpensesByDate sorts history groups and items newest first', async ()
 test('expense dashboard component exports a default function', async () => {
   const dashboardModule = await import('../components/expense/expense-dashboard');
 
-  assert.equal(typeof dashboardModule.default, 'function', 'expense-dashboard exports default');
+  assert.equal(typeof dashboardModule.ExpenseDashboard, 'function', 'expense-dashboard exports');
 });

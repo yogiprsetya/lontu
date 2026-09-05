@@ -1,9 +1,9 @@
 'use client';
 
-import ExpenseForm from './expense-form';
-import ExpenseList from './expense-list';
+import { ExpenseForm } from './expense-form';
+import { ExpenseList } from './expense-list';
 
-const ExpenseDashboard = () => {
+export const ExpenseDashboard = () => {
   return (
     <div className="flex flex-col gap-8">
       <ExpenseForm />
@@ -15,5 +15,3 @@ const ExpenseDashboard = () => {
     </div>
   );
 };
-
-export default ExpenseDashboard;

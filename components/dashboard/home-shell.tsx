@@ -9,9 +9,9 @@ import {
   RiWallet3Line,
 } from '@remixicon/react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import ExpenseDashboard from '../expense/expense-dashboard';
+import { ExpenseDashboard } from '../expense/expense-dashboard';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../ui/sidebar';
-import DashboardSidebar from './dashboard-sidebar';
+import { DashboardSidebar } from './dashboard-sidebar';
 
 interface HomeShellProps {
   user: {
@@ -30,7 +30,7 @@ const metricCards = [
 const calendarDays = Array.from({ length: 30 }, (_, index) => index + 1);
 const chartBars = [22, 34, 28, 46, 38, 62, 58, 42, 28, 36, 48, 30];
 
-const HomeShell = ({ user }: HomeShellProps): ReactNode => {
+export const HomeShell = ({ user }: HomeShellProps): ReactNode => {
   const initials = user.name
     .split(' ')
     .map((part) => part[0])
@@ -47,6 +47,7 @@ const HomeShell = ({ user }: HomeShellProps): ReactNode => {
   return (
     <SidebarProvider>
       <DashboardSidebar />
+
       <SidebarInset>
         <main className="flex min-h-svh flex-col bg-[#f3f8fb] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
           <header className="mx-auto mb-6 flex w-full max-w-330 items-center justify-between lg:mb-7">
@@ -212,5 +213,3 @@ const HomeShell = ({ user }: HomeShellProps): ReactNode => {
     </SidebarProvider>
   );
 };
-
-export default HomeShell;

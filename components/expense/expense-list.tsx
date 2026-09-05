@@ -1,7 +1,7 @@
 'use client';
 
-import ExpenseCard from './expense-card';
-import useExpenseList from './use-expense-list';
+import { ExpenseCard } from './expense-card';
+import { useExpenseList } from './use-expense-list';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
@@ -59,7 +59,7 @@ export const groupExpensesByDate = (items: ExpenseListItem[]): GroupedExpenses[]
     }));
 };
 
-const ExpenseList = () => {
+export const ExpenseList = () => {
   const { data, error, isLoading, mutate } = useExpenseList();
   const expenses = data?.expenses ?? [];
 
@@ -97,5 +97,3 @@ const ExpenseList = () => {
     </section>
   );
 };
-
-export default ExpenseList;

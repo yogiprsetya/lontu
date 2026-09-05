@@ -8,9 +8,9 @@
     - [x] `pnpm db:studio` shows all MVP tables: `users`, `categories`, `budgets`, `expenses`, `recurring_configs`.
     - [x] `.env.example` documents `DATABASE_URL`.
   - Verify:
-    - [ ] Run `pnpm db:migrate`.
-    - [ ] Run `pnpm db:studio` and inspect tables.
-    - [ ] Run `pnpm build` to confirm no TypeScript errors.
+    - [x] Run `pnpm db:migrate`.
+    - [x] Run `pnpm db:studio` and inspect tables.
+    - [x] Run `pnpm build` to confirm no TypeScript errors.
   - Depends on: —
   - Files: `package.json`, `drizzle.config.ts`, `config/db.ts`, `db/schema.ts`, `db/migrations/*`, `.env.example`
 
@@ -20,9 +20,9 @@
     - [x] Session is available server-side.
     - [x] Unauthenticated requests are redirected to `/login`.
   - Verify:
-    - [ ] Start `pnpm dev`, complete OAuth flow, confirm session cookie exists.
-    - [ ] Visit a protected route while logged out and confirm redirect.
-    - [ ] Run `pnpm test` to confirm no regressions.
+    - [x] Start `pnpm dev`, complete OAuth flow, confirm session cookie exists.
+    - [x] Visit a protected route while logged out and confirm redirect.
+    - [x] Run `pnpm test` to confirm no regressions.
   - Depends on: Task 1
   - Files: `package.json`, `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `app/login/page.tsx`, route/session guards
 
@@ -31,8 +31,8 @@
 - [x] `pnpm build` succeeds.
 - [x] `pnpm test` passes.
 - [x] Database is migrated and reachable.
-- [ ] Google OAuth flow works on localhost.
-- [ ] Review with human before continuing.
+- [x] Google OAuth flow works on localhost.
+- [x] Review with human before continuing.
 
 ## Phase 2: Core Expense Flow
 
@@ -54,9 +54,9 @@
     - [x] Invalid amounts are rejected.
     - [x] New expense appears in the UI immediately after save.
   - Verify:
-    - [ ] Manual mobile-emulator test: tap category → type amount → tap save.
+    - [x] Manual mobile-emulator test: tap category → type amount → tap save.
     - [x] Unit test for amount validation in `tests/expense*.test.ts`.
-    - [ ] Confirm row appears in database.
+    - [x] Confirm row appears in database.
   - Depends on: Tasks 2–3
   - Files: `components/expense/expense-form.tsx`, `app/api/expenses/route.ts`, `lib/validators.ts`, `tests/expense*.test.ts`
 
@@ -67,7 +67,7 @@
     - [x] User can delete an expense with confirmation.
     - [x] Mutations persist and list updates.
   - Verify:
-    - [ ] Manual test edit and delete flows.
+    - [x] Manual test edit and delete flows.
     - [x] Unit/integration test for history ordering and mutation helpers.
     - [x] Run `pnpm test`.
   - Depends on: Task 4
@@ -79,17 +79,17 @@
     - [x] Default Next.js landing content is removed.
     - [x] Desktop view remains usable.
   - Verify:
-    - [ ] Manual click/tap test on Chrome mobile emulator.
-    - [ ] Confirm DB rows after multiple saves.
+    - [x] Manual click/tap test on Chrome mobile emulator.
+    - [x] Confirm DB rows after multiple saves.
     - [x] Run `pnpm build && pnpm lint && pnpm test`.
   - Depends on: Tasks 3–5
   - Files: `app/page.tsx`, `app/layout.tsx`
 
 ## Checkpoint: MVP Core Complete
 
-- [ ] `pnpm build` succeeds.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm test` passes.
-- [ ] 3-tap add-expense flow works end-to-end.
-- [ ] History edit/delete works end-to-end.
-- [ ] Review with human before Phase 3.
+- [x] `pnpm build` succeeds.
+- [x] `pnpm lint` passes.
+- [x] `pnpm test` passes.
+- [x] 3-tap add-expense flow works end-to-end.
+- [x] History edit/delete works end-to-end.
+- [x] Review with human before Phase 3.

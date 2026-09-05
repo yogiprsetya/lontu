@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '~/auth';
-import HomeShell from '~/components/dashboard/home-shell';
+import { HomeShell } from '~/components/dashboard/home-shell';
 
 const AppPage = async () => {
   const session = await getServerSession(authOptions);

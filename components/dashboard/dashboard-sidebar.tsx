@@ -7,6 +7,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -20,7 +21,7 @@ const navigationItems = [
   { label: 'Settings', href: '#settings', icon: RiSettingsLine },
 ];
 
-const DashboardSidebar = () => {
+export const DashboardSidebar = () => {
   return (
     <Sidebar collapsible="icon" variant="inset" className="[--sidebar-width:13rem]">
       <SidebarHeader className="p-4 pb-6">
@@ -34,6 +35,7 @@ const DashboardSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               {navigationItems.map((item) => (
@@ -57,5 +59,3 @@ const DashboardSidebar = () => {
     </Sidebar>
   );
 };
-
-export default DashboardSidebar;

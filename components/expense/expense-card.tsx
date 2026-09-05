@@ -31,7 +31,7 @@ const formatRupiah = (amount: number): string => {
   return `Rp${amount.toLocaleString('id-ID')}`;
 };
 
-const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate }: ExpenseCardProps) => {
+export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate }: ExpenseCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [amount, setAmount] = useState(String(expense.amount));
@@ -253,5 +253,3 @@ const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate }: Exp
     </li>
   );
 };
-
-export default ExpenseCard;

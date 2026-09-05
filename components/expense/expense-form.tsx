@@ -22,7 +22,7 @@ const formatRupiah = (amount: number): string => {
   return `Rp${amount.toLocaleString('id-ID')}`;
 };
 
-const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
+export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -153,5 +153,3 @@ const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
     </form>
   );
 };
-
-export default ExpenseForm;

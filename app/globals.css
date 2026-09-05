@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -72,8 +72,7 @@
   --chart-3: #001b4a;
   --chart-4: #a0aec0;
   --chart-5: #d2cecb;
-  --font-body:
-    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --radius: 12px;
   --radius-sm-base: 4px;
   --radius-md-base: 6px;
@@ -89,6 +88,9 @@
   --sidebar-accent-foreground: #001b4a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: rgba(86, 131, 210, 0.4);
+  --scrollbar-track: #f2f5f9;
+  --scrollbar-thumb: #c3d3ef;
+  --scrollbar-thumb-hover: #5683d2;
 }
 
 .dark {
@@ -118,6 +120,35 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.16);
   --sidebar-ring: rgba(195, 211, 239, 0.55);
+  --scrollbar-track: #212121;
+  --scrollbar-thumb: #5683d2;
+  --scrollbar-thumb-hover: #c3d3ef;
+}
+
+html {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
 }
 
 @layer base {
@@ -134,7 +165,7 @@
   }
 
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role='button']:not(:disabled) {
     cursor: pointer;
   }
 }

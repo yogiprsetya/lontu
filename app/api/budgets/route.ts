@@ -10,7 +10,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateBudgetInput } from '~/utils/validators';
+import { budgetMonthQuerySchema, validateBudgetInput } from '~/utils/validators/budget';
 
 const getMonthFilter = (request: NextRequest) => {
   const year = request.nextUrl.searchParams.get('year');
@@ -18,11 +18,9 @@ const getMonthFilter = (request: NextRequest) => {
 
   if (year === null && month === null) return null;
 
-  try {
-    return validateBudgetInput({ categoryId: 1, amount: 1, year: year ?? '', month: month ?? '' });
-  } catch {
-    return false;
-  }
+  const parsed = budgetMonthQuerySchema.safeParse({ year, month });
+
+  return parsed.success ? parsed.data : false;
 };
 
 export const GET = async (request: NextRequest) => {

@@ -10,7 +10,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateCategoryInput } from '~/utils/validators';
+import { validateCategoryInput } from '~/utils/validators/category';
 
 export const GET = async () => {
   const userId = await getServerUserId();

@@ -11,7 +11,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateBudgetUpdateInput } from '~/utils/validators';
+import { validateBudgetUpdateInput } from '~/utils/validators/budget';
 
 const getBudgetId = async (context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params;

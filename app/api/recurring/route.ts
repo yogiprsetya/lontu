@@ -10,7 +10,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateRecurringInput } from '~/utils/validators';
+import { validateRecurringInput } from '~/utils/validators/recurring';
 import { getNextOccurrence, getRecurringPeriodKey } from '~/utils/recurrence';
 
 export const GET = async () => {

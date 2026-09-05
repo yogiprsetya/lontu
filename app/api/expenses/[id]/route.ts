@@ -10,7 +10,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateExpenseUpdateInput } from '~/utils/validators';
+import { validateExpenseUpdateInput } from '~/utils/validators/expense';
 
 const resolveCategory = async (userId: number, name: string): Promise<number> => {
   const existing = await db

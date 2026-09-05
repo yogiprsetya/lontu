@@ -10,7 +10,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateRecurringUpdateInput } from '~/utils/validators';
+import { validateRecurringUpdateInput } from '~/utils/validators/recurring';
 import { getRecurringPeriodKey } from '~/utils/recurrence';
 
 const getRecurringId = async (context: { params: Promise<{ id: string }> }) => {

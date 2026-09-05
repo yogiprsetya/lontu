@@ -9,7 +9,7 @@ import {
   unauthorizedResponse,
 } from '~/utils/api-response';
 import { getServerUserId } from '~/utils/server-auth';
-import { validateExpenseInput } from '~/utils/validators';
+import { validateExpenseInput } from '~/utils/validators/expense';
 
 export const GET = async () => {
   const userId = await getServerUserId();

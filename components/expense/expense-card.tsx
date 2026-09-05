@@ -20,18 +20,18 @@ interface ExpenseCardProps {
   onMutate: () => void;
 }
 
-function toDatetimeLocal(isoString: string): string {
+const toDatetimeLocal = (isoString: string): string => {
   const date = new Date(isoString);
   const offset = date.getTimezoneOffset();
   const local = new Date(date.getTime() - offset * 60 * 1000);
   return local.toISOString().slice(0, 16);
-}
+};
 
-function formatRupiah(amount: number): string {
+const formatRupiah = (amount: number): string => {
   return `Rp${amount.toLocaleString('id-ID')}`;
-}
+};
 
-export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, onMutate }: ExpenseCardProps) {
+const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate }: ExpenseCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [amount, setAmount] = useState(String(expense.amount));
@@ -41,7 +41,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSave(event: React.FormEvent<HTMLFormElement>) {
+  const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setIsSaving(true);
@@ -70,9 +70,9 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
     } finally {
       setIsSaving(false);
     }
-  }
+  };
 
-  async function handleDelete() {
+  const handleDelete = async () => {
     setError(null);
     setIsSaving(true);
 
@@ -91,7 +91,7 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setIsSaving(false);
     }
-  }
+  };
 
   if (isEditing) {
     return (
@@ -252,4 +252,6 @@ export default function ExpenseCard({ expense, categories = DEFAULT_CATEGORIES, 
       {error && <p className="text-destructive w-full text-sm">{error}</p>}
     </li>
   );
-}
+};
+
+export default ExpenseCard;

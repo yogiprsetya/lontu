@@ -28,7 +28,7 @@ export interface ValidatedExpenseUpdateInput {
 
 const MAX_EXPENSE_AMOUNT = 2147483647;
 
-export function validateExpenseInput(input: ExpenseInput): ValidatedExpenseInput {
+export const validateExpenseInput = (input: ExpenseInput): ValidatedExpenseInput => {
   if (!input.categoryName || typeof input.categoryName !== 'string' || input.categoryName.trim().length === 0) {
     throw new Error('categoryName is required');
   }
@@ -57,9 +57,9 @@ export function validateExpenseInput(input: ExpenseInput): ValidatedExpenseInput
   }
 
   return { categoryName, amount, note, spentAt };
-}
+};
 
-export function validateExpenseUpdateInput(input: ExpenseUpdateInput): ValidatedExpenseUpdateInput {
+export const validateExpenseUpdateInput = (input: ExpenseUpdateInput): ValidatedExpenseUpdateInput => {
   const result: ValidatedExpenseUpdateInput = {};
 
   if (input.categoryName !== undefined) {
@@ -94,4 +94,4 @@ export function validateExpenseUpdateInput(input: ExpenseUpdateInput): Validated
   }
 
   return result;
-}
+};

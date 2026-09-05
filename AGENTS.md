@@ -11,10 +11,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Code convention
 
 - Always use named export
-- Use arrow body function
+- Always use arrow body function (ignore `components/ui/*`)
 - Immediately return if possible
 - Declare `useState` on top of react component
 - Use `.spec.*` for test file
+
+# API Integration
+
+- Hook based with `swr`
+- Filename example `use-expense-list.tsx`
+- Client only fetching
 
 # Need to avoid
 

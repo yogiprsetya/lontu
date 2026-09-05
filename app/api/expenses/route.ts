@@ -11,7 +11,7 @@ interface SessionUser {
   id?: number;
 }
 
-export async function GET() {
+export const GET = async () => {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as SessionUser | undefined)?.id;
   if (!userId) {
@@ -35,9 +35,9 @@ export async function GET() {
     .orderBy(desc(expensesTable.spentAt));
 
   return expensesResponse(rows);
-}
+};
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as SessionUser | undefined)?.id;
 
@@ -89,4 +89,4 @@ export async function POST(request: NextRequest) {
     .returning();
 
   return expenseResponse(inserted[0], 201);
-}
+};

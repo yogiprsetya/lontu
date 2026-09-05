@@ -20,7 +20,7 @@ const navigationItems = [
   { label: 'Settings', href: '#settings', icon: RiSettingsLine },
 ];
 
-export default function DashboardSidebar() {
+const DashboardSidebar = () => {
   return (
     <Sidebar collapsible="icon" variant="inset" className="[--sidebar-width:13rem]">
       <SidebarHeader className="p-4 pb-6">
@@ -56,4 +56,6 @@ export default function DashboardSidebar() {
       </SidebarFooter>
     </Sidebar>
   );
-}
+};
+
+export default DashboardSidebar;

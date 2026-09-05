@@ -30,7 +30,7 @@ const metricCards = [
 const calendarDays = Array.from({ length: 30 }, (_, index) => index + 1);
 const chartBars = [22, 34, 28, 46, 38, 62, 58, 42, 28, 36, 48, 30];
 
-export default function HomeShell({ user }: HomeShellProps): ReactNode {
+const HomeShell = ({ user }: HomeShellProps): ReactNode => {
   const initials = user.name
     .split(' ')
     .map((part) => part[0])
@@ -211,4 +211,6 @@ export default function HomeShell({ user }: HomeShellProps): ReactNode {
       </SidebarInset>
     </SidebarProvider>
   );
-}
+};
+
+export default HomeShell;

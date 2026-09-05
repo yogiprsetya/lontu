@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import ExpenseCard from './expense-card';
+import useExpenseList from './use-expense-list';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
@@ -20,7 +20,7 @@ export interface GroupedExpenses {
   items: ExpenseListItem[];
 }
 
-function formatGroupLabel(dateKey: string): string {
+const formatGroupLabel = (dateKey: string): string => {
   const today = new Date().toISOString().slice(0, 10);
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
@@ -32,9 +32,9 @@ function formatGroupLabel(dateKey: string): string {
     month: 'short',
     day: 'numeric',
   });
-}
+};
 
-export function groupExpensesByDate(items: ExpenseListItem[]): GroupedExpenses[] {
+export const groupExpensesByDate = (items: ExpenseListItem[]): GroupedExpenses[] => {
   const map = new Map<string, ExpenseListItem[]>();
 
   for (const item of items) {
@@ -57,56 +57,11 @@ export function groupExpensesByDate(items: ExpenseListItem[]): GroupedExpenses[]
         (firstItem, secondItem) => new Date(secondItem.spentAt).getTime() - new Date(firstItem.spentAt).getTime()
       ),
     }));
-}
+};
 
-async function loadExpenses(): Promise<ExpenseListItem[]> {
-  const response = await fetch('/api/expenses');
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || 'Failed to load expenses');
-  }
-
-  const data = await response.json();
-
-  return data.expenses ?? [];
-}
-
-interface ExpenseListProps {
-  refreshKey?: number;
-}
-
-export default function ExpenseList({ refreshKey }: ExpenseListProps) {
-  const [expenses, setExpenses] = useState<ExpenseListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const didLoadRef = useRef(false);
-
-  async function refreshExpenses() {
-    try {
-      setError(null);
-      const loaded = await loadExpenses();
-      setExpenses(loaded);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (didLoadRef.current) return;
-    didLoadRef.current = true;
-    refreshExpenses();
-  }, []);
-
-  const previousRefreshKeyRef = useRef(refreshKey);
-
-  useEffect(() => {
-    if (previousRefreshKeyRef.current === refreshKey) return;
-    previousRefreshKeyRef.current = refreshKey;
-    refreshExpenses();
-  }, [refreshKey]);
+const ExpenseList = () => {
+  const { data, error, isLoading, mutate } = useExpenseList();
+  const expenses = data?.expenses ?? [];
 
   const grouped = groupExpensesByDate(expenses);
 
@@ -115,7 +70,7 @@ export default function ExpenseList({ refreshKey }: ExpenseListProps) {
   }
 
   if (error) {
-    return <p className="text-destructive text-sm">{error}</p>;
+    return <p className="text-destructive text-sm">{error.message}</p>;
   }
 
   if (expenses.length === 0) {
@@ -133,7 +88,7 @@ export default function ExpenseList({ refreshKey }: ExpenseListProps) {
                 key={expense.id}
                 expense={expense}
                 categories={DEFAULT_CATEGORIES}
-                onMutate={refreshExpenses}
+                onMutate={() => mutate()}
               />
             ))}
           </ul>
@@ -141,4 +96,6 @@ export default function ExpenseList({ refreshKey }: ExpenseListProps) {
       ))}
     </section>
   );
-}
+};
+
+export default ExpenseList;

@@ -11,12 +11,12 @@ interface SessionUser {
   id?: number;
 }
 
-async function getUserId(): Promise<number | null> {
+const getUserId = async (): Promise<number | null> => {
   const session = await getServerSession(authOptions);
   return (session?.user as SessionUser | undefined)?.id ?? null;
-}
+};
 
-async function resolveCategory(userId: number, name: string): Promise<number> {
+const resolveCategory = async (userId: number, name: string): Promise<number> => {
   const existing = await db
     .select()
     .from(categoriesTable)
@@ -29,9 +29,9 @@ async function resolveCategory(userId: number, name: string): Promise<number> {
 
   const inserted = await db.insert(categoriesTable).values({ userId, name }).returning();
   return inserted[0].id;
-}
+};
 
-export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const PATCH = async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const userId = await getUserId();
   if (!userId) {
     return unauthorizedResponse();
@@ -85,9 +85,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   const updated = await db.update(expensesTable).set(updateValues).where(eq(expensesTable.id, id)).returning();
 
   return expenseResponse(updated[0]);
-}
+};
 
-export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const DELETE = async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const userId = await getUserId();
   if (!userId) {
     return unauthorizedResponse();
@@ -112,4 +112,4 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   await db.delete(expensesTable).where(eq(expensesTable.id, id));
 
   return new Response(null, { status: 204 });
-}
+};

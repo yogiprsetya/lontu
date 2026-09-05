@@ -6,7 +6,7 @@ import { RiGoogleLine } from '@remixicon/react';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 
-export default function LoginPage() {
+const LoginPage = () => {
   const { data: session } = useSession();
 
   if (session) {
@@ -41,4 +41,6 @@ export default function LoginPage() {
       </Card>
     </main>
   );
-}
+};
+
+export default LoginPage;

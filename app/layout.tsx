@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '~/components/auth-provider';
+import { SwrProvider } from '~/components/swr-provider';
 import { cn } from '~/utils/css';
 
 const dmSans = DM_Sans({
@@ -15,12 +16,16 @@ export const metadata: Metadata = {
   description: 'Track expenses in three taps.',
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+const RootLayout = ({ children }: LayoutProps<'/'>) => {
   return (
     <html lang="en" className={cn(dmSans.variable, 'h-full font-sans antialiased')}>
       <body className="flex min-h-full flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <SwrProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </SwrProvider>
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

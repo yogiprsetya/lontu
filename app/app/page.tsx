@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '~/auth';
 import HomeShell from '~/components/dashboard/home-shell';
 
-export default async function AppPage() {
+const AppPage = async () => {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -18,4 +18,6 @@ export default async function AppPage() {
       }}
     />
   );
-}
+};
+
+export default AppPage;

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 const MOBILE_BREAKPOINT = 768;
 
-export function useIsMobile() {
+export const useIsMobile = () => {
   const subscribe = React.useCallback((onStoreChange: () => void) => {
     const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     mediaQuery.addEventListener('change', onStoreChange);
@@ -16,4 +16,4 @@ export function useIsMobile() {
   );
 
   return React.useSyncExternalStore(subscribe, getSnapshot, () => false);
-}
+};

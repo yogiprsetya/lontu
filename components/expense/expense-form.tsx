@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { mutate } from 'swr';
 import { Button } from '~/components/ui/button';
 
 interface ExpenseFormProps {
   categories?: string[];
-  onSaved?: () => void;
 }
 
 interface SavedExpense {
@@ -19,19 +18,18 @@ interface SavedExpense {
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
-function formatRupiah(amount: number): string {
+const formatRupiah = (amount: number): string => {
   return `Rp${amount.toLocaleString('id-ID')}`;
-}
+};
 
-export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }: ExpenseFormProps) {
-  const router = useRouter();
+const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<SavedExpense[]>([]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
@@ -70,14 +68,13 @@ export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }
 
       setAmount('');
       setSelectedCategory(null);
-      router.refresh();
-      onSaved?.();
+      await mutate('/api/expenses');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsSaving(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -155,4 +152,6 @@ export default function ExpenseForm({ categories = DEFAULT_CATEGORIES, onSaved }
       )}
     </form>
   );
-}
+};
+
+export default ExpenseForm;

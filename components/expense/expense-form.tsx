@@ -57,6 +57,7 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
       }
 
       const expense = data.data?.expense ?? data.expense;
+
       setRecent((prev) => [
         {
           id: expense.id,

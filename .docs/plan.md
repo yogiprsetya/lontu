@@ -205,7 +205,7 @@ The completed Tasks 1–6 above are the baseline. The following tasks are the pr
 
 ### Phase 4: Recurring Subscriptions
 
-#### Task 10: Mark expenses as recurring
+#### Task 10: Mark expenses as recurring [x]
 
 **Description:** Extend the expense workflow with an optional recurring configuration that records frequency, start date, and active state while retaining the original expense record.
 

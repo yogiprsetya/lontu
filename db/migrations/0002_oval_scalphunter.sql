@@ -1,0 +1,2 @@
+ALTER TABLE "recurring_configs" ADD COLUMN "expense_id" integer;--> statement-breakpoint
+ALTER TABLE "recurring_configs" ADD CONSTRAINT "recurring_configs_expense_id_expenses_id_fk" FOREIGN KEY ("expense_id") REFERENCES "public"."expenses"("id") ON DELETE cascade ON UPDATE no action;

@@ -8,6 +8,13 @@
       "when": 1788418621841,
       "tag": "0000_perpetual_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788600628841,
+      "tag": "0001_oval_scalphunter",
+      "breakpoints": true
     }
   ]
 }

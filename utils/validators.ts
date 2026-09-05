@@ -1,29 +1,67 @@
-export interface ExpenseInput {
+interface ExpenseInput {
   categoryName: string;
   amount: string | number;
   note?: string;
   spentAt?: string | Date;
 }
 
-export interface ValidatedExpenseInput {
+type RecurringFrequency = 'monthly' | 'yearly';
+
+interface RecurringInput {
+  expenseId?: number | string;
+  categoryId: number | string;
+  amount: number | string;
+  frequency: string;
+  startDate: string | Date;
+  note?: string | null;
+}
+
+interface ValidatedRecurringInput {
+  expenseId?: number;
+  categoryId: number;
+  amount: number;
+  frequency: RecurringFrequency;
+  startDate: Date;
+  note?: string;
+}
+
+interface RecurringUpdateInput {
+  categoryId?: number | string;
+  amount?: number | string;
+  frequency?: string;
+  startDate?: string | Date;
+  note?: string | null;
+}
+
+interface ValidatedRecurringUpdateInput {
+  categoryId?: number;
+  amount?: number;
+  frequency?: RecurringFrequency;
+  startDate?: Date;
+  note?: string;
+}
+
+interface ValidatedExpenseInput {
   categoryName: string;
   amount: number;
   note?: string;
   spentAt: Date;
 }
 
-export interface ExpenseUpdateInput {
+interface ExpenseUpdateInput {
   categoryName?: string;
   amount?: string | number;
   note?: string;
   spentAt?: string | Date;
+  recurring?: RecurringUpdateInput;
 }
 
-export interface ValidatedExpenseUpdateInput {
+interface ValidatedExpenseUpdateInput {
   categoryName?: string;
   amount?: number;
   note?: string;
   spentAt?: Date;
+  recurring?: ValidatedRecurringUpdateInput;
 }
 
 interface CategoryInput {
@@ -67,6 +105,7 @@ interface ValidatedBudgetUpdateInput {
 const MAX_EXPENSE_AMOUNT = 2147483647;
 const CATEGORY_NAME_MAX_LENGTH = 100;
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+const RECURRING_FREQUENCIES = ['monthly', 'yearly'] as const;
 
 const parsePositiveInteger = (value: number | string | undefined, field: string): number => {
   if (value === undefined || value === null || value === '') throw new Error(`${field} is required`);
@@ -83,6 +122,45 @@ const validateBudgetYear = (value: number): number => {
 const validateBudgetMonth = (value: number): number => {
   if (value < 1 || value > 12) throw new Error('month is invalid');
   return value;
+};
+
+const validateRecurringFrequency = (value: string): RecurringFrequency => {
+  if (!RECURRING_FREQUENCIES.includes(value as RecurringFrequency)) {
+    throw new Error('frequency is invalid');
+  }
+  return value as RecurringFrequency;
+};
+
+const validateDate = (value: string | Date, field: string): Date => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) throw new Error(`${field} is invalid`);
+  return date;
+};
+
+export const validateRecurringInput = (input: RecurringInput): ValidatedRecurringInput => {
+  const result: ValidatedRecurringInput = {
+    categoryId: parsePositiveInteger(input.categoryId, 'categoryId'),
+    amount: parsePositiveInteger(input.amount, 'amount'),
+    frequency: validateRecurringFrequency(input.frequency),
+    startDate: validateDate(input.startDate, 'startDate'),
+  };
+
+  if (input.expenseId !== undefined) result.expenseId = parsePositiveInteger(input.expenseId, 'expenseId');
+  if (input.note !== undefined && input.note !== null) result.note = String(input.note);
+  return result;
+};
+
+export const validateRecurringUpdateInput = (input: RecurringUpdateInput): ValidatedRecurringUpdateInput => {
+  const result: ValidatedRecurringUpdateInput = {};
+
+  if (input.categoryId !== undefined) result.categoryId = parsePositiveInteger(input.categoryId, 'categoryId');
+  if (input.amount !== undefined) result.amount = parsePositiveInteger(input.amount, 'amount');
+  if (input.frequency !== undefined) result.frequency = validateRecurringFrequency(input.frequency);
+  if (input.startDate !== undefined) result.startDate = validateDate(input.startDate, 'startDate');
+  if (input.note !== undefined && input.note !== null) result.note = String(input.note);
+
+  if (Object.keys(result).length === 0) throw new Error('At least one recurring field is required');
+  return result;
 };
 
 export const validateBudgetInput = (input: BudgetInput): ValidatedBudgetInput => {
@@ -186,6 +264,10 @@ export const validateExpenseUpdateInput = (input: ExpenseUpdateInput): Validated
       throw new Error('spentAt is invalid');
     }
     result.spentAt = spentAt;
+  }
+
+  if (input.recurring !== undefined) {
+    result.recurring = validateRecurringUpdateInput(input.recurring);
   }
 
   return result;

@@ -52,6 +52,97 @@ test('expense detail API route exposes PATCH and DELETE handlers', async () => {
   assert.equal(typeof routeModule.DELETE, 'function', 'DELETE handler is exported');
 });
 
+test('recurring validator accepts supported frequencies and parses dates', async () => {
+  const { validateRecurringInput } = await import('../utils/validators');
+
+  assert.deepEqual(
+    validateRecurringInput({
+      categoryId: '4',
+      amount: '125000',
+      frequency: 'monthly',
+      startDate: '2026-09-05',
+      note: 'Streaming subscription',
+    }),
+    {
+      categoryId: 4,
+      amount: 125000,
+      frequency: 'monthly',
+      startDate: new Date('2026-09-05'),
+      note: 'Streaming subscription',
+    }
+  );
+
+  assert.throws(
+    () => validateRecurringInput({ categoryId: 4, amount: 125000, frequency: 'weekly', startDate: '2026-09-05' }),
+    /frequency/
+  );
+  assert.throws(
+    () => validateRecurringInput({ categoryId: 4, amount: 125000, frequency: 'monthly', startDate: 'invalid' }),
+    /startDate/
+  );
+  assert.throws(
+    () => validateRecurringInput({ categoryId: 4, amount: 0, frequency: 'monthly', startDate: '2026-09-05' }),
+    /amount/
+  );
+});
+
+test('recurring API exposes authenticated collection handlers', async () => {
+  const routeModule = await import('../app/api/recurring/route');
+
+  assert.equal(typeof routeModule.GET, 'function');
+  assert.equal(typeof routeModule.POST, 'function');
+});
+
+test('recurring API exposes collection and item mutation handlers', async () => {
+  const collectionRoute = await import('../app/api/recurring/route');
+  const itemRoute = await import('../app/api/recurring/[id]/route');
+
+  assert.equal(typeof collectionRoute.GET, 'function');
+  assert.equal(typeof collectionRoute.POST, 'function');
+  assert.equal(typeof itemRoute.PATCH, 'function');
+  assert.equal(typeof itemRoute.DELETE, 'function');
+});
+
+test('recurring configuration validates independently from expense updates', async () => {
+  const { validateExpenseUpdateInput } = await import('../utils/validators');
+
+  const validated = validateExpenseUpdateInput({
+    amount: 125000,
+    recurring: {
+      frequency: 'yearly',
+      startDate: '2026-09-05',
+    },
+  });
+
+  assert.deepEqual(validated.recurring, {
+    frequency: 'yearly',
+    startDate: new Date('2026-09-05'),
+  });
+});
+
+test('expense form keeps recurring configuration out of quick add', async () => {
+  const fs = await import('node:fs/promises');
+  const source = await fs.readFile(new URL('../components/expense/expense-form.tsx', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(source, /isRecurring/);
+  assert.doesNotMatch(source, /Recurring expense/);
+});
+
+test('recurring manager and dedicated page are available', async () => {
+  const managerModule = await import('../components/recurring/recurring-manager');
+  const pageModule = await import('../app/app/recurring/page');
+  const fs = await import('node:fs/promises');
+  const source = await fs.readFile(
+    new URL('../components/recurring/recurring-manager.tsx', import.meta.url),
+    'utf8'
+  );
+
+  assert.equal(typeof managerModule.RecurringManager, 'function');
+  assert.equal(typeof pageModule.default, 'function');
+  assert.match(source, /DialogContent/);
+  assert.match(source, /Add recurring expense/);
+});
+
 test('expense list and card components export defaults', async () => {
   const listModule = await import('../components/expense/expense-list');
   const cardModule = await import('../components/expense/expense-card');

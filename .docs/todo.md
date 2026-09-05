@@ -121,7 +121,7 @@
 
 ## Phase 4: Recurring Subscriptions
 
-- [ ] **Task 10: Mark expenses as recurring**
+- [x] **Task 10: Mark expenses as recurring**
   - Acceptance: An expense can create/update an owned recurring configuration with validated frequency, amount, category, and start date.
   - Verify: Test recurrence validation and ownership; run `pnpm test`, `pnpm lint`, and `pnpm build`; manually mark/unmark a subscription.
   - Depends on: Tasks 7–9

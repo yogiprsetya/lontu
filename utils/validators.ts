@@ -36,9 +36,75 @@ interface ValidatedCategoryInput {
   color?: string;
 }
 
+interface BudgetInput {
+  categoryId: number | string;
+  amount: number | string;
+  year: number | string;
+  month: number | string;
+}
+
+interface ValidatedBudgetInput {
+  categoryId: number;
+  amount: number;
+  year: number;
+  month: number;
+}
+
+interface BudgetUpdateInput {
+  categoryId?: number | string;
+  amount?: number | string;
+  year?: number | string;
+  month?: number | string;
+}
+
+interface ValidatedBudgetUpdateInput {
+  categoryId?: number;
+  amount?: number;
+  year?: number;
+  month?: number;
+}
+
 const MAX_EXPENSE_AMOUNT = 2147483647;
 const CATEGORY_NAME_MAX_LENGTH = 100;
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+const parsePositiveInteger = (value: number | string | undefined, field: string): number => {
+  if (value === undefined || value === null || value === '') throw new Error(`${field} is required`);
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) throw new Error(`${field} must be a positive integer`);
+  return parsed;
+};
+
+const validateBudgetYear = (value: number): number => {
+  if (value < 1970 || value > 9999) throw new Error('year is invalid');
+  return value;
+};
+
+const validateBudgetMonth = (value: number): number => {
+  if (value < 1 || value > 12) throw new Error('month is invalid');
+  return value;
+};
+
+export const validateBudgetInput = (input: BudgetInput): ValidatedBudgetInput => {
+  const categoryId = parsePositiveInteger(input.categoryId, 'categoryId');
+  const amount = parsePositiveInteger(input.amount, 'amount');
+  const year = validateBudgetYear(parsePositiveInteger(input.year, 'year'));
+  const month = validateBudgetMonth(parsePositiveInteger(input.month, 'month'));
+
+  return { categoryId, amount, year, month };
+};
+
+export const validateBudgetUpdateInput = (input: BudgetUpdateInput): ValidatedBudgetUpdateInput => {
+  const result: ValidatedBudgetUpdateInput = {};
+
+  if (input.categoryId !== undefined) result.categoryId = parsePositiveInteger(input.categoryId, 'categoryId');
+  if (input.amount !== undefined) result.amount = parsePositiveInteger(input.amount, 'amount');
+  if (input.year !== undefined) result.year = validateBudgetYear(parsePositiveInteger(input.year, 'year'));
+  if (input.month !== undefined) result.month = validateBudgetMonth(parsePositiveInteger(input.month, 'month'));
+
+  if (Object.keys(result).length === 0) throw new Error('At least one field is required');
+  return result;
+};
 
 export const validateCategoryInput = (input: CategoryInput): ValidatedCategoryInput => {
   if (typeof input.name !== 'string' || input.name.trim().length === 0) {

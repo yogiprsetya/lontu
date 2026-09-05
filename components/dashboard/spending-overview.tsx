@@ -1,46 +1,71 @@
-import { RiMoreLine } from '@remixicon/react';
-import { months } from '~/utils/times-const';
+'use client';
 
-const chartBars = [22, 34, 28, 46, 38, 62, 58, 42, 28, 36, 48, 30];
+import useSWR from 'swr';
+import { useBudgetData } from '~/components/budget/use-budget-data';
+import { getMonthlyBudgetTotals } from '~/utils/budget-math';
 
-export const SpendingOverview = () => (
-  <section className="bg-card rounded-xl border p-5 shadow-sm sm:p-6">
-    <div className="mb-6 flex items-center justify-between">
-      <div>
-        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Spending overview</p>
-        <h2 className="text-foreground mt-1 text-lg font-semibold">Monthly activity</h2>
+interface Expense {
+  categoryId: number;
+  categoryName: string;
+  amount: number;
+  spentAt: string;
+}
+
+const currentDate = new Date();
+const currentYear = currentDate.getFullYear();
+const currentMonth = currentDate.getMonth() + 1;
+
+export const SpendingOverview = () => {
+  const { data: budgetData } = useBudgetData(currentYear, currentMonth);
+  const { data: expenseData } = useSWR<{ expenses: Expense[] }>('/api/expenses');
+  const expenses = (expenseData?.expenses ?? []).filter((expense) => {
+    const spentAt = new Date(expense.spentAt);
+    return spentAt.getFullYear() === currentYear && spentAt.getMonth() + 1 === currentMonth;
+  });
+  const totals = getMonthlyBudgetTotals(budgetData?.budgets ?? [], expenses);
+
+  return (
+    <section className="bg-card rounded-xl border p-5 shadow-sm sm:p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Spending overview</p>
+          <h2 className="text-foreground mt-1 text-lg font-semibold">Monthly activity</h2>
+        </div>
+
+        <span className="text-muted-foreground text-xs font-medium">
+          {new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(currentDate)}
+        </span>
       </div>
 
-      <button
-        type="button"
-        className="bg-muted text-muted-foreground flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium"
-      >
-        July - September <RiMoreLine aria-hidden="true" className="size-3" />
-      </button>
-    </div>
+      {totals.length === 0 ? (
+        <p className="text-muted-foreground py-12 text-center text-sm">No spending or budgets for this month.</p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {totals.map((total) => {
+            const percentage = total.budget > 0 ? Math.min((total.spent / total.budget) * 100, 100) : 0;
 
-    <div className="border-border/70 grid grid-cols-[32px_1fr] gap-3 border-b pb-3">
-      <div className="text-muted-foreground flex h-48 flex-col justify-between text-[10px]">
-        {['Rp50k', 'Rp40k', 'Rp30k', 'Rp20k', 'Rp10k', 'Rp0'].map((value) => (
-          <span key={value}>{value}</span>
-        ))}
+            return (
+              <div key={total.categoryId}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-medium">{total.categoryName}</span>
+                  <span className="text-muted-foreground">
+                    Rp{total.spent.toLocaleString('id-ID')}
+                    {total.budget > 0 ? ` / Rp${total.budget.toLocaleString('id-ID')}` : ' spent'}
+                  </span>
+                </div>
+                <div className="bg-muted h-2 overflow-hidden rounded-full">
+                  <div className="bg-primary h-full rounded-full" style={{ width: `${percentage}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="text-muted-foreground mt-6 flex items-center justify-between text-xs">
+        <span>{totals.filter((total) => total.budget > 0).length} budgeted categories</span>
+        <span>{totals.reduce((sum, total) => sum + total.spent, 0).toLocaleString('id-ID')} IDR spent</span>
       </div>
-
-      <div className="relative flex h-48 items-end justify-between gap-1 border-b border-dashed bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_38px,rgba(148,163,184,.18)_39px)] px-1">
-        {chartBars.map((height, index) => (
-          <div
-            key={index}
-            className="bg-primary/80 hover:bg-primary w-full max-w-8 rounded-t-lg transition-colors"
-            style={{ height: `${height}%` }}
-          />
-        ))}
-      </div>
-    </div>
-
-    <div className="text-muted-foreground ml-11 flex justify-between pt-2 text-[10px]">
-      {months.map((month) => (
-        <span key={month}>{month}</span>
-      ))}
-    </div>
-  </section>
-);
+    </section>
+  );
+};

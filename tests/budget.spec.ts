@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+test('budget validator accepts integer IDR amounts and calendar months', async () => {
+  const { validateBudgetInput } = await import('../utils/validators');
+
+  assert.deepEqual(validateBudgetInput({ categoryId: 4, amount: '250000', year: 2026, month: 9 }), {
+    categoryId: 4,
+    amount: 250000,
+    year: 2026,
+    month: 9,
+  });
+});
+
+test('budget validator rejects invalid amounts, months, and category ids', async () => {
+  const { validateBudgetInput } = await import('../utils/validators');
+
+  assert.throws(() => validateBudgetInput({ categoryId: 0, amount: 1000, year: 2026, month: 9 }), /categoryId/);
+  assert.throws(() => validateBudgetInput({ categoryId: 1, amount: 0, year: 2026, month: 9 }), /amount/);
+  assert.throws(() => validateBudgetInput({ categoryId: 1, amount: 1000.5, year: 2026, month: 9 }), /amount/);
+  assert.throws(() => validateBudgetInput({ categoryId: 1, amount: 1000, year: 2026, month: 13 }), /month/);
+});
+
+test('budget API exposes collection and item mutation handlers', async () => {
+  const collectionRoute = await import('../app/api/budgets/route');
+  const itemRoute = await import('../app/api/budgets/[id]/route');
+
+  assert.equal(typeof collectionRoute.GET, 'function');
+  assert.equal(typeof collectionRoute.POST, 'function');
+  assert.equal(typeof itemRoute.PATCH, 'function');
+  assert.equal(typeof itemRoute.DELETE, 'function');
+});
+
+test('monthly budget totals combine budgets and expenses by category', async () => {
+  const { getMonthlyBudgetTotals } = await import('../utils/budget-math');
+
+  assert.deepEqual(
+    getMonthlyBudgetTotals(
+      [{ categoryId: 1, categoryName: 'Food', amount: 500000 }],
+      [
+        { categoryId: 1, amount: 125000 },
+        { categoryId: 1, amount: 75000 },
+        { categoryId: 2, amount: 100000 },
+      ]
+    ),
+    [
+      { categoryId: 1, categoryName: 'Food', budget: 500000, spent: 200000 },
+      { categoryId: 2, categoryName: 'Unbudgeted', budget: 0, spent: 100000 },
+    ]
+  );
+});

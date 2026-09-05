@@ -102,7 +102,7 @@
   - Depends on: Tasks 1–6
   - Files: `db/schema.ts`, `app/api/categories/`, `components/category/`, `components/expense/expense-form.tsx`, `tests/category.spec.ts`
 
-- [ ] **Task 8: Create and display monthly category budgets**
+- [x] **Task 8: Create and display monthly category budgets**
   - Acceptance: Users can create/update/remove one IDR budget per category/month; reads and writes enforce user/category ownership; dashboard shows budget and spend totals.
   - Verify: Test validation, duplicate months, and cross-user access; run `pnpm test`, `pnpm lint`, and `pnpm build`; manually refresh and verify persistence.
   - Depends on: Task 7

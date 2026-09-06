@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '~/components/ui/button';
 import { httpClient } from '~/config/http-client';
@@ -17,6 +17,8 @@ import { budgetInputFormSchema, type BudgetFormValues } from '~/utils/validators
 const currentDate = new Date();
 
 export const BudgetManager = () => {
+  const [editingId, setEditingId] = useState<number | null>(null);
+
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetInputFormSchema),
     defaultValues: {
@@ -27,11 +29,12 @@ export const BudgetManager = () => {
     },
   });
 
-  const { watch, handleSubmit, reset } = form;
-  const selectedCategoryId = watch('categoryId');
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const { handleSubmit, reset, control } = form;
+  const selectedCategoryId = useWatch({ control, name: 'categoryId' });
+  const selectedYear = useWatch({ control, name: 'year' });
+  const selectedMonth = useWatch({ control, name: 'month' });
   const { categories } = useCategoryList();
-  const { data, mutate } = useBudgetData(watch('year'), watch('month'));
+  const { data, mutate } = useBudgetData(selectedYear, selectedMonth);
   const budgets = data?.budgets ?? [];
 
   const saveBudget = handleSubmit(async (data) => {

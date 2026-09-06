@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -68,7 +68,7 @@ export const RecurringFormDialog = ({
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
+    control,
   } = useForm<RecurringFormValues>({
     resolver: zodResolver(recurringInputFormSchema),
     defaultValues: {
@@ -80,9 +80,10 @@ export const RecurringFormDialog = ({
     },
   });
 
-  const selectedCategoryId = watch('categoryId');
-  const selectedFrequency = watch('frequency');
-  const selectedStartDate = watch('startDate');
+  const selectedCategoryId = useWatch({ control, name: 'categoryId' });
+  const selectedFrequency = useWatch({ control, name: 'frequency' });
+  const selectedStartDate = useWatch({ control, name: 'startDate' });
+  const selectedNote = useWatch({ control, name: 'note' });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -174,13 +175,15 @@ export const RecurringFormDialog = ({
 
           <Field>
             <FieldLabel htmlFor="note">Note</FieldLabel>
+
             <FieldContent>
               <Input
                 id="note"
-                value={watch('note') || ''}
+                value={selectedNote || ''}
                 onChange={(event) => setValue('note', event.target.value, { shouldValidate: true })}
                 placeholder="Optional note"
               />
+
               <FieldError errors={[errors.note]} />
             </FieldContent>
           </Field>

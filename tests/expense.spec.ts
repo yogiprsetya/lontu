@@ -157,7 +157,7 @@ test('period marking route is protected against recurring expenses before their 
   const fs = await import('node:fs/promises');
   const source = await fs.readFile(new URL('../app/api/recurring/[id]/route.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /spentAt < recurring\.startDate/);
+  assert.match(source, /today < recurringStartDate/);
   assert.match(source, /Recurring expense has not started/);
 });
 

@@ -31,9 +31,12 @@ test('root page exports a default function', async () => {
   assert.equal(typeof pageModule.default, 'function', 'app/page.tsx exports a default function');
 });
 
-test('root page renders the protected dashboard entry point', async () => {
+test('root page renders the landing entry point distinct from dashboard', async () => {
   const rootPage = await import('../app/page');
   const appPage = await import('../app/app/(overview)/page');
+  const fs = await import('node:fs/promises');
+  const rootSource = await fs.readFile(new URL('../app/page.tsx', import.meta.url), 'utf8');
 
-  assert.equal(rootPage.default, appPage.default, 'root and app routes share the dashboard page');
+  assert.notEqual(rootPage.default, appPage.default, 'root and app routes are distinct pages');
+  assert.match(rootSource, /Landing page coming soon/);
 });

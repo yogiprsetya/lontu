@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '~/components/ui/button';
 import {
@@ -45,7 +45,7 @@ export const CategoryFormDialog = ({
     },
   });
 
-  const { register, handleSubmit, reset, watch, setValue, formState } = form;
+  const { register, handleSubmit, reset, setValue, control, formState } = form;
 
   useEffect(() => {
     if (open) {
@@ -56,7 +56,7 @@ export const CategoryFormDialog = ({
     }
   }, [open, defaultName, defaultColor, reset]);
 
-  const selectedColor = watch('color') ?? '#2f7d73';
+  const selectedColor = useWatch({ control, name: 'color' }) ?? '#2f7d73';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

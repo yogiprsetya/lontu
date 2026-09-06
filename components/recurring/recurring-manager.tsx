@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { httpClient } from '~/config/http-client';
+import { errorHandler } from '~/utils/error-handler';
 import { Button } from '~/components/ui/button';
 import { useCategoryList } from '~/components/category/use-category-list';
 import { formatIdr } from '~/utils/format';
@@ -45,26 +47,19 @@ export const RecurringManager = () => {
     event.preventDefault();
     setFormError(null);
     const endpoint = editingId ? `/api/recurring/${editingId}` : '/api/recurring';
-    const response = await fetch(endpoint, {
-      method: editingId ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    try {
+      await httpClient.post(endpoint, {
         ...(!editingId ? { categoryId } : {}),
         amount,
         frequency,
         startDate,
         note: note || undefined,
-      }),
-    });
-
-    if (!response.ok) {
-      const responseData = await response.json();
-      setFormError(responseData.error?.message || 'Unable to save recurring expense');
-      return;
+      });
+      resetForm();
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-
-    resetForm();
-    await mutate();
   };
 
   const editRecurring = (item: RecurringItem) => {
@@ -83,12 +78,12 @@ export const RecurringManager = () => {
   };
 
   const deactivateRecurring = async (id: number) => {
-    const response = await fetch(`/api/recurring/${id}`, { method: 'DELETE' });
-    if (!response.ok) {
-      setFormError('Unable to deactivate recurring expense');
-      return;
+    try {
+      await httpClient.delete(`/api/recurring/${id}`);
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    await mutate();
   };
 
   const markPeriodSpent = async (item: RecurringItem) => {
@@ -96,29 +91,16 @@ export const RecurringManager = () => {
     if (markedPeriodKeys.includes(periodKey) || markingId === item.id) return;
 
     setMarkingId(item.id);
-    const response = await fetch(`/api/recurring/${item.id}`, { method: 'POST' });
-    if (!response.ok) {
-      const responseBody = await response.text();
-      let message = `Unable to mark period as spent (${response.status})`;
-
-      if (responseBody) {
-        try {
-          const responseData = JSON.parse(responseBody) as { error?: { message?: string } };
-          message = responseData.error?.message || message;
-        } catch {
-          // Keep the status-based fallback for non-JSON error responses.
-        }
-      }
-
-      setFormError(message);
+    try {
+      await httpClient.post(`/api/recurring/${item.id}`);
+      setMarkedPeriodKeys((currentKeys) =>
+        currentKeys.includes(periodKey) ? currentKeys : [...currentKeys, periodKey]
+      );
       setMarkingId(null);
-      return;
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    setMarkedPeriodKeys((currentKeys) =>
-      currentKeys.includes(periodKey) ? currentKeys : [...currentKeys, periodKey]
-    );
-    setMarkingId(null);
-    await mutate();
   };
 
   const recurringItems = data?.recurring ?? [];

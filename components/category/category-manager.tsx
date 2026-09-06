@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { httpClient } from '~/config/http-client';
+import { errorHandler } from '~/utils/error-handler';
 import { useCategoryList } from './use-category-list';
 
 export const CategoryManager = () => {
@@ -16,43 +18,36 @@ export const CategoryManager = () => {
   const createCategory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    const response = await fetch('/api/categories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, color }),
-    });
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.error?.message || 'Unable to create category');
-      return;
+    try {
+      await httpClient.post('/api/categories', { name, color });
+      setName('');
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    setName('');
-    await mutate();
   };
 
   const archiveCategory = async (id: number) => {
     setError(null);
-    const response = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
-    if (!response.ok) {
-      setError('Unable to archive category');
-      return;
+    try {
+      await httpClient.delete(`/api/categories/${id}`);
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    await mutate();
   };
 
   const renameCategory = async (id: number, nextName: string) => {
-    const response = await fetch(`/api/categories/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: nextName, color: categories.find((category) => category.id === id)?.color }),
-    });
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.error?.message || 'Unable to rename category');
-      return;
+    try {
+      await httpClient.patch(`/api/categories/${id}`, {
+        name: nextName,
+        color: categories.find((category) => category.id === id)?.color,
+      });
+      setEditingId(null);
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    setEditingId(null);
-    await mutate();
   };
 
   return (

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../ui/sidebar';
 import { DashboardSidebar } from './dashboard-sidebar';
+import { Toaster } from '~/components/ui/toast';
 
 interface AppShellProps {
   children: ReactNode;
@@ -20,6 +21,8 @@ export const AppShell = ({ children }: AppShellProps): ReactNode => {
           {children}
         </main>
       </SidebarInset>
+
+      <Toaster />
     </SidebarProvider>
   );
 };

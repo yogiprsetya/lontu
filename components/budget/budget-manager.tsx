@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+import { httpClient } from '~/config/http-client';
+import { errorHandler } from '~/utils/error-handler';
 import { useCategoryList } from '~/components/category/use-category-list';
 import { formatIdr } from '~/utils/format';
 import { useBudgetData, type Budget } from './use-budget-data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Input } from '../ui/input';
 
 const currentDate = new Date();
 
@@ -24,19 +26,19 @@ export const BudgetManager = () => {
   const saveBudget = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    const response = await fetch(editingId ? `/api/budgets/${editingId}` : '/api/budgets', {
-      method: editingId ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categoryId, amount, year, month }),
-    });
-    if (!response.ok) {
-      const body = await response.json();
-      setError(body.error?.message || 'Unable to save budget');
-      return;
+    try {
+      await httpClient.post(editingId ? `/api/budgets/${editingId}` : '/api/budgets', {
+        categoryId,
+        amount,
+        year,
+        month,
+      });
+      setAmount('');
+      setEditingId(null);
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    setAmount('');
-    setEditingId(null);
-    await mutate();
   };
 
   const editBudget = (budget: Budget) => {
@@ -48,12 +50,12 @@ export const BudgetManager = () => {
   };
 
   const removeBudget = async (id: number) => {
-    const response = await fetch(`/api/budgets/${id}`, { method: 'DELETE' });
-    if (!response.ok) {
-      setError('Unable to remove budget');
-      return;
+    try {
+      await httpClient.delete(`/api/budgets/${id}`);
+      await mutate();
+    } catch (err) {
+      errorHandler(err);
     }
-    await mutate();
   };
 
   return (

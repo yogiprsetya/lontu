@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { RiCheckLine, RiCloseLine, RiDeleteBinLine, RiEditLine } from '@remixicon/react';
 import { Button } from '~/components/ui/button';
 import { formatIdr } from '~/utils/format';
+import { httpClient } from '~/config/http-client';
+import { errorHandler } from '~/utils/error-handler';
 
 const DEFAULT_CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Other'];
 
@@ -44,26 +46,17 @@ export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          categoryName,
-          amount,
-          note: note || undefined,
-          spentAt: new Date(spentAt).toISOString(),
-        }),
+      await httpClient.patch(`/api/expenses/${expense.id}`, {
+        categoryName,
+        amount,
+        note: note || undefined,
+        spentAt: new Date(spentAt).toISOString(),
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to update expense');
-      }
 
       setIsEditing(false);
       onMutate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      errorHandler(err);
     } finally {
       setIsSaving(false);
     }
@@ -74,18 +67,12 @@ export const ExpenseCard = ({ expense, categories = DEFAULT_CATEGORIES, onMutate
     setIsSaving(true);
 
     try {
-      const response = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error?.message || 'Failed to delete expense');
-      }
+      await httpClient.delete(`/api/expenses/${expense.id}`);
 
       onMutate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      errorHandler(err);
+    } finally {
       setIsSaving(false);
     }
   };

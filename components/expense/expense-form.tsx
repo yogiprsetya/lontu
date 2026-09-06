@@ -5,6 +5,8 @@ import { mutate } from 'swr';
 import { Button } from '~/components/ui/button';
 import { useCategoryList } from '~/components/category/use-category-list';
 import { formatIdr } from '~/utils/format';
+import { httpClient } from '~/config/http-client';
+import { errorHandler } from '~/utils/error-handler';
 
 interface ExpenseFormProps {
   categories?: string[];
@@ -41,22 +43,16 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
 
     setIsSaving(true);
     try {
-      const response = await fetch('/api/expenses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          categoryName: selectedCategory,
-          amount,
-        }),
+      const data = await httpClient.post<{ expense: SavedExpense }>('/api/expenses', {
+        categoryName: selectedCategory,
+        amount,
       });
 
-      const data = await response.json();
+      const expense = data?.expense;
 
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to save expense');
+      if (!expense) {
+        throw new Error('No expense data returned');
       }
-
-      const expense = data.data?.expense ?? data.expense;
 
       setRecent((prev) => [
         {
@@ -73,7 +69,7 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
       setSelectedCategory(null);
       await mutate('/api/expenses');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      errorHandler(err);
     } finally {
       setIsSaving(false);
     }

@@ -55,7 +55,7 @@ export const GET = async () => {
     recurring.map((item) => ({
       ...item,
       nextOccurrence: item.isActive
-        ? getNextOccurrence(item.startDate, item.frequency as 'monthly' | 'yearly')
+        ? getNextOccurrence(new Date(item.startDate), item.frequency as 'monthly' | 'yearly').toISOString()
         : null,
     }))
   );

@@ -138,51 +138,64 @@ export const RecurringManager = () => {
       {error && <p className="text-destructive text-sm">Unable to load recurring expenses.</p>}
 
       <ul className="divide-y">
-        {recurringItems.map((item) => (
-          <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-            <div>
-              <p className="text-foreground font-medium">{item.categoryName}</p>
-              <p className="text-muted-foreground text-sm">
-                {formatIdr(item.amount)} · {item.frequency} · from {toDateInput(item.startDate)}
-              </p>
-              {item.isActive === 1 && item.nextOccurrence && (
-                <p className="text-muted-foreground text-xs">
-                  Next occurrence: {toDateInput(item.nextOccurrence)}
+        {recurringItems.map((item) => {
+          const isPeriodSpent =
+            item.markedExpenseId !== null ||
+            markedPeriodKeys.includes(`${item.id}:${getRecurringPeriodKey(new Date(), item.frequency)}`);
+          const isFutureOccurrence = item.nextOccurrence && new Date(item.nextOccurrence) > new Date();
+          const isDisabled = Boolean(
+            item.isActive !== 1 ||
+            item.markedExpenseId !== null ||
+            markingId === item.id ||
+            !item.nextOccurrence ||
+            isFutureOccurrence
+          );
+          let label = 'Mark this period as spent';
+          if (item.isActive !== 1) {
+            label = 'Not active';
+          } else if (isPeriodSpent) {
+            label = 'Spent this period';
+          } else if (markingId === item.id) {
+            label = 'Marking...';
+          }
+
+          return (
+            <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+              <div>
+                <p className="text-foreground font-medium">{item.categoryName}</p>
+                <p className="text-muted-foreground text-sm">
+                  {formatIdr(item.amount)} · {item.frequency} · from {toDateInput(item.startDate)}
                 </p>
-              )}
-              {item.note && <p className="text-muted-foreground text-xs">{item.note}</p>}
-            </div>
+                {item.isActive === 1 && item.nextOccurrence && (
+                  <p className="text-muted-foreground text-xs">
+                    Next occurrence: {toDateInput(item.nextOccurrence)}
+                  </p>
+                )}
+                {item.note && <p className="text-muted-foreground text-xs">{item.note}</p>}
+              </div>
 
-            <div className="flex gap-1">
-              {item.isActive === 1 &&
-                (() => {
-                  const periodKey = `${item.id}:${getRecurringPeriodKey(new Date(), item.frequency)}`;
-                  const isMarked = item.markedExpenseId !== null || markedPeriodKeys.includes(periodKey);
-                  const isMarking = markingId === item.id;
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isDisabled}
+                  onClick={() => markPeriodSpent(item)}
+                >
+                  {label}
+                </Button>
 
-                  return (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isMarked || isMarking}
-                      onClick={() => markPeriodSpent(item)}
-                    >
-                      {isMarked ? 'Spent this period' : isMarking ? 'Marking...' : 'Mark this period as spent'}
-                    </Button>
-                  );
-                })()}
+                <Button type="button" variant="ghost" size="sm" onClick={() => editRecurring(item)}>
+                  Edit
+                </Button>
 
-              <Button type="button" variant="ghost" size="sm" onClick={() => editRecurring(item)}>
-                Edit
-              </Button>
-
-              <Button type="button" variant="ghost" size="sm" onClick={() => deactivateRecurring(item.id)}>
-                {item.isActive === 1 ? 'Deactivate' : 'Inactive'}
-              </Button>
-            </div>
-          </li>
-        ))}
+                <Button type="button" variant="ghost" size="sm" onClick={() => deactivateRecurring(item.id)}>
+                  {item.isActive === 1 ? 'Deactivate' : 'Inactive'}
+                </Button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

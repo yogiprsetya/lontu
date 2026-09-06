@@ -3,6 +3,7 @@ import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '~/components/auth-provider';
 import { SwrProvider } from '~/components/swr-provider';
+import { SwRegister } from '~/components/pwa/sw-register';
 import { cn } from '~/utils/css';
 
 const dmSans = DM_Sans({
@@ -33,6 +34,8 @@ const RootLayout = ({ children }: LayoutProps<'/'>) => {
         <SwrProvider>
           <AuthProvider>{children}</AuthProvider>
         </SwrProvider>
+
+        <SwRegister />
       </body>
     </html>
   );

@@ -10,6 +10,7 @@ import { useCategoryList } from '~/components/category/use-category-list';
 import { formatIdr } from '~/utils/format';
 import { httpClient } from '~/config/http-client';
 import { errorHandler } from '~/utils/error-handler';
+import { OFFLINE_ERROR_MESSAGE } from '~/utils/offline-cache';
 import { useExpenseForm } from './use-expense-form';
 import { type ExpenseFormValues } from '~/utils/validators/expense';
 
@@ -38,6 +39,12 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
   const selectedCategory = form.watch('categoryName');
 
   const onSubmit = async (data: ExpenseFormValues) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      errorHandler(new Error(OFFLINE_ERROR_MESSAGE));
+
+      return;
+    }
+
     setIsSaving(true);
     try {
       const result = await httpClient.post<{ expense: SavedExpense }>('/api/expenses', {
@@ -142,6 +149,10 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
       <Button type="submit" size="lg" disabled={isSaving} className="w-full">
         {isSaving ? 'Saving...' : 'Save expense'}
       </Button>
+
+      <p role="status" aria-live="polite" className="text-muted-foreground text-xs">
+        You are offline. Saved data stays viewable, but new expenses need a connection.
+      </p>
 
       {recent.length > 0 && (
         <section className="mt-2">

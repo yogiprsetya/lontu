@@ -87,3 +87,94 @@ test('root layout preserves the authenticated app shell without regressions', as
   assert.match(layoutSource, /SwrProvider/, 'root layout keeps the SWR provider');
   assert.match(layoutSource, /export default/, 'root layout keeps a default export');
 });
+
+test('offline cache utils expose a versioned contract', async () => {
+  const offlineCache = await import('../utils/offline-cache');
+
+  assert.equal(typeof offlineCache.OFFLINE_CACHE_VERSION, 'string');
+  assert.match(offlineCache.OFFLINE_CACHE_VERSION, /lontu-offline-v/);
+  assert.ok(
+    String(offlineCache.OFFLINE_STORAGE_KEY).includes(offlineCache.OFFLINE_CACHE_VERSION),
+    'storage key is tied to the cache version'
+  );
+  assert.equal(typeof offlineCache.isCacheableApiRequest, 'function');
+  assert.equal(typeof offlineCache.isMutationMethod, 'function');
+  assert.equal(typeof offlineCache.clearOfflineCache, 'function');
+  assert.match(String(offlineCache.OFFLINE_ERROR_MESSAGE), /offline/i);
+});
+
+test('offline cache only caches GET reads and never mutations', async () => {
+  const { isCacheableApiRequest, isMutationMethod } = await import('../utils/offline-cache');
+
+  assert.equal(isCacheableApiRequest('/api/expenses', 'GET'), true);
+  assert.equal(isCacheableApiRequest('/api/categories', 'GET'), true);
+  assert.equal(isCacheableApiRequest('/api/budgets?year=2026&month=9', 'GET'), true);
+  assert.equal(isCacheableApiRequest('/api/recurring', 'GET'), true);
+  assert.equal(isCacheableApiRequest('/api/expenses', 'POST'), false);
+  assert.equal(isCacheableApiRequest('/api/auth/session', 'GET'), false);
+  assert.equal(isMutationMethod('POST'), true);
+  assert.equal(isMutationMethod('PATCH'), true);
+  assert.equal(isMutationMethod('DELETE'), true);
+  assert.equal(isMutationMethod('GET'), false);
+});
+
+test('service worker caches latest reads and invalidates on version change', async () => {
+  const fs = await import('node:fs/promises');
+
+  const swSource = await fs.readFile(new URL('../public/sw.js', import.meta.url), 'utf8');
+
+  assert.match(swSource, /lontu-offline-v\d+/, 'service worker is versioned');
+  assert.match(swSource, /addEventListener\(['"]install['"]/, 'service worker handles install');
+  assert.match(swSource, /addEventListener\(['"]activate['"]/, 'service worker handles activate');
+  assert.match(swSource, /addEventListener\(['"]fetch['"]/, 'service worker handles fetch');
+  assert.match(swSource, /GET/, 'service worker only caches GET reads');
+  assert.match(swSource, /\/api\/expenses/, 'service worker knows the read endpoints');
+  assert.match(swSource, /caches\.delete|caches\.keys/, 'service worker invalidates old caches');
+  assert.match(swSource, /CLEAR_OFFLINE_CACHE/, 'service worker clears cache on sign-out');
+});
+
+test('swr provider persists latest data for offline viewing', async () => {
+  const fs = await import('node:fs/promises');
+
+  const source = await fs.readFile(new URL('../components/swr-provider.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /provider/, 'SWR provider configures a cache provider');
+  assert.match(source, /localStorage/, 'SWR provider persists to localStorage');
+  assert.match(source, /OFFLINE_STORAGE_KEY|offline/i, 'SWR provider uses the versioned offline key');
+  assert.match(source, /swrFetcher/, 'SWR provider keeps the shared fetcher');
+  assert.match(source, /SwrProvider/, 'SWR provider keeps its export');
+});
+
+test('root layout registers the service worker without regressions', async () => {
+  const fs = await import('node:fs/promises');
+
+  const layoutSource = await fs.readFile(new URL('../app/layout.tsx', import.meta.url), 'utf8');
+
+  assert.match(layoutSource, /SwRegister|\/sw\.js|serviceWorker/, 'root layout registers the service worker');
+  assert.match(layoutSource, /AuthProvider/, 'root layout keeps the auth provider');
+  assert.match(layoutSource, /SwrProvider/, 'root layout keeps the SWR provider');
+});
+
+test('expense form fails clearly while offline and never claims a save', async () => {
+  const fs = await import('node:fs/promises');
+
+  const source = await fs.readFile(new URL('../components/expense/expense-form.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /navigator\.onLine/, 'expense form checks connectivity before mutating');
+  assert.match(source, /offline/i, 'expense form surfaces an offline state');
+  assert.match(source, /OFFLINE_ERROR_MESSAGE|You are offline/, 'expense form fails with a clear message');
+});
+
+test('sign-out invalidates the offline cache', async () => {
+  const fs = await import('node:fs/promises');
+
+  const authSource = await fs.readFile(new URL('../components/auth-provider.tsx', import.meta.url), 'utf8');
+  const swSource = await fs.readFile(new URL('../public/sw.js', import.meta.url), 'utf8');
+
+  assert.match(
+    authSource,
+    /clearOfflineCache|CLEAR_OFFLINE_CACHE|caches\.delete/,
+    'sign-out clears the offline cache'
+  );
+  assert.match(swSource, /CLEAR_OFFLINE_CACHE/, 'service worker supports sign-out invalidation');
+});

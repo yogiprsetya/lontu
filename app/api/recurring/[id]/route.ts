@@ -93,7 +93,11 @@ export const POST = async (_request: NextRequest, context: { params: Promise<{ i
   if (!recurring.isActive) return badRequestResponse('Recurring expense is inactive');
 
   const spentAt = new Date();
-  if (spentAt < recurring.startDate) return badRequestResponse('Recurring expense has not started');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const recurringStartDate = new Date(recurring.startDate);
+  recurringStartDate.setHours(0, 0, 0, 0);
+  if (today < recurringStartDate) return badRequestResponse('Recurring expense has not started');
   const recurringPeriod = getRecurringPeriodKey(spentAt, recurring.frequency as 'monthly' | 'yearly');
   const [expense] = await db
     .insert(expensesTable)

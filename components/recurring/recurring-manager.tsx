@@ -21,7 +21,9 @@ export const RecurringManager = () => {
   const [categoryId, setCategoryId] = useState('');
   const [amount, setAmount] = useState('');
   const [frequency, setFrequency] = useState<'monthly' | 'yearly'>('monthly');
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(() =>
+    new Date(new Date().setHours(0, 0, 0, 0)).toISOString().slice(0, 10)
+  );
   const [note, setNote] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

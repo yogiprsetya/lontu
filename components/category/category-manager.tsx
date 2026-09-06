@@ -1,34 +1,41 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { httpClient } from '~/config/http-client';
 import { errorHandler } from '~/utils/error-handler';
 import { useCategoryList } from './use-category-list';
+import { Field, FieldLabel, FieldContent, FieldError } from '~/components/ui/field';
+import { categoryInputFormSchema, type CategoryFormInput } from '~/utils/validators/category';
 
 export const CategoryManager = () => {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState('#2f7d73');
+  const form = useForm<CategoryFormInput>({
+    resolver: zodResolver(categoryInputFormSchema),
+    defaultValues: {
+      name: '',
+      color: '#2f7d73',
+    },
+  });
+
+  const { handleSubmit, reset } = form;
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { data, mutate } = useCategoryList();
   const categories = data?.categories ?? [];
 
-  const createCategory = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
+  const createCategory = handleSubmit(async (data) => {
     try {
-      await httpClient.post('/api/categories', { name, color });
-      setName('');
+      await httpClient.post('/api/categories', { name: data.name, color: data.color });
+      reset({ name: '', color: '#2f7d73' });
       await mutate();
     } catch (err) {
       errorHandler(err);
     }
-  };
+  });
 
   const archiveCategory = async (id: number) => {
-    setError(null);
     try {
       await httpClient.delete(`/api/categories/${id}`);
       await mutate();
@@ -52,22 +59,26 @@ export const CategoryManager = () => {
 
   return (
     <section className="flex flex-col gap-4">
-      <form onSubmit={createCategory} className="flex gap-2">
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Category name"
-          required
-        />
-        <input
-          aria-label="Category color"
-          type="color"
-          value={color}
-          onChange={(event) => setColor(event.target.value)}
-        />
+      <form onSubmit={createCategory} className="flex flex-col gap-2">
+        <Field orientation="horizontal">
+          <FieldLabel className="w-24">Name</FieldLabel>
+          <FieldContent className="flex-1">
+            <Input {...form.register('name')} placeholder="Category name" />
+            <FieldError errors={[form.formState.errors.name]} />
+          </FieldContent>
+        </Field>
+        <Field orientation="horizontal">
+          <FieldLabel className="w-24">Color</FieldLabel>
+          <FieldContent className="flex-1">
+            <div className="flex gap-2">
+              <input aria-label="Category color" type="color" {...form.register('color')} />
+              <Input {...form.register('color')} placeholder="#2f7d73" />
+            </div>
+            <FieldError errors={[form.formState.errors.color]} />
+          </FieldContent>
+        </Field>
         <Button type="submit">Add</Button>
       </form>
-      {error && <p className="text-destructive text-sm">{error}</p>}
       <ul className="divide-y">
         {categories.map((category) => (
           <li key={category.id} className="flex items-center justify-between py-3">

@@ -21,7 +21,11 @@ export const budgetYearSchema = requiredInt('year').min(1970, 'year is invalid')
 export const budgetMonthSchema = requiredInt('month').min(1, 'month is invalid').max(12, 'month is invalid');
 
 export const categoryNameSchema = z
-  .string({ error: 'name is required' })
+  .string({
+    required_error: 'name is required',
+    invalid_type_error: 'name is required',
+    message: 'name is required',
+  })
   .trim()
   .min(1, 'name is required')
   .max(CATEGORY_NAME_MAX_LENGTH, 'name is too long');
@@ -31,13 +35,12 @@ export const categoryColorSchema = z
   .nullish()
   .transform((color) => color || undefined);
 
-export const noteSchema = z
-  .string()
-  .max(1000, 'note is too long')
-  .nullish()
-  .transform((note) => note ?? undefined);
+export const noteSchema = z.string().max(1000, 'note is too long').optional();
 
-export const dateSchema = (field: string) => z.coerce.date(`${field} is invalid`);
+export const dateSchema = (field: string) =>
+  z.coerce.date({
+    errorMap: () => ({ message: `${field} is invalid` }),
+  });
 
 export const spentAtSchema = dateSchema('spentAt');
 

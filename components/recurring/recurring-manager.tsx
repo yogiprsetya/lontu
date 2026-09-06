@@ -9,13 +9,9 @@ import { formatIdr } from '~/utils/format';
 import { RecurringFormDialog } from '~/components/recurring/recurring-form-dialog';
 import { useRecurring, type RecurringItem } from '~/components/recurring/use-recurring-';
 import { getRecurringPeriodKey } from '~/utils/recurrence';
+import { type RecurringFormValues } from '~/utils/validators/recurring';
 
 const toDateInput = (date: string) => new Date(date).toISOString().slice(0, 10);
-const toDateValue = (date: string) => new Date(`${date}T00:00:00`);
-const toDateString = (date: Date | undefined) =>
-  date
-    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    : '';
 
 export const RecurringManager = () => {
   const { data, error, mutate } = useRecurring();
@@ -43,17 +39,16 @@ export const RecurringManager = () => {
     setIsDialogOpen(false);
   };
 
-  const saveRecurring = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const saveRecurring = async (data: RecurringFormValues) => {
     setFormError(null);
     const endpoint = editingId ? `/api/recurring/${editingId}` : '/api/recurring';
     try {
       await httpClient.post(endpoint, {
-        ...(!editingId ? { categoryId } : {}),
-        amount,
-        frequency,
-        startDate,
-        note: note || undefined,
+        ...(!editingId ? { categoryId: String(data.categoryId) } : {}),
+        amount: String(data.amount),
+        frequency: data.frequency,
+        startDate: data.startDate.toISOString().slice(0, 10),
+        note: data.note || undefined,
       });
       resetForm();
       await mutate();
@@ -104,7 +99,6 @@ export const RecurringManager = () => {
   };
 
   const recurringItems = data?.recurring ?? [];
-  const selectedCategoryName = categories.find((category) => String(category.id) === categoryId)?.name;
 
   return (
     <section className="flex flex-col gap-6">
@@ -117,21 +111,15 @@ export const RecurringManager = () => {
       <RecurringFormDialog
         open={isDialogOpen}
         isEditing={editingId !== null}
-        categoryId={categoryId}
-        selectedCategoryName={selectedCategoryName}
+        categoryId={Number(categoryId)}
         amount={amount}
         frequency={frequency}
-        startDate={toDateValue(startDate)}
+        startDate={startDate}
         note={note}
         categories={categories}
         formError={formError}
         onOpenChange={setIsDialogOpen}
         onSubmit={saveRecurring}
-        onCategoryChange={setCategoryId}
-        onAmountChange={setAmount}
-        onFrequencyChange={setFrequency}
-        onStartDateChange={(date) => setStartDate(toDateString(date))}
-        onNoteChange={setNote}
         onCancel={() => setIsDialogOpen(false)}
       />
 

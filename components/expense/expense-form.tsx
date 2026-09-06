@@ -2,11 +2,16 @@
 
 import { useState } from 'react';
 import { mutate } from 'swr';
+import { Controller } from 'react-hook-form';
 import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Field, FieldLabel, FieldDescription, FieldError } from '~/components/ui/field';
 import { useCategoryList } from '~/components/category/use-category-list';
 import { formatIdr } from '~/utils/format';
 import { httpClient } from '~/config/http-client';
 import { errorHandler } from '~/utils/error-handler';
+import { useExpenseForm } from './use-expense-form';
+import { type ExpenseFormValues } from '~/utils/validators/expense';
 
 interface ExpenseFormProps {
   categories?: string[];
@@ -26,29 +31,23 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
   const { categories: savedCategories } = useCategoryList();
   const availableCategories =
     savedCategories.length > 0 ? savedCategories.map((category) => category.name) : categories;
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [amount, setAmount] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<SavedExpense[]>([]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
+  const { form, handleSubmit, reset } = useExpenseForm();
+  const selectedCategory = form.watch('categoryName');
 
-    if (!selectedCategory) {
-      setError('Select a category first');
-      return;
-    }
-
+  const onSubmit = async (data: ExpenseFormValues) => {
     setIsSaving(true);
     try {
-      const data = await httpClient.post<{ expense: SavedExpense }>('/api/expenses', {
-        categoryName: selectedCategory,
-        amount,
+      const result = await httpClient.post<{ expense: SavedExpense }>('/api/expenses', {
+        categoryName: data.categoryName,
+        amount: data.amount,
+        note: data.note,
+        spentAt: data.spentAt,
       });
 
-      const expense = data?.expense;
+      const expense = result?.expense;
 
       if (!expense) {
         throw new Error('No expense data returned');
@@ -58,15 +57,14 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
         {
           id: expense.id,
           amount: expense.amount,
-          categoryName: selectedCategory,
+          categoryName: data.categoryName,
           note: expense.note,
           spentAt: expense.spentAt,
         },
         ...prev,
       ]);
 
-      setAmount('');
-      setSelectedCategory(null);
+      reset();
       await mutate('/api/expenses');
     } catch (err) {
       errorHandler(err);
@@ -76,60 +74,72 @@ export const ExpenseForm = ({ categories = DEFAULT_CATEGORIES }: ExpenseFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
       <section>
         <h2 className="text-foreground mb-2.5 text-base font-semibold">Categories</h2>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {availableCategories.map((category) => {
-            const isSelected = selectedCategory === category;
-
-            return (
-              <Button
-                key={category}
-                type="button"
-                variant={isSelected ? 'default' : 'outline'}
-                aria-pressed={isSelected}
-                onClick={() => setSelectedCategory(category)}
-                className="flex h-auto flex-col items-center gap-1.5 py-2.5"
+          {availableCategories.map((category) => (
+            <Button
+              key={category}
+              type="button"
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              aria-pressed={selectedCategory === category}
+              onClick={() => form.setValue('categoryName', category)}
+              className="flex h-auto flex-col items-center gap-1.5 py-2.5"
+            >
+              <span
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
+                  selectedCategory === category
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    : 'bg-primary/10 text-foreground'
+                }`}
               >
-                <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
-                    isSelected
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-primary/10 text-foreground'
-                  }`}
-                >
-                  {category[0]}
-                </span>
-                <span className="text-xs">{category}</span>
-              </Button>
-            );
-          })}
+                {category[0]}
+              </span>
+              <span className="text-xs">{category}</span>
+            </Button>
+          ))}
         </div>
       </section>
 
-      <section className="flex flex-col gap-2">
-        <label htmlFor="amount" className="text-foreground text-sm font-medium">
-          Amount
-        </label>
-        <input
-          id="amount"
+      <section className="flex flex-col gap-3">
+        <Controller
           name="amount"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          step={1}
-          required
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="0"
-          className="bg-muted text-foreground focus:ring-ring h-11 rounded-lg px-4 text-lg outline-none focus:ring-2"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                step={1}
+                placeholder="0"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldDescription>Enter the expense amount</FieldDescription>
+              {fieldState.error && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="note"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Note</FieldLabel>
+              <Input {...field} id={field.name} placeholder="Optional note" aria-invalid={fieldState.invalid} />
+              <FieldDescription>Add an optional note for this expense</FieldDescription>
+              {fieldState.error && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
       </section>
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
-
-      <Button type="submit" size="lg" disabled={isSaving || !selectedCategory || amount === ''} className="w-full">
+      <Button type="submit" size="lg" disabled={isSaving} className="w-full">
         {isSaving ? 'Saving...' : 'Save expense'}
       </Button>
 

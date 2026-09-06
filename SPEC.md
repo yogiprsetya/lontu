@@ -34,7 +34,8 @@ Single user (you) for now. The auth layer and data model must be designed so mul
 - **Auth:** Google OAuth
 - **Database:** PostgreSQL
 - **ORM / query builder:** Drizzle
-- **validation library:** Zod
+- **Validation library:** Zod
+- **Form handling:** react-hook-form, @hookform/resolvers/zod
 - **Deploy target:** VPS
 - **Package manager:** pnpm 10.34.1
 - **Auth library:** NextAuth.js v4

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '~/components/ui/button';
 import { httpClient } from '~/config/http-client';
 import { errorHandler } from '~/utils/error-handler';
@@ -9,44 +11,58 @@ import { formatIdr } from '~/utils/format';
 import { useBudgetData, type Budget } from './use-budget-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Input } from '../ui/input';
+import { Field, FieldLabel, FieldContent, FieldError } from '~/components/ui/field';
+import { budgetInputFormSchema, type BudgetFormValues } from '~/utils/validators/budget';
 
 const currentDate = new Date();
 
 export const BudgetManager = () => {
-  const [categoryId, setCategoryId] = useState('');
-  const [amount, setAmount] = useState('');
-  const [year, setYear] = useState(String(currentDate.getFullYear()));
-  const [month, setMonth] = useState(String(currentDate.getMonth() + 1));
+  const form = useForm<BudgetFormValues>({
+    resolver: zodResolver(budgetInputFormSchema),
+    defaultValues: {
+      categoryId: 0,
+      amount: 0,
+      year: currentDate.getFullYear(),
+      month: currentDate.getMonth() + 1,
+    },
+  });
+
+  const { watch, handleSubmit, reset } = form;
+  const selectedCategoryId = watch('categoryId');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { categories } = useCategoryList();
-  const { data, mutate } = useBudgetData(year, month);
+  const { data, mutate } = useBudgetData(watch('year'), watch('month'));
   const budgets = data?.budgets ?? [];
 
-  const saveBudget = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
+  const saveBudget = handleSubmit(async (data) => {
     try {
       await httpClient.post(editingId ? `/api/budgets/${editingId}` : '/api/budgets', {
-        categoryId,
-        amount,
-        year,
-        month,
+        categoryId: data.categoryId,
+        amount: data.amount,
+        year: data.year,
+        month: data.month,
       });
-      setAmount('');
+      reset({
+        categoryId: 0,
+        amount: 0,
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1,
+      });
       setEditingId(null);
       await mutate();
     } catch (err) {
       errorHandler(err);
     }
-  };
+  });
 
   const editBudget = (budget: Budget) => {
     setEditingId(budget.id);
-    setCategoryId(String(budget.categoryId));
-    setAmount(String(budget.amount));
-    setYear(String(budget.year));
-    setMonth(String(budget.month));
+    reset({
+      categoryId: budget.categoryId,
+      amount: budget.amount,
+      year: budget.year,
+      month: budget.month,
+    });
   };
 
   const removeBudget = async (id: number) => {
@@ -61,56 +77,76 @@ export const BudgetManager = () => {
   return (
     <section className="flex flex-col gap-5">
       <form onSubmit={saveBudget} className="bg-card grid gap-3 rounded-xl border p-4 sm:grid-cols-4">
-        <Select value={categoryId || null} onValueChange={(value) => setCategoryId(value ?? '')}>
-          <SelectTrigger aria-label="Budget category" className="w-full">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
+        <Field>
+          <FieldLabel>Budget category</FieldLabel>
+          <FieldContent>
+            <Select
+              {...form.register('categoryId')}
+              value={selectedCategoryId || undefined}
+              onValueChange={(value) => form.setValue('categoryId', value ? Number(value) : 0)}
+            >
+              <SelectTrigger aria-label="Budget category" className="w-full">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
 
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={String(category.id)}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError errors={[form.formState.errors.categoryId]} />
+          </FieldContent>
+        </Field>
 
-        <Input
-          aria-label="Budget amount"
-          type="number"
-          min="1"
-          step="1"
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          placeholder="Monthly IDR"
-          required
-        />
+        <Field>
+          <FieldLabel>Budget amount</FieldLabel>
+          <FieldContent>
+            <Input
+              aria-label="Budget amount"
+              type="number"
+              min="1"
+              step="1"
+              {...form.register('amount', { valueAsNumber: true })}
+              placeholder="Monthly IDR"
+            />
+            <FieldError errors={[form.formState.errors.amount]} />
+          </FieldContent>
+        </Field>
 
-        <Input
-          aria-label="Budget year"
-          type="number"
-          min="1970"
-          max="9999"
-          value={year}
-          onChange={(event) => setYear(event.target.value)}
-          required
-        />
+        <Field>
+          <FieldLabel>Budget year</FieldLabel>
+          <FieldContent>
+            <Input
+              aria-label="Budget year"
+              type="number"
+              min="1970"
+              max="9999"
+              {...form.register('year', { valueAsNumber: true })}
+            />
+            <FieldError errors={[form.formState.errors.year]} />
+          </FieldContent>
+        </Field>
 
-        <div className="flex gap-2">
-          <Input
-            aria-label="Budget month"
-            type="number"
-            min="1"
-            max="12"
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
-            required
-          />
-          <Button type="submit">{editingId ? 'Save' : 'Add'}</Button>
-        </div>
+        <Field>
+          <FieldLabel>Budget month</FieldLabel>
+          <FieldContent>
+            <div className="flex gap-2">
+              <Input
+                aria-label="Budget month"
+                type="number"
+                min="1"
+                max="12"
+                {...form.register('month', { valueAsNumber: true })}
+              />
+              <Button type="submit">{editingId ? 'Save' : 'Add'}</Button>
+            </div>
+            <FieldError errors={[form.formState.errors.month]} />
+          </FieldContent>
+        </Field>
       </form>
-
-      {error && <p className="text-destructive text-sm">{error}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {budgets.map((budget) => (

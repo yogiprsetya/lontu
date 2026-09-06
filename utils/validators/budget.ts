@@ -36,6 +36,11 @@ const budgetInputSchema = z.object({
   month: budgetMonthSchema,
 });
 
+export const budgetInputFormSchema = budgetInputSchema;
+
+export type BudgetFormValues = z.infer<typeof budgetInputFormSchema>;
+export type BudgetFormInput = z.input<typeof budgetInputFormSchema>;
+
 /** Parses the optional `year`/`month` query filter for the budgets collection. */
 export const budgetMonthQuerySchema = z.object({
   year: budgetYearSchema,

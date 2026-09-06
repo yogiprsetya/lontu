@@ -29,8 +29,12 @@ interface ValidatedExpenseUpdateInput {
   spentAt?: Date;
 }
 
-const expenseCategoryNameSchema = z
-  .string({ error: 'categoryName is required' })
+export const expenseCategoryNameSchema = z
+  .string({
+    required_error: 'categoryName is required',
+    invalid_type_error: 'categoryName is required',
+    message: 'categoryName is required',
+  })
   .trim()
   .min(1, 'categoryName is required');
 
@@ -40,6 +44,16 @@ const expenseInputSchema = z.object({
   note: noteSchema,
   spentAt: spentAtSchema.optional().transform((spentAt) => spentAt ?? new Date()),
 });
+
+export const expenseInputFormSchema = z.object({
+  categoryName: expenseCategoryNameSchema,
+  amount: requiredInt('amount'),
+  note: noteSchema,
+  spentAt: spentAtSchema.optional(),
+});
+
+export type ExpenseFormValues = z.infer<typeof expenseInputFormSchema>;
+export type ExpenseFormInput = z.input<typeof expenseInputFormSchema>;
 
 export const validateExpenseInput = (input: ExpenseInput): ValidatedExpenseInput =>
   expenseInputSchema.parse(input);

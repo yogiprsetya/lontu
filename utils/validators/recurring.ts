@@ -46,6 +46,19 @@ const recurringInputSchema = z.object({
 export const validateRecurringInput = (input: RecurringInput): ValidatedRecurringInput =>
   recurringInputSchema.parse(input);
 
+export const recurringInputFormSchema = recurringInputSchema.refine(
+  (data) => {
+    const start = new Date(data.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return start >= today;
+  },
+  { message: 'Start date cannot be in the past', path: ['startDate'] }
+);
+
+export type RecurringFormValues = z.infer<typeof recurringInputFormSchema>;
+export type RecurringFormInput = z.input<typeof recurringInputFormSchema>;
+
 export const validateRecurringUpdateInput = (input: RecurringUpdateInput): ValidatedRecurringUpdateInput => {
   const result: ValidatedRecurringUpdateInput = {};
 

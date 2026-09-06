@@ -16,5 +16,10 @@ const categoryInputSchema = z.object({
   color: categoryColorSchema,
 });
 
+export const categoryInputFormSchema = categoryInputSchema;
+
+export type CategoryFormValues = z.infer<typeof categoryInputFormSchema>;
+export type CategoryFormInput = z.input<typeof categoryInputFormSchema>;
+
 export const validateCategoryInput = (input: CategoryInput): ValidatedCategoryInput =>
   categoryInputSchema.parse(input);

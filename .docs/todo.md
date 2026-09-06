@@ -140,7 +140,7 @@
 
 ## Phase 5: PWA and Offline Read Support
 
-- [ ] **Task 12: Make the app installable as a PWA**
+- [x] **Task 12: Make the app installable as a PWA**
   - Acceptance: Valid manifest, icons, theme metadata, and standalone behavior are available for the authenticated app.
   - Verify: Run `pnpm build`; inspect browser installability; install and launch on a real device or responsive emulator.
   - Depends on: Tasks 1–6

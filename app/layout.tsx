@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '~/components/auth-provider';
@@ -14,6 +14,16 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Lontu',
   description: 'Track expenses in three taps.',
+  applicationName: 'Lontu',
+  appleWebApp: {
+    capable: true,
+    title: 'Lontu',
+    statusBarStyle: 'default',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0c0a08',
 };
 
 const RootLayout = ({ children }: LayoutProps<'/'>) => {

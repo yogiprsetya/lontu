@@ -12,7 +12,7 @@ Di ponsel (360 px), pemilik bisa mengubah profil, mengelola akun (termasuk mengu
 - [x] T18: Kelola akun: daftar + tambah akun (M)
 - [x] T19: Kelola akun: edit, arsip, pulihkan (M)
 - [x] T20: Kelola kategori: daftar per tab + tambah (M)
-- [ ] T21: Kelola kategori: rename, arsip, pulihkan (S)
+- [x] T21: Kelola kategori: rename, arsip, pulihkan (S)
 
 Urutan: T17 → T18 → T19, lalu T20 → T21. T20 hanya butuh T18 (ModalHost dan pola hook), jadi T19 dan T20 bisa dikerjakan paralel.
 
@@ -34,7 +34,7 @@ Urutan: T17 → T18 → T19, lalu T20 → T21. T20 hanya butuh T18 (ModalHost da
 
 ## Checkpoint F (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-accounts-categories.md tercentang
-- [ ] Manual di 360×800 dan 1024: alur akun dan kategori lengkap, tanpa horizontal scroll, target sentuh ≥ 44 px, dark mode
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-accounts-categories.md tercentang
+- [x] Manual di 360×800 dan 1024: alur akun dan kategori lengkap, tanpa horizontal scroll, target sentuh ≥ 44 px, dark mode (headless)
 - [ ] Review dengan Yogi, lalu tulis `SPEC-transactions.md`

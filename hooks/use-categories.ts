@@ -40,3 +40,21 @@ export async function createCategory(input: CategoryCreateInput) {
   await revalidateCategories();
   return category;
 }
+
+export async function renameCategory(id: string, name: string) {
+  const category = await sendJSON<Category>(`/api/categories/${id}`, "PATCH", { name });
+  await revalidateCategories();
+  return category;
+}
+
+export async function archiveCategory(id: string) {
+  const category = await sendJSON<Category>(`/api/categories/${id}`, "DELETE");
+  await revalidateCategories();
+  return category;
+}
+
+export async function restoreCategory(id: string) {
+  const category = await sendJSON<Category>(`/api/categories/${id}/restore`, "POST");
+  await revalidateCategories();
+  return category;
+}

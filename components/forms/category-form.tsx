@@ -9,9 +9,15 @@ import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createCategory } from "@/hooks/use-categories";
+import { createCategory, renameCategory } from "@/hooks/use-categories";
 import { applyServerErrors } from "@/lib/form-errors";
-import { type CategoryKind, SPENDING_TYPES, type SpendingType, categoryRenameSchema } from "@/lib/schemas/category";
+import {
+  type Category,
+  type CategoryKind,
+  SPENDING_TYPES,
+  type SpendingType,
+  categoryRenameSchema,
+} from "@/lib/schemas/category";
 
 export const KIND_LABELS: Record<CategoryKind, string> = { income: "Income", saving: "Saving", spending: "Spending" };
 export const SPENDING_TYPE_LABELS: Record<SpendingType, string> = { needs: "Needs", wants: "Wants" };
@@ -20,21 +26,37 @@ export const SPENDING_TYPE_LABELS: Record<SpendingType, string> = { needs: "Need
 const formSchema = z.object({ name: categoryRenameSchema.shape.name, spendingType: z.enum(SPENDING_TYPES) });
 type FormValues = z.infer<typeof formSchema>;
 
-type CategoryFormProps = { kind: CategoryKind; onDone: () => void; onCancel: () => void };
+type CategoryFormProps = {
+  kind: CategoryKind;
+  /** Rename this category; omit to create one. */
+  category?: Category;
+  onDone: () => void;
+  onCancel: () => void;
+  /** Extra actions for edit mode, rendered above Batal/Simpan. */
+  children?: React.ReactNode;
+};
 
-export function CategoryForm({ kind, onDone, onCancel }: CategoryFormProps) {
+export function CategoryForm({ kind, category, onDone, onCancel, children }: CategoryFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: { name: "", spendingType: "needs" } });
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: category?.name ?? "", spendingType: category?.spendingType ?? "needs" },
+  });
 
   const onSubmit = handleSubmit(async ({ name, spendingType }) => {
     try {
-      await createCategory(kind === "spending" ? { name, kind, spendingType } : { name, kind, spendingType: null });
-      toast.success("Kategori ditambahkan");
+      if (category) {
+        await renameCategory(category.id, name);
+        toast.success("Kategori diperbarui");
+      } else {
+        await createCategory(kind === "spending" ? { name, kind, spendingType } : { name, kind, spendingType: null });
+        toast.success("Kategori ditambahkan");
+      }
       onDone();
     } catch (err) {
       if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan kategori. Coba lagi.");
@@ -43,7 +65,11 @@ export function CategoryForm({ kind, onDone, onCancel }: CategoryFormProps) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-4">
-      <p className="text-sm text-muted-foreground">Jenis: {KIND_LABELS[kind]}</p>
+      <p className="text-sm text-muted-foreground">
+        Jenis: {KIND_LABELS[kind]}
+        {category?.spendingType && ` · ${SPENDING_TYPE_LABELS[category.spendingType]}`}
+        {category && ". Jenis kategori tidak bisa diubah."}
+      </p>
       <FormField id="category-name" label="Nama kategori" error={errors.name?.message}>
         <Input
           id="category-name"
@@ -55,7 +81,7 @@ export function CategoryForm({ kind, onDone, onCancel }: CategoryFormProps) {
         />
       </FormField>
 
-      {kind === "spending" && (
+      {kind === "spending" && !category && (
         <Controller
           control={control}
           name="spendingType"
@@ -81,6 +107,8 @@ export function CategoryForm({ kind, onDone, onCancel }: CategoryFormProps) {
           )}
         />
       )}
+
+      {children}
 
       <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
         <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>

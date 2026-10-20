@@ -1,26 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ArchiveIcon, PlusIcon } from "lucide-react";
-import { toast } from "sonner";
+import { PlusIcon } from "lucide-react";
 import { AccountForm } from "@/components/forms/account-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
+import { ArchiveButton, RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import { archiveAccount, restoreAccount, useAccounts } from "@/hooks/use-accounts";
 import { formatIDR } from "@/lib/money";
 import { ACCOUNT_SUBTYPE_LABELS, ACCOUNT_TYPE_LABELS, ACCOUNT_TYPES, type Account } from "@/lib/schemas/account";
@@ -68,7 +55,19 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
         {view.kind === "create" && <AccountForm onDone={toList} onCancel={toList} />}
         {view.kind === "edit" && (
           <AccountForm key={view.account.id} account={view.account} onDone={toList} onCancel={toList}>
-            <ArchiveAccountButton account={view.account} onArchived={toList} />
+            <ArchiveButton
+              label="Arsipkan akun"
+              name={view.account.name}
+              description={
+                <>
+                  {view.account.balance !== 0 && <>Saldo saat ini {formatIDR(view.account.balance)}. </>}
+                  Akun disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi lama. Kamu bisa
+                  memulihkannya kapan saja.
+                </>
+              }
+              archive={() => archiveAccount(view.account.id)}
+              onArchived={toList}
+            />
           </AccountForm>
         )}
       </div>
@@ -87,13 +86,7 @@ function AccountList({ showArchived, onShowArchivedChange, onEdit }: AccountList
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <Label
-        htmlFor="show-archived-accounts"
-        className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-base font-normal"
-      >
-        Tampilkan arsip
-        <Switch id="show-archived-accounts" checked={showArchived} onCheckedChange={onShowArchivedChange} />
-      </Label>
+      <ShowArchivedSwitch id="show-archived-accounts" checked={showArchived} onCheckedChange={onShowArchivedChange} />
       {error ? (
         <LoadError onRetry={() => void mutate()} message="Gagal memuat akun." />
       ) : !data ? (
@@ -162,74 +155,12 @@ function AccountSummary({ account }: { account: Account }) {
 }
 
 function ArchivedAccountRow({ account }: { account: Account }) {
-  const [pending, setPending] = useState(false);
-
-  async function restore() {
-    setPending(true);
-    try {
-      await restoreAccount(account.id);
-      toast.success(`${account.name} dipulihkan`);
-    } catch {
-      toast.error("Gagal memulihkan akun. Coba lagi.");
-    } finally {
-      setPending(false);
-    }
-  }
-
   return (
     <div className="flex items-center gap-3">
       <div className="min-w-0 flex-1 opacity-60">
         <AccountSummary account={account} />
       </div>
-      <Button variant="outline" className="h-11 shrink-0 text-base" disabled={pending} onClick={() => void restore()}>
-        Pulihkan
-      </Button>
+      <RestoreButton name={account.name} restore={() => restoreAccount(account.id)} />
     </div>
-  );
-}
-
-function ArchiveAccountButton({ account, onArchived }: { account: Account; onArchived: () => void }) {
-  const [pending, setPending] = useState(false);
-
-  async function archive() {
-    setPending(true);
-    try {
-      await archiveAccount(account.id);
-      toast.success(`${account.name} diarsipkan`);
-      onArchived();
-    } catch {
-      toast.error("Gagal mengarsipkan akun. Coba lagi.");
-      setPending(false);
-    }
-  }
-
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger render={<Button type="button" variant="destructive" className="h-11 self-start text-base" />}>
-        <ArchiveIcon aria-hidden />
-        Arsipkan akun
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Arsipkan {account.name}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            {account.balance !== 0 && <>Saldo saat ini {formatIDR(account.balance)}. </>}
-            Akun disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi lama. Kamu bisa
-            memulihkannya kapan saja.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            className="h-11 text-base"
-            disabled={pending}
-            onClick={() => void archive()}
-          >
-            Arsipkan
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }

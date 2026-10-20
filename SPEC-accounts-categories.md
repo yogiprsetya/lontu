@@ -191,9 +191,9 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
 - [x] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` akun dan kategori milik A, dan `GET` B tidak pernah berisi data A. Body yang menyertakan `userId` lain diabaikan.
 - [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.
 - [x] `findOwnedAccounts`/`findOwnedCategory` tidak mengembalikan baris milik user lain.
-- [ ] Settings di 360 px: profil bisa disimpan, modal Kelola akun/kategori terbuka sebagai drawer, dan alur tambah → edit → arsip → pulihkan berjalan dengan daftar ter-update tanpa reload. Di ≥ 1024 px modal tampil sebagai dialog.
-- [ ] Error validasi dari server tampil di field yang sesuai (`setError`), dan 409 tampil di field `name`.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] Settings di 360 px: profil bisa disimpan, modal Kelola akun/kategori terbuka sebagai drawer, dan alur tambah → edit → arsip → pulihkan berjalan dengan daftar ter-update tanpa reload. Di ≥ 1024 px modal tampil sebagai dialog.
+- [x] Error validasi dari server tampil di field yang sesuai (`setError`), dan 409 tampil di field `name`.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

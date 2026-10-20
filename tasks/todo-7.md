@@ -103,12 +103,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tap kategori → view edit yang hanya berisi nama, plus teks "Jenis kategori tidak bisa diubah". Arsip dengan `alert-dialog`. "Tampilkan arsip" + "Pulihkan" sama seperti akun. Tambah `renameCategory`, `archiveCategory`, `restoreCategory` di hook.
 
 **Acceptance criteria:**
-- [ ] Rename "Makan" → "Makan & Minum" tampil langsung. Form edit tidak punya field kind/needs-wants
-- [ ] Arsip → hilang dari tab. Tampilkan arsip → Pulihkan → kembali di grup yang sama
+- [x] Rename "Makan" → "Makan & Minum" tampil langsung. Form edit tidak punya field kind/needs-wants
+- [x] Arsip → hilang dari tab. Tampilkan arsip → Pulihkan → kembali di grup yang sama
 
 **Verification:**
-- [ ] `pnpm test` dan `pnpm build` hijau
-- [ ] Manual: 360×800 dan 1024
+- [x] `pnpm test` dan `pnpm build` hijau
+- [x] Manual: 360×800 dan 1024
 
 **Dependencies:** T15, T20
 
@@ -116,11 +116,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Estimated scope:** S
 
+**Catatan:** Diverifikasi headless di 360 dan 1024 dengan kategori baru (bukan default milik owner): form edit hanya berisi nama plus teks "Jenis kategori tidak bisa diubah", rename langsung tampil di grup Needs, arsip → hilang dari tab, Tampilkan arsip → Pulihkan → kembali di grup Needs. Konfirmasi arsip, tombol Pulihkan, dan switch Tampilkan arsip diekstrak ke `components/modals/archive-controls.tsx` dan dipakai juga oleh Kelola akun (alur T19 dites ulang, 20/20).
+
 ---
 
 ### Checkpoint F: modul `accounts-categories` selesai
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-accounts-categories.md tercentang
-- [ ] Manual di 360×800 dan 1024: tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px, light & dark
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-accounts-categories.md tercentang
+- [x] Manual di 360×800 dan 1024: tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px, light & dark (headless; keyboard virtual iOS dan login Google asli belum)
 - [ ] Review dengan Yogi, lalu tulis `SPEC-transactions.md`

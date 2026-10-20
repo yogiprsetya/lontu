@@ -10,3 +10,13 @@ export const profileSchema = z
   .partial();
 
 export type ProfileInput = z.infer<typeof profileSchema>;
+
+export type Profile = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  image: string | null;
+  phone: string | null;
+  location: string | null;
+  currency: string;
+};

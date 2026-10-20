@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, fetcher } from "@/lib/fetcher";
+import { ApiError, fetcher, sendJSON } from "@/lib/fetcher";
 
 function mockFetch(response: Response) {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
@@ -41,5 +41,35 @@ describe("fetcher", () => {
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ status: 502, code: "UNKNOWN", fields: undefined });
+  });
+});
+
+describe("sendJSON", () => {
+  it("sends the method and JSON body and returns the parsed response", async () => {
+    mockFetch(Response.json({ id: "a1" }, { status: 201 }));
+
+    await expect(sendJSON("/api/accounts", "POST", { name: "BCA" })).resolves.toEqual({ id: "a1" });
+    expect(fetch).toHaveBeenCalledWith("/api/accounts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "BCA" }),
+    });
+  });
+
+  it("omits the body when none is given", async () => {
+    mockFetch(Response.json({ id: "a1" }));
+
+    await sendJSON("/api/accounts/a1", "DELETE");
+
+    expect(fetch).toHaveBeenCalledWith("/api/accounts/a1", { method: "DELETE" });
+  });
+
+  it("throws ApiError with fields for an error response", async () => {
+    mockFetch(Response.json({ error: { code: "ACCOUNT_NAME_TAKEN", message: "Dipakai" } }, { status: 409 }));
+
+    const error = await sendJSON("/api/accounts", "POST", {}).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 409, code: "ACCOUNT_NAME_TAKEN", message: "Dipakai" });
   });
 });

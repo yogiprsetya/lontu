@@ -8,7 +8,7 @@ Di ponsel (360 px), pemilik bisa mengubah profil, mengelola akun (termasuk mengu
 
 ## Task
 
-- [ ] T17: Halaman Settings + form profil (M)
+- [x] T17: Halaman Settings + form profil (M)
 - [ ] T18: Kelola akun: daftar + tambah akun (M)
 - [ ] T19: Kelola akun: edit, arsip, pulihkan (M)
 - [ ] T20: Kelola kategori: daftar per tab + tambah (M)

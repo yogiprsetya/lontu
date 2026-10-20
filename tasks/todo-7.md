@@ -11,19 +11,21 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Ganti placeholder Settings dengan empat section (Profil, Keuangan, Tampilan, Logout). `hooks/use-profile.ts` (`useProfile`, `updateProfile`). `components/settings/profile-form.tsx` (react-hook-form + `profileSchema`, toast sukses, `setError` dari `ApiError.fields`). Toggle "Sembunyikan nominal" (`hideAmounts`). Tombol "Kelola akun"/"Kelola kategori" sudah memanggil `useUIStore().open(...)`; modalnya muncul di T18/T20. Tambah shadcn `input`, `label`, `switch`.
 
 **Acceptance criteria:**
-- [ ] Profil terisi dari `/api/me` (skeleton saat loading, "Coba lagi" saat error). Simpan → toast, nilai bertahan setelah reload. Nama kosong → pesan di field, tanpa request
-- [ ] Toggle sembunyikan nominal bertahan setelah reload. Logout dan ThemeToggle tetap berfungsi
-- [ ] 360 px: tanpa horizontal scroll, input 16 px, target sentuh ≥ 44 px
+- [x] Profil terisi dari `/api/me` (skeleton saat loading, "Coba lagi" saat error). Simpan → toast, nilai bertahan setelah reload. Nama kosong → pesan di field, tanpa request
+- [x] Toggle sembunyikan nominal bertahan setelah reload. Logout dan ThemeToggle tetap berfungsi
+- [x] 360 px: tanpa horizontal scroll, input 16 px, target sentuh ≥ 44 px
 
 **Verification:**
-- [ ] `tests/unit/profile-schema.spec.ts` tetap hijau. `pnpm build` hijau (tanpa error cache components)
-- [ ] Manual: ubah profil di 360×800 dan 1024
+- [x] `tests/unit/profile-schema.spec.ts` tetap hijau. `pnpm build` hijau (tanpa error cache components)
+- [x] Manual: ubah profil di 360×800 dan 1024
 
 **Dependencies:** None (memakai `/api/me` dari foundation)
 
 **Files likely touched:** `app/(app)/settings/page.tsx`, `components/settings/profile-form.tsx`, `components/settings/finance-section.tsx`, `hooks/use-profile.ts`, `components/ui/*` (CLI)
 
 **Estimated scope:** M
+
+**Catatan:** Diverifikasi headless (Playwright + Chrome) terhadap `next start` dengan session JWT untuk user `test-<uuid>` yang ter-seed: 360 dan 1024 → profil terisi, simpan → toast dan bertahan setelah reload, nama kosong → pesan field tanpa request PATCH, toggle sembunyikan nominal bertahan, tanpa horizontal scroll, input 16 px di 360, target sentuh ≥ 44 px, light & dark. Mutasi memakai `sendJSON` baru di `lib/fetcher.ts`; error server dipetakan ke field lewat `lib/form-errors.ts`.
 
 ---
 

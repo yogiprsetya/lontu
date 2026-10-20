@@ -60,7 +60,7 @@ group by a.id;
 
 - `lib/auth.ts`: Auth.js v5, provider Google, `session: { strategy: "jwt" }`. Callback `signIn` menolak jika email tidak ada di `ALLOWED_EMAILS` (ke `/login?error=AccessDenied`), lalu upsert `users`. Callback `jwt`/`session` memasang `session.user.id = token.sub`.
 - `app/api/auth/[...nextauth]/route.ts` mengekspor handler.
-- `proxy.ts`: redirect optimistik ke `/login` jika cookie session tidak ada, untuk semua path kecuali `/login`, `/api/auth/*`, aset statis, `manifest.webmanifest`. Proxy bukan sumber kebenaran. `withAuth` tetap memverifikasi.
+- `proxy.ts`: redirect optimistik ke `/login` jika cookie session tidak ada, untuk semua halaman kecuali `/login`, aset statis, `manifest.webmanifest`. Semua `/api/*` dilewati: route API memverifikasi sendiri lewat `withAuth` dan harus membalas 401 JSON, bukan redirect. Proxy bukan sumber kebenaran. `withAuth` tetap memverifikasi.
 - `app/(auth)/login/page.tsx`: tombol "Masuk dengan Google" dan pesan jika akses ditolak.
 
 ### 4. API helper

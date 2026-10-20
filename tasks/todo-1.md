@@ -59,14 +59,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Konfigurasi Auth.js v5 di `lib/auth.ts` (Google, JWT, callback `signIn` dengan allowlist + upsert `users`, `session.user.id = token.sub`), route handler `/api/auth/[...nextauth]`, `proxy.ts` untuk redirect optimistik, dan halaman `/login`. Baca `node_modules/next/dist/docs/` untuk `proxy.ts` sebelum menulis.
 
 **Acceptance criteria:**
-- [ ] Email di `ALLOWED_EMAILS` login, mendarat di `/dashboard` (placeholder sementara), dan baris `users` tercipta. Login kedua tidak menduplikasi baris
-- [ ] Email lain kembali ke `/login?error=AccessDenied` dengan pesan
-- [ ] Tanpa cookie session, `/dashboard` dialihkan ke `/login`. `/login`, `/api/auth/*`, aset statis, dan `manifest.webmanifest` tidak dialihkan
+- [ ] (manual, Yogi) Email di `ALLOWED_EMAILS` login, mendarat di `/dashboard` (placeholder sementara), dan baris `users` tercipta. Login kedua tidak menduplikasi baris
+- [ ] (manual, Yogi) Email lain kembali ke `/login?error=AccessDenied` dengan pesan
+- [x] Tanpa cookie session, `/dashboard` dialihkan ke `/login`. `/login`, `/api/auth/*`, aset statis, dan `manifest.webmanifest` tidak dialihkan
 
 **Verification:**
-- [ ] Tes unit: parsing `ALLOWED_EMAILS` (spasi, huruf besar, kosong) dan logika upsert `users` terhadap DB tes
-- [ ] Manual: login dengan akun di allowlist dan akun di luar allowlist di `pnpm dev`
-- [ ] `pnpm build` hijau (tidak ada error cache components)
+- [x] Tes: `tests/unit/allowlist.spec.ts`, `tests/unit/proxy.spec.ts`, `tests/api/upsert-user.spec.ts`
+- [ ] (manual, Yogi) login dengan akun di allowlist dan akun di luar allowlist di `pnpm dev`
+- [x] `pnpm build` hijau (tidak ada error cache components)
+
+**Catatan:** Proxy melewati semua `/api/*` (bukan hanya `/api/auth/*`) supaya route API membalas 401 JSON. Smoke test `next start`: `/dashboard` tanpa cookie → 307 `/login`, pesan AccessDenied tampil, provider `google` terdaftar. Login Google sungguhan butuh `.env` dengan nama variabel Auth.js v5 dan redirect URI `/api/auth/callback/google` di Google Console.
 
 **Dependencies:** T1, T2 (tabel `users`)
 

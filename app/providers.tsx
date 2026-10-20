@@ -16,7 +16,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <SWRConfig value={{ fetcher }}>
         {children}
-        <Toaster />
+        {/* Top, so toasts never cover the bottom nav or a drawer's action buttons. */}
+        <Toaster position="top-center" />
       </SWRConfig>
     </ThemeProvider>
   );

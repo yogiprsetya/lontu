@@ -34,19 +34,21 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `hooks/use-accounts.ts` (`useAccounts`, `revalidateAccounts`, `createAccount`). `components/modals/modal-host.tsx` di-mount di `app/(app)/layout.tsx`. `components/modals/manage-accounts.tsx`: daftar dikelompokkan Transaksi/Aset (nama, label subtype, saldo `formatIDR`, merah jika negatif, disamarkan jika `hideAmounts`), empty state, dan view "Tambah akun" (nama, type segmented, subtype select opsional, saldo awal). `components/forms/money-input.tsx` dengan tombol ±. Hapus `components/settings/manage-accounts-placeholder.tsx`. Tambah shadcn `select`, `toggle-group`.
 
 **Acceptance criteria:**
-- [ ] Settings → "Kelola akun" membuka drawer (360) / dialog (1024). Tambah akun dengan saldo awal −250.000 → kembali ke daftar, akun tampil dengan saldo merah tanpa reload
-- [ ] Nama duplikat → pesan 409 di field nama. Nilai `money-input` ↔ number diuji: `"1.250.000"` → 1250000, ± membalik tanda, input kosong → 0
-- [ ] `useUIStore().open("manageAccounts")` dari mana pun di `(app)` membuka modal yang sama
+- [x] Settings → "Kelola akun" membuka drawer (360) / dialog (1024). Tambah akun dengan saldo awal −250.000 → kembali ke daftar, akun tampil dengan saldo merah tanpa reload
+- [x] Nama duplikat → pesan 409 di field nama. Nilai `money-input` ↔ number diuji: `"1.250.000"` → 1250000, ± membalik tanda, input kosong → 0
+- [x] `useUIStore().open("manageAccounts")` dari mana pun di `(app)` membuka modal yang sama
 
 **Verification:**
-- [ ] `tests/unit/money-input.spec.ts` (logika parse/toggle tanda, dipisah dari komponen) dan `tests/unit/use-accounts.spec.ts` (matcher `revalidateAccounts`) hijau. `pnpm build` hijau
-- [ ] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024
+- [x] `tests/unit/money-input.spec.ts` (logika parse/toggle tanda, dipisah dari komponen) dan `tests/unit/use-accounts.spec.ts` (matcher `revalidateAccounts`) hijau. `pnpm build` hijau
+- [x] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024
 
 **Dependencies:** T12, T17
 
 **Files likely touched:** `hooks/use-accounts.ts`, `components/modals/modal-host.tsx`, `components/modals/manage-accounts.tsx`, `components/forms/money-input.tsx`, `app/(app)/layout.tsx`, `components/settings/manage-accounts-placeholder.tsx` (hapus)
 
 **Estimated scope:** M (6 file, satu di antaranya penghapusan)
+
+**Catatan:** Diverifikasi headless (Playwright + Chrome, `next start`, user `test-<uuid>`): 360 → drawer, 1024 → dialog; tambah akun Aset/Kartu kredit dengan ± dan 250000 → field menampilkan "250.000", daftar menampilkan "-Rp250.000" merah di grup Aset tanpa reload; nama duplikat beda huruf → pesan 409 di field nama; tanpa horizontal scroll; target sentuh ≥ 44 px di drawer; light & dark. Keyboard virtual tidak bisa diemulasikan headless: tombol Simpan dibuat `sticky bottom-0` di dalam area scroll drawer, perlu dicek di ponsel. Dua temuan diperbaiki: toast dipindah ke `top-center` (sebelumnya menutupi tombol footer drawer), dan `SelectTrigger` butuh `data-[size=default]:h-11` karena `h-9` bawaan lebih spesifik. Tombol close dialog desktop (32 px, dari T7) dibiarkan karena aturan 44 px untuk mobile. `open("manageAccounts")` berlaku di seluruh `(app)` karena `ModalHost` di-mount di layout.
 
 ---
 

@@ -3,6 +3,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageSkeleton } from "@/components/layout/page-skeleton";
 import { RequireSession } from "@/components/layout/require-session";
 import { Sidebar } from "@/components/layout/sidebar";
+import { ModalHost } from "@/components/modals/modal-host";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -14,6 +15,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         </Suspense>
       </div>
       <BottomNav />
+      <ModalHost />
     </div>
   );
 }

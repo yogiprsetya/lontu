@@ -9,7 +9,7 @@ Dependency dan pipeline tes siap, skema DB lengkap termigrasi, dan pengguna di a
 ## Task
 
 - [x] T1: Tooling, scripts, Vitest, dan `money.ts` (S)
-- [ ] T2: Skema DB, migrasi, RLS, view `account_balances` (M, risiko tinggi)
+- [x] T2: Skema DB, migrasi, RLS, view `account_balances` (M, risiko tinggi)
 - [ ] T3: Login Google dengan allowlist (M, risiko tinggi)
 
 Urutan: T1 → T2 → T3. T3 butuh tabel `users` dari T2 untuk upsert di callback `signIn`.

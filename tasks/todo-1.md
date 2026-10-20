@@ -35,14 +35,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tulis `db/schema.ts` untuk 5 tabel sesuai tabel di spec §2, klien `db/index.ts` (`server-only`, `prepare: false`), `drizzle.config.ts`, migrasi hasil generate, dan migrasi SQL kustom untuk view, RLS, dan index ekspresi yang tidak bisa diekspresikan di Drizzle. Tes constraint dan saldo jalan terhadap Supabase (`DATABASE_URL`).
 
 **Acceptance criteria:**
-- [ ] `pnpm db:migrate` pada DB kosong membuat 5 tabel, semua index & unique `lower(name)`, view `account_balances` (`security_invoker`), dan RLS aktif di kelima tabel tanpa policy
-- [ ] Constraint menolak: transfer tanpa `to_account_id`, transfer ke akun yang sama, expense tanpa kategori, kategori spending tanpa `spending_type`, `amount <= 0`
-- [ ] Skenario saldo: awal 100.000, income 50.000, expense 20.000, transfer 10.000 ke B, satu expense soft-deleted → A = 120.000, B = awal B + 10.000
+- [x] `pnpm db:migrate` pada DB kosong membuat 5 tabel, semua index & unique `lower(name)`, view `account_balances` (`security_invoker`), dan RLS aktif di kelima tabel tanpa policy
+- [x] Constraint menolak: transfer tanpa `to_account_id`, transfer ke akun yang sama, expense tanpa kategori, kategori spending tanpa `spending_type`, `amount <= 0`
+- [x] Skenario saldo: awal 100.000, income 50.000, expense 20.000, transfer 10.000 ke B, satu expense soft-deleted → A = 120.000, B = awal B + 10.000
 
 **Verification:**
-- [ ] `pnpm test` menjalankan `tests/api/db-constraints.test.ts` dan `tests/api/account-balances.test.ts` terhadap DB tes, hijau
-- [ ] Manual: query `pg_class.relrowsecurity` = true untuk kelima tabel
-- [ ] Manual (setelah migrasi ke Supabase): REST dengan anon key mengembalikan 0 baris
+- [x] `pnpm test` menjalankan `tests/api/db-constraints.spec.ts` dan `tests/api/account-balances.spec.ts` terhadap Supabase, hijau
+- [x] Manual: query `pg_class.relrowsecurity` = true untuk kelima tabel
+- [x] Manual (setelah migrasi ke Supabase): query sebagai role `anon` mengembalikan 0 baris (setara REST dengan anon key)
+
+**Catatan:** Tabel app lama (9 tabel + jurnal migrasi Drizzle lama) dipindah ke schema `legacy` pada 2026-10-20 sebelum migrasi, tanpa menghapus data. View dibuat lewat `pgView` di `db/schema.ts`, jadi masuk migrasi hasil generate. Migrasi pertama: `drizzle/20261020125856_foundation`.
 
 **Dependencies:** T1. Open question #1 diputuskan: Supabase
 

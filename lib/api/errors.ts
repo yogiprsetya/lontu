@@ -28,6 +28,10 @@ export function accountNameTaken() {
   return conflict("ACCOUNT_NAME_TAKEN", "Nama akun sudah dipakai. Jika akun itu diarsipkan, pulihkan saja.");
 }
 
+export function accountNotFound() {
+  return notFound("ACCOUNT_NOT_FOUND", "Akun tidak ditemukan");
+}
+
 export function serverError(err: unknown) {
   console.error(err);
   return error(500, "INTERNAL", "Terjadi kesalahan di server");

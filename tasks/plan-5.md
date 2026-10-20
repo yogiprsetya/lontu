@@ -11,7 +11,7 @@ Skema mendukung transaksi `adjustment`, user baru ter-seed kategori default saat
 - [x] T10: Migrasi tipe transaksi `adjustment` (S, risiko tinggi)
 - [x] T11: Seed kategori default saat login (M, risiko sedang)
 - [x] T12: `GET`/`POST /api/accounts` dengan saldo (M)
-- [ ] T13: `PATCH`/`DELETE`/`restore` akun + adjustment saldo awal (M, risiko sedang)
+- [x] T13: `PATCH`/`DELETE`/`restore` akun + adjustment saldo awal (M, risiko sedang)
 
 Urutan: T10 → T12 → T13. T11 hanya butuh foundation dan boleh dikerjakan kapan saja di phase ini. T13 butuh T10 (constraint `adjustment`) dan T12 (schema + query akun).
 
@@ -33,7 +33,7 @@ Urutan: T10 → T12 → T13. T11 hanya butuh foundation dan boleh dikerjakan kap
 
 ## Checkpoint D
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] `pnpm db:migrate` jalan di Supabase, tes constraint dan saldo lama tetap hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm db:migrate` jalan di Supabase, tes constraint dan saldo lama tetap hijau
 - [ ] Manual: login ulang sebagai owner → 16 kategori tercipta. `curl` buat akun, ubah saldo awal → ada baris `adjustment`
 - [ ] Review dengan Yogi sebelum phase 6

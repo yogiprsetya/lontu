@@ -77,13 +77,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `updateAccount(userId, id, input)` di `lib/server/accounts.ts`: dalam `db.transaction`, `select … for update` baris akun milik user, hitung saldo awal efektif, update `name`/`type`/`subtype`, dan insert `adjustment` sebesar selisih jika `initialBalance` dikirim dan berbeda (tanggal `todayInJakarta()`, deskripsi "Penyesuaian saldo awal"). Route `PATCH`/`DELETE` di `app/api/accounts/[id]/route.ts`, `POST` di `.../restore/route.ts`. Arsip/restore idempoten.
 
 **Acceptance criteria:**
-- [ ] Skenario spec: awal 100.000 + expense 20.000 → `PATCH { initialBalance: 150000 }` → `initialBalance 150000`, `balance 130000`, kolom `initial_balance` tetap 100.000, satu adjustment +50.000. Lalu `PATCH` 90.000 → adjustment −60.000. Nilai yang sama tidak membuat baris. Dua `PATCH` paralel (120.000 dan 130.000) berakhir di salah satunya, dengan total adjustment yang konsisten
-- [ ] Rename ke nama yang sudah dipakai (termasuk akun terarsip) → 409. `DELETE` → `archivedAt` terisi dan hilang dari `GET` default. `DELETE` kedua tidak mengubah `archivedAt`. `restore` → aktif lagi. Baris tidak pernah terhapus
-- [ ] Id bukan UUID, tidak ada, atau milik user B → 404 `ACCOUNT_NOT_FOUND` untuk ketiga route. Body kosong `{}` di `PATCH` → 400
+- [x] Skenario spec: awal 100.000 + expense 20.000 → `PATCH { initialBalance: 150000 }` → `initialBalance 150000`, `balance 130000`, kolom `initial_balance` tetap 100.000, satu adjustment +50.000. Lalu `PATCH` 90.000 → adjustment −60.000. Nilai yang sama tidak membuat baris. Dua `PATCH` paralel (120.000 dan 130.000) berakhir di salah satunya, dengan total adjustment yang konsisten
+- [x] Rename ke nama yang sudah dipakai (termasuk akun terarsip) → 409. `DELETE` → `archivedAt` terisi dan hilang dari `GET` default. `DELETE` kedua tidak mengubah `archivedAt`. `restore` → aktif lagi. Baris tidak pernah terhapus
+- [x] Id bukan UUID, tidak ada, atau milik user B → 404 `ACCOUNT_NOT_FOUND` untuk ketiga route. Body kosong `{}` di `PATCH` → 400
 
 **Verification:**
-- [ ] `tests/api/accounts.spec.ts` (bagian PATCH/DELETE/restore, isolasi, paralel) hijau
-- [ ] `pnpm build` hijau
+- [x] `tests/api/accounts.spec.ts` (bagian PATCH/DELETE/restore, isolasi, paralel) hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T10, T12
 
@@ -95,7 +95,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint D: setelah T10–T13
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Migrasi sudah jalan di Supabase
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Migrasi sudah jalan di Supabase
 - [ ] Manual: owner ter-seed 16 kategori setelah login ulang. Alur `curl` buat → ubah saldo awal → arsip → restore sesuai spec
 - [ ] Review dengan Yogi sebelum phase 6

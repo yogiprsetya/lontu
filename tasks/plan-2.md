@@ -8,7 +8,7 @@ Route API pertama (`/api/me`) mengikuti pola route handler acuan di SPEC.md: `wi
 
 ## Task
 
-- [ ] T4: `withAuth`, `errors.ts`, dan `GET`/`PATCH /api/me` (M)
+- [x] T4: `withAuth`, `errors.ts`, dan `GET`/`PATCH /api/me` (M)
 
 Butuh phase 1 selesai (T2 untuk tabel `users`, T3 untuk `auth()`).
 

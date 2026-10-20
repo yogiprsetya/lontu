@@ -52,11 +52,11 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `findOwnedAccounts(userId, ids)` dan `findOwnedCategory(userId, id)` sesuai signature di spec. Keduanya `import "server-only"` dan mengembalikan baris aktif maupun terarsip. Tidak ada route baru. Helper ini dipakai modul `transactions`.
 
 **Acceptance criteria:**
-- [ ] `findOwnedAccounts(A, [akunA1, akunA2, akunB1, uuidAcak])` → hanya A1 dan A2, termasuk `archivedAt` jika terarsip. `ids` kosong → `[]` tanpa query
-- [ ] `findOwnedCategory(A, kategoriB)` → `undefined`. `findOwnedCategory(A, kategoriA)` → `{ id, kind, archivedAt }`
+- [x] `findOwnedAccounts(A, [akunA1, akunA2, akunB1, uuidAcak])` → hanya A1 dan A2, termasuk `archivedAt` jika terarsip. `ids` kosong → `[]` tanpa query
+- [x] `findOwnedCategory(A, kategoriB)` → `undefined`. `findOwnedCategory(A, kategoriA)` → `{ id, kind, archivedAt }`
 
 **Verification:**
-- [ ] `tests/api/ownership.spec.ts` hijau
+- [x] `tests/api/ownership.spec.ts` hijau
 
 **Dependencies:** T12, T14 (tipe `CategoryKind`)
 
@@ -68,6 +68,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint E: setelah T14–T16
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Acceptance criteria API di SPEC-accounts-categories.md tercentang
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Acceptance criteria API di SPEC-accounts-categories.md tercentang
 - [ ] Review dengan Yogi sebelum phase 7

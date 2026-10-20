@@ -10,7 +10,7 @@ API kategori lengkap (`GET`/`POST`/rename/arsip/restore), dan helper kepemilikan
 
 - [x] T14: `GET`/`POST /api/categories` (M)
 - [x] T15: Rename, arsip, dan restore kategori (S)
-- [ ] T16: Helper kepemilikan `lib/server/ownership.ts` (S)
+- [x] T16: Helper kepemilikan `lib/server/ownership.ts` (S)
 
 Urutan: T14 → T15. T16 hanya butuh tabel yang sudah ada dan schema dari T12/T14 (untuk tipe `CategoryKind`), jadi dikerjakan setelah T14.
 
@@ -30,6 +30,6 @@ Urutan: T14 → T15. T16 hanya butuh tabel yang sudah ada dan schema dari T12/T1
 
 ## Checkpoint E
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria API di SPEC-accounts-categories.md (selain UI) tercentang
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria API di SPEC-accounts-categories.md (selain UI) tercentang
 - [ ] Review dengan Yogi sebelum phase 7

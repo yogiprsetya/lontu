@@ -178,19 +178,19 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
 
 ## Acceptance criteria
 
-- [ ] User baru yang login pertama kali punya 16 kategori default persis seperti tabel. Login kedua tidak menambah baris. User yang sudah ada tanpa kategori ter-seed pada login berikutnya. Dua `upsertUser` bersamaan tidak menghasilkan duplikat atau error.
-- [ ] `POST /api/accounts` dengan `{ name: "BCA", type: "transaction", initialBalance: 100000 }` → 201, dan `GET` mengembalikan akun itu dengan `balance = 100000`.
-- [ ] `balance` di `GET /api/accounts` sama dengan view `account_balances` setelah ada income, expense, dan transfer (transaksi dimasukkan langsung ke DB di tes).
-- [ ] Akun dengan saldo awal 100.000 dan satu expense 20.000, di-`PATCH` `{ initialBalance: 150000 }` → respons `initialBalance = 150000`, `balance = 130000`. Kolom `initial_balance` tetap 100.000, dan ada satu transaksi `adjustment` +50.000 hari ini. `PATCH` ke 90.000 berikutnya membuat adjustment −60.000. `PATCH` dengan nilai yang sama tidak membuat baris. Dua `PATCH` bersamaan menghasilkan saldo sesuai urutan, bukan selisih ganda.
-- [ ] Constraint: `adjustment` dengan kategori, dengan `amount = 0`, atau dengan `to_account_id` ditolak. `adjustment` negatif diterima. `expense` negatif tetap ditolak.
-- [ ] `initialBalance: -500000` diterima. `initialBalance: 1.5`, `"100"`, atau `> 1e12` → 400 dengan `fields.initialBalance`.
-- [ ] Nama duplikat (beda huruf besar/kecil, termasuk dengan akun terarsip) → 409 `ACCOUNT_NAME_TAKEN`, baik di POST maupun PATCH. Kategori: nama sama di kind berbeda diizinkan, di kind sama → 409 `CATEGORY_NAME_TAKEN`.
-- [ ] `DELETE` mengarsipkan, `GET` tanpa param tidak lagi mengembalikannya, `?include=archived` mengembalikannya dengan `archivedAt`, dan `restore` mengembalikannya ke daftar aktif. Keduanya idempoten. Baris DB tidak pernah terhapus.
-- [ ] `PATCH /api/categories/[id]` dengan `{ kind: "income" }` atau `{ spendingType: "wants" }` → 400. Dengan `{ name: "Makan Siang" }` → 200, dan transaksi yang mereferensikannya tetap menunjuk id yang sama.
-- [ ] `POST /api/categories` spending tanpa `spendingType`, atau income dengan `spendingType` → 400.
-- [ ] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` akun dan kategori milik A, dan `GET` B tidak pernah berisi data A. Body yang menyertakan `userId` lain diabaikan.
-- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`.
-- [ ] `findOwnedAccounts`/`findOwnedCategory` tidak mengembalikan baris milik user lain.
+- [x] User baru yang login pertama kali punya 16 kategori default persis seperti tabel. Login kedua tidak menambah baris. User yang sudah ada tanpa kategori ter-seed pada login berikutnya. Dua `upsertUser` bersamaan tidak menghasilkan duplikat atau error.
+- [x] `POST /api/accounts` dengan `{ name: "BCA", type: "transaction", initialBalance: 100000 }` → 201, dan `GET` mengembalikan akun itu dengan `balance = 100000`.
+- [x] `balance` di `GET /api/accounts` sama dengan view `account_balances` setelah ada income, expense, dan transfer (transaksi dimasukkan langsung ke DB di tes).
+- [x] Akun dengan saldo awal 100.000 dan satu expense 20.000, di-`PATCH` `{ initialBalance: 150000 }` → respons `initialBalance = 150000`, `balance = 130000`. Kolom `initial_balance` tetap 100.000, dan ada satu transaksi `adjustment` +50.000 hari ini. `PATCH` ke 90.000 berikutnya membuat adjustment −60.000. `PATCH` dengan nilai yang sama tidak membuat baris. Dua `PATCH` bersamaan menghasilkan saldo sesuai urutan, bukan selisih ganda.
+- [x] Constraint: `adjustment` dengan kategori, dengan `amount = 0`, atau dengan `to_account_id` ditolak. `adjustment` negatif diterima. `expense` negatif tetap ditolak.
+- [x] `initialBalance: -500000` diterima. `initialBalance: 1.5`, `"100"`, atau `> 1e12` → 400 dengan `fields.initialBalance`.
+- [x] Nama duplikat (beda huruf besar/kecil, termasuk dengan akun terarsip) → 409 `ACCOUNT_NAME_TAKEN`, baik di POST maupun PATCH. Kategori: nama sama di kind berbeda diizinkan, di kind sama → 409 `CATEGORY_NAME_TAKEN`.
+- [x] `DELETE` mengarsipkan, `GET` tanpa param tidak lagi mengembalikannya, `?include=archived` mengembalikannya dengan `archivedAt`, dan `restore` mengembalikannya ke daftar aktif. Keduanya idempoten. Baris DB tidak pernah terhapus.
+- [x] `PATCH /api/categories/[id]` dengan `{ kind: "income" }` atau `{ spendingType: "wants" }` → 400. Dengan `{ name: "Makan Siang" }` → 200, dan transaksi yang mereferensikannya tetap menunjuk id yang sama.
+- [x] `POST /api/categories` spending tanpa `spendingType`, atau income dengan `spendingType` → 400.
+- [x] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` akun dan kategori milik A, dan `GET` B tidak pernah berisi data A. Body yang menyertakan `userId` lain diabaikan.
+- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.
+- [x] `findOwnedAccounts`/`findOwnedCategory` tidak mengembalikan baris milik user lain.
 - [ ] Settings di 360 px: profil bisa disimpan, modal Kelola akun/kategori terbuka sebagai drawer, dan alur tambah → edit → arsip → pulihkan berjalan dengan daftar ter-update tanpa reload. Di ≥ 1024 px modal tampil sebagai dialog.
 - [ ] Error validasi dari server tampil di field yang sesuai (`setError`), dan 409 tampil di field `name`.
 - [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.

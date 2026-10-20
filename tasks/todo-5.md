@@ -55,14 +55,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Schema Zod akun (`accountCreateSchema`, `accountUpdateSchema`, enum type/subtype, tipe `Account`) di `lib/schemas/account.ts`. Query `listAccounts(userId, { includeArchived })` di `lib/server/accounts.ts` join `account_balances` dan menghitung saldo awal efektif di SQL. Route `GET` (urut type lalu `lower(name)`, `?include=archived`) dan `POST` (409 `ACCOUNT_NAME_TAKEN` via `onConflictDoNothing`). Helper `isUniqueViolation` di `lib/server/pg-errors.ts` disiapkan untuk T13 dan T15.
 
 **Acceptance criteria:**
-- [ ] `POST { name: "BCA", type: "transaction", initialBalance: 100000 }` → 201 `Account` dengan `balance = 100000`. `initialBalance: -500000` diterima. `1.5`, `"100"`, `> 1e12`, nama kosong/51 karakter → 400 dengan `fields`
-- [ ] `balance` sama dengan `account_balances` setelah income, expense, transfer, dan adjustment yang dimasukkan langsung ke DB. Nama duplikat beda huruf besar/kecil → 409
-- [ ] Isolasi: `GET` user B tidak berisi akun A. `userId` di body diabaikan. Tanpa session → 401
+- [x] `POST { name: "BCA", type: "transaction", initialBalance: 100000 }` → 201 `Account` dengan `balance = 100000`. `initialBalance: -500000` diterima. `1.5`, `"100"`, `> 1e12`, nama kosong/51 karakter → 400 dengan `fields`
+- [x] `balance` sama dengan `account_balances` setelah income, expense, transfer, dan adjustment yang dimasukkan langsung ke DB. Nama duplikat beda huruf besar/kecil → 409
+- [x] Isolasi: `GET` user B tidak berisi akun A. `userId` di body diabaikan. Tanpa session → 401
 
 **Verification:**
-- [ ] `tests/unit/account-schema.spec.ts` dan `tests/api/accounts.spec.ts` (bagian GET/POST) hijau
-- [ ] `pnpm build` hijau
-- [ ] Manual: `curl` `GET /api/accounts` tanpa cookie → 401 JSON
+- [x] `tests/unit/account-schema.spec.ts` dan `tests/api/accounts.spec.ts` (bagian GET/POST) hijau
+- [x] `pnpm build` hijau
+- [x] Manual: `curl` `GET /api/accounts` tanpa cookie → 401 JSON
 
 **Dependencies:** T10 (fixture adjustment di tes saldo)
 

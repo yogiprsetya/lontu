@@ -24,6 +24,10 @@ export function conflict(code: string, message: string) {
   return error(409, code, message);
 }
 
+export function accountNameTaken() {
+  return conflict("ACCOUNT_NAME_TAKEN", "Nama akun sudah dipakai. Jika akun itu diarsipkan, pulihkan saja.");
+}
+
 export function serverError(err: unknown) {
   console.error(err);
   return error(500, "INTERNAL", "Terjadi kesalahan di server");

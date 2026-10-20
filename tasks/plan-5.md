@@ -10,7 +10,7 @@ Skema mendukung transaksi `adjustment`, user baru ter-seed kategori default saat
 
 - [x] T10: Migrasi tipe transaksi `adjustment` (S, risiko tinggi)
 - [x] T11: Seed kategori default saat login (M, risiko sedang)
-- [ ] T12: `GET`/`POST /api/accounts` dengan saldo (M)
+- [x] T12: `GET`/`POST /api/accounts` dengan saldo (M)
 - [ ] T13: `PATCH`/`DELETE`/`restore` akun + adjustment saldo awal (M, risiko sedang)
 
 Urutan: T10 → T12 → T13. T11 hanya butuh foundation dan boleh dikerjakan kapan saja di phase ini. T13 butuh T10 (constraint `adjustment`) dan T12 (schema + query akun).

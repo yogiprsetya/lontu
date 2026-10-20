@@ -20,7 +20,7 @@ Butuh phase 1 selesai (T2 untuk tabel `users`, T3 untuk `auth()`).
 
 ## Blocker
 
-- **Open question #1 (DB tes)**, sama dengan phase 1.
+- ~~Open question #1~~ diputuskan: Supabase lewat `DATABASE_URL`.
 
 ## Checkpoint B
 

@@ -13,7 +13,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 - [ ] Dependency dari Deliverables §1 terpasang: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`, dev `vitest`, `@playwright/test`. Script `typecheck`, `test`, `test:watch`, `test:e2e`, `db:generate`, `db:migrate`, `db:studio` ada
 - [ ] `formatIDR`, `parseIDR` (termasuk input kosong dan non-digit), `formatThousands`, `abbreviateIDR` (batas rb/jt/M/T) lolos tes unit
-- [ ] `.env.example` berisi `DATABASE_URL`, `DATABASE_URL_TEST`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ALLOWED_EMAILS`
+- [ ] `.env.example` berisi `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ALLOWED_EMAILS`
 
 **Verification:**
 - [ ] `pnpm test` menjalankan `tests/unit/money.test.ts` dan hijau
@@ -30,7 +30,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T2: Skema DB, migrasi, RLS, view `account_balances`
 
-**Description:** Tulis `db/schema.ts` untuk 5 tabel sesuai tabel di spec §2, klien `db/index.ts` (`server-only`, `prepare: false`), `drizzle.config.ts`, migrasi hasil generate, dan migrasi SQL kustom untuk view, RLS, dan index ekspresi yang tidak bisa diekspresikan di Drizzle. Tes constraint dan saldo jalan terhadap `DATABASE_URL_TEST`.
+**Description:** Tulis `db/schema.ts` untuk 5 tabel sesuai tabel di spec §2, klien `db/index.ts` (`server-only`, `prepare: false`), `drizzle.config.ts`, migrasi hasil generate, dan migrasi SQL kustom untuk view, RLS, dan index ekspresi yang tidak bisa diekspresikan di Drizzle. Tes constraint dan saldo jalan terhadap Supabase (`DATABASE_URL`).
 
 **Acceptance criteria:**
 - [ ] `pnpm db:migrate` pada DB kosong membuat 5 tabel, semua index & unique `lower(name)`, view `account_balances` (`security_invoker`), dan RLS aktif di kelima tabel tanpa policy
@@ -42,7 +42,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] Manual: query `pg_class.relrowsecurity` = true untuk kelima tabel
 - [ ] Manual (setelah migrasi ke Supabase): REST dengan anon key mengembalikan 0 baris
 
-**Dependencies:** T1. **Blocker:** Open question #1 (DB tes)
+**Dependencies:** T1. Open question #1 diputuskan: Supabase
 
 **Files likely touched:** `db/schema.ts`, `db/index.ts`, `drizzle.config.ts`, `drizzle/*.sql`, `tests/api/db-constraints.test.ts`, `tests/api/account-balances.test.ts`, `tests/setup/db.ts`
 

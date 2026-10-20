@@ -19,7 +19,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] `pnpm test:e2e` hijau di kedua viewport
 - [ ] `pnpm build` dengan `NODE_ENV=production` tidak memuat provider tes
 
-**Dependencies:** T3, T6. **Blocker:** Open question #2
+**Dependencies:** T3, T6. Open question #2 diputuskan: Credentials tes
 
 **Files likely touched:** `lib/auth.ts`, `playwright.config.ts`, `e2e/shell.spec.ts`, `tests/unit/auth-providers.test.ts`
 

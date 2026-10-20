@@ -50,14 +50,10 @@ Phase dikerjakan berurutan. Pengecualian: T5 (phase 3) hanya butuh T1 dan boleh 
 - **Satu task = satu commit conventional**, dengan gerbang `pnpm lint && pnpm typecheck && pnpm test`.
 - Keputusan dan risiko yang berlaku untuk satu phase ditulis di `plan-<phase>.md` masing-masing.
 
-## Open questions (perlu jawaban sebelum task terkait)
+## Keputusan open questions (2026-10-20)
 
-Setiap `plan-<phase>.md` menandai pertanyaan yang memblokir phase tersebut.
-
-1. **SPEC.md OQ #1, DB tes:** Docker `postgres:17` atau Supabase CLI? Plan mengasumsikan Docker. *Blocker untuk T2 dan T4.*
-2. **SPEC.md OQ #2, login E2E:** provider Credentials yang hanya aktif saat `E2E_AUTH=1` dan bukan production? *Blocker untuk T9.*
-3. **SPEC.md OQ #6:** ganti nama package `"my"` → `"lontu"` di T1?
-4. **Ikon maskable:** tidak ada di commit `c9de1eb`. Buat versi maskable dari ikon 512 (dengan padding safe zone), atau tunda?
-5. **Font:** `app/layout.tsx` memuat Inter, Geist, dan Geist Mono. Pertahankan Inter saja sebagai `--font-sans` (lebih hemat JS/CSS), atau tetap ketiganya?
-
-Open questions #3–#5 di SPEC.md (saldo tidak cukup, biaya admin, halaman Expenses) tidak memengaruhi foundation.
+1. **DB tes:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Tes membuat user `test-<uuid>` dan menghapusnya setelah selesai.
+2. **Login E2E:** provider Credentials, aktif hanya jika `E2E_AUTH=1` dan bukan production.
+3. **Nama package:** `lontu` (T1).
+4. **Ikon maskable:** dibuat dari ikon 512 dengan padding safe zone (T8).
+5. **Font:** Inter saja sebagai `--font-sans` (T5).

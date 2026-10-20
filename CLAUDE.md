@@ -17,7 +17,7 @@ If a decision changes, update the relevant spec first, then the code.
 ```bash
 pnpm dev | build | start | lint
 pnpm typecheck           # tsc --noEmit
-pnpm test                # vitest run (unit + API against DATABASE_URL_TEST)
+pnpm test                # vitest run (unit + API against Supabase via DATABASE_URL)
 pnpm test:e2e            # playwright
 pnpm db:generate | db:migrate | db:studio
 ```
@@ -62,7 +62,7 @@ Before every commit: `pnpm lint && pnpm typecheck && pnpm test`. Conventional co
 ## Testing
 
 - TDD for new logic; fix bugs with a reproducing test first.
-- Unit tests in `tests/unit/`, API/query tests in `tests/api/` against a real Postgres (`DATABASE_URL_TEST`), not mocks. Call route handlers directly.
+- Unit tests in `tests/unit/`, API/query tests in `tests/api/` against the real Supabase Postgres (`DATABASE_URL`), not mocks. Each test creates its own `test-<uuid>` user and deletes it afterwards. Call route handlers directly.
 - Every resource needs a `user_id` isolation test (user B cannot read or modify user A's data).
 - E2E in `e2e/` with Playwright at 360×800 and desktop.
 

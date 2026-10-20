@@ -19,7 +19,6 @@ Di luar cakupan modul ini: CRUD apa pun selain `/api/me`, grafik, service worker
 
 ```
 DATABASE_URL=            # Supabase pooler, transaction mode (port 6543)
-DATABASE_URL_TEST=       # Postgres lokal untuk tes API
 AUTH_SECRET=
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
@@ -84,9 +83,9 @@ group by a.id;
 - More berisi Settings (placeholder) dan Logout.
 - `components/layout/responsive-modal.tsx`: Drawer di bawah `lg`, Dialog di `lg` ke atas, dengan API yang sama.
 - Halaman dashboard/transactions/budget/expenses/settings berupa placeholder dengan judul dan empty state.
-- `app/layout.tsx`: `lang="id"`, metadata "Lontu", `viewport.themeColor`, padding `env(safe-area-inset-bottom)` di bottom nav, `tabular-nums` untuk nominal.
+- `app/layout.tsx`: hanya font Inter (`--font-sans`), `lang="id"`, metadata "Lontu", `viewport.themeColor`, padding `env(safe-area-inset-bottom)` di bottom nav, `tabular-nums` untuk nominal.
 - Token warna di `globals.css`: `--income` (hijau), `--expense` (merah), `--budget` (kuning), `--transfer` (ungu), masing-masing untuk light/dark dan lolos 4.5:1 terhadap background.
-- `app/manifest.ts`: name, ikon 192/512 + maskable, `display: "standalone"`, `start_url: "/dashboard"`, shortcut "Tambah Expense" → `/add/expense`. Ikon bisa dipulihkan dari commit `c9de1eb`.
+- `app/manifest.ts`: name, ikon 192/512 + maskable, `display: "standalone"`, `start_url: "/dashboard"`, shortcut "Tambah Expense" → `/add/expense`. Ikon dipulihkan dari commit `c9de1eb`. Ikon maskable dibuat dari ikon 512 dengan padding safe zone.
 
 ## Acceptance criteria
 
@@ -107,8 +106,8 @@ group by a.id;
 
 - Unit: `money.ts` (format, parse termasuk input kosong/non-digit, singkatan di batas rb/jt/M/T), `profileSchema`, `errors.ts` (bentuk JSON).
 - API: `withAuth` (tanpa session → 401, error tak terduga → 500 tanpa bocor detail), `/api/me` GET/PATCH, termasuk user hanya bisa membaca profil sendiri.
-- DB: tes constraint dan `account_balances` terhadap `DATABASE_URL_TEST`.
-- E2E: smoke test shell di 360 px dan 1280 px (memakai login tes, lihat Open questions #2 di SPEC.md).
+- DB: tes constraint dan `account_balances` terhadap `DATABASE_URL` (Supabase), dengan user tes yang dihapus setelah tes.
+- E2E: smoke test shell di 360 px dan 1280 px (memakai provider Credentials tes, lihat Open questions #2 di SPEC.md).
 
 ## Risiko
 

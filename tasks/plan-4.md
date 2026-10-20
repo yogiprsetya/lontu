@@ -19,7 +19,7 @@ Butuh T3 dan T6.
 
 ## Blocker
 
-- **Open question #2 (login E2E):** setuju dengan provider Credentials khusus tes?
+- ~~Open question #2~~ diputuskan: provider Credentials khusus tes.
 
 ## Checkpoint: Foundation selesai
 

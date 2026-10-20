@@ -166,12 +166,12 @@ Format error seragam: `{ error: { code, message, fields? } }`. `fields` berasal 
 | Level | Tool | Lokasi | Cakupan |
 |---|---|---|---|
 | Unit | Vitest | `tests/unit/` | Schema Zod, `money.ts`, encode/decode cursor, URL ↔ filter, bucket periode, logika % vs periode lalu |
-| API / query | Vitest + Postgres test | `tests/api/` | Route handler dipanggil langsung (`GET(req)`), terhadap DB sungguhan. Wajib ada tes isolasi `user_id` (user B tidak bisa membaca/mengubah data user A) untuk setiap resource |
+| API / query | Vitest + Postgres (Supabase) | `tests/api/` | Route handler dipanggil langsung (`GET(req)`), terhadap DB sungguhan. Wajib ada tes isolasi `user_id` (user B tidak bisa membaca/mengubah data user A) untuk setiap resource |
 | E2E | Playwright (viewport 360×800 + desktop) | `e2e/` | Login → tambah akun → tambah expense → saldo & dashboard berubah; transfer; filter transaksi bertahan setelah refresh |
 | NFR | Lighthouse CI, axe | CI | Target di bagian Success criteria |
 
 - Logika baru ditulis dengan TDD (tes merah dulu). Bug diperbaiki dengan tes yang mereproduksinya lebih dulu.
-- Tes API memakai DB Postgres terpisah (`DATABASE_URL_TEST`), bukan mock. Lihat Open questions #1.
+- Tes API memakai Postgres Supabase sungguhan lewat `DATABASE_URL` (tanpa DBMS lokal), bukan mock. Setiap tes membuat user sendiri (`id` acak berawalan `test-`) dan menghapusnya setelah selesai (cascade), jadi data pemilik tidak tersentuh.
 - Coverage bukan target angka. Yang wajib: setiap schema, setiap query agregat, dan setiap route punya tes kepemilikan.
 
 ## Boundaries
@@ -218,9 +218,9 @@ Scan struk (OCR) dan upload receipt, transaksi berulang, multi-currency, pendaft
 
 ## Open questions
 
-1. **DB untuk tes API:** Postgres lokal via Docker (`docker run postgres:17`) atau Supabase CLI (`supabase start`)? Saya condong ke Docker biasa karena lebih ringan, dan kita tidak memakai fitur Supabase lain.
-2. **Login di E2E:** Google OAuth tidak bisa diotomasi. Usulan: provider Credentials khusus tes, hanya aktif jika `E2E_AUTH=1` dan bukan production. Boleh?
+1. ~~DB untuk tes API~~ **Diputuskan:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Lihat Testing strategy.
+2. ~~Login di E2E~~ **Diputuskan:** provider Credentials khusus tes, hanya aktif jika `E2E_AUTH=1` dan `NODE_ENV !== "production"`.
 3. **Saldo tidak cukup saat transfer/expense:** dokumen sumber bilang "peringatan, tetap izinkan". Tetap begitu?
 4. **Biaya admin transfer** (checkbox yang membuat expense terpisah) dan **saran 50/30/20** di Budget: masuk MVP atau Fase 2?
 5. **Halaman Expenses vs `/transactions?type=expense`:** isinya hampir sama. Pertahankan dua halaman, atau Expenses cukup jadi preset filter?
-6. Nama package masih `"my"`. Ganti jadi `lontu`?
+6. ~~Nama package~~ **Diputuskan:** `lontu`.

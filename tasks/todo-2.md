@@ -20,7 +20,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] Manual: `curl` `/api/me` tanpa cookie → 401
 - [ ] `pnpm build` hijau
 
-**Dependencies:** T2, T3. **Blocker:** Open question #1
+**Dependencies:** T2, T3. Open question #1 diputuskan: Supabase
 
 **Files likely touched:** `lib/api/errors.ts`, `lib/api/with-auth.ts`, `lib/schemas/profile.ts`, `app/api/me/route.ts`, tes di atas
 

@@ -16,7 +16,7 @@ Urutan: T1 → T2 → T3. T3 butuh tabel `users` dari T2 untuk upsert di callbac
 
 ## Keputusan
 
-- **Tes DB memakai Postgres sungguhan** (`DATABASE_URL_TEST`) dengan migrasi yang sama dengan production, supaya view dan constraint ikut teruji.
+- **Tes DB memakai Postgres sungguhan** (Supabase lewat `DATABASE_URL`, user tes dihapus setelah tes) dengan migrasi yang sama dengan production, supaya view dan constraint ikut teruji.
 - **Yang tidak bisa diekspresikan Drizzle ditaruh di migrasi SQL kustom:** view `account_balances`, `enable row level security`, dan unique index `lower(name)` jika `drizzle-kit` tidak mendukung.
 - **`proxy.ts` hanya redirect optimistik** berdasarkan ada/tidaknya cookie. Verifikasi tetap di `withAuth` (phase 2) dan server component.
 - Klien `db/index.ts` memakai `prepare: false` karena pooler Supabase transaction mode.
@@ -31,8 +31,8 @@ Urutan: T1 → T2 → T3. T3 butuh tabel `users` dari T2 untuk upsert di callbac
 
 ## Blocker
 
-- **Open question #1 (DB tes):** Docker `postgres:17` atau Supabase CLI? Blocker untuk T2. Plan mengasumsikan Docker.
-- Open question #3 (nama package `"my"` → `"lontu"`) dijawab sebelum T1.
+- ~~Open question #1~~ diputuskan: Supabase lewat `DATABASE_URL`.
+- ~~Open question #3~~ diputuskan: `lontu`.
 
 ## Checkpoint A
 

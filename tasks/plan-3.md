@@ -11,7 +11,7 @@ Pengguna yang login melihat app shell responsif: bottom nav di mobile, sidebar d
 - [x] T5: Providers, root layout, token warna, store Zustand (M)
 - [x] T6: App shell responsif dan halaman placeholder (M)
 - [x] T7: `ResponsiveModal` (S)
-- [ ] T8: Manifest dan ikon PWA (S)
+- [x] T8: Manifest dan ikon PWA (S)
 
 Urutan: T5 → T6 → (T7, T8). T5 hanya bergantung pada T1, jadi bisa dikerjakan paralel dengan phase 1–2. T6 butuh T3 untuk session dan logout.
 
@@ -35,7 +35,7 @@ Urutan: T5 → T6 → (T7, T8). T5 hanya bergantung pada T1, jadi bisa dikerjaka
 
 ## Checkpoint C
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Shell benar di 360 px dan 1024 px, dark mode bertahan setelah reload
-- [ ] Lighthouse: manifest installable
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Shell benar di 360 px dan 1024 px, dark mode bertahan setelah reload
+- [x] Chrome: manifest installable
 - [ ] Review dengan Yogi

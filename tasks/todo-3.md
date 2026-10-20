@@ -80,17 +80,19 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Pulihkan ikon dari commit `c9de1eb`, tambah ikon maskable (Open question #4), dan tulis `app/manifest.ts` dengan `display: "standalone"`, `start_url: "/dashboard"`, dan shortcut "Tambah Expense" → `/add/expense`.
 
 **Acceptance criteria:**
-- [ ] `/manifest.webmanifest` bisa diakses tanpa login (tidak dialihkan proxy)
-- [ ] Manifest memuat ikon 192, 512, dan maskable, serta shortcut "Tambah Expense"
-- [ ] Lighthouse menyatakan manifest installable
+- [x] `/manifest.webmanifest` bisa diakses tanpa login (tidak dialihkan proxy)
+- [x] Manifest memuat ikon 192, 512, dan maskable, serta shortcut "Tambah Expense"
+- [x] Chrome menyatakan installable (CDP `Page.getInstallabilityErrors` kosong di profil non-incognito; Lighthouse 12 sudah tidak punya audit installability)
 
 **Verification:**
-- [ ] `tests/unit/manifest.test.ts` (field wajib, ikon, shortcut) hijau
-- [ ] Manual: Lighthouse di `pnpm build && pnpm start`
+- [x] `tests/unit/manifest.spec.ts` (field wajib, ikon, shortcut) hijau
+- [x] Manual: `pnpm build && pnpm start`, `/manifest.webmanifest` dan ikon 200 tanpa login
+
+**Catatan:** Ikon 192/512 dipulihkan dari `c9de1eb`. `icon-maskable-512.png` dibuat dari ikon 512 yang diskala 80% di atas latar full-bleed; glyph terjauh 104 px dari pusat (batas safe zone 205 px).
 
 **Dependencies:** T3 (matcher proxy), T5 (`themeColor`)
 
-**Files likely touched:** `app/manifest.ts`, `public/icons/*`, `tests/unit/manifest.test.ts`
+**Files likely touched:** `app/manifest.ts`, `public/icons/*`, `tests/unit/manifest.spec.ts`
 
 **Estimated scope:** S
 

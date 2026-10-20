@@ -1,6 +1,6 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -11,13 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createAccount } from "@/hooks/use-accounts";
+import { createAccount, updateAccount } from "@/hooks/use-accounts";
 import { applyServerErrors } from "@/lib/form-errors";
 import {
   ACCOUNT_SUBTYPE_LABELS,
   ACCOUNT_SUBTYPES,
   ACCOUNT_TYPE_LABELS,
   ACCOUNT_TYPES,
+  type Account,
   type AccountCreateInput,
   type AccountType,
   accountCreateSchema,
@@ -30,7 +31,16 @@ const subtypeItems = [
   ...ACCOUNT_SUBTYPES.map((value) => ({ value, label: ACCOUNT_SUBTYPE_LABELS[value] })),
 ];
 
-export function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+type AccountFormProps = {
+  /** Edit this account; omit to create one. */
+  account?: Account;
+  onDone: () => void;
+  onCancel: () => void;
+  /** Extra actions for edit mode, rendered above Batal/Simpan. */
+  children?: React.ReactNode;
+};
+
+export function AccountForm({ account, onDone, onCancel, children }: AccountFormProps) {
   const {
     register,
     control,
@@ -39,13 +49,22 @@ export function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel
     formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, AccountCreateInput>({
     resolver: zodResolver(accountCreateSchema),
-    defaultValues: { name: "", type: "transaction", subtype: null, initialBalance: 0 },
+    defaultValues: account
+      ? { name: account.name, type: account.type, subtype: account.subtype, initialBalance: account.initialBalance }
+      : { name: "", type: "transaction", subtype: null, initialBalance: 0 },
   });
+  const initialBalance = useWatch({ control, name: "initialBalance" });
+  const balanceChanged = !!account && initialBalance !== account.initialBalance;
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      await createAccount(input);
-      toast.success("Akun ditambahkan");
+      if (account) {
+        await updateAccount(account.id, input);
+        toast.success("Akun diperbarui");
+      } else {
+        await createAccount(input);
+        toast.success("Akun ditambahkan");
+      }
       onDone();
     } catch (err) {
       if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan akun. Coba lagi.");
@@ -120,7 +139,11 @@ export function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel
             id="account-initial-balance"
             label="Saldo awal"
             error={errors.initialBalance?.message}
-            hint="Boleh minus, mis. untuk kartu kredit."
+            hint={
+              balanceChanged
+                ? "Selisih akan dicatat sebagai transaksi penyesuaian."
+                : "Boleh minus, mis. untuk kartu kredit."
+            }
           >
             <MoneyInput
               id="account-initial-balance"
@@ -134,6 +157,8 @@ export function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel
           </FormField>
         )}
       />
+
+      {children}
 
       <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
         <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>

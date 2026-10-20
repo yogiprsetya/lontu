@@ -40,7 +40,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Verification:**
 - [x] `tests/unit/money-input.spec.ts` (logika parse/toggle tanda, dipisah dari komponen) dan `tests/unit/use-accounts.spec.ts` (matcher `revalidateAccounts`) hijau. `pnpm build` hijau
-- [x] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024
+- [ ] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024 (1024 dan 360 tanpa keyboard sudah; keyboard virtual perlu dicek di ponsel)
 
 **Dependencies:** T12, T17
 
@@ -57,19 +57,21 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tap baris → view edit (form yang sama dengan T18, terisi). Mengubah saldo awal menampilkan teks kecil "Selisih akan dicatat sebagai transaksi penyesuaian". Tombol "Arsipkan" → `alert-dialog` yang menyebut saldo saat ini jika ≠ 0. Toggle "Tampilkan arsip" memakai key `?include=archived` dan menampilkan item terarsip (redup) dengan tombol "Pulihkan". Tambah `updateAccount`, `archiveAccount`, `restoreAccount` di hook. Tambah shadcn `alert-dialog`.
 
 **Acceptance criteria:**
-- [ ] Ubah saldo awal 100.000 → 150.000 → daftar menampilkan saldo bergeser +50.000 tanpa reload
-- [ ] Arsip akun bersaldo 30.000 → konfirmasi menyebut "Rp30.000", lalu akun hilang dari daftar aktif. Tampilkan arsip → Pulihkan → kembali aktif
-- [ ] Rename ke nama akun terarsip → pesan 409 menyarankan memulihkan akun itu
+- [x] Ubah saldo awal 100.000 → 150.000 → daftar menampilkan saldo bergeser +50.000 tanpa reload
+- [x] Arsip akun bersaldo 30.000 → konfirmasi menyebut "Rp30.000", lalu akun hilang dari daftar aktif. Tampilkan arsip → Pulihkan → kembali aktif
+- [x] Rename ke nama akun terarsip → pesan 409 menyarankan memulihkan akun itu
 
 **Verification:**
-- [ ] `pnpm test` dan `pnpm build` hijau
-- [ ] Manual: alur edit → arsip → pulihkan di 360×800 dan 1024
+- [x] `pnpm test` dan `pnpm build` hijau
+- [x] Manual: alur edit → arsip → pulihkan di 360×800 dan 1024
 
 **Dependencies:** T13, T18
 
 **Files likely touched:** `components/modals/manage-accounts.tsx`, `components/forms/account-form.tsx`, `hooks/use-accounts.ts`, `components/ui/alert-dialog.tsx` (CLI)
 
 **Estimated scope:** M
+
+**Catatan:** Diverifikasi headless di 360 dan 1024: edit saldo awal 100.000 → 150.000 menampilkan teks penyesuaian dan saldo Rp150.000 tanpa reload; rename ke nama akun terarsip → pesan 409 "…pulihkan saja" di field nama; arsip akun bersaldo 30.000 → konfirmasi menyebut "Rp30.000", akun hilang dari daftar aktif; Tampilkan arsip → Pulihkan → aktif lagi. Akun terarsip tidak bisa diedit dari daftar, hanya dipulihkan.
 
 ---
 

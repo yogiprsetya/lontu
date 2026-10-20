@@ -2,7 +2,7 @@
 
 import useSWR, { mutate } from "swr";
 import { sendJSON } from "@/lib/fetcher";
-import type { Account, AccountCreateInput } from "@/lib/schemas/account";
+import type { Account, AccountCreateInput, AccountUpdateInput } from "@/lib/schemas/account";
 
 type Options = { includeArchived?: boolean };
 
@@ -25,6 +25,24 @@ export function revalidateAccounts() {
 
 export async function createAccount(input: AccountCreateInput) {
   const account = await sendJSON<Account>("/api/accounts", "POST", input);
+  await revalidateAccounts();
+  return account;
+}
+
+export async function updateAccount(id: string, input: AccountUpdateInput) {
+  const account = await sendJSON<Account>(`/api/accounts/${id}`, "PATCH", input);
+  await revalidateAccounts();
+  return account;
+}
+
+export async function archiveAccount(id: string) {
+  const account = await sendJSON<Account>(`/api/accounts/${id}`, "DELETE");
+  await revalidateAccounts();
+  return account;
+}
+
+export async function restoreAccount(id: string) {
+  const account = await sendJSON<Account>(`/api/accounts/${id}/restore`, "POST");
   await revalidateAccounts();
   return account;
 }

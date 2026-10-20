@@ -8,7 +8,7 @@ Alur login → shell → logout teruji otomatis di viewport mobile dan desktop, 
 
 ## Task
 
-- [ ] T9: Login tes E2E dan smoke test shell Playwright (M)
+- [x] T9: Login tes E2E dan smoke test shell Playwright (M)
 
 Butuh T3 dan T6.
 

@@ -11,17 +11,19 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Provider Credentials khusus tes di `lib/auth.ts` yang hanya aktif saat `E2E_AUTH=1` dan `NODE_ENV !== "production"` (Open question #2). Konfigurasi Playwright dengan viewport 360×800 dan 1280×800, plus smoke test shell.
 
 **Acceptance criteria:**
-- [ ] Provider tes tidak terdaftar saat `E2E_AUTH` kosong atau di production. Dibuktikan dengan tes unit
-- [ ] Smoke test: login tes → `/dashboard` → bottom nav (360) / sidebar (1280) tampil → tanpa horizontal scroll → logout
-- [ ] Tanpa session, `/dashboard` dialihkan ke `/login`
+- [x] Provider tes tidak terdaftar saat `E2E_AUTH` kosong atau di production. Dibuktikan dengan tes unit
+- [x] Smoke test: login tes → `/dashboard` → bottom nav (360) / sidebar (1280) tampil → tanpa horizontal scroll → logout
+- [x] Tanpa session, `/dashboard` dialihkan ke `/login`
 
 **Verification:**
-- [ ] `pnpm test:e2e` hijau di kedua viewport
-- [ ] `pnpm build` dengan `NODE_ENV=production` tidak memuat provider tes
+- [x] `pnpm test:e2e` hijau di kedua viewport
+- [x] `pnpm build` dengan `NODE_ENV=production` tidak memuat provider tes
+
+**Catatan:** Provider `e2e` login sebagai user tetap `test-e2e` (di-upsert ke `users`), dan global teardown Playwright menghapusnya (cascade). Playwright menjalankan `next dev` di port 3100 dengan `E2E_AUTH=1`. Dicek manual: `next start` dengan `E2E_AUTH=1` hanya mendaftarkan `google`, dan POST ke `/api/auth/callback/e2e` ditolak (`error=Configuration`).
 
 **Dependencies:** T3, T6. Open question #2 diputuskan: Credentials tes
 
-**Files likely touched:** `lib/auth.ts`, `playwright.config.ts`, `e2e/shell.spec.ts`, `tests/unit/auth-providers.test.ts`
+**Files likely touched:** `lib/auth.ts`, `playwright.config.ts`, `e2e/shell.spec.ts`, `tests/unit/auth-providers.spec.ts`, `e2e/helpers.ts`, `e2e/global-teardown.ts`
 
 **Estimated scope:** M
 

@@ -68,3 +68,23 @@ export async function createCategory(userId: string, input: CategoryCreateInput)
     .returning({ id: categories.id });
   return row && getCategory(userId, row.id);
 }
+
+/** Returns undefined when the category is not the user's. A name clash throws a unique violation. */
+export async function renameCategory(userId: string, id: string, name: string) {
+  const [row] = await db
+    .update(categories)
+    .set({ name })
+    .where(and(eq(categories.userId, userId), eq(categories.id, id)))
+    .returning({ id: categories.id });
+  return row && getCategory(userId, row.id);
+}
+
+export async function setCategoryArchived(userId: string, id: string, archived: boolean) {
+  const [row] = await db
+    .update(categories)
+    // coalesce keeps the original timestamp when archiving twice.
+    .set({ archivedAt: archived ? sql`coalesce(${categories.archivedAt}, now())` : null })
+    .where(and(eq(categories.userId, userId), eq(categories.id, id)))
+    .returning({ id: categories.id });
+  return row && getCategory(userId, row.id);
+}

@@ -32,12 +32,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `PATCH` (hanya `name`, `z.strictObject`) dan `DELETE` (arsip) di `app/api/categories/[id]/route.ts`, `POST` restore di `.../restore/route.ts`. Bentrok nama saat rename → 409 lewat `isUniqueViolation`.
 
 **Acceptance criteria:**
-- [ ] `PATCH { kind: "income" }` atau `{ spendingType: "wants" }` → 400. `{ name: "Makan Siang" }` → 200, dan transaksi expense yang mereferensikannya tetap menunjuk `category_id` yang sama
-- [ ] Rename ke nama yang sudah ada di kind yang sama → 409. Arsip/restore idempoten, baris tidak pernah terhapus
-- [ ] Id bukan UUID, tidak ada, atau milik user B → 404 `CATEGORY_NOT_FOUND`
+- [x] `PATCH { kind: "income" }` atau `{ spendingType: "wants" }` → 400. `{ name: "Makan Siang" }` → 200, dan transaksi expense yang mereferensikannya tetap menunjuk `category_id` yang sama
+- [x] Rename ke nama yang sudah ada di kind yang sama → 409. Arsip/restore idempoten, baris tidak pernah terhapus
+- [x] Id bukan UUID, tidak ada, atau milik user B → 404 `CATEGORY_NOT_FOUND`
 
 **Verification:**
-- [ ] `tests/api/categories.spec.ts` (bagian PATCH/DELETE/restore + isolasi) hijau
+- [x] `tests/api/categories.spec.ts` (bagian PATCH/DELETE/restore + isolasi) hijau
 
 **Dependencies:** T14
 

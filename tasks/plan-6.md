@@ -9,7 +9,7 @@ API kategori lengkap (`GET`/`POST`/rename/arsip/restore), dan helper kepemilikan
 ## Task
 
 - [x] T14: `GET`/`POST /api/categories` (M)
-- [ ] T15: Rename, arsip, dan restore kategori (S)
+- [x] T15: Rename, arsip, dan restore kategori (S)
 - [ ] T16: Helper kepemilikan `lib/server/ownership.ts` (S)
 
 Urutan: T14 → T15. T16 hanya butuh tabel yang sudah ada dan schema dari T12/T14 (untuk tipe `CategoryKind`), jadi dikerjakan setelah T14.

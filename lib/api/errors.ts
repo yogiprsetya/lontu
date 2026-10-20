@@ -32,6 +32,17 @@ export function accountNotFound() {
   return notFound("ACCOUNT_NOT_FOUND", "Akun tidak ditemukan");
 }
 
+export function categoryNameTaken() {
+  return conflict(
+    "CATEGORY_NAME_TAKEN",
+    "Nama kategori sudah dipakai di jenis ini. Jika kategori itu diarsipkan, pulihkan saja.",
+  );
+}
+
+export function categoryNotFound() {
+  return notFound("CATEGORY_NOT_FOUND", "Kategori tidak ditemukan");
+}
+
 export function serverError(err: unknown) {
   console.error(err);
   return error(500, "INTERNAL", "Terjadi kesalahan di server");

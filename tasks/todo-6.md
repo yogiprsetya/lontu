@@ -11,13 +11,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `lib/schemas/category.ts` berisi enum kind/spendingType, `categoryCreateSchema` (discriminated union), `categoryRenameSchema`, tipe `Category`, dan `CATEGORY_KIND_FOR` (`income→income`, `saving→saving`, `expense→spending`). Route `GET` (urutan spec, `?include=archived`) dan `POST` (409 `CATEGORY_NAME_TAKEN`) di `app/api/categories/route.ts`. Ekspor ulang `DEFAULT_CATEGORIES` boleh memakai tipe dari schema ini.
 
 **Acceptance criteria:**
-- [ ] `POST` spending tanpa `spendingType`, income dengan `spendingType`, atau `kind` tidak dikenal → 400 dengan `fields`. Valid → 201 `Category`
-- [ ] Nama sama di kind berbeda → 201. Di kind sama (beda huruf besar/kecil, termasuk terarsip) → 409. `GET` mengembalikan urutan income → saving → spending(needs → wants) → nama
-- [ ] Isolasi: `GET` user B tidak berisi kategori A. Tanpa session → 401
+- [x] `POST` spending tanpa `spendingType`, income dengan `spendingType`, atau `kind` tidak dikenal → 400 dengan `fields`. Valid → 201 `Category`
+- [x] Nama sama di kind berbeda → 201. Di kind sama (beda huruf besar/kecil, termasuk terarsip) → 409. `GET` mengembalikan urutan income → saving → spending(needs → wants) → nama
+- [x] Isolasi: `GET` user B tidak berisi kategori A. Tanpa session → 401
 
 **Verification:**
-- [ ] `tests/unit/category-schema.spec.ts` dan `tests/api/categories.spec.ts` (bagian GET/POST) hijau
-- [ ] `pnpm build` hijau
+- [x] `tests/unit/category-schema.spec.ts` dan `tests/api/categories.spec.ts` (bagian GET/POST) hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T11 (kategori default ada di fixture urutan), T12 (`isUniqueViolation`, pola route)
 

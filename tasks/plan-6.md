@@ -8,7 +8,7 @@ API kategori lengkap (`GET`/`POST`/rename/arsip/restore), dan helper kepemilikan
 
 ## Task
 
-- [ ] T14: `GET`/`POST /api/categories` (M)
+- [x] T14: `GET`/`POST /api/categories` (M)
 - [ ] T15: Rename, arsip, dan restore kategori (S)
 - [ ] T16: Helper kepemilikan `lib/server/ownership.ts` (S)
 

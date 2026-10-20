@@ -11,14 +11,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `app/providers.tsx` (SWRConfig dengan `fetcher`, ThemeProvider default `system`, Toaster), `lib/fetcher.ts` + `ApiError`, root layout (`lang="id"`, metadata "Lontu", `viewport.themeColor`, `tabular-nums`), token `--income`/`--expense`/`--budget`/`--transfer` di `globals.css`, serta `stores/period.ts` dan `stores/ui.ts`. Komponen shadcn yang dibutuhkan (`sonner`, dll.) ditambah lewat CLI.
 
 **Acceptance criteria:**
-- [ ] `fetcher` melempar `ApiError { status, code, message, fields }` untuk respons non-2xx dengan format error seragam
-- [ ] Dark mode mengikuti sistem, bisa diubah manual, dan bertahan setelah reload. Setiap token warna lolos 4.5:1 terhadap background di light dan dark
-- [ ] `usePeriodStore` default ke bulan berjalan di Asia/Jakarta. `useUIStore` hanya mem-`persist` `hideAmounts`
+- [x] `fetcher` melempar `ApiError { status, code, message, fields }` untuk respons non-2xx dengan format error seragam
+- [~] Dark mode mengikuti sistem, bisa diubah manual, dan bertahan setelah reload. Setiap token warna lolos 4.5:1 terhadap background di light dan dark
+- [x] `usePeriodStore` default ke bulan berjalan di Asia/Jakarta. `useUIStore` hanya mem-`persist` `hideAmounts`
 
 **Verification:**
-- [ ] `tests/unit/fetcher.test.ts`, `tests/unit/period-store.test.ts` (termasuk tanggal di batas tengah malam UTC vs WIB) hijau
-- [ ] Manual: ganti tema, reload, tema bertahan. Cek kontras dengan checker
-- [ ] `pnpm build` hijau
+- [x] `tests/unit/fetcher.spec.ts`, `tests/unit/period-store.spec.ts`, `tests/unit/ui-store.spec.ts`, `tests/unit/color-tokens.spec.ts` (termasuk tanggal di batas tengah malam UTC vs WIB) hijau
+- [ ] Manual: ganti tema, reload, tema bertahan (menunggu toggle tema di Settings, T6). Kontras dicek otomatis oleh `color-tokens.spec.ts` (terendah 5,17:1)
+- [x] `pnpm build` hijau
 
 **Dependencies:** T1
 

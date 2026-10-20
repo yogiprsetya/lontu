@@ -12,5 +12,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.spec.ts"],
     environment: "node",
+    // API tests hit remote Supabase: ~3 s to connect, ~300 ms per round trip.
+    testTimeout: 20_000,
   },
 });

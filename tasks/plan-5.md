@@ -9,7 +9,7 @@ Skema mendukung transaksi `adjustment`, user baru ter-seed kategori default saat
 ## Task
 
 - [x] T10: Migrasi tipe transaksi `adjustment` (S, risiko tinggi)
-- [ ] T11: Seed kategori default saat login (M, risiko sedang)
+- [x] T11: Seed kategori default saat login (M, risiko sedang)
 - [ ] T12: `GET`/`POST /api/accounts` dengan saldo (M)
 - [ ] T13: `PATCH`/`DELETE`/`restore` akun + adjustment saldo awal (M, risiko sedang)
 

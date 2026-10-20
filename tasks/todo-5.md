@@ -33,13 +33,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Konstanta `DEFAULT_CATEGORIES` (16 item persis seperti tabel spec) di `lib/default-categories.ts`, dan `seedDefaultCategories(tx, userId)` di `lib/server/categories.ts` sebagai satu statement idempoten. `upsertUser` memanggilnya dalam `db.transaction` setelah upsert user.
 
 **Acceptance criteria:**
-- [ ] `upsertUser` untuk user baru → 16 kategori dengan `kind`/`spendingType` sesuai tabel. `upsertUser` kedua tidak menambah baris
-- [ ] User yang sudah ada tanpa kategori ter-seed. User yang semua kategorinya diarsipkan **tidak** di-seed ulang
-- [ ] Dua `upsertUser` paralel untuk user yang sama → tepat 16 baris, tanpa error
+- [x] `upsertUser` untuk user baru → 16 kategori dengan `kind`/`spendingType` sesuai tabel. `upsertUser` kedua tidak menambah baris
+- [x] User yang sudah ada tanpa kategori ter-seed. User yang semua kategorinya diarsipkan **tidak** di-seed ulang
+- [x] Dua `upsertUser` paralel untuk user yang sama → tepat 16 baris, tanpa error
 
 **Verification:**
-- [ ] `tests/unit/default-categories.spec.ts` (16 item, unik per kind, spending selalu punya `spendingType`) dan `tests/api/seed-categories.spec.ts` hijau
-- [ ] `tests/api/upsert-user.spec.ts` yang sudah ada tetap hijau
+- [x] `tests/unit/default-categories.spec.ts` (16 item, unik per kind, spending selalu punya `spendingType`) dan `tests/api/seed-categories.spec.ts` hijau
+- [x] `tests/api/upsert-user.spec.ts` yang sudah ada tetap hijau
 - [ ] Manual (Yogi): logout → login → Drizzle Studio menunjukkan 16 kategori untuk owner
 
 **Dependencies:** None (foundation selesai)

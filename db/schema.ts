@@ -90,10 +90,19 @@ export const transactions = pgTable.withRLS(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (t) => [
-    check("transactions_type_check", sql`${t.type} in ('income', 'expense', 'saving', 'transfer')`),
-    check("transactions_amount_check", sql`${t.amount} > 0`),
+    check(
+      "transactions_type_check",
+      sql`${t.type} in ('income', 'expense', 'saving', 'transfer', 'adjustment')`,
+    ),
+    check(
+      "transactions_amount_check",
+      sql`case when ${t.type} = 'adjustment' then ${t.amount} <> 0 else ${t.amount} > 0 end`,
+    ),
     check("transactions_transfer_target_check", sql`(${t.type} = 'transfer') = (${t.toAccountId} is not null)`),
-    check("transactions_category_check", sql`(${t.type} = 'transfer') = (${t.categoryId} is null)`),
+    check(
+      "transactions_category_check",
+      sql`(${t.type} in ('transfer', 'adjustment')) = (${t.categoryId} is null)`,
+    ),
     check("transactions_distinct_accounts_check", sql`${t.toAccountId} <> ${t.accountId}`),
     index("transactions_user_date_idx").on(t.userId, t.date.desc(), t.id.desc()),
     index("transactions_user_account_idx").on(t.userId, t.accountId),
@@ -131,7 +140,7 @@ export const accountBalances = pgView("account_balances", {
   .as(sql`
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
-        when t.type = 'income'                              then t.amount
+        when t.type in ('income', 'adjustment')             then t.amount
         when t.type in ('expense', 'saving')                then -t.amount
         when t.type = 'transfer' and t.account_id = a.id    then -t.amount
         when t.type = 'transfer' and t.to_account_id = a.id then t.amount

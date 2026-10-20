@@ -114,6 +114,54 @@ describe("transactions constraints", () => {
   });
 });
 
+describe("adjustment transactions", () => {
+  it.each([50_000, -30_000])("accepts an adjustment of %i without a category", async (amount) => {
+    const rows = await db
+      .insert(transactions)
+      .values({ userId, type: "adjustment", amount, date: "2026-10-20", accountId: accountA })
+      .returning({ id: transactions.id });
+    expect(rows).toHaveLength(1);
+  });
+
+  it("rejects an adjustment with a category", async () => {
+    await expectPgError(
+      db.insert(transactions).values({
+        userId,
+        type: "adjustment",
+        amount: 1000,
+        date: "2026-10-20",
+        accountId: accountA,
+        categoryId: spending,
+      }),
+      CHECK_VIOLATION,
+      "transactions_category_check",
+    );
+  });
+
+  it("rejects an adjustment of zero", async () => {
+    await expectPgError(
+      db.insert(transactions).values({ userId, type: "adjustment", amount: 0, date: "2026-10-20", accountId: accountA }),
+      CHECK_VIOLATION,
+      "transactions_amount_check",
+    );
+  });
+
+  it("rejects an adjustment with to_account_id", async () => {
+    await expectPgError(
+      db.insert(transactions).values({
+        userId,
+        type: "adjustment",
+        amount: 1000,
+        date: "2026-10-20",
+        accountId: accountA,
+        toAccountId: accountB,
+      }),
+      CHECK_VIOLATION,
+      "transactions_transfer_target_check",
+    );
+  });
+});
+
 describe("categories constraints", () => {
   it("rejects a spending category without spending_type", async () => {
     await expectPgError(

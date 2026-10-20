@@ -60,6 +60,23 @@ describe("account_balances view", () => {
     expect(byId[b.id]).toBe(15_000);
   });
 
+  it("adds signed adjustments and ignores soft-deleted ones", async () => {
+    const [a] = await db
+      .insert(accounts)
+      .values({ userId: userB, name: "Penyesuaian", type: "transaction", initialBalance: 100_000 })
+      .returning({ id: accounts.id });
+
+    await db.insert(transactions).values([
+      { userId: userB, type: "adjustment", amount: 50_000, date: "2026-10-01", accountId: a.id },
+      { userId: userB, type: "adjustment", amount: -30_000, date: "2026-10-02", accountId: a.id },
+      { userId: userB, type: "adjustment", amount: -5_000, date: "2026-10-03", accountId: a.id, deletedAt: new Date() },
+    ]);
+
+    const [row] = await db.select().from(accountBalances).where(eq(accountBalances.accountId, a.id));
+
+    expect(row.balance).toBe(120_000);
+  });
+
   it("returns the initial balance for an account without transactions", async () => {
     const [c] = await db
       .insert(accounts)

@@ -11,14 +11,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Ubah tiga check di `transactions` (`type`, `amount`, `category`) dan definisi view `account_balances` di `db/schema.ts` sesuai tabel di spec § Transaksi penyesuaian. Generate migrasi, baca SQL-nya, lalu migrate ke Supabase. Tes ditulis lebih dulu (merah), lalu migrasi membuatnya hijau. `lib/transaction-types.ts` **tidak** diubah.
 
 **Acceptance criteria:**
-- [ ] `adjustment` positif dan negatif tanpa kategori diterima. `adjustment` dengan kategori, `amount = 0`, atau `to_account_id` ditolak. `expense` dengan `amount < 0` tetap ditolak
-- [ ] `account_balances`: saldo awal 100.000 + adjustment +50.000 + adjustment −30.000 (satu soft-deleted −5.000 diabaikan) → 120.000
-- [ ] Semua tes constraint dan saldo yang sudah ada tetap hijau
+- [x] `adjustment` positif dan negatif tanpa kategori diterima. `adjustment` dengan kategori, `amount = 0`, atau `to_account_id` ditolak. `expense` dengan `amount < 0` tetap ditolak
+- [x] `account_balances`: saldo awal 100.000 + adjustment +50.000 + adjustment −30.000 (satu soft-deleted −5.000 diabaikan) → 120.000
+- [x] Semua tes constraint dan saldo yang sudah ada tetap hijau
 
 **Verification:**
-- [ ] `pnpm test tests/api/db-constraints.spec.ts tests/api/account-balances.spec.ts` hijau
-- [ ] Manual: baca `drizzle/<timestamp>_*/migration.sql`. Isinya hanya drop/add constraint dan replace view, tanpa `drop column`/`alter column`
-- [ ] `pnpm db:migrate` sukses di Supabase
+- [x] `pnpm test tests/api/db-constraints.spec.ts tests/api/account-balances.spec.ts` hijau
+- [x] Manual: baca `drizzle/<timestamp>_*/migration.sql`. Isinya hanya drop/add constraint dan replace view, tanpa `drop column`/`alter column`
+- [x] `pnpm db:migrate` sukses di Supabase
 
 **Dependencies:** None (foundation selesai)
 

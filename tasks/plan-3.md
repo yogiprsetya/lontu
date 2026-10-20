@@ -10,7 +10,7 @@ Pengguna yang login melihat app shell responsif: bottom nav di mobile, sidebar d
 
 - [x] T5: Providers, root layout, token warna, store Zustand (M)
 - [x] T6: App shell responsif dan halaman placeholder (M)
-- [ ] T7: `ResponsiveModal` (S)
+- [x] T7: `ResponsiveModal` (S)
 - [ ] T8: Manifest dan ikon PWA (S)
 
 Urutan: T5 → T6 → (T7, T8). T5 hanya bergantung pada T1, jadi bisa dikerjakan paralel dengan phase 1–2. T6 butuh T3 untuk session dan logout.

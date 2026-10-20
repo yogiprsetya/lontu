@@ -57,13 +57,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Komponen `components/layout/responsive-modal.tsx` yang merender Drawer di bawah `lg` dan Dialog di `lg` ke atas, dengan satu API (`open`, `onOpenChange`, `title`, `description`, `children`, `footer`). Tambah `drawer` dan `dialog` lewat shadcn CLI.
 
 **Acceptance criteria:**
-- [ ] Di 360 px tampil sebagai Drawer, di 1024 px sebagai Dialog, tanpa mount ganda
-- [ ] Fokus terkunci di dalam modal, Escape menutup, fokus kembali ke pemicu
-- [ ] Judul terhubung ke `aria-labelledby`
+- [x] Di 360 px tampil sebagai Drawer, di 1024 px sebagai Dialog, tanpa mount ganda
+- [x] Fokus terkunci di dalam modal, Escape menutup, fokus kembali ke pemicu
+- [x] Judul terhubung ke `aria-labelledby`
 
 **Verification:**
-- [ ] Manual: buka dari halaman placeholder Settings di dua lebar layar
-- [ ] `pnpm lint && pnpm typecheck && pnpm build` hijau
+- [x] Manual: buka dari halaman placeholder Settings di dua lebar layar
+- [x] `pnpm lint && pnpm typecheck && pnpm build` hijau
+
+**Catatan:** Diverifikasi dengan Playwright (Chromium penuh dan headless shell): 360 px → `drawer-popup`, 1024 px → `dialog-content`, hanya satu `role=dialog`; fokus tidak keluar dalam 8 kali Tab/Shift+Tab; Escape menutup dan fokus kembali ke tombol pemicu; `aria-labelledby` menunjuk judul. Drawer `base-vega` memakai Drawer dari `@base-ui/react`, jadi tidak ada dependency baru. Logika `useMediaQuery` dites di `tests/unit/media-query.spec.ts`. Pemicu sementara: tombol "Kelola akun" di Settings.
 
 **Dependencies:** T6
 

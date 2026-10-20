@@ -89,18 +89,18 @@ group by a.id;
 
 ## Acceptance criteria
 
-- [ ] Email di `ALLOWED_EMAILS` bisa login dengan Google, mendarat di `/dashboard`, dan baris `users` tercipta. Login kedua tidak menduplikasi baris.
-- [ ] Email lain ditolak dan kembali ke `/login` dengan pesan.
-- [ ] Mengakses `/dashboard` tanpa session dialihkan ke `/login`. `GET /api/me` tanpa session → 401 `{ error: { code: "UNAUTHORIZED" } }`.
-- [ ] `PATCH /api/me` dengan body tidak valid → 400 dengan `fields` per field.
-- [ ] `pnpm db:migrate` pada DB kosong membuat 5 tabel, view, index, dan RLS aktif. Query lewat REST Supabase dengan anon key mengembalikan 0 baris.
-- [ ] Constraint menolak: transfer tanpa `to_account_id`, transfer ke akun yang sama, expense tanpa kategori, kategori spending tanpa `spending_type`, `amount <= 0`.
-- [ ] `account_balances` benar untuk skenario: saldo awal 100.000, income 50.000, expense 20.000, transfer keluar 10.000 ke akun B, satu expense soft-deleted → A = 120.000, B = saldo awal B + 10.000.
-- [ ] Di lebar 360 px bottom nav tampil dengan 5 slot ≥ 44×44 px dan tidak ada horizontal scroll. Di 1024 px sidebar tampil dan bottom nav hilang.
-- [ ] ResponsiveModal tampil sebagai Drawer di mobile dan Dialog di desktop.
-- [ ] Dark mode mengikuti sistem dan bisa diubah manual. Pilihan bertahan setelah reload.
-- [ ] Lighthouse menyatakan manifest installable.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] Email di `ALLOWED_EMAILS` bisa login dengan Google, mendarat di `/dashboard`, dan baris `users` tercipta. Login kedua tidak menduplikasi baris.
+- [x] Email lain ditolak dan kembali ke `/login` dengan pesan.
+- [x] Mengakses `/dashboard` tanpa session dialihkan ke `/login`. `GET /api/me` tanpa session → 401 `{ error: { code: "UNAUTHORIZED" } }`.
+- [x] `PATCH /api/me` dengan body tidak valid → 400 dengan `fields` per field.
+- [x] `pnpm db:migrate` pada DB kosong membuat 5 tabel, view, index, dan RLS aktif. Query lewat REST Supabase dengan anon key mengembalikan 0 baris.
+- [x] Constraint menolak: transfer tanpa `to_account_id`, transfer ke akun yang sama, expense tanpa kategori, kategori spending tanpa `spending_type`, `amount <= 0`.
+- [x] `account_balances` benar untuk skenario: saldo awal 100.000, income 50.000, expense 20.000, transfer keluar 10.000 ke akun B, satu expense soft-deleted → A = 120.000, B = saldo awal B + 10.000.
+- [x] Di lebar 360 px bottom nav tampil dengan 5 slot ≥ 44×44 px dan tidak ada horizontal scroll. Di 1024 px sidebar tampil dan bottom nav hilang.
+- [x] ResponsiveModal tampil sebagai Drawer di mobile dan Dialog di desktop.
+- [x] Dark mode mengikuti sistem dan bisa diubah manual. Pilihan bertahan setelah reload.
+- [x] Lighthouse menyatakan manifest installable.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

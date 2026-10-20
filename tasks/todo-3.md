@@ -99,6 +99,8 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ---
 
 ### Checkpoint C: setelah T5–T8
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Shell, modal, tema, dan manifest diperiksa manual
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Shell, modal, tema, dan manifest diperiksa manual
 - [ ] Review dengan Yogi
+
+**Catatan (2026-10-20):** Diperiksa headless dengan Playwright terhadap `next start` dan cookie session lokal: 360 px (5 slot nav ≥ 44×44, tanpa horizontal scroll di semua halaman, Drawer), 1024 px (sidebar, bottom nav hilang, Dialog), tema (ikut sistem dark, pilihan manual bertahan setelah reload). Installability dicek lewat `Page.getInstallabilityErrors` Chrome (kosong), karena Lighthouse 12 tidak lagi punya kategori PWA.

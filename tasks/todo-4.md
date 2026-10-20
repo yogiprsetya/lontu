@@ -32,6 +32,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ---
 
 ### Checkpoint: Foundation selesai
-- [ ] Semua acceptance criteria di SPEC-foundation.md tercentang
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (tanpa `test:e2e`, ditunda)
+- [x] Semua acceptance criteria di SPEC-foundation.md tercentang
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (tanpa `test:e2e`, ditunda)
 - [ ] Review dengan Yogi, lalu tulis `SPEC-accounts-categories.md`

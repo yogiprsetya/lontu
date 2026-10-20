@@ -8,7 +8,7 @@ Alur login → shell → logout teruji otomatis di viewport mobile dan desktop, 
 
 ## Task
 
-- [x] T9: Login tes E2E dan smoke test shell Playwright (M)
+- [ ] ~~T9: Login tes E2E dan smoke test shell Playwright (M)~~ **Ditunda** (2026-10-20): E2E dikeluarkan dari foundation. Kode T9 (commit `84cb66c`) dihapus; bisa dipulihkan dari commit itu.
 
 Butuh T3 dan T6.
 
@@ -24,5 +24,5 @@ Butuh T3 dan T6.
 ## Checkpoint: Foundation selesai
 
 - [ ] Semua acceptance criteria di SPEC-foundation.md tercentang
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` hijau
+- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (tanpa `test:e2e`, ditunda)
 - [ ] Review dengan Yogi, lalu tulis `SPEC-accounts-categories.md`

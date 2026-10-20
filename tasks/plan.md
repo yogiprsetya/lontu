@@ -24,11 +24,10 @@ T1 Tooling (deps, scripts, Vitest, money.ts)
  ├── T2 Skema DB + migrasi + RLS + view ──────┐
  ├── T3 Login Google (auth.ts, proxy, /login) ─┤
  │                                             └── T4 withAuth + errors + /api/me
- ├── T5 Providers + root layout + token + stores
- │     └── T6 App shell (nav, + menu, placeholder)   ← juga butuh T3 (logout, session)
- │           ├── T7 ResponsiveModal
- │           └── T8 Manifest + ikon
- └── T9 E2E login tes + smoke shell                   ← butuh T3, T6
+ └── T5 Providers + root layout + token + stores
+       └── T6 App shell (nav, + menu, placeholder)   ← juga butuh T3 (logout, session)
+             ├── T7 ResponsiveModal
+             └── T8 Manifest + ikon
 ```
 
 T2 dan T3 tidak saling bergantung, kecuali upsert `users` di callback `signIn` yang butuh tabel `users`. Karena itu T2 dikerjakan lebih dulu. T5 bisa dikerjakan paralel dengan T2–T4.
@@ -40,7 +39,7 @@ T2 dan T3 tidak saling bergantung, kecuali upsert `users` di callback `signIn` y
 | 1. Fondasi teknis | [plan-1.md](plan-1.md) | [todo-1.md](todo-1.md) | T1–T3 | A |
 | 2. Kontrak API | [plan-2.md](plan-2.md) | [todo-2.md](todo-2.md) | T4 | B |
 | 3. UI shell | [plan-3.md](plan-3.md) | [todo-3.md](todo-3.md) | T5–T8 | C |
-| 4. Verifikasi end-to-end | [plan-4.md](plan-4.md) | [todo-4.md](todo-4.md) | T9 | Foundation selesai |
+| ~~4. Verifikasi end-to-end~~ | [plan-4.md](plan-4.md) | [todo-4.md](todo-4.md) | ~~T9~~ ditunda | Foundation selesai setelah phase 3 |
 
 Phase dikerjakan berurutan. Pengecualian: T5 (phase 3) hanya butuh T1 dan boleh dikerjakan paralel dengan phase 1–2.
 
@@ -53,7 +52,7 @@ Phase dikerjakan berurutan. Pengecualian: T5 (phase 3) hanya butuh T1 dan boleh 
 ## Keputusan open questions (2026-10-20)
 
 1. **DB tes:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Tes membuat user `test-<uuid>` dan menghapusnya setelah selesai.
-2. **Login E2E:** provider Credentials, aktif hanya jika `E2E_AUTH=1` dan bukan production.
+2. **Login E2E:** ditunda. E2E (T9) dikeluarkan dari foundation pada 2026-10-20.
 3. **Nama package:** `lontu` (T1).
 4. **Ikon maskable:** dibuat dari ikon 512 dengan padding safe zone (T8).
 5. **Font:** Inter saja sebagai `--font-sans` (T5).

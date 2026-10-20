@@ -6,7 +6,9 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ---
 
-### T9: Login tes E2E dan smoke test shell Playwright
+### ~~T9: Login tes E2E dan smoke test shell Playwright~~ (ditunda)
+
+**Status:** Ditunda pada 2026-10-20, E2E tidak masuk foundation. Implementasi di commit `84cb66c` dihapus; pulihkan dari commit itu saat E2E dijadwalkan. Checklist di bawah adalah catatan historis.
 
 **Description:** Provider Credentials khusus tes di `lib/auth.ts` yang hanya aktif saat `E2E_AUTH=1` dan `NODE_ENV !== "production"` (Open question #2). Konfigurasi Playwright dengan viewport 360×800 dan 1280×800, plus smoke test shell.
 
@@ -31,5 +33,5 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint: Foundation selesai
 - [ ] Semua acceptance criteria di SPEC-foundation.md tercentang
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` hijau
+- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (tanpa `test:e2e`, ditunda)
 - [ ] Review dengan Yogi, lalu tulis `SPEC-accounts-categories.md`

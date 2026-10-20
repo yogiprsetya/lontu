@@ -12,9 +12,9 @@ Di luar cakupan modul ini: CRUD apa pun selain `/api/me`, grafik, service worker
 
 ### 1. Dependency & scripts
 
-- Tambah: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`. Dev: `vitest`, `@playwright/test`.
+- Tambah: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`. Dev: `vitest`. Playwright ditunda (tidak di foundation).
 - Komponen shadcn: `drawer`, `dialog`, `sonner`, `skeleton`, `input`, `label`, `select`.
-- Script `package.json`: `typecheck`, `test`, `test:watch`, `test:e2e`, `db:generate`, `db:migrate`, `db:studio`.
+- Script `package.json`: `typecheck`, `test`, `test:watch`, `db:generate`, `db:migrate`, `db:studio`.
 - `.env.example` diganti dengan nama variabel Auth.js v5:
 
 ```
@@ -107,7 +107,7 @@ group by a.id;
 - Unit: `money.ts` (format, parse termasuk input kosong/non-digit, singkatan di batas rb/jt/M/T), `profileSchema`, `errors.ts` (bentuk JSON).
 - API: `withAuth` (tanpa session → 401, error tak terduga → 500 tanpa bocor detail), `/api/me` GET/PATCH, termasuk user hanya bisa membaca profil sendiri.
 - DB: tes constraint dan `account_balances` terhadap `DATABASE_URL` (Supabase), dengan user tes yang dihapus setelah tes.
-- E2E: smoke test shell di 360 px dan 1280 px (memakai provider Credentials tes, lihat Open questions #2 di SPEC.md).
+- E2E: ditunda, tidak di foundation (lihat Open questions #2 di SPEC.md).
 
 ## Risiko
 

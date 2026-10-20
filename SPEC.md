@@ -52,7 +52,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 | Data client | `swr`, `zustand` | ditambahkan di foundation |
 | Grafik | shadcn chart (Recharts) | modul dashboard |
 | PWA | `@serwist/next`, `idb-keyval` | modul pwa-offline |
-| Test | Vitest, Playwright | ditambahkan di foundation |
+| Test | Vitest, Playwright | Vitest di foundation; Playwright ditunda ke phase setelah foundation |
 | Package manager | pnpm | 12.5.1 |
 
 Drizzle 1.0 masih RC dan API-nya berbeda dari 0.x. Untuk Next.js 16, baca `node_modules/next/dist/docs/` sebelum memakai API apa pun (lihat `AGENTS.md`).
@@ -67,7 +67,7 @@ pnpm lint                # eslint
 pnpm typecheck           # tsc --noEmit                     (ditambahkan di foundation)
 pnpm test                # vitest run                        (ditambahkan di foundation)
 pnpm test:watch          # vitest
-pnpm test:e2e            # playwright test
+pnpm test:e2e            # playwright test           (ditunda, belum ada)
 pnpm db:generate         # drizzle-kit generate
 pnpm db:migrate          # drizzle-kit migrate
 pnpm db:studio           # drizzle-kit studio
@@ -219,7 +219,7 @@ Scan struk (OCR) dan upload receipt, transaksi berulang, multi-currency, pendaft
 ## Open questions
 
 1. ~~DB untuk tes API~~ **Diputuskan:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Lihat Testing strategy.
-2. ~~Login di E2E~~ **Diputuskan:** provider Credentials khusus tes, hanya aktif jika `E2E_AUTH=1` dan `NODE_ENV !== "production"`.
+2. ~~Login di E2E~~ **Ditunda:** E2E tidak dikerjakan di foundation. Usulan provider Credentials khusus tes (`E2E_AUTH=1`, bukan production) dibahas lagi saat E2E dijadwalkan.
 3. **Saldo tidak cukup saat transfer/expense:** dokumen sumber bilang "peringatan, tetap izinkan". Tetap begitu?
 4. **Biaya admin transfer** (checkbox yang membuat expense terpisah) dan **saran 50/30/20** di Budget: masuk MVP atau Fase 2?
 5. **Halaman Expenses vs `/transactions?type=expense`:** isinya hampir sama. Pertahankan dua halaman, atau Expenses cukup jadi preset filter?

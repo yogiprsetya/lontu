@@ -11,7 +11,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Pasang dependency foundation, tambah script, siapkan Vitest, dan buktikan pipeline tes dengan `lib/money.ts` yang ditulis secara TDD. Perbarui `.env.example` ke nama variabel Auth.js v5.
 
 **Acceptance criteria:**
-- [x] Dependency dari Deliverables §1 terpasang: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`, dev `vitest`, `@playwright/test`. Script `typecheck`, `test`, `test:watch`, `test:e2e`, `db:generate`, `db:migrate`, `db:studio` ada
+- [x] Dependency dari Deliverables §1 terpasang: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`, dev `vitest`. Script `typecheck`, `test`, `test:watch`, `db:generate`, `db:migrate`, `db:studio` ada
 - [x] `formatIDR`, `parseIDR` (termasuk input kosong dan non-digit), `formatThousands`, `abbreviateIDR` (batas rb/jt/M/T) lolos tes unit
 - [x] `.env.example` berisi `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ALLOWED_EMAILS`
 

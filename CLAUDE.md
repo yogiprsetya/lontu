@@ -18,7 +18,7 @@ If a decision changes, update the relevant spec first, then the code.
 pnpm dev | build | start | lint
 pnpm typecheck           # tsc --noEmit
 pnpm test                # vitest run (unit + API against Supabase via DATABASE_URL)
-pnpm test:e2e            # playwright
+pnpm test:e2e            # playwright (deferred, not set up yet)
 pnpm db:generate | db:migrate | db:studio
 ```
 

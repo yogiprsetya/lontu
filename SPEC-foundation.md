@@ -56,6 +56,8 @@ left join transactions t
 group by a.id;
 ```
 
+Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, tanpa kategori) ditambahkan ke constraint dan view. Lihat [SPEC-accounts-categories.md § Transaksi penyesuaian](SPEC-accounts-categories.md#transaksi-penyesuaian).
+
 ### 3. Auth
 
 - `lib/auth.ts`: Auth.js v5, provider Google, `session: { strategy: "jwt" }`. Callback `signIn` menolak jika email tidak ada di `ALLOWED_EMAILS` (ke `/login?error=AccessDenied`), lalu upsert `users`. Callback `jwt`/`session` memasang `session.user.id = token.sub`.

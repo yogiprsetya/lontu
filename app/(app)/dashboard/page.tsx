@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
+import { LayoutDashboardIcon } from "lucide-react";
+import { PlaceholderPage } from "@/components/layout/placeholder-page";
+
+export const metadata: Metadata = { title: "Dashboard" };
+
 export default function DashboardPage() {
   return (
-    <main className="flex-1 px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-    </main>
+    <PlaceholderPage
+      title="Dashboard"
+      icon={LayoutDashboardIcon}
+      description="Ringkasan saldo, pengeluaran, dan budget akan tampil di sini."
+    />
   );
 }

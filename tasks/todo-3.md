@@ -12,12 +12,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [x] `fetcher` melempar `ApiError { status, code, message, fields }` untuk respons non-2xx dengan format error seragam
-- [~] Dark mode mengikuti sistem, bisa diubah manual, dan bertahan setelah reload. Setiap token warna lolos 4.5:1 terhadap background di light dan dark
+- [x] Dark mode mengikuti sistem, bisa diubah manual, dan bertahan setelah reload. Setiap token warna lolos 4.5:1 terhadap background di light dan dark
 - [x] `usePeriodStore` default ke bulan berjalan di Asia/Jakarta. `useUIStore` hanya mem-`persist` `hideAmounts`
 
 **Verification:**
 - [x] `tests/unit/fetcher.spec.ts`, `tests/unit/period-store.spec.ts`, `tests/unit/ui-store.spec.ts`, `tests/unit/color-tokens.spec.ts` (termasuk tanggal di batas tengah malam UTC vs WIB) hijau
-- [ ] Manual: ganti tema, reload, tema bertahan (menunggu toggle tema di Settings, T6). Kontras dicek otomatis oleh `color-tokens.spec.ts` (terendah 5,17:1)
+- [x] Manual (Playwright): pilih Gelap di Settings, reload, tema bertahan. Kontras dicek otomatis oleh `color-tokens.spec.ts` (terendah 5,17:1)
 - [x] `pnpm build` hijau
 
 **Dependencies:** T1
@@ -33,14 +33,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `app/(app)/layout.tsx` dengan BottomNav 5 slot (Dashboard, Transactions, +, Budget, More) di bawah `lg` dan Sidebar di `lg` ke atas. Tombol + membuka menu Income/Expense/Saving/Transfer ke `/add/[type]`. More berisi Settings dan Logout. Halaman dashboard, transactions, expenses, budget, settings, dan `add/[type]` berupa placeholder dengan judul dan empty state. Bagian yang membaca session dibungkus `<Suspense>`.
 
 **Acceptance criteria:**
-- [ ] Di 360 px: bottom nav 5 slot, setiap target ≥ 44×44 px, padding `env(safe-area-inset-bottom)`, tanpa horizontal scroll
-- [ ] Di 1024 px: sidebar tampil, bottom nav tersembunyi
-- [ ] Menu + menuju keempat `/add/[type]`. Type di luar empat itu → 404. Logout mengakhiri session dan kembali ke `/login`
+- [x] Di 360 px: bottom nav 5 slot, setiap target ≥ 44×44 px, padding `env(safe-area-inset-bottom)`, tanpa horizontal scroll
+- [x] Di 1024 px: sidebar tampil, bottom nav tersembunyi
+- [x] Menu + menuju keempat `/add/[type]`. Type di luar empat itu → 404. Logout mengakhiri session dan kembali ke `/login`
 
 **Verification:**
-- [ ] `pnpm build` hijau tanpa error "uncached data outside Suspense"
-- [ ] Manual di DevTools: 360 px dan 1024 px, navigasi keyboard di nav dan menu +
-- [ ] `pnpm lint && pnpm typecheck` hijau
+- [x] `pnpm build` hijau tanpa error "uncached data outside Suspense"
+- [x] Manual di DevTools: 360 px dan 1024 px, navigasi keyboard di nav dan menu +
+- [x] `pnpm lint && pnpm typecheck` hijau
+
+**Catatan:** Diverifikasi dengan Chromium (Playwright) dan session JWT buatan: 360 px → 5 slot (74×56, + 48×48), tanpa horizontal scroll; 1024 px → sidebar tampil, bottom nav hilang; menu + ke 4 `/add/*`; logout → `/login` tanpa cookie session. `/add/<lain>` merender UI not-found dengan `noindex`, tetapi status HTTP tetap 200 karena `notFound()` terjadi setelah streaming dimulai (perilaku terdokumentasi Next 16). `RequireSession` memanggil `connection()` sebelum `auth()` karena Auth.js memakai `crypto.getRandomValues()`. Expenses dimasukkan ke menu More supaya bisa diakses di mobile.
 
 **Dependencies:** T3, T5
 

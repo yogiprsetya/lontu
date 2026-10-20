@@ -9,7 +9,7 @@ Pengguna yang login melihat app shell responsif: bottom nav di mobile, sidebar d
 ## Task
 
 - [x] T5: Providers, root layout, token warna, store Zustand (M)
-- [ ] T6: App shell responsif dan halaman placeholder (M)
+- [x] T6: App shell responsif dan halaman placeholder (M)
 - [ ] T7: `ResponsiveModal` (S)
 - [ ] T8: Manifest dan ikon PWA (S)
 

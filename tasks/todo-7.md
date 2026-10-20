@@ -80,19 +80,21 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `hooks/use-categories.ts` (`useCategories({ kind?, includeArchived? })`, `createCategory`). `components/modals/manage-categories.tsx` dengan tab Income/Saving/Spending (tab Spending dikelompokkan Needs/Wants), `modalProps.kind` memilih tab awal, dan view tambah (nama, pilihan needs/wants hanya di tab Spending). Daftarkan di `ModalHost`. Tambah shadcn `tabs`.
 
 **Acceptance criteria:**
-- [ ] Settings → "Kelola kategori" menampilkan 16 kategori default di tab yang benar
-- [ ] Tambah "Parkir" (spending/needs) → muncul di grup Needs tanpa reload. Nama duplikat di kind sama → pesan 409 di field nama
-- [ ] `open("manageCategories", { kind: "saving" })` membuka tab Saving
+- [x] Settings → "Kelola kategori" menampilkan 16 kategori default di tab yang benar
+- [x] Tambah "Parkir" (spending/needs) → muncul di grup Needs tanpa reload. Nama duplikat di kind sama → pesan 409 di field nama
+- [x] `open("manageCategories", { kind: "saving" })` membuka tab Saving
 
 **Verification:**
-- [ ] `tests/unit/use-categories.spec.ts` (filter per kind dan pengelompokan needs/wants, sebagai fungsi murni) hijau. `pnpm build` hijau
-- [ ] Manual: 360×800 dan 1024. Tab bisa dipakai dengan keyboard
+- [x] `tests/unit/use-categories.spec.ts` (filter per kind dan pengelompokan needs/wants, sebagai fungsi murni) hijau. `pnpm build` hijau
+- [x] Manual: 360×800 dan 1024. Tab bisa dipakai dengan keyboard
 
 **Dependencies:** T14, T18 (ModalHost)
 
 **Files likely touched:** `hooks/use-categories.ts`, `components/modals/manage-categories.tsx`, `components/modals/modal-host.tsx`, `components/ui/tabs.tsx` (CLI), `tests/unit/use-categories.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan:** Diverifikasi headless di 360 dan 1024: 16 kategori default tampil di tab yang benar (Spending dikelompokkan Needs/Wants), tambah spending/needs muncul di grup Needs tanpa reload, nama duplikat di kind sama → 409 di field nama, panah kiri/kanan berpindah tab, tanpa horizontal scroll, target sentuh ≥ 44 px, light & dark. `open("manageCategories", { kind: "saving" })` dicek dengan menulis ulang pemanggilan di chunk yang disajikan: modal terbuka di tab Saving, dan membuka ulang kembali ke tab itu. Daftar dirender di `TabsContent` supaya tab punya `tabpanel` yang dikontrol; trigger diberi `h-11` karena padding list membuatnya 37 px.
 
 ---
 

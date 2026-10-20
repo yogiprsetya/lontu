@@ -11,7 +11,7 @@ Di ponsel (360 px), pemilik bisa mengubah profil, mengelola akun (termasuk mengu
 - [x] T17: Halaman Settings + form profil (M)
 - [x] T18: Kelola akun: daftar + tambah akun (M)
 - [x] T19: Kelola akun: edit, arsip, pulihkan (M)
-- [ ] T20: Kelola kategori: daftar per tab + tambah (M)
+- [x] T20: Kelola kategori: daftar per tab + tambah (M)
 - [ ] T21: Kelola kategori: rename, arsip, pulihkan (S)
 
 Urutan: T17 → T18 → T19, lalu T20 → T21. T20 hanya butuh T18 (ModalHost dan pola hook), jadi T19 dan T20 bisa dikerjakan paralel.

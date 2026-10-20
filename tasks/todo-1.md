@@ -11,14 +11,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Pasang dependency foundation, tambah script, siapkan Vitest, dan buktikan pipeline tes dengan `lib/money.ts` yang ditulis secara TDD. Perbarui `.env.example` ke nama variabel Auth.js v5.
 
 **Acceptance criteria:**
-- [ ] Dependency dari Deliverables §1 terpasang: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`, dev `vitest`, `@playwright/test`. Script `typecheck`, `test`, `test:watch`, `test:e2e`, `db:generate`, `db:migrate`, `db:studio` ada
-- [ ] `formatIDR`, `parseIDR` (termasuk input kosong dan non-digit), `formatThousands`, `abbreviateIDR` (batas rb/jt/M/T) lolos tes unit
-- [ ] `.env.example` berisi `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ALLOWED_EMAILS`
+- [x] Dependency dari Deliverables §1 terpasang: `next-auth@5`, `zod@4`, `swr`, `zustand`, `react-hook-form`, `@hookform/resolvers`, `next-themes`, `server-only`, dev `vitest`, `@playwright/test`. Script `typecheck`, `test`, `test:watch`, `test:e2e`, `db:generate`, `db:migrate`, `db:studio` ada
+- [x] `formatIDR`, `parseIDR` (termasuk input kosong dan non-digit), `formatThousands`, `abbreviateIDR` (batas rb/jt/M/T) lolos tes unit
+- [x] `.env.example` berisi `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `ALLOWED_EMAILS`
 
 **Verification:**
-- [ ] `pnpm test` menjalankan `tests/unit/money.test.ts` dan hijau
-- [ ] `pnpm typecheck && pnpm lint && pnpm build` hijau
-- [ ] Cek: peer dependency warning `next-auth` dicatat. Jika bentrok dengan Next 16.4, berhenti dan tanya
+- [x] `pnpm test` menjalankan `tests/unit/money.spec.ts` dan hijau
+- [x] `pnpm typecheck && pnpm lint && pnpm build` hijau
+- [x] Cek: peer dependency warning `next-auth` dicatat. Jika bentrok dengan Next 16.4, berhenti dan tanya
+
+**Catatan:** Vitest 4 dipakai (Vitest 5 butuh Node ≥ 22, mesin ini Node 20). `next-auth@5.0.0-beta.32` peer `next ^16`, tidak bentrok. Folder `types/` hasil salinan `.next/types` dihapus karena merusak typecheck.
 
 **Dependencies:** None
 

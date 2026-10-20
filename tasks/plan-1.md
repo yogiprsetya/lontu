@@ -8,7 +8,7 @@ Dependency dan pipeline tes siap, skema DB lengkap termigrasi, dan pengguna di a
 
 ## Task
 
-- [ ] T1: Tooling, scripts, Vitest, dan `money.ts` (S)
+- [x] T1: Tooling, scripts, Vitest, dan `money.ts` (S)
 - [ ] T2: Skema DB, migrasi, RLS, view `account_balances` (M, risiko tinggi)
 - [ ] T3: Login Google dengan allowlist (M, risiko tinggi)
 

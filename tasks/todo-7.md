@@ -11,11 +11,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Ganti placeholder Settings dengan empat section (Profil, Keuangan, Tampilan, Logout). `hooks/use-profile.ts` (`useProfile`, `updateProfile`). `components/settings/profile-form.tsx` (react-hook-form + `profileSchema`, toast sukses, `setError` dari `ApiError.fields`). Toggle "Sembunyikan nominal" (`hideAmounts`). Tombol "Kelola akun"/"Kelola kategori" sudah memanggil `useUIStore().open(...)`; modalnya muncul di T18/T20. Tambah shadcn `input`, `label`, `switch`.
 
 **Acceptance criteria:**
+
 - [x] Profil terisi dari `/api/me` (skeleton saat loading, "Coba lagi" saat error). Simpan → toast, nilai bertahan setelah reload. Nama kosong → pesan di field, tanpa request
 - [x] Toggle sembunyikan nominal bertahan setelah reload. Logout dan ThemeToggle tetap berfungsi
 - [x] 360 px: tanpa horizontal scroll, input 16 px, target sentuh ≥ 44 px
 
 **Verification:**
+
 - [x] `tests/unit/profile-schema.spec.ts` tetap hijau. `pnpm build` hijau (tanpa error cache components)
 - [x] Manual: ubah profil di 360×800 dan 1024
 
@@ -34,11 +36,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `hooks/use-accounts.ts` (`useAccounts`, `revalidateAccounts`, `createAccount`). `components/modals/modal-host.tsx` di-mount di `app/(app)/layout.tsx`. `components/modals/manage-accounts.tsx`: daftar dikelompokkan Transaksi/Aset (nama, label subtype, saldo `formatIDR`, merah jika negatif, disamarkan jika `hideAmounts`), empty state, dan view "Tambah akun" (nama, type segmented, subtype select opsional, saldo awal). `components/forms/money-input.tsx` dengan tombol ±. Hapus `components/settings/manage-accounts-placeholder.tsx`. Tambah shadcn `select`, `toggle-group`.
 
 **Acceptance criteria:**
+
 - [x] Settings → "Kelola akun" membuka drawer (360) / dialog (1024). Tambah akun dengan saldo awal −250.000 → kembali ke daftar, akun tampil dengan saldo merah tanpa reload
 - [x] Nama duplikat → pesan 409 di field nama. Nilai `money-input` ↔ number diuji: `"1.250.000"` → 1250000, ± membalik tanda, input kosong → 0
 - [x] `useUIStore().open("manageAccounts")` dari mana pun di `(app)` membuka modal yang sama
 
 **Verification:**
+
 - [x] `tests/unit/money-input.spec.ts` (logika parse/toggle tanda, dipisah dari komponen) dan `tests/unit/use-accounts.spec.ts` (matcher `revalidateAccounts`) hijau. `pnpm build` hijau
 - [ ] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024 (1024 dan 360 tanpa keyboard sudah; keyboard virtual perlu dicek di ponsel)
 
@@ -57,11 +61,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tap baris → view edit (form yang sama dengan T18, terisi). Mengubah saldo awal menampilkan teks kecil "Selisih akan dicatat sebagai transaksi penyesuaian". Tombol "Arsipkan" → `alert-dialog` yang menyebut saldo saat ini jika ≠ 0. Toggle "Tampilkan arsip" memakai key `?include=archived` dan menampilkan item terarsip (redup) dengan tombol "Pulihkan". Tambah `updateAccount`, `archiveAccount`, `restoreAccount` di hook. Tambah shadcn `alert-dialog`.
 
 **Acceptance criteria:**
+
 - [x] Ubah saldo awal 100.000 → 150.000 → daftar menampilkan saldo bergeser +50.000 tanpa reload
 - [x] Arsip akun bersaldo 30.000 → konfirmasi menyebut "Rp30.000", lalu akun hilang dari daftar aktif. Tampilkan arsip → Pulihkan → kembali aktif
 - [x] Rename ke nama akun terarsip → pesan 409 menyarankan memulihkan akun itu
 
 **Verification:**
+
 - [x] `pnpm test` dan `pnpm build` hijau
 - [x] Manual: alur edit → arsip → pulihkan di 360×800 dan 1024
 
@@ -80,11 +86,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `hooks/use-categories.ts` (`useCategories({ kind?, includeArchived? })`, `createCategory`). `components/modals/manage-categories.tsx` dengan tab Income/Saving/Spending (tab Spending dikelompokkan Needs/Wants), `modalProps.kind` memilih tab awal, dan view tambah (nama, pilihan needs/wants hanya di tab Spending). Daftarkan di `ModalHost`. Tambah shadcn `tabs`.
 
 **Acceptance criteria:**
+
 - [x] Settings → "Kelola kategori" menampilkan 16 kategori default di tab yang benar
 - [x] Tambah "Parkir" (spending/needs) → muncul di grup Needs tanpa reload. Nama duplikat di kind sama → pesan 409 di field nama
 - [x] `open("manageCategories", { kind: "saving" })` membuka tab Saving
 
 **Verification:**
+
 - [x] `tests/unit/use-categories.spec.ts` (filter per kind dan pengelompokan needs/wants, sebagai fungsi murni) hijau. `pnpm build` hijau
 - [x] Manual: 360×800 dan 1024. Tab bisa dipakai dengan keyboard
 
@@ -103,10 +111,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tap kategori → view edit yang hanya berisi nama, plus teks "Jenis kategori tidak bisa diubah". Arsip dengan `alert-dialog`. "Tampilkan arsip" + "Pulihkan" sama seperti akun. Tambah `renameCategory`, `archiveCategory`, `restoreCategory` di hook.
 
 **Acceptance criteria:**
+
 - [x] Rename "Makan" → "Makan & Minum" tampil langsung. Form edit tidak punya field kind/needs-wants
 - [x] Arsip → hilang dari tab. Tampilkan arsip → Pulihkan → kembali di grup yang sama
 
 **Verification:**
+
 - [x] `pnpm test` dan `pnpm build` hijau
 - [x] Manual: 360×800 dan 1024
 
@@ -125,4 +135,4 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [x] Semua acceptance criteria di SPEC-accounts-categories.md tercentang
 - [x] Manual di 360×800 dan 1024: tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px, light & dark (headless; keyboard virtual iOS dan login Google asli belum)
-- [ ] Review dengan Yogi, lalu tulis `SPEC-transactions.md`
+- [x] Review dengan Yogi, lalu tulis `SPEC-transactions.md`

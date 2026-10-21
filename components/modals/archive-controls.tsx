@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArchiveIcon } from "lucide-react";
+import { ArchiveIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -72,6 +72,7 @@ export function ArchiveButton({ label, name, description, archive, onArchived }:
             disabled={pending}
             onClick={() => void confirm()}
           >
+            {pending && <Loader2Icon className="animate-spin" aria-hidden />}
             Arsipkan
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { badRequest, conflict, invalidJson, notFound, serverError, unauthorized } from "@/lib/api/errors";
+import {
+  badRequest,
+  conflict,
+  fieldError,
+  invalidJson,
+  notFound,
+  serverError,
+  transactionNotFound,
+  unauthorized,
+} from "@/lib/api/errors";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -54,5 +63,19 @@ describe("API error helpers", () => {
     expect(body).toEqual({ error: { code: "INTERNAL", message: "Terjadi kesalahan di server" } });
     expect(JSON.stringify(body)).not.toContain("hunter2");
     expect(log).toHaveBeenCalled();
+  });
+
+  it("fieldError returns 400 VALIDATION_ERROR with a message on one field", async () => {
+    const res = fieldError("accountId", "Akun tidak ditemukan");
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { accountId: ["Akun tidak ditemukan"] } },
+    });
+  });
+
+  it("transactionNotFound returns 404 TRANSACTION_NOT_FOUND", async () => {
+    const res = transactionNotFound();
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe("TRANSACTION_NOT_FOUND");
   });
 });

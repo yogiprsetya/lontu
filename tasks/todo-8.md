@@ -8,17 +8,17 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T22: `POST /api/transactions` income/expense/saving
 
-**Description:** `lib/schemas/transaction.ts`: tipe `Transaction`, `transactionCreateSchema` (`discriminatedUnion("type")` dengan `z.strictObject`, tiga tipe dulu), aturan `amount` (`z.int()` 1..1e12), `date` (`z.iso.date()` + 2000-01-01 ≤ date ≤ hari ini Jakarta, "hari ini" diinjeksi lewat pabrik schema), `description` (trim, maks 200, kosong → `null`). `lib/api/errors.ts`: `fieldError(field, message)` dan `transactionNotFound()`. `lib/server/transactions.ts`: `createTransaction(userId, input)` memeriksa akun dan kategori lewat `findOwnedAccounts`/`findOwnedCategory` (milik user, aktif, `kind` = `CATEGORY_KIND_FOR[type]`), insert, lalu mengembalikan `Transaction`. `app/api/transactions/route.ts` `POST` → 201 `{ transaction, fee: null }`. Tes ditulis lebih dulu.
+**Description:** `lib/schemas/transaction.ts`: tipe `Transaction`, `transactionCreateSchema` (`discriminatedUnion("type")` dengan `z.strictObject`, tiga tipe dulu), aturan `amount` (`z.int()` 1..1e12), `date` (`z.iso.date()` + 2000-01-01 ≤ date ≤ hari ini Jakarta, "hari ini" dibaca saat parse, tes memakai fake timer), `description` (trim, maks 200, kosong → `null`). `lib/api/errors.ts`: `fieldError(field, message)` dan `transactionNotFound()`. `lib/server/transactions.ts`: `createTransaction(userId, input)` memeriksa akun dan kategori lewat `findOwnedAccounts`/`findOwnedCategory` (milik user, aktif, `kind` = `CATEGORY_KIND_FOR[type]`), insert, lalu mengembalikan `Transaction`. `app/api/transactions/route.ts` `POST` → 201 `{ transaction, fee: null }`. Tes ditulis lebih dulu.
 
 **Acceptance criteria:**
-- [ ] `POST` expense 25.000 pada akun bersaldo 100.000 → 201, `GET /api/accounts` menunjukkan `balance = 75000`. Income menambah, saving mengurangi
-- [ ] `amount` 0, −1, 1.5, `"100"`, > 1e12 → 400 `fields.amount`. `date` salah format, sebelum 2000-01-01, atau besok (Jakarta) → 400 `fields.date`. `description` 201 karakter → 400, `""` → `null`. `type: "adjustment"` dan (sementara) `type: "transfer"` → 400. Field tak dikenal (`userId`, `fee`) → 400
-- [ ] Referensi: akun/kategori milik user lain, tidak ada, atau terarsip → 400 pada `fields.accountId`/`fields.categoryId` dengan pesan yang sama untuk asing dan tidak ada. Expense dengan kategori income → 400 `fields.categoryId`. Income tanpa kategori → 400
-- [ ] Tanpa session → 401 `UNAUTHORIZED`. Body bukan JSON → 400 `INVALID_JSON`
+- [x] `POST` expense 25.000 pada akun bersaldo 100.000 → 201, `GET /api/accounts` menunjukkan `balance = 75000`. Income menambah, saving mengurangi
+- [x] `amount` 0, −1, 1.5, `"100"`, > 1e12 → 400 `fields.amount`. `date` salah format, sebelum 2000-01-01, atau besok (Jakarta) → 400 `fields.date`. `description` 201 karakter → 400, `""` → `null`. `type: "adjustment"` dan (sementara) `type: "transfer"` → 400. Field tak dikenal (`userId`, `fee`) → 400
+- [x] Referensi: akun/kategori milik user lain, tidak ada, atau terarsip → 400 pada `fields.accountId`/`fields.categoryId` dengan pesan yang sama untuk asing dan tidak ada. Expense dengan kategori income → 400 `fields.categoryId`. Income tanpa kategori → 400
+- [x] Tanpa session → 401 `UNAUTHORIZED`. Body bukan JSON → 400 `INVALID_JSON`
 
 **Verification:**
-- [ ] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau (tes API memakai user `test-<uuid>` dan memanggil `POST(req, ctx)` langsung)
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau (tes API memakai user `test-<uuid>` dan memanggil `POST(req, ctx)` langsung)
+- [x] `pnpm build` hijau
 
 **Dependencies:** None (accounts-categories selesai)
 

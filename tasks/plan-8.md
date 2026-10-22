@@ -8,7 +8,7 @@ Dari ponsel, pemilik bisa mencatat income, expense, saving, dan transfer (dengan
 
 ## Task
 
-- [ ] T22: `POST /api/transactions` income/expense/saving (M)
+- [x] T22: `POST /api/transactions` income/expense/saving (M)
 - [ ] T23: `POST` transfer + biaya admin atomik (M, risiko sedang)
 - [ ] T24: Form income/expense/saving di `/add/[type]` (M)
 - [ ] T25: Peringatan saldo kurang (S)
@@ -30,7 +30,7 @@ Urutan: T22 → T23 dan T22 → T24 → T25 → T26. T23 dan T24 tidak saling be
 | Risiko | Dampak | Mitigasi |
 |---|---|---|
 | `db.transaction` untuk transfer + fee di pooler transaction mode | Rendah | Pola sama dengan `updateAccount` (T13). Tes memastikan tidak ada baris tertulis saat fee tidak valid |
-| `date` ≤ hari ini Jakarta diuji dengan jam sistem | Rendah | `todayInJakarta(now)` menerima `Date`; schema memakai pabrik sehingga tes menyuntikkan "hari ini" |
+| `date` ≤ hari ini Jakarta diuji dengan jam sistem | Rendah | Schema membaca `todayInJakarta()` saat parse (tidak basi lewat tengah malam). Tes unit memakai fake timer di 17:30 UTC, yang sudah besok di Jakarta |
 | Form transfer panjang di drawer/keyboard virtual iOS | Sedang | Footer sticky seperti form akun. Cek manual di ponsel setelah T26 |
 | Mengubah `add/[type]` memutus tautan manifest "Tambah Expense" | Rendah | Rute dan `generateStaticParams` tidak berubah; hanya isi halaman |
 

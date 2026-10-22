@@ -8,6 +8,11 @@ export function badRequest(err: z.ZodError) {
   return error(400, "VALIDATION_ERROR", "Data tidak valid", z.flattenError(err).fieldErrors);
 }
 
+/** A 400 for a check Zod cannot do, such as ownership of a referenced id. */
+export function fieldError(field: string, message: string) {
+  return error(400, "VALIDATION_ERROR", "Data tidak valid", { [field]: [message] });
+}
+
 export function invalidJson() {
   return error(400, "INVALID_JSON", "Body request bukan JSON yang valid");
 }
@@ -41,6 +46,10 @@ export function categoryNameTaken() {
 
 export function categoryNotFound() {
   return notFound("CATEGORY_NOT_FOUND", "Kategori tidak ditemukan");
+}
+
+export function transactionNotFound() {
+  return notFound("TRANSACTION_NOT_FOUND", "Transaksi tidak ditemukan");
 }
 
 export function serverError(err: unknown) {

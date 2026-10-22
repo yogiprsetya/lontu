@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { and, desc, eq, getTableColumns, gte, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, gte, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
@@ -231,3 +231,32 @@ export async function updateTransaction(userId: string, id: string, body: unknow
     .returning();
   return updated ? { transaction: toTransaction(updated) } : { notFound: true };
 }
+
+async function findAnyTransaction(userId: string, id: string) {
+  const [row] = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.id, id), eq(transactions.userId, userId)));
+  return row && toTransaction(row);
+}
+
+// Only touches rows that are not already in the target state, so repeating the call
+// neither moves deleted_at nor fails.
+async function setDeleted(userId: string, id: string, deleted: boolean): Promise<Transaction | undefined> {
+  if (!isUuid(id)) return undefined;
+  const [updated] = await db
+    .update(transactions)
+    .set({ deletedAt: deleted ? sql`now()` : null })
+    .where(
+      and(
+        eq(transactions.id, id),
+        eq(transactions.userId, userId),
+        deleted ? isNull(transactions.deletedAt) : isNotNull(transactions.deletedAt),
+      ),
+    )
+    .returning();
+  return updated ? toTransaction(updated) : findAnyTransaction(userId, id);
+}
+
+export const softDeleteTransaction = (userId: string, id: string) => setDeleted(userId, id, true);
+export const restoreTransaction = (userId: string, id: string) => setDeleted(userId, id, false);

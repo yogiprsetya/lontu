@@ -75,14 +75,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `softDeleteTransaction` dan `restoreTransaction` di `lib/server/transactions.ts` (update `deleted_at` hanya jika berubah, kembalikan baris; idempoten). `DELETE` di `app/api/transactions/[id]/route.ts`, `POST` di `app/api/transactions/[id]/restore/route.ts`. Keduanya melihat baris yang sudah dihapus dan memakai `transactionNotFound()` untuk id bukan UUID, tidak ada, atau milik user lain.
 
 **Acceptance criteria:**
-- [ ] `DELETE` → 200 `Transaction` dengan `deletedAt`, baris tetap ada di DB. Baris hilang dari list, totals, dan saldo. `GET`/`PATCH` setelahnya → 404
-- [ ] `restore` → 200, kembali ke list, totals, dan saldo. `DELETE` dua kali tidak mengubah `deleted_at`, `restore` dua kali tidak mengubah apa pun
-- [ ] `DELETE` pada `adjustment` → 200, `initialBalance` dan `balance` akun bergeser kembali (uji lewat `GET /api/accounts`). `restore` mengembalikannya
-- [ ] Isolasi: user B mendapat 404 untuk `DELETE`/`restore` baris A. Tanpa session → 401
+- [x] `DELETE` → 200 `Transaction` dengan `deletedAt`, baris tetap ada di DB. Baris hilang dari list, totals, dan saldo. `GET`/`PATCH` setelahnya → 404
+- [x] `restore` → 200, kembali ke list, totals, dan saldo. `DELETE` dua kali tidak mengubah `deleted_at`, `restore` dua kali tidak mengubah apa pun
+- [x] `DELETE` pada `adjustment` → 200, `initialBalance` dan `balance` akun bergeser kembali (uji lewat `GET /api/accounts`). `restore` mengembalikannya
+- [x] Isolasi: user B mendapat 404 untuk `DELETE`/`restore` baris A. Tanpa session → 401
 
 **Verification:**
-- [ ] `pnpm vitest run tests/api/transactions.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/api/transactions.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T22
 

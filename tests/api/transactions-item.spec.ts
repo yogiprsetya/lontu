@@ -11,6 +11,8 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
 const itemRoute = await import("@/app/api/transactions/[id]/route");
+const restoreRoute = await import("@/app/api/transactions/[id]/restore/route");
+const totalsRoute = await import("@/app/api/transactions/totals/route");
 const listRoute = await import("@/app/api/transactions/route");
 const accountsRoute = await import("@/app/api/accounts/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
@@ -35,6 +37,24 @@ function patch(id: string, body: unknown) {
     }),
     ctx(id),
   );
+}
+
+function del(id: string) {
+  return itemRoute.DELETE(new Request(`http://localhost/api/transactions/${id}`, { method: "DELETE" }), ctx(id));
+}
+
+function restore(id: string) {
+  return restoreRoute.POST(new Request(`http://localhost/api/transactions/${id}/restore`, { method: "POST" }), ctx(id));
+}
+
+async function accountOf(accountId: string) {
+  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
+  return ((await res.json()) as { id: string; balance: number; initialBalance: number }[]).find((a) => a.id === accountId)!;
+}
+
+async function expenseTotal() {
+  const res = await totalsRoute.GET(new Request("http://localhost/api/transactions/totals"), noParams);
+  return (await res.json()).expense as number;
 }
 
 async function balanceOf(accountId: string) {
@@ -265,5 +285,90 @@ describe("PATCH /api/transactions/[id]", () => {
   it("returns 401 without a session", async () => {
     signInAs(null);
     await expectError(await patch(randomUUID(), { amount: 1 }), 401, "UNAUTHORIZED");
+  });
+});
+
+describe("DELETE and restore /api/transactions/[id]", () => {
+  it("soft-deletes: the row stays in the table but leaves list, totals and balance", async () => {
+    signInAs(userA);
+    const account = await insertAccount(userA, "del", 100_000);
+    const row = await seed({ accountId: account, amount: 30_000 });
+    const totalBefore = await expenseTotal();
+    expect(await balanceOf(account)).toBe(70_000);
+
+    const res = await del(row.id);
+
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as Transaction).deletedAt).toEqual(expect.any(String));
+    expect(await db.$count(transactions, eq(transactions.id, row.id))).toBe(1);
+    expect(await listIds()).not.toContain(row.id);
+    expect(await expenseTotal()).toBe(totalBefore - 30_000);
+    expect(await balanceOf(account)).toBe(100_000);
+    await expectError(await get(row.id), 404, "TRANSACTION_NOT_FOUND");
+    await expectError(await patch(row.id, { amount: 1 }), 404, "TRANSACTION_NOT_FOUND");
+  });
+
+  it("restores into list, totals and balance", async () => {
+    signInAs(userA);
+    const account = await insertAccount(userA, "restore", 100_000);
+    const row = await seed({ accountId: account, amount: 30_000 });
+    await del(row.id);
+    const totalDeleted = await expenseTotal();
+
+    const res = await restore(row.id);
+
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as Transaction).deletedAt).toBeNull();
+    expect(await listIds()).toContain(row.id);
+    expect(await expenseTotal()).toBe(totalDeleted + 30_000);
+    expect(await balanceOf(account)).toBe(70_000);
+  });
+
+  it("is idempotent: deleting twice keeps deleted_at, restoring twice changes nothing", async () => {
+    signInAs(userA);
+    const row = await seed();
+    const first = (await (await del(row.id)).json()) as Transaction;
+    const second = await del(row.id);
+    expect(second.status).toBe(200);
+    expect(((await second.json()) as Transaction).deletedAt).toBe(first.deletedAt);
+
+    const restored = (await (await restore(row.id)).json()) as Transaction;
+    const again = await restore(row.id);
+    expect(again.status).toBe(200);
+    expect(await again.json()).toEqual(restored);
+  });
+
+  it("deleting an adjustment shifts the effective initial balance back, and restore returns it", async () => {
+    signInAs(userA);
+    const account = await insertAccount(userA, "adj", 100_000);
+    const adjustment = await seed({ type: "adjustment", amount: 5_000, accountId: account, categoryId: null });
+    expect(await accountOf(account)).toMatchObject({ initialBalance: 105_000, balance: 105_000 });
+
+    expect((await del(adjustment.id)).status).toBe(200);
+    expect(await accountOf(account)).toMatchObject({ initialBalance: 100_000, balance: 100_000 });
+
+    expect((await restore(adjustment.id)).status).toBe(200);
+    expect(await accountOf(account)).toMatchObject({ initialBalance: 105_000, balance: 105_000 });
+  });
+
+  it.each([["not-a-uuid"], [randomUUID()]])("returns 404 TRANSACTION_NOT_FOUND for %s", async (id) => {
+    signInAs(userA);
+    await expectError(await del(id), 404, "TRANSACTION_NOT_FOUND");
+    await expectError(await restore(id), 404, "TRANSACTION_NOT_FOUND");
+  });
+
+  it("returns 404 and changes nothing for another user's row", async () => {
+    const row = await seed();
+    signInAs(userB);
+    await expectError(await del(row.id), 404, "TRANSACTION_NOT_FOUND");
+    await expectError(await restore(row.id), 404, "TRANSACTION_NOT_FOUND");
+    const [after] = await db.select().from(transactions).where(eq(transactions.id, row.id));
+    expect(after.deletedAt).toBeNull();
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    await expectError(await del(randomUUID()), 401, "UNAUTHORIZED");
+    await expectError(await restore(randomUUID()), 401, "UNAUTHORIZED");
   });
 });

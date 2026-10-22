@@ -11,7 +11,7 @@ Mengetuk baris di daftar membuka halaman edit. Pemilik bisa mengubah transaksi (
 - [x] T34: `GET`/`PATCH /api/transactions/[id]` (M)
 - [ ] T35: Halaman edit income/expense/saving (M)
 - [ ] T36: Edit transfer dan tampilan adjustment (S)
-- [ ] T37: `DELETE` dan `restore` (S)
+- [x] T37: `DELETE` dan `restore` (S)
 - [ ] T38: Hapus + undo optimistic (M, risiko sedang)
 
 Urutan: T34 → T35 → T36, dan T37 → T38 (butuh T35, T36). T34 dan T37 tidak saling bergantung dan keduanya hanya butuh sisi server phase 8.

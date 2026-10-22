@@ -33,12 +33,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] Transaksi dari phase 8 tampil per tanggal, terbaru di atas. Lebih dari 30 baris → "Muat lebih banyak" menambah halaman berikutnya tanpa duplikat. Saat `nextCursor = null` tombol hilang
-- [ ] Transfer tampil "A → B", adjustment "Penyesuaian", akun/kategori terarsip tetap bernama dengan "(arsip)". Nominal membawa tanda +/− selain warna
+- [x] Transfer tampil "A → B", adjustment "Penyesuaian", akun/kategori terarsip tetap bernama dengan "(arsip)". Nominal membawa tanda +/− selain warna
 - [ ] Menyimpan transaksi dari `/add/*` lalu kembali ke daftar menampilkan baris baru tanpa reload (key `$inf$` ikut ter-revalidasi). Saldo di Kelola akun tetap benar
 - [ ] Judul tanggal tidak bergeser sehari untuk tanggal `2026-10-01` dan `2026-12-31`. 360 px tanpa horizontal scroll, `pnpm build` hijau (cacheComponents)
 
 **Verification:**
-- [ ] `tests/unit/transaction-format.spec.ts` (Hari ini/Kemarin/tanggal biasa, batas bulan dan tahun, tanda dan warna per tipe) dan `tests/unit/use-transactions.spec.ts` (pembangun key halaman + `getKey` berhenti saat `nextCursor = null`) hijau
+- [x] `tests/unit/transaction-format.spec.ts` (Hari ini/Kemarin/tanggal biasa, batas bulan dan tahun, tanda dan warna per tipe) dan `tests/unit/use-transactions.spec.ts` (pembangun key halaman + `getKey` berhenti saat `nextCursor = null`) hijau
 - [ ] Manual 360×800 dan 1024, light dan dark, dengan > 30 baris
 
 **Dependencies:** T24 (file hook dan `isTransactionsKey`), T27

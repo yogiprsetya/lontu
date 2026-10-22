@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { ArrowLeftRightIcon } from "lucide-react";
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { TransactionList } from "@/components/transactions/transaction-list";
 
 export const metadata: Metadata = { title: "Transactions" };
 
 export default function TransactionsPage() {
   return (
-    <PlaceholderPage
-      title="Transactions"
-      icon={ArrowLeftRightIcon}
-      description="Belum ada transaksi. Tekan + untuk mencatat yang pertama."
-    />
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 lg:px-8">
+      <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
+      <TransactionList />
+    </main>
   );
 }

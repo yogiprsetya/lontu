@@ -12,3 +12,5 @@ export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   saving: "Saving",
   transfer: "Transfer",
 };
+
+export const ADJUSTMENT_LABEL = "Penyesuaian";

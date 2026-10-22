@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { isInfiniteTransactionsKey, isTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
 
 describe("isTransactionsKey", () => {
   it.each([
@@ -67,5 +67,16 @@ describe("transactionsTotalsKey", () => {
 
   it("is matched by isTransactionsKey so mutations refresh it", () => {
     expect(isTransactionsKey(transactionsTotalsKey(filters))).toBe(true);
+  });
+});
+
+describe("isInfiniteTransactionsKey", () => {
+  it("matches only the $inf$ aggregate of the list", () => {
+    expect(isInfiniteTransactionsKey("$inf$/api/transactions?type=expense")).toBe(true);
+    expect(isInfiniteTransactionsKey("$inf$/api/transactions")).toBe(true);
+    expect(isInfiniteTransactionsKey("/api/transactions")).toBe(false);
+    expect(isInfiniteTransactionsKey("/api/transactions/totals")).toBe(false);
+    expect(isInfiniteTransactionsKey("$inf$/api/accounts")).toBe(false);
+    expect(isInfiniteTransactionsKey(undefined)).toBe(false);
   });
 });

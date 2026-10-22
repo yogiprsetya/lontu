@@ -4,6 +4,7 @@ import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
 import { revalidateAccounts } from "@/hooks/use-accounts";
 import { sendJSON } from "@/lib/fetcher";
+import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
 import type { Transaction, TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
 
@@ -12,6 +13,10 @@ const TRANSACTIONS_KEY = /^(\$inf\$)?\/api\/transactions($|[/?])/;
 
 export function isTransactionsKey(key: unknown) {
   return typeof key === "string" && TRANSACTIONS_KEY.test(key);
+}
+
+export function isInfiniteTransactionsKey(key: unknown) {
+  return isTransactionsKey(key) && (key as string).startsWith("$inf$");
 }
 
 /** Refreshes every list, totals and detail entry under /api/transactions. */
@@ -64,4 +69,32 @@ export async function updateTransaction(id: string, input: Partial<TransactionUp
   const updated = await sendJSON<Transaction>(`/api/transactions/${id}`, "PATCH", input);
   await Promise.all([revalidateTransactions(), revalidateAccounts()]);
   return updated;
+}
+
+/**
+ * Removes the row from every cached list at once, then asks the server. If the server refuses,
+ * a revalidation brings the real rows back. The detail entry is left alone: refetching a
+ * deleted row would 404 under the page that is closing.
+ */
+export async function deleteTransaction(id: string) {
+  const detailKey = `/api/transactions/${id}`;
+  void mutate(
+    isInfiniteTransactionsKey,
+    (pages?: TransactionPage[]) => pages && removeFromPages(pages, id),
+    { revalidate: false },
+  );
+  try {
+    const deleted = await sendJSON<Transaction>(detailKey, "DELETE");
+    await Promise.all([mutate((key) => isTransactionsKey(key) && key !== detailKey), revalidateAccounts()]);
+    return deleted;
+  } catch (err) {
+    await revalidateTransactions();
+    throw err;
+  }
+}
+
+export async function restoreTransaction(id: string) {
+  const restored = await sendJSON<Transaction>(`/api/transactions/${id}/restore`, "POST");
+  await Promise.all([revalidateTransactions(), revalidateAccounts()]);
+  return restored;
 }

@@ -103,7 +103,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] Tombol Hapus ≥ 44 px, tidak berdekatan dengan Simpan tanpa jarak
 
 **Verification:**
-- [ ] `tests/unit/transaction-cache.spec.ts`: `removeFromPages` pada banyak halaman, id tidak ada, halaman menjadi kosong, tidak memutasi input
+- [x] `tests/unit/transaction-cache.spec.ts`: `removeFromPages` pada banyak halaman, id tidak ada, halaman menjadi kosong, tidak memutasi input
 - [ ] Manual 360×800 dan 1024: hapus, urungkan, gagal-hapus, hapus dari halaman yang dibuka langsung (tanpa riwayat) kembali ke `/transactions`
 
 **Dependencies:** T35, T36, T37

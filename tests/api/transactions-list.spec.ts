@@ -9,6 +9,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
 const collection = await import("@/app/api/transactions/route");
+const totalsRoute = await import("@/app/api/transactions/totals/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const noParams = { params: Promise.resolve({}) };
@@ -42,6 +43,9 @@ const at = (iso: string) => sql`${iso}::timestamptz`;
 let userA: string;
 let userB: string;
 let userC: string;
+let userD: string;
+let totalsCat: Record<string, string>;
+let totalsAccount: string;
 let cleanup: () => PromiseLike<unknown>;
 let accountA: string;
 let accountB: string;
@@ -56,8 +60,8 @@ let accountYId: string;
 let rowC: Record<string, string>;
 
 beforeAll(async () => {
-  const created = await createTestUsers(3);
-  [userA, userB, userC] = created.ids;
+  const created = await createTestUsers(4);
+  [userA, userB, userC, userD] = created.ids;
   cleanup = created.cleanup;
 
   const rows = await db
@@ -67,6 +71,7 @@ beforeAll(async () => {
       { userId: userB, name: "b", type: "transaction" },
       { userId: userC, name: "x", type: "transaction" },
       { userId: userC, name: "y", type: "transaction" },
+      { userId: userD, name: "d", type: "transaction" },
     ])
     .returning({ id: accounts.id, name: accounts.name });
   accountA = rows.find((r) => r.name === "a")!.id;
@@ -74,6 +79,7 @@ beforeAll(async () => {
   const idOf = (rows_: { id: string; name: string }[], name: string) => rows_.find((r) => r.name === name)!.id;
   const accountX = idOf(rows, "x");
   const accountY = idOf(rows, "y");
+  totalsAccount = idOf(rows, "d");
 
   const categoryRows = await db
     .insert(categories)
@@ -83,6 +89,9 @@ beforeAll(async () => {
       { userId: userC, name: "inc", kind: "income" },
       { userId: userC, name: "spend1", kind: "spending", spendingType: "needs" },
       { userId: userC, name: "spend2", kind: "spending", spendingType: "wants" },
+      { userId: userD, name: "dinc", kind: "income" },
+      { userId: userD, name: "dspend", kind: "spending", spendingType: "needs" },
+      { userId: userD, name: "dsave", kind: "saving" },
     ])
     .returning({ id: categories.id, name: categories.name });
   categoryA = categoryRows.find((r) => r.name === "a")!.id;
@@ -104,6 +113,18 @@ beforeAll(async () => {
       { ...c, type: "adjustment", amount: -500, date: "2026-09-01", description: "r5" },
     ])
     .returning({ id: transactions.id, description: transactions.description });
+  totalsCat = Object.fromEntries(categoryRows.filter((r) => r.name.startsWith("d")).map((r) => [r.name, r.id]));
+  const d = { userId: userD, accountId: totalsAccount };
+  await db.insert(transactions).values([
+    { ...d, type: "income", amount: 1000, date: "2026-10-01", categoryId: totalsCat.dinc },
+    { ...d, type: "income", amount: 2000, date: "2026-10-20", categoryId: totalsCat.dinc },
+    { ...d, type: "expense", amount: 300, date: "2026-10-02", categoryId: totalsCat.dspend },
+    { ...d, type: "expense", amount: 2500, date: "2026-10-20", categoryId: totalsCat.dspend, description: "Biaya admin transfer" },
+    { ...d, type: "saving", amount: 700, date: "2026-10-03", categoryId: totalsCat.dsave },
+    { ...d, type: "adjustment", amount: -999, date: "2026-10-04" },
+    { ...d, type: "income", amount: 77777, date: "2026-10-05", categoryId: totalsCat.dinc, deletedAt: new Date() },
+    { ...d, type: "expense", amount: 5, date: "2025-01-01", categoryId: totalsCat.dspend },
+  ]);
   rowC = Object.fromEntries(filterRows.map((r) => [r.description, r.id]));
 
   const base = { categoryId: categoryA, userId: userA, type: "income", amount: 1000, accountId: accountA };
@@ -268,5 +289,73 @@ describe("GET /api/transactions filters", () => {
     signInAs(userA);
     expect(await ids(`?accountId=${accountXId}`)).toEqual(new Set());
     expect(await ids(`?categoryId=${spend1}`)).toEqual(new Set());
+  });
+});
+
+describe("GET /api/transactions/totals", () => {
+  function totals(query = "") {
+    return totalsRoute.GET(new Request(`http://localhost/api/transactions/totals${query}`), noParams);
+  }
+
+  it("sums income, expense and saving; skips transfers, adjustments and deleted rows", async () => {
+    signInAs(userD);
+    const res = await totals("?from=2026-10-01&to=2026-10-31");
+    expect(res.status).toBe(200);
+    // expense includes the admin-fee row (2500) like any expense
+    expect(await res.json()).toEqual({ income: 3000, expense: 2800, saving: 700 });
+  });
+
+  it("applies the same filters as the list", async () => {
+    signInAs(userD);
+    expect(await (await totals("?type=expense")).json()).toEqual({ income: 0, expense: 2805, saving: 0 });
+    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({ income: 3000, expense: 0, saving: 0 });
+  });
+
+  it("matches the sum of every listed row under the same filter", async () => {
+    signInAs(userD);
+    const query = "?from=2026-10-01&to=2026-10-31";
+    const sums = { income: 0, expense: 0, saving: 0 };
+    let cursor: string | null = null;
+    do {
+      const res: Response = await list(`${query}&limit=2${cursor ? `&cursor=${cursor}` : ""}`);
+      const page = (await res.json()) as Page;
+      for (const t of page.items) if (t.type in sums) sums[t.type as keyof typeof sums] += t.amount;
+      cursor = page.nextCursor;
+    } while (cursor);
+    expect(await (await totals(query)).json()).toEqual(sums);
+  });
+
+  it("returns numeric zeros for an empty result", async () => {
+    signInAs(userD);
+    expect(await (await totals("?from=2030-01-01")).json()).toEqual({ income: 0, expense: 0, saving: 0 });
+  });
+
+  it("ignores cursor and limit", async () => {
+    signInAs(userD);
+    expect(await (await totals("?limit=0&cursor=junk&from=2026-10-01&to=2026-10-31")).json()).toEqual({
+      income: 3000,
+      expense: 2800,
+      saving: 700,
+    });
+  });
+
+  it("rejects invalid filters with 400 and fields", async () => {
+    signInAs(userD);
+    for (const [query, field] of [["?type=foo", "type"], ["?from=2026-10-10&to=2026-10-01", "from"]]) {
+      const res = await totals(query);
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.fields[field]).toBeDefined();
+    }
+  });
+
+  it("never counts another user's rows", async () => {
+    signInAs(userA);
+    expect(await (await totals()).json()).toEqual({ income: 5000, expense: 0, saving: 0 });
+    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({ income: 0, expense: 0, saving: 0 });
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    expect((await totals()).status).toBe(401);
   });
 });

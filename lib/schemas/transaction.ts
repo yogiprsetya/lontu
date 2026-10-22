@@ -73,6 +73,8 @@ export type TransactionCreateInput = z.infer<typeof transactionCreateSchema>;
 export type SimpleCreateInput = z.infer<typeof simpleCreateSchema>;
 export type TransferCreateInput = z.infer<typeof transferCreateSchema>;
 
+export type TransactionTotals = { income: number; expense: number; saving: number };
+
 export type TransactionPage = { items: Transaction[]; nextCursor: string | null };
 
 export const DEFAULT_PAGE_SIZE = 30;

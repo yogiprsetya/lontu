@@ -33,13 +33,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `lib/server/queries/transaction-totals.ts`: `transactionTotals(userId, filters)` satu query `coalesce(sum(amount) filter (where type = 'income'), 0)` untuk `income`, `expense`, `saving`, memakai `transactionWhere`. `app/api/transactions/totals/route.ts` `GET` (filter yang sama, `cursor`/`limit` diabaikan) → 200 `{ income, expense, saving }`.
 
 **Acceptance criteria:**
-- [ ] Angka sama dengan jumlah baris terfilter. Transfer, adjustment, dan baris soft-deleted tidak dihitung. Hasil kosong → `{ income: 0, expense: 0, saving: 0 }` (angka, bukan `null`)
-- [ ] Filter yang sama dengan list memberi himpunan yang sama (uji: jumlah baris `GET /api/transactions` semua halaman = totals)
-- [ ] Biaya admin (expense) ikut terhitung. Nilai tidak valid → 400. Isolasi A/B. Tanpa session → 401
+- [x] Angka sama dengan jumlah baris terfilter. Transfer, adjustment, dan baris soft-deleted tidak dihitung. Hasil kosong → `{ income: 0, expense: 0, saving: 0 }` (angka, bukan `null`)
+- [x] Filter yang sama dengan list memberi himpunan yang sama (uji: jumlah baris `GET /api/transactions` semua halaman = totals)
+- [x] Biaya admin (expense) ikut terhitung. Nilai tidak valid → 400. Isolasi A/B. Tanpa session → 401
 
 **Verification:**
-- [ ] `pnpm vitest run tests/api/transactions-list.spec.ts` (bagian totals) hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/api/transactions-list.spec.ts` (bagian totals) hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T29
 

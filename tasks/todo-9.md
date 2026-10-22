@@ -11,13 +11,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `lib/server/transaction-cursor.ts`: `encodeCursor`/`decodeCursor` (base64url JSON `[date, createdAtMicros, id]`; bentuk salah, `date` bukan `YYYY-MM-DD`, micros bukan integer, atau `id` bukan UUID → galat). `listTransactions(userId, { cursor, limit })` di `lib/server/transactions.ts`: `deleted_at is null`, urutan `date desc, created_at desc, id desc`, predikat keyset row-comparison dengan `(extract(epoch from created_at) * 1000000)::bigint`, ambil `limit + 1`, hitung `nextCursor`. Query schema (`cursor`, `limit` 1–100 default 30) di `lib/schemas/transaction.ts`, `invalidCursor()` di `lib/api/errors.ts`, `GET` di `app/api/transactions/route.ts`. Semua tipe (termasuk `adjustment`) ikut di daftar. **Mulai dari tes merah** untuk cursor mikrodetik.
 
 **Acceptance criteria:**
-- [ ] Urutan `date desc, created_at desc, id desc`. Dengan `limit=2` atas 5 baris (tiga di satu tanggal, dua dengan `created_at` yang hanya beda mikrodetik), gabungan semua halaman = himpunan lengkap, tanpa duplikat atau lompatan. Halaman terakhir `nextCursor = null`
-- [ ] Baris soft-deleted tidak muncul. Cursor rusak/salah bentuk → 400 `INVALID_CURSOR`. `limit=0` atau `101` → 400 `fields.limit`
-- [ ] Isolasi: daftar user B tidak pernah memuat baris A. Tanpa session → 401
+- [x] Urutan `date desc, created_at desc, id desc`. Dengan `limit=2` atas 5 baris (tiga di satu tanggal, dua dengan `created_at` yang hanya beda mikrodetik), gabungan semua halaman = himpunan lengkap, tanpa duplikat atau lompatan. Halaman terakhir `nextCursor = null`
+- [x] Baris soft-deleted tidak muncul. Cursor rusak/salah bentuk → 400 `INVALID_CURSOR`. `limit=0` atau `101` → 400 `fields.limit`
+- [x] Isolasi: daftar user B tidak pernah memuat baris A. Tanpa session → 401
 
 **Verification:**
-- [ ] `pnpm vitest run tests/unit/transaction-cursor.spec.ts tests/api/transactions-list.spec.ts` hijau (baris dimasukkan langsung ke DB dengan `created_at` eksplisit)
-- [ ] Tes mikrodetik terbukti merah bila `createdAtMicros` diganti `Date.getTime()` (cek sekali, jangan di-commit)
+- [x] `pnpm vitest run tests/unit/transaction-cursor.spec.ts tests/api/transactions-list.spec.ts` hijau (baris dimasukkan langsung ke DB dengan `created_at` eksplisit)
+- [x] Tes mikrodetik terbukti merah bila `createdAtMicros` diganti `Date.getTime()` (cek sekali, jangan di-commit)
 
 **Dependencies:** T22
 

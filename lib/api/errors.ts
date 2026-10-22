@@ -52,6 +52,10 @@ export function transactionNotFound() {
   return notFound("TRANSACTION_NOT_FOUND", "Transaksi tidak ditemukan");
 }
 
+export function invalidCursor() {
+  return error(400, "INVALID_CURSOR", "Cursor tidak valid");
+}
+
 export function serverError(err: unknown) {
   console.error(err);
   return error(500, "INTERNAL", "Terjadi kesalahan di server");

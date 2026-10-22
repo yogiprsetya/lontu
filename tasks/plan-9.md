@@ -8,7 +8,7 @@ Transaksi yang dicatat di phase 8 tampil di `/transactions`: dikelompokkan per t
 
 ## Task
 
-- [ ] T27: `GET /api/transactions` dengan cursor (M, risiko tinggi)
+- [x] T27: `GET /api/transactions` dengan cursor (M, risiko tinggi)
 - [ ] T28: Halaman daftar `/transactions` (M, risiko sedang)
 
 Urutan: T27 → T28. T28 juga memakai `hooks/use-transactions.ts` dari T24.

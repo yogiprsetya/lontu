@@ -72,3 +72,12 @@ export const transactionCreateSchema = z.discriminatedUnion(
 export type TransactionCreateInput = z.infer<typeof transactionCreateSchema>;
 export type SimpleCreateInput = z.infer<typeof simpleCreateSchema>;
 export type TransferCreateInput = z.infer<typeof transferCreateSchema>;
+
+export type TransactionPage = { items: Transaction[]; nextCursor: string | null };
+
+export const DEFAULT_PAGE_SIZE = 30;
+
+export const transactionListQuerySchema = z.object({
+  cursor: z.string().min(1).optional(),
+  limit: z.coerce.number("Batas tidak valid").int("Batas tidak valid").min(1, "Minimal 1").max(100, "Maksimal 100").default(DEFAULT_PAGE_SIZE),
+});

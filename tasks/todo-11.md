@@ -56,8 +56,8 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] Edit transfer: ubah nominal dan akun tujuan → saldo kedua akun benar. Akun tujuan tidak bisa sama dengan sumber
-- [ ] Halaman adjustment tidak punya form atau tombol Simpan, hanya informasi (tombol Hapus datang di T38)
-- [ ] Teks bantuan biaya admin tampil di edit transfer
+- [x] Halaman adjustment tidak punya form atau tombol Simpan, hanya informasi (tombol Hapus datang di T38)
+- [x] Teks bantuan biaya admin tampil di edit transfer
 
 **Verification:**
 - [ ] `pnpm build` hijau. Manual 360×800 dan 1024: edit transfer, buka adjustment (buat lewat ubah saldo awal di Kelola akun)

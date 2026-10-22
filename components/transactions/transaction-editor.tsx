@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { TransactionForm } from "@/components/forms/transaction-form";
+import { TransferForm } from "@/components/forms/transfer-form";
+import { AdjustmentCard } from "@/components/transactions/adjustment-card";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +34,6 @@ export function TransactionEditor({ id }: { id: string }) {
   if (data.type === "income" || data.type === "expense" || data.type === "saving") {
     return <TransactionForm type={data.type} transaction={data} />;
   }
-  // Transfer and adjustment pages arrive in the next task.
-  return <p className="text-muted-foreground">Jenis transaksi ini belum bisa dibuka di sini.</p>;
+  if (data.type === "transfer") return <TransferForm transaction={data} />;
+  return <AdjustmentCard transaction={data} />;
 }

@@ -45,14 +45,21 @@ function Field({ id, label, children }: { id: string; label: string; children: R
   );
 }
 
-export function FilterPanel({ filters, onChange }: { filters: ListFilters; onChange: (next: ListFilters) => void }) {
+type FilterPanelProps = {
+  filters: ListFilters;
+  onChange: (next: ListFilters) => void;
+  /** Hides the Jenis select; the page is a preset for one type. */
+  lockedType?: ListTransactionType;
+};
+
+export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps) {
   const [open, setOpen] = useState(false);
   const accounts = useAccounts({ includeArchived: true });
   const categories = useCategories({ includeArchived: true });
-  const active = countActiveFilters(filters);
+  const active = countActiveFilters(lockedType ? { ...filters, type: undefined } : filters);
 
   const kindOf = (id: string) => categories.data?.find((c) => c.id === id)?.kind;
-  const set = (patch: Partial<ListFilters>) => onChange(normalizeFilters({ ...filters, ...patch }, kindOf));
+  const set = (patch: Partial<ListFilters>) => onChange(normalizeFilters({ ...filters, ...patch }, kindOf, lockedType));
 
   const types = [
     { value: ALL, label: "Semua jenis" },
@@ -90,7 +97,7 @@ export function FilterPanel({ filters, onChange }: { filters: ListFilters; onCha
         title="Filter transaksi"
         footer={
           <>
-            <Button variant="outline" className="h-11 text-base" disabled={active === 0} onClick={() => onChange(resetFilters(filters))}>
+            <Button variant="outline" className="h-11 text-base" disabled={active === 0} onClick={() => onChange(normalizeFilters(resetFilters(filters), kindOf, lockedType))}>
               Reset
             </Button>
             <Button className="h-11 text-base" onClick={() => setOpen(false)}>
@@ -100,24 +107,26 @@ export function FilterPanel({ filters, onChange }: { filters: ListFilters; onCha
         }
       >
         <div className="flex flex-col gap-4 pb-4">
-          <Field id="filter-type" label="Jenis">
-            <Select
-              items={types}
-              value={filters.type ?? ALL}
-              onValueChange={(v) => v && set({ type: v === ALL ? undefined : (v as ListTransactionType) })}
-            >
-              <SelectTrigger id="filter-type" className={triggerClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {types.map((t) => (
-                  <SelectItem key={t.value} value={t.value} className="min-h-11">
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+          {!lockedType && (
+            <Field id="filter-type" label="Jenis">
+              <Select
+                items={types}
+                value={filters.type ?? ALL}
+                onValueChange={(v) => v && set({ type: v === ALL ? undefined : (v as ListTransactionType) })}
+              >
+                <SelectTrigger id="filter-type" className={triggerClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {types.map((t) => (
+                    <SelectItem key={t.value} value={t.value} className="min-h-11">
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <Field id="filter-account" label="Akun">
             <Select
               items={accountItems}

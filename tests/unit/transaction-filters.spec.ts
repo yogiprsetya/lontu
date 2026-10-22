@@ -162,3 +162,28 @@ describe("countActiveFilters / resetFilters", () => {
     });
   });
 });
+
+describe("normalizeFilters with lockedType", () => {
+  const kindOf = (id: string) => (id === CATEGORY ? ("income" as const) : undefined);
+
+  it("forces the locked type over whatever the URL carried", () => {
+    expect(normalizeFilters({ period: "all", type: "income" }, kindOf, "expense")).toEqual({ period: "all", type: "expense" });
+    expect(normalizeFilters({ period: "all" }, kindOf, "expense")).toEqual({ period: "all", type: "expense" });
+  });
+
+  it("drops a category that does not fit the locked type", () => {
+    expect(normalizeFilters({ period: "all", categoryId: CATEGORY }, kindOf, "expense")).toEqual({
+      period: "all",
+      type: "expense",
+    });
+  });
+
+  it("keeps a category that fits", () => {
+    const spendingKind = () => "spending" as const;
+    expect(normalizeFilters({ period: "all", categoryId: CATEGORY }, spendingKind, "expense")).toEqual({
+      period: "all",
+      type: "expense",
+      categoryId: CATEGORY,
+    });
+  });
+});

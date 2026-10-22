@@ -88,9 +88,11 @@ export function resetFilters({ period }: ListFilters): ListFilters {
  * a category it does not know; that one is kept and the server just returns nothing.
  */
 export function normalizeFilters(
-  filters: ListFilters,
+  input: ListFilters,
   categoryKind: (id: string) => CategoryKind | undefined,
+  lockedType?: ListTransactionType,
 ): ListFilters {
+  const filters = lockedType ? { ...input, type: lockedType } : input;
   const { categoryId, type } = filters;
   if (!categoryId || !type) return filters;
   const rest = { ...filters };

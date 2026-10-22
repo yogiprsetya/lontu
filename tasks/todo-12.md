@@ -12,12 +12,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] `/expenses` hanya menampilkan expense. Periode, filter Akun/Kategori, total, dan "Muat lebih banyak" bekerja seperti di `/transactions`. Filter Jenis tidak ada
-- [ ] `/expenses?type=income` tetap hanya menampilkan expense. `/transactions` tidak terpengaruh
-- [ ] Kategori di filter hanya kategori spending. Baris biaya admin muncul sebagai expense biasa
+- [x] `/expenses?type=income` tetap hanya menampilkan expense. `/transactions` tidak terpengaruh
+- [x] Kategori di filter hanya kategori spending. Baris biaya admin muncul sebagai expense biasa
 - [ ] 360 px tanpa horizontal scroll. `pnpm build` hijau (Suspense)
 
 **Verification:**
-- [ ] `tests/unit/transaction-filters.spec.ts` diperluas: `normalizeFilters` dengan `lockedType`
+- [x] `tests/unit/transaction-filters.spec.ts` diperluas: `normalizeFilters` dengan `lockedType`
 - [ ] Manual 360×800 dan 1024
 
 **Dependencies:** T31, T33

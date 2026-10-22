@@ -4,6 +4,7 @@ import useSWRInfinite from "swr/infinite";
 import { mutate } from "swr";
 import { revalidateAccounts } from "@/hooks/use-accounts";
 import { sendJSON } from "@/lib/fetcher";
+import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
 import type { TransactionCreated, TransactionCreateInput, TransactionPage } from "@/lib/schemas/transaction";
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
@@ -25,14 +26,18 @@ export async function createTransaction(input: TransactionCreateInput) {
 }
 
 /** `getKey` for useSWRInfinite: null once the previous page has no next cursor. */
-export function transactionsPageKey(pageIndex: number, previous: TransactionPage | null) {
-  if (pageIndex === 0 || !previous) return "/api/transactions";
-  if (!previous.nextCursor) return null;
-  return `/api/transactions?cursor=${encodeURIComponent(previous.nextCursor)}`;
+export function transactionsPageKey(pageIndex: number, previous: TransactionPage | null, filters?: ListFilters) {
+  const params = filters ? filtersToSearchParams(filters) : new URLSearchParams();
+  if (pageIndex > 0 && previous) {
+    if (!previous.nextCursor) return null;
+    params.set("cursor", previous.nextCursor);
+  }
+  const query = params.toString();
+  return query ? `/api/transactions?${query}` : "/api/transactions";
 }
 
-export function useTransactions() {
-  const swr = useSWRInfinite<TransactionPage>(transactionsPageKey);
+export function useTransactions(filters: ListFilters) {
+  const swr = useSWRInfinite<TransactionPage>((index, previous) => transactionsPageKey(index, previous, filters));
   const pages = swr.data;
   return {
     ...swr,

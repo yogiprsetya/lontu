@@ -10,7 +10,7 @@ Index: [plan.md](plan.md) · Todo: [todo-10.md](todo-10.md) · Spec: [SPEC-trans
 
 - [x] T29: Filter di `GET /api/transactions` (M)
 - [x] T30: `GET /api/transactions/totals` (S)
-- [ ] T31: Filter di URL + stepper periode (M, risiko sedang)
+- [x] T31: Filter di URL + stepper periode (M, risiko sedang)
 - [ ] T32: Strip total (S)
 - [ ] T33: Panel filter Jenis/Akun/Kategori (M)
 

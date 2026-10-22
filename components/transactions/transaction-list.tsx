@@ -16,6 +16,7 @@ import {
   groupByDate,
   type AmountTone,
 } from "@/lib/transaction-format";
+import type { ListFilters } from "@/lib/transaction-filters";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
@@ -66,9 +67,9 @@ function ListSkeleton() {
   );
 }
 
-export function TransactionList() {
+export function TransactionList({ filters }: { filters: ListFilters }) {
   const hideAmounts = useUIStore((s) => s.hideAmounts);
-  const tx = useTransactions();
+  const tx = useTransactions(filters);
   const accounts = useAccounts({ includeArchived: true });
   const categories = useCategories({ includeArchived: true });
   const accountNames = useMemo(() => nameMap(accounts.data), [accounts.data]);
@@ -92,7 +93,9 @@ export function TransactionList() {
   if (tx.items.length === 0) {
     return (
       <div className="rounded-lg border border-dashed px-6 py-12 text-center text-muted-foreground">
-        Belum ada transaksi. Tekan + untuk mencatat yang pertama.
+        {filters.period === "all" && !filters.type && !filters.accountId && !filters.categoryId
+          ? "Belum ada transaksi. Tekan + untuk mencatat yang pertama."
+          : "Tidak ada transaksi yang cocok dengan filter ini."}
       </div>
     );
   }

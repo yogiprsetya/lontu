@@ -34,3 +34,21 @@ describe("transactionsPageKey", () => {
     expect(isTransactionsKey(`$inf$${transactionsPageKey(0, null)}`)).toBe(true);
   });
 });
+
+describe("transactionsPageKey with filters", () => {
+  const filters = { period: "2026-10", type: "expense" } as const;
+
+  it("puts the filter query on the first page", () => {
+    expect(transactionsPageKey(0, null, filters)).toBe("/api/transactions?type=expense&from=2026-10-01&to=2026-10-31");
+  });
+
+  it("appends the cursor after the filter query", () => {
+    expect(transactionsPageKey(1, { items: [], nextCursor: "abc" }, filters)).toBe(
+      "/api/transactions?type=expense&from=2026-10-01&to=2026-10-31&cursor=abc",
+    );
+  });
+
+  it("is the same key for equal filters", () => {
+    expect(transactionsPageKey(0, null, { type: "expense", period: "2026-10" })).toBe(transactionsPageKey(0, null, filters));
+  });
+});

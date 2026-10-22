@@ -55,11 +55,11 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] `/transactions` tanpa param menampilkan bulan berjalan Jakarta. Prev/next menggeser bulan, "Semua" menampilkan semua baris. Refresh `?period=2026-10` mempertahankan periode, dan back tidak menumpuk langkah
-- [ ] Filter yang sama menghasilkan key SWR yang sama (tanpa daftar dobel di cache)
+- [x] Filter yang sama menghasilkan key SWR yang sama (tanpa daftar dobel di cache)
 - [ ] Target sentuh stepper ≥ 44 px, 360 px tanpa horizontal scroll. `pnpm build` hijau (Suspense + `useSearchParams`)
 
 **Verification:**
-- [ ] `tests/unit/transaction-filters.spec.ts` hijau: round trip parse ↔ serialize, `periodToRange` (bulan, tahun, `all`, Februari 2028, Desember → Januari), `normalizeFilters`, `parseFilters` mengabaikan nilai tidak valid
+- [x] `tests/unit/transaction-filters.spec.ts` hijau: round trip parse ↔ serialize, `periodToRange` (bulan, tahun, `all`, Februari 2028, Desember → Januari), `normalizeFilters`, `parseFilters` mengabaikan nilai tidak valid
 - [ ] Manual 360×800 dan 1024
 
 **Dependencies:** T28, T29

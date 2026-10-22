@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
-import { TRANSACTION_TYPES } from "@/lib/transaction-types";
+import { TRANSACTION_TYPES, type TransactionType } from "@/lib/transaction-types";
 
 export const LIST_TRANSACTION_TYPES = [...TRANSACTION_TYPES, "adjustment"] as const;
 
@@ -68,6 +68,33 @@ export const transactionCreateSchema = z.discriminatedUnion(
   [simpleCreateSchema, transferCreateSchema],
   { error: (issue) => (issue.code === "invalid_union" ? "Jenis transaksi tidak valid" : undefined) },
 );
+
+const notEmpty = (v: object) => Object.keys(v).length > 0;
+const notEmptyIssue = { error: "Tidak ada yang diubah" };
+
+const simpleUpdateSchema = z
+  .strictObject({ ...base, categoryId })
+  .partial()
+  .refine(notEmpty, notEmptyIssue);
+
+const transferUpdateSchema = z
+  .strictObject({ ...base, toAccountId: z.uuid("Pilih akun tujuan") })
+  .partial()
+  .refine(notEmpty, notEmptyIssue)
+  .refine((v) => !v.toAccountId || !v.accountId || v.toAccountId !== v.accountId, {
+    path: ["toAccountId"],
+    error: "Akun tujuan harus berbeda",
+  });
+
+/**
+ * PATCH body for a stored type: only that type's own fields, at least one. `type` itself is
+ * never editable, and an `adjustment` has no schema because it cannot be edited at all.
+ */
+export function transactionUpdateSchema(type: TransactionType) {
+  return type === "transfer" ? transferUpdateSchema : simpleUpdateSchema;
+}
+
+export type TransactionUpdateInput = z.infer<typeof simpleUpdateSchema> & z.infer<typeof transferUpdateSchema>;
 
 export type TransactionCreateInput = z.infer<typeof transactionCreateSchema>;
 export type SimpleCreateInput = z.infer<typeof simpleCreateSchema>;

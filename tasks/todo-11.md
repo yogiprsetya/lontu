@@ -11,14 +11,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `transactionUpdateSchema` per tipe tersimpan di `lib/schemas/transaction.ts` (`strictObject`, field boleh: income/expense/saving → `amount`, `date`, `accountId`, `categoryId`, `description`; transfer → `amount`, `date`, `accountId`, `toAccountId`, `description`; minimal satu field; `description: null` mengosongkan). `getTransaction` dan `updateTransaction` di `lib/server/transactions.ts`: baca baris milik user yang belum dihapus (id bukan UUID → 404 tanpa query), `adjustment` → 409, gabungkan dan validasi ulang, periksa kepemilikan/aktif/`kind` **hanya untuk id yang berubah**, update dengan `updated_at = now()`. `app/api/transactions/[id]/route.ts` `GET`/`PATCH`. `transactionNotEditable()` di `lib/api/errors.ts`.
 
 **Acceptance criteria:**
-- [ ] `PATCH { amount: 40000 }` pada expense 25.000 → 200, saldo akun ikut berubah, `updatedAt` maju, posisi di daftar tidak berubah. `GET` mengembalikan `Transaction`
-- [ ] Body memuat `type`, `userId`, `fee`, atau `toAccountId` (pada expense) → 400. Body kosong → 400. Transfer dengan `toAccountId = accountId` → 400 `fields.toAccountId`
-- [ ] Pindah ke akun/kategori terarsip, asing, atau kategori `kind` salah → 400. Akun lama yang terarsip dan tidak diubah → 200
-- [ ] `PATCH` adjustment → 409 `TRANSACTION_NOT_EDITABLE`. `GET`/`PATCH` baris soft-deleted, id bukan UUID, atau milik user lain → 404 `TRANSACTION_NOT_FOUND`. Tanpa session → 401
+- [x] `PATCH { amount: 40000 }` pada expense 25.000 → 200, saldo akun ikut berubah, `updatedAt` maju, posisi di daftar tidak berubah. `GET` mengembalikan `Transaction`
+- [x] Body memuat `type`, `userId`, `fee`, atau `toAccountId` (pada expense) → 400. Body kosong → 400. Transfer dengan `toAccountId = accountId` → 400 `fields.toAccountId`
+- [x] Pindah ke akun/kategori terarsip, asing, atau kategori `kind` salah → 400. Akun lama yang terarsip dan tidak diubah → 200
+- [x] `PATCH` adjustment → 409 `TRANSACTION_NOT_EDITABLE`. `GET`/`PATCH` baris soft-deleted, id bukan UUID, atau milik user lain → 404 `TRANSACTION_NOT_FOUND`. Tanpa session → 401
 
 **Verification:**
-- [ ] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T22, T23
 

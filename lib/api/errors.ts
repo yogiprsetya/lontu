@@ -52,6 +52,10 @@ export function transactionNotFound() {
   return notFound("TRANSACTION_NOT_FOUND", "Transaksi tidak ditemukan");
 }
 
+export function transactionNotEditable() {
+  return conflict("TRANSACTION_NOT_EDITABLE", "Penyesuaian saldo tidak bisa diubah. Hapus saja jika keliru.");
+}
+
 export function invalidCursor() {
   return error(400, "INVALID_CURSOR", "Cursor tidak valid");
 }

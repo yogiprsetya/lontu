@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { transactionCreateSchema } from "@/lib/schemas/transaction";
+import { transactionCreateSchema, transactionUpdateSchema } from "@/lib/schemas/transaction";
 
 const accountId = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
 const categoryId = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -124,5 +124,53 @@ describe("transactionCreateSchema transfer", () => {
 
   it("rejects a categoryId on a transfer", () => {
     expect(transactionCreateSchema.safeParse(transfer({ categoryId })).success).toBe(false);
+  });
+});
+
+describe("transactionUpdateSchema", () => {
+  it.each(["income", "expense", "saving"] as const)("accepts a partial %s update", (type) => {
+    const schema = transactionUpdateSchema(type);
+    expect(schema.parse({ amount: 40_000 })).toEqual({ amount: 40_000 });
+    expect(schema.parse({ categoryId, accountId, date: "2026-10-01" })).toEqual({ categoryId, accountId, date: "2026-10-01" });
+  });
+
+  it("accepts a partial transfer update including toAccountId", () => {
+    expect(transactionUpdateSchema("transfer").parse({ toAccountId })).toEqual({ toAccountId });
+  });
+
+  it("rejects an empty body", () => {
+    expect(transactionUpdateSchema("expense").safeParse({}).success).toBe(false);
+  });
+
+  it.each([
+    ["expense", { type: "income" }],
+    ["expense", { userId: "x" }],
+    ["expense", { fee: { amount: 1, categoryId } }],
+    ["expense", { toAccountId }],
+    ["income", { toAccountId }],
+    ["transfer", { categoryId }],
+    ["transfer", { fee: { amount: 1, categoryId } }],
+    ["transfer", { type: "transfer" }],
+  ] as const)("rejects fields outside the stored type: %s %j", (type, body) => {
+    expect(transactionUpdateSchema(type).safeParse(body).success).toBe(false);
+  });
+
+  it("clears the description with null or an empty string", () => {
+    expect(transactionUpdateSchema("expense").parse({ description: null })).toEqual({ description: null });
+    expect(transactionUpdateSchema("expense").parse({ description: "  " })).toEqual({ description: null });
+  });
+
+  it("does not add a description when it is absent", () => {
+    expect(transactionUpdateSchema("expense").parse({ amount: 5 })).not.toHaveProperty("description");
+  });
+
+  it("applies the create rules to amount and date", () => {
+    expect(fieldErrors(transactionUpdateSchema("expense").safeParse({ amount: 0 })).fieldErrors.amount).toBeDefined();
+    expect(fieldErrors(transactionUpdateSchema("expense").safeParse({ date: "2026-10-23" })).fieldErrors.date).toBeDefined();
+  });
+
+  it("rejects a transfer whose destination equals its source when both are sent", () => {
+    const errors = fieldErrors(transactionUpdateSchema("transfer").safeParse({ accountId, toAccountId: accountId }));
+    expect(errors.fieldErrors.toAccountId).toEqual(["Akun tujuan harus berbeda"]);
   });
 });

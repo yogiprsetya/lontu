@@ -1,18 +1,22 @@
 import "server-only";
+import { z } from "zod";
 import { and, desc, eq, getTableColumns, gte, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
-import type {
-  ListTransactionType,
+import {
+  type ListTransactionType,
   SimpleCreateInput,
   Transaction,
   TransactionCreated,
   TransactionFilters,
   TransactionPage,
+  TransactionUpdateInput,
   TransactionCreateInput,
   TransferCreateInput,
+  transactionUpdateSchema,
 } from "@/lib/schemas/transaction";
+import type { TransactionType } from "@/lib/transaction-types";
 import { decodeCursor, encodeCursor, type CursorKey } from "@/lib/server/transaction-cursor";
 import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
 
@@ -164,4 +168,66 @@ export async function listTransactions(
   const nextKey: CursorKey | undefined =
     rows.length > limit && last ? { date: last.date, createdAtMicros: Number(last.micros), id: last.id } : undefined;
   return { items: page.map(toTransaction), nextCursor: nextKey ? encodeCursor(nextKey) : null };
+}
+
+const isUuid = (id: string) => z.uuid().safeParse(id).success;
+
+function ownedLiveRow(userId: string, id: string) {
+  return and(eq(transactions.id, id), eq(transactions.userId, userId), isNull(transactions.deletedAt));
+}
+
+export async function getTransaction(userId: string, id: string): Promise<Transaction | undefined> {
+  if (!isUuid(id)) return undefined;
+  const [row] = await db.select().from(transactions).where(ownedLiveRow(userId, id));
+  return row && toTransaction(row);
+}
+
+export type UpdateResult =
+  | { transaction: Transaction }
+  | { notFound: true }
+  | { notEditable: true }
+  | { validation: z.ZodError }
+  | { invalid: InvalidReference };
+
+/** Only references the request changes are re-checked, so a row whose account was archived later can still be edited. */
+async function checkChangedReferences(userId: string, row: Row, input: TransactionUpdateInput) {
+  const accountFields: Partial<Record<"accountId" | "toAccountId", string>> = {};
+  if (input.accountId && input.accountId !== row.accountId) accountFields.accountId = input.accountId;
+  if (input.toAccountId && input.toAccountId !== row.toAccountId) accountFields.toAccountId = input.toAccountId;
+
+  const [account, category] = await Promise.all([
+    Object.keys(accountFields).length ? checkAccounts(userId, accountFields) : undefined,
+    input.categoryId && input.categoryId !== row.categoryId
+      ? checkCategory(userId, input.categoryId, CATEGORY_KIND_FOR[row.type as keyof typeof CATEGORY_KIND_FOR], "categoryId")
+      : undefined,
+  ]);
+  return account ?? category;
+}
+
+export async function updateTransaction(userId: string, id: string, body: unknown): Promise<UpdateResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const [row] = await db.select().from(transactions).where(ownedLiveRow(userId, id));
+  if (!row) return { notFound: true };
+  if (row.type === "adjustment") return { notEditable: true };
+
+  const parsed = transactionUpdateSchema(row.type as TransactionType).safeParse(body);
+  if (!parsed.success) return { validation: parsed.error };
+  const input = parsed.data as TransactionUpdateInput;
+
+  // A transfer edited to point at its own source: only visible once merged with the stored row.
+  if (row.type === "transfer") {
+    const accountId = input.accountId ?? row.accountId;
+    const toAccountId = input.toAccountId ?? row.toAccountId;
+    if (accountId === toAccountId) return { invalid: { field: "toAccountId", message: "Akun tujuan harus berbeda" } };
+  }
+
+  const invalid = await checkChangedReferences(userId, row, input);
+  if (invalid) return { invalid };
+
+  const [updated] = await db
+    .update(transactions)
+    .set({ ...input, updatedAt: sql`now()` })
+    .where(ownedLiveRow(userId, id))
+    .returning();
+  return updated ? { transaction: toTransaction(updated) } : { notFound: true };
 }

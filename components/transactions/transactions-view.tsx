@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
+import { TotalsStrip } from "@/components/transactions/totals-strip";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { todayInJakarta } from "@/lib/date";
 import { filtersToUrl, parseFilters, type ListFilters } from "@/lib/transaction-filters";
@@ -23,6 +24,7 @@ export function TransactionsView() {
   return (
     <>
       <PeriodStepper period={filters.period} onChange={(period) => setFilters({ ...filters, period })} />
+      <TotalsStrip filters={filters} />
       <TransactionList filters={filters} />
     </>
   );

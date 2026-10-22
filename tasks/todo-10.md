@@ -76,11 +76,11 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] Angka cocok dengan jumlah baris terfilter. Setelah menambah transaksi dari form, total berubah tanpa reload
-- [ ] Hasil kosong menampilkan `Rp0`, bukan strip kosong. `hideAmounts` menyamarkan ketiganya
+- [x] Hasil kosong menampilkan `Rp0`, bukan strip kosong. `hideAmounts` menyamarkan ketiganya
 - [ ] 360 px: tiga angka muat tanpa terpotong (singkatan `abbreviateIDR` bila perlu)
 
 **Verification:**
-- [ ] Unit: pembangun key totals sama dengan pembangun key daftar tanpa `cursor`/`limit` (tambah ke `tests/unit/use-transactions.spec.ts`)
+- [x] Unit: pembangun key totals sama dengan pembangun key daftar tanpa `cursor`/`limit` (tambah ke `tests/unit/use-transactions.spec.ts`)
 - [ ] Manual: tambah dan hapus transaksi, total ikut berubah
 
 **Dependencies:** T30, T31

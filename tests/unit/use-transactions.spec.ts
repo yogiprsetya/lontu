@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isTransactionsKey, transactionsPageKey } from "@/hooks/use-transactions";
+import { isTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
 
 describe("isTransactionsKey", () => {
   it.each([
@@ -50,5 +50,22 @@ describe("transactionsPageKey with filters", () => {
 
   it("is the same key for equal filters", () => {
     expect(transactionsPageKey(0, null, { type: "expense", period: "2026-10" })).toBe(transactionsPageKey(0, null, filters));
+  });
+});
+
+describe("transactionsTotalsKey", () => {
+  const filters = { period: "2026-10", type: "expense", accountId: "0b0e5f7e-4f0a-4c53-9a4e-2f6d1c9f8a11" } as const;
+
+  it("is the list key's query on the totals path", () => {
+    const listKey = transactionsPageKey(0, null, filters)!;
+    expect(transactionsTotalsKey(filters)).toBe(listKey.replace("/api/transactions", "/api/transactions/totals"));
+  });
+
+  it("has no query for all-time without filters", () => {
+    expect(transactionsTotalsKey({ period: "all" })).toBe("/api/transactions/totals");
+  });
+
+  it("is matched by isTransactionsKey so mutations refresh it", () => {
+    expect(isTransactionsKey(transactionsTotalsKey(filters))).toBe(true);
   });
 });

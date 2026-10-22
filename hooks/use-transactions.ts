@@ -1,11 +1,11 @@
 "use client";
 
+import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
-import { mutate } from "swr";
 import { revalidateAccounts } from "@/hooks/use-accounts";
 import { sendJSON } from "@/lib/fetcher";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
-import type { TransactionCreated, TransactionCreateInput, TransactionPage } from "@/lib/schemas/transaction";
+import type { TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals } from "@/lib/schemas/transaction";
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
 const TRANSACTIONS_KEY = /^(\$inf\$)?\/api\/transactions($|[/?])/;
@@ -45,4 +45,13 @@ export function useTransactions(filters: ListFilters) {
     hasMore: !!pages?.at(-1)?.nextCursor,
     isLoadingMore: !!pages && swr.size > 0 && typeof pages[swr.size - 1] === "undefined",
   };
+}
+
+export function transactionsTotalsKey(filters: ListFilters) {
+  const query = filtersToSearchParams(filters).toString();
+  return query ? `/api/transactions/totals?${query}` : "/api/transactions/totals";
+}
+
+export function useTransactionTotals(filters: ListFilters) {
+  return useSWR<TransactionTotals>(transactionsTotalsKey(filters));
 }

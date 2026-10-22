@@ -4,9 +4,11 @@ import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
 import type {
   ListTransactionType,
+  SimpleCreateInput,
   Transaction,
   TransactionCreated,
   TransactionCreateInput,
+  TransferCreateInput,
 } from "@/lib/schemas/transaction";
 import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
 
@@ -14,9 +16,6 @@ type Row = typeof transactions.$inferSelect;
 
 /** A referenced id that failed the ownership/active/kind check, reported on one body field. */
 export type InvalidReference = { field: "accountId" | "toAccountId" | "categoryId" | "fee"; message: string };
-
-type TransferInput = Extract<TransactionCreateInput, { type: "transfer" }>;
-type SimpleInput = Exclude<TransactionCreateInput, TransferInput>;
 
 const FEE_DESCRIPTION = "Biaya admin transfer";
 
@@ -73,7 +72,7 @@ async function checkReferences(userId: string, input: TransactionCreateInput): P
   return accounts ?? fee;
 }
 
-async function insertSimple(userId: string, input: SimpleInput): Promise<TransactionCreated> {
+async function insertSimple(userId: string, input: SimpleCreateInput): Promise<TransactionCreated> {
   const [row] = await db
     .insert(transactions)
     .values({ userId, ...input })
@@ -81,7 +80,7 @@ async function insertSimple(userId: string, input: SimpleInput): Promise<Transac
   return { transaction: toTransaction(row), fee: null };
 }
 
-async function insertTransfer(userId: string, { fee, ...input }: TransferInput): Promise<TransactionCreated> {
+async function insertTransfer(userId: string, { fee, ...input }: TransferCreateInput): Promise<TransactionCreated> {
   return db.transaction(async (tx) => {
     const [row] = await tx
       .insert(transactions)

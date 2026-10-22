@@ -55,14 +55,18 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `hooks/use-transactions.ts`: `isTransactionsKey` (cocok `/api/transactions…` **dan** `$inf$/api/transactions…`), `revalidateTransactions()`, `createTransaction(input)` (`sendJSON`, lalu `revalidateTransactions()` + `revalidateAccounts()`). `components/forms/account-picker.tsx` (akun aktif, satu akun → terpilih otomatis, empty state dengan tombol "Tambah akun" → `useUIStore().open("manageAccounts")`) dan `category-picker.tsx` (hanya `kind` yang cocok lewat `CATEGORY_KIND_FOR`, expense dikelompokkan Needs/Wants, empty state "Tambah kategori" → `open("manageCategories", { kind })`). `components/forms/transaction-form.tsx` (react-hook-form + schema, `MoneyInput` tanpa ±, `<input type="date">` native default `todayInJakarta()` dengan `max` hari ini, deskripsi opsional, `applyServerErrors`, tombol nonaktif + spinner). `app/(app)/add/[type]/page.tsx` merender form untuk `income|expense|saving`; `transfer` tetap placeholder sampai T26. Sukses → toast + `router.push("/transactions")`.
 
 **Acceptance criteria:**
-- [ ] + → Expense di 360 px → isi nominal, akun, kategori → Simpan → toast, mendarat di `/transactions`. Saldo akun di Kelola akun sudah berubah tanpa reload
-- [ ] Picker kategori hanya memuat `kind` yang cocok dengan tipe (expense: grup Needs dan Wants). Tanpa akun atau kategori yang cocok → empty state, tombol membuka modal Kelola, dan isian form tidak hilang
-- [ ] Error validasi dari server tampil di field yang sesuai. Satu akun aktif → terpilih otomatis. Tanggal default hari ini (Jakarta) dan tidak bisa melewati hari ini
-- [ ] Input 16 px, target sentuh ≥ 44 px, tanpa horizontal scroll di 360 px
+- [x] + → Expense di 360 px → isi nominal, akun, kategori → Simpan → toast, mendarat di `/transactions`. Saldo akun di Kelola akun sudah berubah tanpa reload
+- [x] Picker kategori hanya memuat `kind` yang cocok dengan tipe (expense: grup Needs dan Wants). Tanpa akun atau kategori yang cocok → empty state, tombol membuka modal Kelola, dan isian form tidak hilang
+- [x] Error validasi dari server tampil di field yang sesuai. Satu akun aktif → terpilih otomatis. Tanggal default hari ini (Jakarta) dan tidak bisa melewati hari ini
+- [x] Input 16 px, target sentuh ≥ 44 px, tanpa horizontal scroll di 360 px
 
 **Verification:**
-- [ ] `tests/unit/use-transactions.spec.ts`: `isTransactionsKey` benar untuk `/api/transactions`, `/api/transactions?type=expense`, `/api/transactions/totals?…`, `$inf$/api/transactions?…`, dan salah untuk `/api/accounts`, `["/api/transactions"]`, `undefined`
-- [ ] `pnpm build` hijau. Manual 360×800 dan 1024 (alur penuh, termasuk dark mode)
+- [x] `tests/unit/use-transactions.spec.ts`: `isTransactionsKey` benar untuk `/api/transactions`, `/api/transactions?type=expense`, `/api/transactions/totals?…`, `$inf$/api/transactions?…`, dan salah untuk `/api/accounts`, `["/api/transactions"]`, `undefined`
+- [x] `pnpm build` hijau. Manual 360×800 dan 1024 (alur penuh, termasuk dark mode)
+
+**Catatan:** Diverifikasi headless (Playwright + Chrome, `next start`, user `test-<uuid>`): 360 → satu akun terpilih otomatis, tanggal default dan `max` hari ini (Jakarta), submit kosong → pesan field tanpa request, picker expense hanya berisi grup Needs/Wants, simpan 25.000 → toast, mendarat di `/transactions`, saldo di view 75.000. Akun diarsipkan setelah halaman dimuat → pesan server "Akun sudah diarsipkan" di field akun. Tanpa kategori income → empty state membuka Kelola kategori di tab Income, nominal tetap terisi setelah modal ditutup. Tanpa horizontal scroll, input 16 px, target ≥ 44 px di 360 dan 1024 dark. Saldo dicek lewat view, bukan dengan membuka modal Kelola akun (`createTransaction` memanggil `revalidateAccounts`). Schema dipecah menjadi `simpleCreateSchema`/`transferCreateSchema` supaya tiap form memakai schema-nya sendiri.
+
+**Temuan untuk T28:** SWR 2.5.1 `mutate(filter)` melewati key `$inf$` dan memanggil filter dengan key halaman (`_k`). Me-mutate key halaman tidak memicu revalidasi `useSWRInfinite`. `isTransactionsKey` tetap mencocokkan kedua bentuk sesuai rencana, tetapi T28 perlu memakai `mutate` dari `useSWRInfinite` atau `unstable_serialize` (fallback di risiko modul).
 
 **Dependencies:** T22
 

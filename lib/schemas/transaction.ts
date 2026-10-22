@@ -25,7 +25,7 @@ export type Transaction = {
 
 export type TransactionCreated = { transaction: Transaction; fee: Transaction | null };
 
-const MIN_DATE = "2000-01-01";
+export const MIN_TRANSACTION_DATE = "2000-01-01";
 
 const amount = z
   .int("Nominal harus bilangan bulat rupiah")
@@ -36,7 +36,7 @@ const amount = z
 // so a long-lived schema never goes stale across midnight.
 const date = z
   .iso.date("Tanggal tidak valid")
-  .refine((d) => d >= MIN_DATE, "Tanggal minimal 1 Januari 2000")
+  .refine((d) => d >= MIN_TRANSACTION_DATE, "Tanggal minimal 1 Januari 2000")
   .refine((d) => d <= todayInJakarta(), "Tanggal tidak boleh melewati hari ini");
 
 const description = z
@@ -53,15 +53,22 @@ const categoryId = z.uuid("Pilih kategori");
 // Nested issues flatten onto `fields.fee`, which the transfer form shows on its fee block.
 const fee = z.strictObject({ amount, categoryId }, "Biaya admin tidak valid");
 
+export const SIMPLE_TRANSACTION_TYPES = ["income", "expense", "saving"] as const;
+
+export type SimpleTransactionType = (typeof SIMPLE_TRANSACTION_TYPES)[number];
+
+export const simpleCreateSchema = z.strictObject({ type: z.enum(SIMPLE_TRANSACTION_TYPES), ...base, categoryId });
+
+export const transferCreateSchema = z
+  .strictObject({ type: z.literal("transfer"), ...base, toAccountId: z.uuid("Pilih akun tujuan"), fee: fee.optional() })
+  .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" });
+
 export const transactionCreateSchema = z.discriminatedUnion(
   "type",
-  [
-    z.strictObject({ type: z.enum(["income", "expense", "saving"]), ...base, categoryId }),
-    z
-      .strictObject({ type: z.literal("transfer"), ...base, toAccountId: z.uuid("Pilih akun tujuan"), fee: fee.optional() })
-      .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" }),
-  ],
+  [simpleCreateSchema, transferCreateSchema],
   { error: (issue) => (issue.code === "invalid_union" ? "Jenis transaksi tidak valid" : undefined) },
 );
 
 export type TransactionCreateInput = z.infer<typeof transactionCreateSchema>;
+export type SimpleCreateInput = z.infer<typeof simpleCreateSchema>;
+export type TransferCreateInput = z.infer<typeof transferCreateSchema>;

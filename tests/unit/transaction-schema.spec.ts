@@ -4,10 +4,15 @@ import { transactionCreateSchema } from "@/lib/schemas/transaction";
 
 const accountId = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
 const categoryId = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
+const toAccountId = "3a4b5c6d-7e8f-4a0b-9c2d-3e4f5a6b7c8d";
 
 function fieldErrors(result: { success: boolean; error?: z.ZodError }) {
   expect(result.success).toBe(false);
   return z.flattenError(result.error!) as { formErrors: string[]; fieldErrors: Record<string, string[] | undefined> };
+}
+
+function transfer(overrides: Record<string, unknown> = {}) {
+  return { type: "transfer", amount: 10_000, date: "2026-10-21", accountId, toAccountId, ...overrides };
 }
 
 function expense(overrides: Record<string, unknown> = {}) {
@@ -65,7 +70,7 @@ describe("transactionCreateSchema", () => {
     expect(transactionCreateSchema.safeParse(expense({ date: "2026-10-22" })).success).toBe(true);
   });
 
-  it.each(["adjustment", "transfer", "refund", undefined])("rejects type %j under fields.type", (type) => {
+  it.each(["adjustment", "refund", undefined])("rejects type %j under fields.type", (type) => {
     expect(fieldErrors(transactionCreateSchema.safeParse(expense({ type }))).fieldErrors.type).toBeDefined();
   });
 
@@ -80,5 +85,44 @@ describe("transactionCreateSchema", () => {
     const missing = fieldErrors(transactionCreateSchema.safeParse(expense({ categoryId: undefined, accountId: "1" })));
     expect(missing.fieldErrors.categoryId).toBeDefined();
     expect(missing.fieldErrors.accountId).toBeDefined();
+  });
+});
+
+describe("transactionCreateSchema transfer", () => {
+  it("accepts a transfer without a fee", () => {
+    expect(transactionCreateSchema.parse(transfer())).toEqual({
+      type: "transfer",
+      amount: 10_000,
+      date: "2026-10-21",
+      accountId,
+      toAccountId,
+      description: null,
+    });
+  });
+
+  it("accepts a transfer with a fee", () => {
+    expect(transactionCreateSchema.parse(transfer({ fee: { amount: 2_500, categoryId } }))).toMatchObject({
+      fee: { amount: 2_500, categoryId },
+    });
+  });
+
+  it("rejects the same source and destination account under fields.toAccountId", () => {
+    const errors = fieldErrors(transactionCreateSchema.safeParse(transfer({ toAccountId: accountId })));
+    expect(errors.fieldErrors.toAccountId).toEqual(["Akun tujuan harus berbeda"]);
+  });
+
+  it("requires toAccountId", () => {
+    expect(fieldErrors(transactionCreateSchema.safeParse(transfer({ toAccountId: undefined }))).fieldErrors.toAccountId).toBeDefined();
+  });
+
+  it.each([{ amount: 0, categoryId }, { amount: 1.5, categoryId }, { amount: 2_500 }, { amount: 2_500, categoryId, extra: 1 }])(
+    "reports an invalid fee %j under fields.fee",
+    (fee) => {
+      expect(fieldErrors(transactionCreateSchema.safeParse(transfer({ fee }))).fieldErrors.fee).toBeDefined();
+    },
+  );
+
+  it("rejects a categoryId on a transfer", () => {
+    expect(transactionCreateSchema.safeParse(transfer({ categoryId })).success).toBe(false);
   });
 });

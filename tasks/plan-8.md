@@ -9,7 +9,7 @@ Dari ponsel, pemilik bisa mencatat income, expense, saving, dan transfer (dengan
 ## Task
 
 - [x] T22: `POST /api/transactions` income/expense/saving (M)
-- [ ] T23: `POST` transfer + biaya admin atomik (M, risiko sedang)
+- [x] T23: `POST` transfer + biaya admin atomik (M, risiko sedang)
 - [ ] T24: Form income/expense/saving di `/add/[type]` (M)
 - [ ] T25: Peringatan saldo kurang (S)
 - [ ] T26: Form transfer + biaya admin (M)

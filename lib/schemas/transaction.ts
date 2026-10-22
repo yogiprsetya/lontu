@@ -48,9 +48,19 @@ const description = z
 
 const base = { amount, date, accountId: z.uuid("Pilih akun"), description };
 
+const categoryId = z.uuid("Pilih kategori");
+
+// Nested issues flatten onto `fields.fee`, which the transfer form shows on its fee block.
+const fee = z.strictObject({ amount, categoryId }, "Biaya admin tidak valid");
+
 export const transactionCreateSchema = z.discriminatedUnion(
   "type",
-  [z.strictObject({ type: z.enum(["income", "expense", "saving"]), ...base, categoryId: z.uuid("Pilih kategori") })],
+  [
+    z.strictObject({ type: z.enum(["income", "expense", "saving"]), ...base, categoryId }),
+    z
+      .strictObject({ type: z.literal("transfer"), ...base, toAccountId: z.uuid("Pilih akun tujuan"), fee: fee.optional() })
+      .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" }),
+  ],
   { error: (issue) => (issue.code === "invalid_union" ? "Jenis transaksi tidak valid" : undefined) },
 );
 

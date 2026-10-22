@@ -33,14 +33,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tambah anggota `transfer` ke `transactionCreateSchema`: `toAccountId`, `fee?: { amount, categoryId }`, dan `refine` `toAccountId ≠ accountId` (path `toAccountId`). `createTransaction` untuk transfer memeriksa kedua akun (aktif, milik user) dan, jika ada `fee`, kategori `kind = spending`; semua pemeriksaan selesai sebelum insert pertama. Transfer dan baris biaya (`type = expense`, `account_id` = sumber, `date` sama, `description = "Biaya admin transfer"`) ditulis dalam satu `db.transaction`. Respons `{ transaction, fee }`. Galat `fee.*` dilaporkan di `fields.fee`.
 
 **Acceptance criteria:**
-- [ ] Transfer 10.000 A → B: A turun 10.000, B naik 10.000, `categoryId = null`, `fee = null`. `toAccountId = accountId` → 400 `fields.toAccountId`. Transfer dengan `categoryId` di body → 400
-- [ ] Transfer + `fee { amount: 2500, categoryId: <spending> }` → dua baris, A turun 12.500, respons `fee` terisi dengan `description = "Biaya admin transfer"`
-- [ ] `fee.categoryId` berkategori income, `fee.amount = 0`, atau akun tujuan terarsip/asing → 400 dan **tidak ada baris** tertulis (hitung baris user sebelum dan sesudah)
-- [ ] Akun sumber atau tujuan milik user lain → 400 pada `fields.accountId`/`fields.toAccountId`
+- [x] Transfer 10.000 A → B: A turun 10.000, B naik 10.000, `categoryId = null`, `fee = null`. `toAccountId = accountId` → 400 `fields.toAccountId`. Transfer dengan `categoryId` di body → 400
+- [x] Transfer + `fee { amount: 2500, categoryId: <spending> }` → dua baris, A turun 12.500, respons `fee` terisi dengan `description = "Biaya admin transfer"`
+- [x] `fee.categoryId` berkategori income, `fee.amount = 0`, atau akun tujuan terarsip/asing → 400 dan **tidak ada baris** tertulis (hitung baris user sebelum dan sesudah)
+- [x] Akun sumber atau tujuan milik user lain → 400 pada `fields.accountId`/`fields.toAccountId`
 
 **Verification:**
-- [ ] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
-- [ ] Tes T22 yang menolak `type: "transfer"` diganti dengan skenario di atas
+- [x] `pnpm vitest run tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
+- [x] Tes T22 yang menolak `type: "transfer"` diganti dengan skenario di atas
 
 **Dependencies:** T22
 

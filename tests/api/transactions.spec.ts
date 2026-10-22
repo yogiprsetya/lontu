@@ -58,6 +58,7 @@ let cleanup: () => PromiseLike<unknown>;
 let account: string;
 let archivedAccount: string;
 let foreignAccount: string;
+let otherAccount: string;
 let cat: Record<"income" | "saving" | "spending" | "archivedSpending" | "foreignSpending", string>;
 
 beforeAll(async () => {
@@ -73,10 +74,11 @@ beforeAll(async () => {
     .values([
       { userId: userA, name: "account", type: "transaction" },
       { userId: userA, name: "archivedAccount", type: "transaction", archivedAt },
+      { userId: userA, name: "otherAccount", type: "transaction" },
       { userId: userB, name: "foreignAccount", type: "transaction" },
     ])
     .returning({ id: accounts.id, name: accounts.name });
-  ({ account, archivedAccount, foreignAccount } = Object.fromEntries(accountRows.map((r) => [r.name, r.id])));
+  ({ account, archivedAccount, foreignAccount, otherAccount } = Object.fromEntries(accountRows.map((r) => [r.name, r.id])));
 
   const categoryRows = await db
     .insert(categories)
@@ -175,9 +177,9 @@ describe("POST /api/transactions", () => {
     await expectFieldError(await create(expense({ description: "x".repeat(201) })), "description");
   });
 
-  it.each(["adjustment", "transfer"])("returns 400 fields.type for type %s", async (type) => {
+  it("returns 400 fields.type for type adjustment", async () => {
     signInAs(userA);
-    await expectFieldError(await create(expense({ type })), "type");
+    await expectFieldError(await create(expense({ type: "adjustment" })), "type");
   });
 
   it.each([{ userId: "test-someone-else" }, { fee: { amount: 1000 } }])("returns 400 for unknown field %j", async (extra) => {
@@ -242,5 +244,99 @@ describe("POST /api/transactions", () => {
     const res = await create("{nope");
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe("INVALID_JSON");
+  });
+});
+
+describe("POST /api/transactions transfer", () => {
+  function transfer(overrides: Record<string, unknown> = {}) {
+    return {
+      type: "transfer",
+      amount: 10_000,
+      date: todayInJakarta(),
+      accountId: account,
+      toAccountId: otherAccount,
+      ...overrides,
+    };
+  }
+
+  it("moves the amount from the source to the destination without a category or fee", async () => {
+    signInAs(userA);
+    const from = await insertFundedAccount(userA, 100_000);
+    const to = await insertFundedAccount(userA, 0);
+
+    const res = await create(transfer({ accountId: from, toAccountId: to }));
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.transaction).toMatchObject({ type: "transfer", amount: 10_000, accountId: from, toAccountId: to, categoryId: null });
+    expect(body.fee).toBeNull();
+    expect(await balanceOf(from)).toBe(90_000);
+    expect(await balanceOf(to)).toBe(10_000);
+  });
+
+  it("writes the admin fee as a separate expense on the source account", async () => {
+    signInAs(userA);
+    const from = await insertFundedAccount(userA, 100_000);
+    const to = await insertFundedAccount(userA, 0);
+    const date = todayInJakarta();
+
+    const res = await create(transfer({ accountId: from, toAccountId: to, date, fee: { amount: 2_500, categoryId: cat.spending } }));
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.fee).toMatchObject({
+      type: "expense",
+      amount: 2_500,
+      date,
+      accountId: from,
+      toAccountId: null,
+      categoryId: cat.spending,
+      description: "Biaya admin transfer",
+    });
+    expect(body.fee.id).not.toBe(body.transaction.id);
+    expect(await balanceOf(from)).toBe(87_500);
+    expect(await balanceOf(to)).toBe(10_000);
+  });
+
+  it("returns 400 fields.toAccountId when both accounts are the same", async () => {
+    signInAs(userA);
+    await expectFieldError(await create(transfer({ toAccountId: account })), "toAccountId");
+  });
+
+  it("returns 400 for a transfer with a categoryId", async () => {
+    signInAs(userA);
+    const res = await create(transfer({ categoryId: cat.spending }));
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    ["an income fee category", { fee: { amount: 2_500, categoryId: "income" } }, "fee"],
+    ["a zero fee", { fee: { amount: 0, categoryId: "spending" } }, "fee"],
+    ["a foreign fee category", { fee: { amount: 2_500, categoryId: "foreignSpending" } }, "fee"],
+    ["an archived fee category", { fee: { amount: 2_500, categoryId: "archivedSpending" } }, "fee"],
+    ["an archived destination", { toAccountId: "archived" }, "toAccountId"],
+    ["a foreign destination", { toAccountId: "foreign" }, "toAccountId"],
+    ["a foreign source", { accountId: "foreign" }, "accountId"],
+  ] as const)("rejects %s with 400 and writes no rows", async (_, overrides, field) => {
+    signInAs(userA);
+    const accountIds = { archived: archivedAccount, foreign: foreignAccount };
+    const resolved: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(overrides)) {
+      if (typeof value === "string") resolved[key] = accountIds[value as keyof typeof accountIds];
+      else resolved[key] = { ...value, categoryId: cat[value.categoryId as keyof typeof cat] };
+    }
+    const before = await countRows(userA);
+
+    await expectFieldError(await create(transfer(resolved)), field);
+
+    expect(await countRows(userA)).toBe(before);
+    expect(await countRows(userB)).toBe(0);
+  });
+
+  it("gives the same toAccountId message for a foreign and an unknown destination", async () => {
+    signInAs(userA);
+    const foreign = await expectFieldError(await create(transfer({ toAccountId: foreignAccount })), "toAccountId");
+    const unknown = await expectFieldError(await create(transfer({ toAccountId: randomUUID() })), "toAccountId");
+    expect(foreign).toBe(unknown);
   });
 });

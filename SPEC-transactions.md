@@ -197,11 +197,11 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 
 **API**
 
-- [ ] `POST` expense `{ type, amount: 25000, date: hari ini, accountId, categoryId, description }` → 201 `{ transaction, fee: null }`. Akun dengan saldo 100.000 kini `balance = 75000` di `GET /api/accounts`. Income menambah, saving mengurangi.
-- [ ] Transfer 10.000 dari A ke B → A −10.000, B +10.000, `categoryId = null`. `toAccountId = accountId` → 400 `fields.toAccountId`.
-- [ ] Transfer dengan `fee: { amount: 2500, categoryId: <spending> }` → dua baris (transfer 10.000 + expense 2.500 di akun sumber, `description = "Biaya admin transfer"`), A turun 12.500, respons `fee` terisi. `fee.categoryId` berkategori income, atau akun tujuan terarsip → 400 dan **tidak ada baris** yang tertulis.
-- [ ] `amount` 0, −1, 1.5, `"100"`, atau > 1e12 → 400 `fields.amount`. `date` salah format, sebelum 2000-01-01, atau besok (Jakarta) → 400 `fields.date`. `description` > 200 karakter → 400.
-- [ ] Referensi: akun/kategori milik user lain, tidak ada, atau terarsip → 400 pada `fields.accountId` / `toAccountId` / `categoryId`. Expense dengan kategori income → 400 `fields.categoryId`. Income tanpa kategori, atau transfer dengan `categoryId` → 400.
+- [x] `POST` expense `{ type, amount: 25000, date: hari ini, accountId, categoryId, description }` → 201 `{ transaction, fee: null }`. Akun dengan saldo 100.000 kini `balance = 75000` di `GET /api/accounts`. Income menambah, saving mengurangi.
+- [x] Transfer 10.000 dari A ke B → A −10.000, B +10.000, `categoryId = null`. `toAccountId = accountId` → 400 `fields.toAccountId`.
+- [x] Transfer dengan `fee: { amount: 2500, categoryId: <spending> }` → dua baris (transfer 10.000 + expense 2.500 di akun sumber, `description = "Biaya admin transfer"`), A turun 12.500, respons `fee` terisi. `fee.categoryId` berkategori income, atau akun tujuan terarsip → 400 dan **tidak ada baris** yang tertulis.
+- [x] `amount` 0, −1, 1.5, `"100"`, atau > 1e12 → 400 `fields.amount`. `date` salah format, sebelum 2000-01-01, atau besok (Jakarta) → 400 `fields.date`. `description` > 200 karakter → 400.
+- [x] Referensi: akun/kategori milik user lain, tidak ada, atau terarsip → 400 pada `fields.accountId` / `toAccountId` / `categoryId`. Expense dengan kategori income → 400 `fields.categoryId`. Income tanpa kategori, atau transfer dengan `categoryId` → 400.
 - [ ] `type: "adjustment"` di `POST` → 400. `PATCH` pada adjustment → 409 `TRANSACTION_NOT_EDITABLE`. `DELETE` adjustment → 200, dan `initialBalance` serta `balance` akun bergeser kembali.
 - [ ] `PATCH` `{ amount: 40000 }` pada expense 25.000 → 200, saldo ikut berubah, `updatedAt` maju, urutan daftar tidak berubah. `PATCH` yang memuat `type`, `userId`, atau `toAccountId` pada expense → 400. Body kosong → 400. Pindah ke akun terarsip → 400. Akun lama yang terarsip dan tidak diubah → 200.
 - [ ] `DELETE` mengisi `deleted_at` (baris tetap di DB), baris hilang dari list, totals, dan saldo. `GET`/`PATCH` baris terhapus → 404. `restore` mengembalikannya. Keduanya idempoten.
@@ -220,7 +220,7 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 - [ ] `/expenses` hanya menampilkan expense dan tidak punya filter Jenis. Total, periode, dan filter lain bekerja sama dengan `/transactions`.
 - [ ] Hapus → baris langsung hilang, toast "Urungkan" mengembalikannya, saldo kembali. `DELETE` yang gagal mengembalikan baris dan menampilkan toast error.
 - [ ] Transaksi dengan akun/kategori terarsip menampilkan namanya dengan "(arsip)" di daftar dan form edit.
-- [ ] Error validasi dari server tampil di field yang sesuai. Tanpa akun atau kategori, form menawarkan menambahnya lewat modal tanpa kehilangan isian.
+- [x] Error validasi dari server tampil di field yang sesuai. Tanpa akun atau kategori, form menawarkan menambahnya lewat modal tanpa kehilangan isian.
 - [ ] Layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px.
 - [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 

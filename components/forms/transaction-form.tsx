@@ -3,20 +3,18 @@
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
+import { useShortBalanceWarning } from "@/components/forms/balance-warning";
 import { CategoryPicker } from "@/components/forms/category-picker";
 import { FormField } from "@/components/forms/form-field";
+import { StickySubmit } from "@/components/forms/sticky-submit";
 import { MoneyInput } from "@/components/forms/money-input";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAccounts } from "@/hooks/use-accounts";
 import { createTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
-import { formatIDR } from "@/lib/money";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
 import {
   MIN_TRANSACTION_DATE,
@@ -24,9 +22,7 @@ import {
   type SimpleTransactionType,
   simpleCreateSchema,
 } from "@/lib/schemas/transaction";
-import { balanceAfter } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
-import { useUIStore } from "@/stores/ui";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
@@ -134,28 +130,8 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
         />
       </FormField>
 
-      <Button type="submit" className="mt-2 h-11 text-base" disabled={isSubmitting}>
-        {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
-        Simpan
-      </Button>
+      <StickySubmit isSubmitting={isSubmitting} />
     </form>
   );
 }
 
-/** Non-blocking: the server accepts negative balances. */
-function useShortBalanceWarning(accountId: string, effect: number) {
-  const { data } = useAccounts();
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
-  const account = data?.find((a) => a.id === accountId);
-  if (!account) return undefined;
-
-  const { after, short } = balanceAfter({ balance: account.balance, subtype: account.subtype, effect });
-  if (!short) return undefined;
-  return (
-    <span className="text-expense">
-      {hideAmounts
-        ? `Saldo ${account.name} tidak cukup.`
-        : `Saldo ${account.name} ${formatIDR(account.balance)} tidak cukup, akan menjadi ${formatIDR(after)}.`}
-    </span>
-  );
-}

@@ -25,4 +25,12 @@ describe("balanceAfter", () => {
       short: false,
     });
   });
+
+  it("counts the admin fee together with the transfer amount on the source account", () => {
+    // Transfer 90.000 + fee 15.000 from 100.000.
+    expect(balanceAfter({ balance: 100_000, subtype: "debit", effect: -(90_000 + 15_000) })).toEqual({
+      after: -5_000,
+      short: true,
+    });
+  });
 });

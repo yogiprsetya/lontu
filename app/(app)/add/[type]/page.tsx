@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PlusIcon } from "lucide-react";
 import { TransactionForm } from "@/components/forms/transaction-form";
-import { PlaceholderPage } from "@/components/layout/placeholder-page";
+import { TransferForm } from "@/components/forms/transfer-form";
 import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, isTransactionType } from "@/lib/transaction-types";
 
 export function generateStaticParams() {
@@ -18,15 +17,10 @@ export default async function AddTransactionPage({ params }: PageProps<"/add/[ty
   const { type } = await params;
   if (!isTransactionType(type)) notFound();
 
-  const title = `Tambah ${TRANSACTION_TYPE_LABELS[type]}`;
-  if (type === "transfer") {
-    return <PlaceholderPage title={title} icon={PlusIcon} description="Form transfer menyusul." />;
-  }
-
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 py-6 lg:px-8">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <TransactionForm type={type} />
+      <h1 className="text-2xl font-semibold tracking-tight">Tambah {TRANSACTION_TYPE_LABELS[type]}</h1>
+      {type === "transfer" ? <TransferForm /> : <TransactionForm type={type} />}
     </main>
   );
 }

@@ -8,7 +8,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutny
 |---|---|---|---|---|
 | `foundation` | [SPEC-foundation.md](../SPEC-foundation.md) | 1–4 | T1–T9 | Selesai (T9 ditunda) |
 | `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
-| `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Berjalan (phase 8) |
+| `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Berjalan (checkpoint G, review Yogi tertunda) |
 
 ---
 

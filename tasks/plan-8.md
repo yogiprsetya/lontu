@@ -12,7 +12,7 @@ Dari ponsel, pemilik bisa mencatat income, expense, saving, dan transfer (dengan
 - [x] T23: `POST` transfer + biaya admin atomik (M, risiko sedang)
 - [x] T24: Form income/expense/saving di `/add/[type]` (M)
 - [x] T25: Peringatan saldo kurang (S)
-- [ ] T26: Form transfer + biaya admin (M)
+- [x] T26: Form transfer + biaya admin (M)
 
 Urutan: T22 → T23 dan T22 → T24 → T25 → T26. T23 dan T24 tidak saling bergantung dan bisa paralel. T26 butuh T23 (API fee) dan T25 (peringatan saldo).
 
@@ -36,7 +36,7 @@ Urutan: T22 → T23 dan T22 → T24 → T25 → T26. T23 dan T24 tidak saling be
 
 ## Checkpoint G
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Acceptance criteria API pembuatan di SPEC-transactions.md (empat butir pertama dan referensi/validasi) tercentang
-- [ ] Manual 360×800 dan 1024: catat empat tipe, saldo di Kelola akun benar, transfer dengan biaya admin menambah dua baris (Drizzle Studio)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Acceptance criteria API pembuatan di SPEC-transactions.md (empat butir pertama dan referensi/validasi) tercentang
+- [x] Manual 360×800 dan 1024 (headless, keyboard virtual belum): catat empat tipe, saldo di Kelola akun benar, transfer dengan biaya admin menambah dua baris (Drizzle Studio)
 - [ ] Review dengan Yogi sebelum phase 9

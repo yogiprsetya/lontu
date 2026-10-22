@@ -13,13 +13,16 @@ type AccountPickerProps = {
   id: string;
   value: string;
   onChange: (id: string) => void;
+  /** Leaves this account out, e.g. the source when picking a transfer destination. */
+  exclude?: string;
   invalid?: boolean;
   describedBy?: string;
 };
 
-/** Active accounts only. With exactly one account it is picked for the user. */
-export function AccountPicker({ id, value, onChange, invalid, describedBy }: AccountPickerProps) {
-  const { data, error, mutate } = useAccounts();
+/** Active accounts only. With exactly one choice it is picked for the user. */
+export function AccountPicker({ id, value, onChange, exclude, invalid, describedBy }: AccountPickerProps) {
+  const { data: all, error, mutate } = useAccounts();
+  const data = all?.filter((a) => a.id !== exclude);
   const open = useUIStore((s) => s.open);
   const onlyAccount = data?.length === 1 ? data[0].id : undefined;
 

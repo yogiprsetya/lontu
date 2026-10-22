@@ -104,14 +104,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Tambah komponen shadcn `checkbox` lewat CLI. `components/forms/transfer-form.tsx`: akun sumber, akun tujuan (tanpa akun sumber), nominal, tanggal, deskripsi, checkbox "Biaya admin" yang membuka nominal + picker kategori spending (wajib saat dicentang, galat dari `fields.fee` tampil di blok ini). Peringatan saldo memakai `balanceAfter` dengan `effect = −(nominal + fee)`. `add/[type]/page.tsx` merender form ini untuk `transfer`. Toast "Transfer dan biaya admin tersimpan" bila ada fee.
 
 **Acceptance criteria:**
-- [ ] Transfer A → B tersimpan: saldo A turun, B naik, tanpa tanda kategori. Akun tujuan tidak memuat akun sumber, dan mengganti sumber menghapus pilihan tujuan yang sama
-- [ ] Centang "Biaya admin" tanpa nominal atau kategori → pesan di blok itu, tanpa request. Dengan keduanya → dua baris tertulis, saldo A turun nominal + fee
-- [ ] Peringatan saldo menghitung nominal + fee. Tanpa akun cukup (kurang dari dua akun aktif) → empty state dengan tombol "Tambah akun"
-- [ ] Tombol Simpan terlihat dengan keyboard virtual terbuka di drawer (sticky), 360 px tanpa horizontal scroll
+- [x] Transfer A → B tersimpan: saldo A turun, B naik, tanpa tanda kategori. Akun tujuan tidak memuat akun sumber, dan mengganti sumber menghapus pilihan tujuan yang sama
+- [x] Centang "Biaya admin" tanpa nominal atau kategori → pesan di blok itu, tanpa request. Dengan keduanya → dua baris tertulis, saldo A turun nominal + fee
+- [x] Peringatan saldo menghitung nominal + fee. Tanpa akun cukup (kurang dari dua akun aktif) → empty state dengan tombol "Tambah akun"
+- [x] Tombol Simpan sticky di atas bottom nav, 360 px tanpa horizontal scroll (keyboard virtual belum dicek di ponsel)
 
 **Verification:**
-- [ ] `tests/unit/transaction-balance.spec.ts` diperluas untuk efek transfer + fee
-- [ ] `pnpm build` hijau. Manual 360×800 dan 1024, keyboard virtual perlu dicek di ponsel
+- [x] `tests/unit/transaction-balance.spec.ts` diperluas untuk efek transfer + fee
+- [x] `pnpm build` hijau. Manual 360×800 dan 1024 (headless). Keyboard virtual perlu dicek di ponsel
+
+**Catatan:** Diverifikasi headless di 360 dan 1024 dark: satu akun → empty state membuka Kelola akun; tujuan tidak memuat akun asal, mengganti asal ke akun tujuan mengosongkan tujuan; centang Biaya admin tanpa isi → "Pilih kategori" dan pesan nominal di blok biaya tanpa request; peringatan menghitung 90.000 + 15.000 dari 100.000 ("akan menjadi -Rp5.000"); simpan → toast "Transfer dan biaya admin tersimpan", dua baris (transfer tanpa kategori + expense "Biaya admin transfer"), saldo BCA −5.000 dan GoPay +90.000; baris checkbox 44 px. Form ini halaman, bukan drawer, jadi Simpan dibuat `sticky` di atas bottom nav (`StickySubmit`, dipakai juga oleh form T24). Nilai biaya disimpan selama checkbox mati dan baru divalidasi/dikirim saat dicentang (resolver membuang `fee`). Galat server `fields.fee` tampil sebagai satu pesan di bawah blok biaya. Tes `balanceAfter` untuk transfer + fee langsung hijau karena fungsinya sudah menangani efek gabungan. Hook peringatan dipindah ke `components/forms/balance-warning.tsx`.
 
 **Dependencies:** T23, T25
 
@@ -123,7 +125,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint G
 
-- [ ] Gerbang penuh hijau: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
-- [ ] Semua acceptance criteria pembuatan di SPEC-transactions.md tercentang
-- [ ] Manual: empat tipe tercatat dari 360×800, saldo benar, biaya admin menghasilkan dua baris
+- [x] Gerbang penuh hijau: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
+- [x] Acceptance criteria pembuatan di SPEC-transactions.md tercentang (API baris 200–204, UI error/empty state). Butir yang juga butuh daftar/edit menunggu phase 9–11
+- [x] Manual (headless): empat tipe tercatat dari 360×800, saldo benar, biaya admin menghasilkan dua baris
 - [ ] Review dengan Yogi sebelum phase 9

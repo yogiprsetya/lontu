@@ -41,6 +41,7 @@ const at = (iso: string) => sql`${iso}::timestamptz`;
 
 let userA: string;
 let userB: string;
+let userC: string;
 let cleanup: () => PromiseLike<unknown>;
 let accountA: string;
 let accountB: string;
@@ -49,10 +50,14 @@ let categoryB: string;
 // Expected order: date desc, created_at desc, id desc.
 const expected: string[] = [];
 let deletedId: string;
+let spend1: string;
+let accountXId: string;
+let accountYId: string;
+let rowC: Record<string, string>;
 
 beforeAll(async () => {
-  const created = await createTestUsers(2);
-  [userA, userB] = created.ids;
+  const created = await createTestUsers(3);
+  [userA, userB, userC] = created.ids;
   cleanup = created.cleanup;
 
   const rows = await db
@@ -60,20 +65,46 @@ beforeAll(async () => {
     .values([
       { userId: userA, name: "a", type: "transaction" },
       { userId: userB, name: "b", type: "transaction" },
+      { userId: userC, name: "x", type: "transaction" },
+      { userId: userC, name: "y", type: "transaction" },
     ])
     .returning({ id: accounts.id, name: accounts.name });
   accountA = rows.find((r) => r.name === "a")!.id;
   accountB = rows.find((r) => r.name === "b")!.id;
+  const idOf = (rows_: { id: string; name: string }[], name: string) => rows_.find((r) => r.name === name)!.id;
+  const accountX = idOf(rows, "x");
+  const accountY = idOf(rows, "y");
 
   const categoryRows = await db
     .insert(categories)
     .values([
       { userId: userA, name: "a", kind: "income" },
       { userId: userB, name: "b", kind: "income" },
+      { userId: userC, name: "inc", kind: "income" },
+      { userId: userC, name: "spend1", kind: "spending", spendingType: "needs" },
+      { userId: userC, name: "spend2", kind: "spending", spendingType: "wants" },
     ])
     .returning({ id: categories.id, name: categories.name });
   categoryA = categoryRows.find((r) => r.name === "a")!.id;
   categoryB = categoryRows.find((r) => r.name === "b")!.id;
+  const inc = idOf(categoryRows, "inc");
+  spend1 = idOf(categoryRows, "spend1");
+  const spend2 = idOf(categoryRows, "spend2");
+  accountXId = accountX;
+  accountYId = accountY;
+
+  const c = { userId: userC, accountId: accountX };
+  const filterRows = await db
+    .insert(transactions)
+    .values([
+      { ...c, type: "income", amount: 100, date: "2026-10-05", categoryId: inc, description: "r1" },
+      { ...c, type: "expense", amount: 200, date: "2026-10-10", categoryId: spend1, description: "r2" },
+      { ...c, accountId: accountY, type: "expense", amount: 300, date: "2026-10-15", categoryId: spend2, description: "r3" },
+      { ...c, type: "transfer", amount: 400, date: "2026-10-10", toAccountId: accountY, description: "r4" },
+      { ...c, type: "adjustment", amount: -500, date: "2026-09-01", description: "r5" },
+    ])
+    .returning({ id: transactions.id, description: transactions.description });
+  rowC = Object.fromEntries(filterRows.map((r) => [r.description, r.id]));
 
   const base = { categoryId: categoryA, userId: userA, type: "income", amount: 1000, accountId: accountA };
   const inserted = await db
@@ -153,5 +184,89 @@ describe("GET /api/transactions", () => {
   it("returns 401 without a session", async () => {
     signInAs(null);
     expect((await list()).status).toBe(401);
+  });
+});
+
+describe("GET /api/transactions filters", () => {
+  async function ids(query: string) {
+    const res = await list(query);
+    expect(res.status).toBe(200);
+    return new Set(((await res.json()) as Page).items.map((t) => t.id));
+  }
+  const rows = (...names: string[]) => new Set(names.map((n) => rowC[n]));
+
+  it("filters by type", async () => {
+    signInAs(userC);
+    expect(await ids("?type=expense")).toEqual(rows("r2", "r3"));
+    expect(await ids("?type=adjustment")).toEqual(rows("r5"));
+  });
+
+  it("filters by category", async () => {
+    signInAs(userC);
+    expect(await ids(`?categoryId=${spend1}`)).toEqual(rows("r2"));
+  });
+
+  it("includes both ends of from/to", async () => {
+    signInAs(userC);
+    expect(await ids("?from=2026-10-10&to=2026-10-15")).toEqual(rows("r2", "r3", "r4"));
+    expect(await ids("?from=2026-10-10&to=2026-10-10")).toEqual(rows("r2", "r4"));
+    expect(await ids("?to=2026-09-30")).toEqual(rows("r5"));
+    expect(await ids("?from=2026-10-11")).toEqual(rows("r3"));
+  });
+
+  it("matches a transfer on both its source and destination account", async () => {
+    signInAs(userC);
+    expect(await ids(`?accountId=${accountXId}`)).toEqual(rows("r1", "r2", "r4", "r5"));
+    expect(await ids(`?accountId=${accountYId}`)).toEqual(rows("r3", "r4"));
+  });
+
+  it("combines filters", async () => {
+    signInAs(userC);
+    expect(await ids(`?type=expense&accountId=${accountYId}&from=2026-10-01&to=2026-10-31`)).toEqual(rows("r3"));
+    expect(await ids(`?type=income&accountId=${accountYId}`)).toEqual(new Set());
+  });
+
+  it("keeps later pages inside the filtered set", async () => {
+    signInAs(userC);
+    const seen: string[] = [];
+    let cursor: string | null = null;
+    do {
+      const res: Response = await list(`?type=expense&limit=1${cursor ? `&cursor=${cursor}` : ""}`);
+      const page = (await res.json()) as Page;
+      seen.push(...page.items.map((t) => t.id));
+      cursor = page.nextCursor;
+    } while (cursor);
+    expect(new Set(seen)).toEqual(rows("r2", "r3"));
+    expect(seen).toHaveLength(2);
+  });
+
+  it.each([
+    ["from after to", "?from=2026-10-10&to=2026-10-01", "from"],
+    ["unknown type", "?type=foo", "type"],
+    ["non-uuid account", "?accountId=abc", "accountId"],
+    ["non-uuid category", "?categoryId=abc", "categoryId"],
+    ["bad date", "?from=2026-13-01", "from"],
+  ])("rejects %s with fields", async (_, query, field) => {
+    signInAs(userC);
+    const res = await list(query);
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.fields[field]).toBeDefined();
+  });
+
+  it("ignores unknown params", async () => {
+    signInAs(userC);
+    expect((await ids("?foo=bar")).size).toBe(5);
+  });
+
+  it("returns an empty list, not 404, for another user's account or category", async () => {
+    signInAs(userC);
+    expect(await ids(`?accountId=${accountA}`)).toEqual(new Set());
+    expect(await ids(`?categoryId=${categoryA}`)).toEqual(new Set());
+  });
+
+  it("never exposes user C's rows to another user through a filter", async () => {
+    signInAs(userA);
+    expect(await ids(`?accountId=${accountXId}`)).toEqual(new Set());
+    expect(await ids(`?categoryId=${spend1}`)).toEqual(new Set());
   });
 });

@@ -11,14 +11,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Schema filter di `lib/schemas/transaction.ts`: `type` (`income|expense|saving|transfer|adjustment`), `accountId`, `categoryId` (`z.uuid()`), `from`, `to` (`z.iso.date()`, `from ≤ to`), digabung dengan query schema T27. `transactionWhere(userId, filters)` di `lib/server/transactions.ts` (`user_id`, `deleted_at is null`, filter opsional; `accountId` → `account_id = x or to_account_id = x`), dipakai `listTransactions`. Route mem-parse query dan mengembalikan 400 `VALIDATION_ERROR` untuk nilai tidak valid. Param tak dikenal diabaikan.
 
 **Acceptance criteria:**
-- [ ] `type`, `categoryId`, dan `from`/`to` (inklusif di kedua ujung) bekerja sendiri dan dikombinasikan. `accountId` mengembalikan transfer di sisi sumber maupun tujuan
-- [ ] `from > to`, `type=foo`, `accountId=abc` → 400 dengan `fields`. `accountId` atau `categoryId` milik user lain → 200 dengan daftar kosong
-- [ ] Paginasi cursor tetap benar di bawah filter (halaman berikutnya tidak keluar dari himpunan terfilter)
-- [ ] Isolasi: filter tidak pernah membuka baris user lain
+- [x] `type`, `categoryId`, dan `from`/`to` (inklusif di kedua ujung) bekerja sendiri dan dikombinasikan. `accountId` mengembalikan transfer di sisi sumber maupun tujuan
+- [x] `from > to`, `type=foo`, `accountId=abc` → 400 dengan `fields`. `accountId` atau `categoryId` milik user lain → 200 dengan daftar kosong
+- [x] Paginasi cursor tetap benar di bawah filter (halaman berikutnya tidak keluar dari himpunan terfilter)
+- [x] Isolasi: filter tidak pernah membuka baris user lain
 
 **Verification:**
-- [ ] `pnpm vitest run tests/api/transactions-list.spec.ts tests/unit/transaction-schema.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/api/transactions-list.spec.ts tests/unit/transaction-schema.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T27
 

@@ -77,7 +77,31 @@ export type TransactionPage = { items: Transaction[]; nextCursor: string | null 
 
 export const DEFAULT_PAGE_SIZE = 30;
 
-export const transactionListQuerySchema = z.object({
-  cursor: z.string().min(1).optional(),
-  limit: z.coerce.number("Batas tidak valid").int("Batas tidak valid").min(1, "Minimal 1").max(100, "Maksimal 100").default(DEFAULT_PAGE_SIZE),
-});
+const filterShape = {
+  type: z.enum(LIST_TRANSACTION_TYPES, "Jenis transaksi tidak valid").optional(),
+  accountId: z.uuid("Akun tidak valid").optional(),
+  categoryId: z.uuid("Kategori tidak valid").optional(),
+  from: z.iso.date("Tanggal tidak valid").optional(),
+  to: z.iso.date("Tanggal tidak valid").optional(),
+};
+
+const fromBeforeTo = (v: { from?: string; to?: string }) => !v.from || !v.to || v.from <= v.to;
+const fromBeforeToIssue = { path: ["from"], error: "Tanggal awal harus sebelum tanggal akhir" };
+
+/** Shared by list, totals and export. */
+export const transactionFilterSchema = z.object(filterShape).refine(fromBeforeTo, fromBeforeToIssue);
+
+export type TransactionFilters = z.infer<typeof transactionFilterSchema>;
+
+export const transactionListQuerySchema = z
+  .object({
+    ...filterShape,
+    cursor: z.string().min(1).optional(),
+    limit: z.coerce
+      .number("Batas tidak valid")
+      .int("Batas tidak valid")
+      .min(1, "Minimal 1")
+      .max(100, "Maksimal 100")
+      .default(DEFAULT_PAGE_SIZE),
+  })
+  .refine(fromBeforeTo, fromBeforeToIssue);

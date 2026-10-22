@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, getTableColumns, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, gte, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
@@ -8,6 +8,7 @@ import type {
   SimpleCreateInput,
   Transaction,
   TransactionCreated,
+  TransactionFilters,
   TransactionPage,
   TransactionCreateInput,
   TransferCreateInput,
@@ -120,12 +121,27 @@ export async function createTransaction(
 // rows whose created_at differ by microseconds.
 const createdAtMicros = sql<string>`(extract(epoch from ${transactions.createdAt}) * 1000000)::bigint`;
 
-export type ListOptions = { cursor?: string; limit: number };
+/** The one `where` for list, totals and export, so the three always see the same rows. */
+export function transactionWhere(userId: string, filters: TransactionFilters) {
+  return and(
+    eq(transactions.userId, userId),
+    isNull(transactions.deletedAt),
+    filters.type ? eq(transactions.type, filters.type) : undefined,
+    filters.accountId
+      ? or(eq(transactions.accountId, filters.accountId), eq(transactions.toAccountId, filters.accountId))
+      : undefined,
+    filters.categoryId ? eq(transactions.categoryId, filters.categoryId) : undefined,
+    filters.from ? gte(transactions.date, filters.from) : undefined,
+    filters.to ? lte(transactions.date, filters.to) : undefined,
+  );
+}
+
+export type ListOptions = TransactionFilters & { cursor?: string; limit: number };
 
 /** `{ invalidCursor: true }` when the cursor cannot be decoded. */
 export async function listTransactions(
   userId: string,
-  { cursor, limit }: ListOptions,
+  { cursor, limit, ...filters }: ListOptions,
 ): Promise<TransactionPage | { invalidCursor: true }> {
   const key = cursor === undefined ? undefined : decodeCursor(cursor);
   if (key === null) return { invalidCursor: true };
@@ -135,8 +151,7 @@ export async function listTransactions(
     .from(transactions)
     .where(
       and(
-        eq(transactions.userId, userId),
-        isNull(transactions.deletedAt),
+        transactionWhere(userId, filters),
         key &&
           sql`(${transactions.date}, ${createdAtMicros}, ${transactions.id}) < (${key.date}::date, ${key.createdAtMicros}::bigint, ${key.id}::uuid)`,
       ),

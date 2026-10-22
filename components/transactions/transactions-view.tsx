@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ExportLink } from "@/components/transactions/export-link";
 import { FilterPanel } from "@/components/transactions/filter-panel";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
 import { TotalsStrip } from "@/components/transactions/totals-strip";
@@ -31,7 +32,10 @@ export function TransactionsView({ lockedType }: { lockedType?: ListTransactionT
   return (
     <>
       <PeriodStepper period={filters.period} onChange={(period) => setFilters({ ...filters, period })} />
-      <FilterPanel filters={filters} onChange={setFilters} lockedType={lockedType} />
+      <div className="flex flex-wrap gap-2">
+        <FilterPanel filters={filters} onChange={setFilters} lockedType={lockedType} />
+        <ExportLink filters={filters} />
+      </div>
       <TotalsStrip filters={filters} />
       <TransactionList filters={filters} />
     </>

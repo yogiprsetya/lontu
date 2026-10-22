@@ -3,6 +3,7 @@ import {
   filtersToSearchParams,
   countActiveFilters,
   exportFilename,
+  exportHref,
   filtersToUrl,
   formatPeriodLabel,
   normalizeFilters,
@@ -206,5 +207,17 @@ describe("exportFilename", () => {
       const name = exportFilename(periodToRange(period));
       expect(name).toBe(`lontu-transaksi-${period === "all" ? "semua" : period}.csv`);
     }
+  });
+});
+
+describe("exportHref", () => {
+  it("carries the active filters and the period range, never cursor or limit", () => {
+    expect(exportHref({ period: "2026-10", type: "expense" })).toBe(
+      "/api/transactions/export?type=expense&from=2026-10-01&to=2026-10-31",
+    );
+  });
+
+  it("has no query for all-time without filters", () => {
+    expect(exportHref({ period: "all" })).toBe("/api/transactions/export");
   });
 });

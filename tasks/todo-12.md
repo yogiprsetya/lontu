@@ -60,7 +60,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Verification:**
 - [ ] Manual: unduh dari `/transactions` dan `/expenses`, buka di spreadsheet (huruf Indonesia benar, angka tidak berubah)
-- [ ] `pnpm build` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T31, T40
 

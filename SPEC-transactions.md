@@ -202,15 +202,15 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 - [x] Transfer dengan `fee: { amount: 2500, categoryId: <spending> }` → dua baris (transfer 10.000 + expense 2.500 di akun sumber, `description = "Biaya admin transfer"`), A turun 12.500, respons `fee` terisi. `fee.categoryId` berkategori income, atau akun tujuan terarsip → 400 dan **tidak ada baris** yang tertulis.
 - [x] `amount` 0, −1, 1.5, `"100"`, atau > 1e12 → 400 `fields.amount`. `date` salah format, sebelum 2000-01-01, atau besok (Jakarta) → 400 `fields.date`. `description` > 200 karakter → 400.
 - [x] Referensi: akun/kategori milik user lain, tidak ada, atau terarsip → 400 pada `fields.accountId` / `toAccountId` / `categoryId`. Expense dengan kategori income → 400 `fields.categoryId`. Income tanpa kategori, atau transfer dengan `categoryId` → 400.
-- [ ] `type: "adjustment"` di `POST` → 400. `PATCH` pada adjustment → 409 `TRANSACTION_NOT_EDITABLE`. `DELETE` adjustment → 200, dan `initialBalance` serta `balance` akun bergeser kembali.
-- [ ] `PATCH` `{ amount: 40000 }` pada expense 25.000 → 200, saldo ikut berubah, `updatedAt` maju, urutan daftar tidak berubah. `PATCH` yang memuat `type`, `userId`, atau `toAccountId` pada expense → 400. Body kosong → 400. Pindah ke akun terarsip → 400. Akun lama yang terarsip dan tidak diubah → 200.
-- [ ] `DELETE` mengisi `deleted_at` (baris tetap di DB), baris hilang dari list, totals, dan saldo. `GET`/`PATCH` baris terhapus → 404. `restore` mengembalikannya. Keduanya idempoten.
-- [ ] Urutan list `date desc, created_at desc, id desc`. Dengan `limit=2` atas 5 baris, termasuk tiga baris satu tanggal dan dua baris dengan `created_at` yang sama sampai milidetik, gabungan semua halaman = himpunan lengkap, tanpa duplikat atau lompatan. Halaman terakhir `nextCursor = null`. Cursor rusak → 400 `INVALID_CURSOR`. `limit=101` atau `0` → 400.
-- [ ] Filter `type`, `categoryId`, `from`/`to` (inklusif di kedua ujung) dan kombinasinya benar. `accountId` mengembalikan transfer di sisi sumber maupun tujuan. `from > to` → 400. `accountId` milik user lain → daftar kosong.
-- [ ] `totals` sama dengan jumlah baris terfilter untuk income/expense/saving, tidak menghitung transfer, adjustment, dan baris terhapus, dan mengembalikan `0` untuk hasil kosong.
-- [ ] `export` mengembalikan `text/csv`, BOM, baris header, jumlah baris sama dengan list pada filter yang sama, nama akun/kategori terarsip terisi, `description` `=1+1` keluar sebagai `'=1+1`, dan `Jumlah` adjustment negatif tetap `-50000`.
-- [ ] **Isolasi:** user B mendapat 404 untuk `GET`/`PATCH`/`DELETE`/`restore` transaksi A, list/totals/export B tidak pernah memuat data A, B tidak bisa mereferensikan akun/kategori A di `POST`/`PATCH`, dan `userId` di body diabaikan (400 karena strict).
-- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`.
+- [x] `type: "adjustment"` di `POST` → 400. `PATCH` pada adjustment → 409 `TRANSACTION_NOT_EDITABLE`. `DELETE` adjustment → 200, dan `initialBalance` serta `balance` akun bergeser kembali.
+- [x] `PATCH` `{ amount: 40000 }` pada expense 25.000 → 200, saldo ikut berubah, `updatedAt` maju, urutan daftar tidak berubah. `PATCH` yang memuat `type`, `userId`, atau `toAccountId` pada expense → 400. Body kosong → 400. Pindah ke akun terarsip → 400. Akun lama yang terarsip dan tidak diubah → 200.
+- [x] `DELETE` mengisi `deleted_at` (baris tetap di DB), baris hilang dari list, totals, dan saldo. `GET`/`PATCH` baris terhapus → 404. `restore` mengembalikannya. Keduanya idempoten.
+- [x] Urutan list `date desc, created_at desc, id desc`. Dengan `limit=2` atas 5 baris, termasuk tiga baris satu tanggal dan dua baris dengan `created_at` yang sama sampai milidetik, gabungan semua halaman = himpunan lengkap, tanpa duplikat atau lompatan. Halaman terakhir `nextCursor = null`. Cursor rusak → 400 `INVALID_CURSOR`. `limit=101` atau `0` → 400.
+- [x] Filter `type`, `categoryId`, `from`/`to` (inklusif di kedua ujung) dan kombinasinya benar. `accountId` mengembalikan transfer di sisi sumber maupun tujuan. `from > to` → 400. `accountId` milik user lain → daftar kosong.
+- [x] `totals` sama dengan jumlah baris terfilter untuk income/expense/saving, tidak menghitung transfer, adjustment, dan baris terhapus, dan mengembalikan `0` untuk hasil kosong.
+- [x] `export` mengembalikan `text/csv`, BOM, baris header, jumlah baris sama dengan list pada filter yang sama, nama akun/kategori terarsip terisi, `description` `=1+1` keluar sebagai `'=1+1`, dan `Jumlah` adjustment negatif tetap `-50000`.
+- [x] **Isolasi:** user B mendapat 404 untuk `GET`/`PATCH`/`DELETE`/`restore` transaksi A, list/totals/export B tidak pernah memuat data A, B tidak bisa mereferensikan akun/kategori A di `POST`/`PATCH`, dan `userId` di body diabaikan (400 karena strict).
+- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.
 
 **UI (manual di 360 px dan 1024 px)**
 
@@ -222,7 +222,7 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 - [ ] Transaksi dengan akun/kategori terarsip menampilkan namanya dengan "(arsip)" di daftar dan form edit.
 - [x] Error validasi dari server tampil di field yang sesuai. Tanpa akun atau kategori, form menawarkan menambahnya lewat modal tanpa kehilangan isian.
 - [ ] Layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

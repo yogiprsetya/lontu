@@ -138,3 +138,8 @@ export function exportFilename({ from, to }: { from?: string; to?: string }) {
   }
   return `lontu-transaksi-${from ?? ""}_${to ?? ""}.csv`;
 }
+
+export function exportHref(filters: ListFilters) {
+  const query = filtersToSearchParams(filters).toString();
+  return query ? `/api/transactions/export?${query}` : "/api/transactions/export";
+}

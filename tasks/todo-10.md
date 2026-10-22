@@ -97,12 +97,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 - [ ] Memilih Jenis, Akun, Kategori memfilter daftar dan total, dan URL mencerminkannya. Refresh dan back mempertahankan filter
-- [ ] Mengganti Jenis ke Transfer atau Penyesuaian menghapus filter Kategori. Mengganti Jenis ke tipe dengan `kind` berbeda menghapus Kategori yang tak cocok
+- [x] Mengganti Jenis ke Transfer atau Penyesuaian menghapus filter Kategori. Mengganti Jenis ke tipe dengan `kind` berbeda menghapus Kategori yang tak cocok
 - [ ] Akun dan kategori terarsip masih bisa dipilih sebagai filter. Badge menampilkan jumlah filter aktif (bukan periode). Reset mengembalikan ke default (periode tetap)
 - [ ] Drawer di 360 px, dialog di ≥ 1024 px. Select 16 px, target ≥ 44 px
 
 **Verification:**
-- [ ] Unit: `normalizeFilters` dan penghitung badge (tambah ke `tests/unit/transaction-filters.spec.ts`)
+- [x] Unit: `normalizeFilters` dan penghitung badge (tambah ke `tests/unit/transaction-filters.spec.ts`)
 - [ ] `pnpm build` hijau. Manual 360×800 dan 1024
 
 **Dependencies:** T31

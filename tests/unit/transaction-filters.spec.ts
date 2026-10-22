@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   filtersToSearchParams,
+  countActiveFilters,
   filtersToUrl,
   formatPeriodLabel,
   normalizeFilters,
   parseFilters,
   periodMode,
+  resetFilters,
   periodToRange,
   shiftPeriod,
   switchPeriodMode,
@@ -144,5 +146,19 @@ describe("period navigation", () => {
     expect(formatPeriodLabel("2026-10")).toBe("Oktober 2026");
     expect(formatPeriodLabel("2026")).toBe("2026");
     expect(formatPeriodLabel("all")).toBe("Semua");
+  });
+});
+
+describe("countActiveFilters / resetFilters", () => {
+  it("counts type, account and category, never the period", () => {
+    expect(countActiveFilters({ period: "2026-10" })).toBe(0);
+    expect(countActiveFilters({ period: "all", type: "expense" })).toBe(1);
+    expect(countActiveFilters({ period: "all", type: "expense", accountId: ACCOUNT, categoryId: CATEGORY })).toBe(3);
+  });
+
+  it("reset keeps the period only", () => {
+    expect(resetFilters({ period: "2025", type: "income", accountId: ACCOUNT, categoryId: CATEGORY })).toEqual({
+      period: "2025",
+    });
   });
 });

@@ -74,6 +74,15 @@ export function filtersToUrl({ period, type, accountId, categoryId }: ListFilter
   return params.toString();
 }
 
+/** Badge number: the period is always set, so it does not count. */
+export function countActiveFilters({ type, accountId, categoryId }: ListFilters) {
+  return [type, accountId, categoryId].filter(Boolean).length;
+}
+
+export function resetFilters({ period }: ListFilters): ListFilters {
+  return { period };
+}
+
 /**
  * Removes combinations that can never match. `categoryKind` may return undefined for
  * a category it does not know; that one is kept and the server just returns nothing.

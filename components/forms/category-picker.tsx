@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { archiveLabel, selectableItems } from "@/lib/archived";
 import { groupBySpendingType, useCategories } from "@/hooks/use-categories";
 import { type Category, type CategoryKind, SPENDING_TYPES } from "@/lib/schemas/category";
 import { useUIStore } from "@/stores/ui";
@@ -21,6 +22,8 @@ import { useUIStore } from "@/stores/ui";
 type CategoryPickerProps = {
   id: string;
   kind: CategoryKind;
+  /** The stored category of a transaction being edited: still offered, labelled "(arsip)", if archived. */
+  keep?: string;
   value: string;
   onChange: (id: string) => void;
   invalid?: boolean;
@@ -28,8 +31,9 @@ type CategoryPickerProps = {
 };
 
 /** Active categories of one kind; spending is grouped into Needs and Wants. */
-export function CategoryPicker({ id, kind, value, onChange, invalid, describedBy }: CategoryPickerProps) {
-  const { data, error, mutate } = useCategories({ kind });
+export function CategoryPicker({ id, kind, keep, value, onChange, invalid, describedBy }: CategoryPickerProps) {
+  const { data: all, error, mutate } = useCategories({ kind, includeArchived: !!keep });
+  const data = all && selectableItems(all, keep);
   const open = useUIStore((s) => s.open);
 
   if (error) return <LoadError onRetry={() => void mutate()} message="Gagal memuat kategori." />;
@@ -56,7 +60,7 @@ export function CategoryPicker({ id, kind, value, onChange, invalid, describedBy
 
   return (
     <Select
-      items={data.map((c) => ({ value: c.id, label: c.name }))}
+      items={data.map((c) => ({ value: c.id, label: archiveLabel(c) }))}
       value={value || null}
       onValueChange={(v) => v && onChange(v)}
     >
@@ -88,7 +92,7 @@ export function CategoryPicker({ id, kind, value, onChange, invalid, describedBy
 function CategoryItems({ categories }: { categories: Category[] }) {
   return categories.map((c) => (
     <SelectItem key={c.id} value={c.id} className="min-h-11">
-      {c.name}
+      {archiveLabel(c)}
     </SelectItem>
   ));
 }

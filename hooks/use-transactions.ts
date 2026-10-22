@@ -5,7 +5,7 @@ import useSWRInfinite from "swr/infinite";
 import { revalidateAccounts } from "@/hooks/use-accounts";
 import { sendJSON } from "@/lib/fetcher";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
-import type { TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals } from "@/lib/schemas/transaction";
+import type { Transaction, TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
 const TRANSACTIONS_KEY = /^(\$inf\$)?\/api\/transactions($|[/?])/;
@@ -54,4 +54,14 @@ export function transactionsTotalsKey(filters: ListFilters) {
 
 export function useTransactionTotals(filters: ListFilters) {
   return useSWR<TransactionTotals>(transactionsTotalsKey(filters));
+}
+
+export function useTransaction(id: string) {
+  return useSWR<Transaction>(`/api/transactions/${id}`);
+}
+
+export async function updateTransaction(id: string, input: Partial<TransactionUpdateInput>) {
+  const updated = await sendJSON<Transaction>(`/api/transactions/${id}`, "PATCH", input);
+  await Promise.all([revalidateTransactions(), revalidateAccounts()]);
+  return updated;
 }

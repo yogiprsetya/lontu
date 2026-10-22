@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
@@ -12,7 +12,8 @@ import { FormField } from "@/components/forms/form-field";
 import { StickySubmit } from "@/components/forms/sticky-submit";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
-import { createTransaction } from "@/hooks/use-transactions";
+import { useBackToList } from "@/hooks/use-back-to-list";
+import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
@@ -20,15 +21,21 @@ import {
   MIN_TRANSACTION_DATE,
   type SimpleCreateInput,
   type SimpleTransactionType,
+  type Transaction,
   simpleCreateSchema,
 } from "@/lib/schemas/transaction";
+import { signedEffect } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
-/** Income, expense or saving. Waits for the server, then goes to the list. */
-export function TransactionForm({ type }: { type: SimpleTransactionType }) {
+/**
+ * Income, expense or saving. Waits for the server, then goes to the list.
+ * With `transaction` it edits that row: the type is fixed and saving sends a PATCH.
+ */
+export function TransactionForm({ type, transaction }: { type: SimpleTransactionType; transaction?: Transaction }) {
   const router = useRouter();
+  const backToList = useBackToList();
   const today = todayInJakarta();
   const {
     register,
@@ -38,16 +45,36 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, SimpleCreateInput>({
     resolver: zodResolver(simpleCreateSchema),
-    defaultValues: { type, amount: 0, date: today, accountId: "", categoryId: "", description: "" },
+    defaultValues: transaction
+      ? {
+          type,
+          amount: transaction.amount,
+          date: transaction.date,
+          accountId: transaction.accountId,
+          categoryId: transaction.categoryId ?? "",
+          description: transaction.description ?? "",
+        }
+      : { type, amount: 0, date: today, accountId: "", categoryId: "", description: "" },
   });
   const [accountId, amount] = useWatch({ control, name: ["accountId", "amount"] });
-  const warning = useShortBalanceWarning(accountId, type === "income" ? amount : -amount);
+  const warning = useShortBalanceWarning(
+    accountId,
+    signedEffect(type, amount),
+    transaction && { accountId: transaction.accountId, effect: signedEffect(type, transaction.amount) },
+  );
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      await createTransaction(input);
-      toast.success(`${TRANSACTION_TYPE_LABELS[type]} tersimpan`);
-      router.push("/transactions");
+      if (transaction) {
+        const { amount, date, accountId, categoryId, description } = input;
+        await updateTransaction(transaction.id, { amount, date, accountId, categoryId, description });
+        toast.success("Perubahan tersimpan");
+        backToList();
+      } else {
+        await createTransaction(input);
+        toast.success(`${TRANSACTION_TYPE_LABELS[type]} tersimpan`);
+        router.push("/transactions");
+      }
     } catch (err) {
       if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan transaksi. Coba lagi.");
     }
@@ -55,6 +82,12 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      {transaction && (
+        <p className="text-sm text-muted-foreground">
+          Jenis: <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span> (tidak bisa diubah)
+        </p>
+      )}
+
       <Controller
         control={control}
         name="amount"
@@ -81,6 +114,7 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
               id="transaction-account"
               value={field.value}
               onChange={field.onChange}
+              keep={transaction?.accountId}
               invalid={!!errors.accountId}
               describedBy="transaction-account-message"
             />
@@ -96,6 +130,7 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
             <CategoryPicker
               id="transaction-category"
               kind={CATEGORY_KIND_FOR[type]}
+              keep={transaction?.categoryId ?? undefined}
               value={field.value}
               onChange={field.onChange}
               invalid={!!errors.categoryId}

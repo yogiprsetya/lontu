@@ -6,6 +6,7 @@ import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { archiveLabel, selectableItems } from "@/lib/archived";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useUIStore } from "@/stores/ui";
 
@@ -15,14 +16,16 @@ type AccountPickerProps = {
   onChange: (id: string) => void;
   /** Leaves this account out, e.g. the source when picking a transfer destination. */
   exclude?: string;
+  /** The stored account of a transaction being edited: still offered, labelled "(arsip)", if archived. */
+  keep?: string;
   invalid?: boolean;
   describedBy?: string;
 };
 
 /** Active accounts only. With exactly one choice it is picked for the user. */
-export function AccountPicker({ id, value, onChange, exclude, invalid, describedBy }: AccountPickerProps) {
-  const { data: all, error, mutate } = useAccounts();
-  const data = all?.filter((a) => a.id !== exclude);
+export function AccountPicker({ id, value, onChange, exclude, keep, invalid, describedBy }: AccountPickerProps) {
+  const { data: all, error, mutate } = useAccounts({ includeArchived: !!keep });
+  const data = all && selectableItems(all, keep).filter((a) => a.id !== exclude);
   const open = useUIStore((s) => s.open);
   const onlyAccount = data?.length === 1 ? data[0].id : undefined;
 
@@ -45,7 +48,7 @@ export function AccountPicker({ id, value, onChange, exclude, invalid, described
     );
   }
 
-  const items = data.map((a) => ({ value: a.id, label: a.name }));
+  const items = data.map((a) => ({ value: a.id, label: archiveLabel(a) }));
 
   return (
     <Select items={items} value={value || null} onValueChange={(v) => v && onChange(v)}>

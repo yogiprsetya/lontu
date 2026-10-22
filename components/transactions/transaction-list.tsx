@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,17 +43,19 @@ function titleOf(t: Transaction, accounts: Names, categories: Names) {
 
 function Row({ t, accounts, categories, hideAmounts }: { t: Transaction; accounts: Names; categories: Names; hideAmounts: boolean }) {
   return (
-    <li className="flex min-h-14 items-center justify-between gap-3 py-2">
-      <div className="min-w-0">
-        <p className="truncate font-medium">{titleOf(t, accounts, categories)}</p>
-        <p className="truncate text-sm text-muted-foreground">
-          {accounts.get(t.accountId) ?? "Akun"}
-          {t.description && ` · ${t.description}`}
+    <li>
+      <Link href={`/transactions/${t.id}`} className="flex min-h-14 items-center justify-between gap-3 py-2">
+        <div className="min-w-0">
+          <p className="truncate font-medium">{titleOf(t, accounts, categories)}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {accounts.get(t.accountId) ?? "Akun"}
+            {t.description && ` · ${t.description}`}
+          </p>
+        </div>
+        <p className={cn("shrink-0 font-medium tabular-nums", TONE_CLASS[amountTone(t.type, t.amount)])}>
+          {hideAmounts ? "Rp•••••" : formatSignedAmount(t.type, t.amount)}
         </p>
-      </div>
-      <p className={cn("shrink-0 font-medium tabular-nums", TONE_CLASS[amountTone(t.type, t.amount)])}>
-        {hideAmounts ? "Rp•••••" : formatSignedAmount(t.type, t.amount)}
-      </p>
+      </Link>
     </li>
   );
 }

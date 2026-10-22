@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { balanceAfter } from "@/lib/transaction-balance";
+import { balanceAfter, signedEffect } from "@/lib/transaction-balance";
 
 describe("balanceAfter", () => {
   it("is not short when the balance lands exactly on zero", () => {
@@ -32,5 +32,13 @@ describe("balanceAfter", () => {
       after: -5_000,
       short: true,
     });
+  });
+});
+
+describe("signedEffect", () => {
+  it("adds for income and subtracts for expense and saving", () => {
+    expect(signedEffect("income", 5_000)).toBe(5_000);
+    expect(signedEffect("expense", 5_000)).toBe(-5_000);
+    expect(signedEffect("saving", 5_000)).toBe(-5_000);
   });
 });

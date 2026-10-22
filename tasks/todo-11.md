@@ -39,7 +39,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] Id tidak ada → keadaan "Transaksi tidak ditemukan" dengan tautan kembali. Form create (`/add/*`) tetap berfungsi seperti sebelumnya
 
 **Verification:**
-- [ ] `tests/unit/transaction-balance.spec.ts` sudah mencakup `previousEffect` (T25). `pnpm build` hijau
+- [x] `tests/unit/transaction-balance.spec.ts` sudah mencakup `previousEffect` (T25). `pnpm build` hijau
 - [ ] Manual 360×800 dan 1024: edit, edit dengan akun terarsip, id ngawur, lalu cek ulang alur create
 
 **Dependencies:** T24, T25, T28, T34

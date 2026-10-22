@@ -8,13 +8,18 @@ import { ModalHost } from "@/components/modals/modal-host";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex flex-1">
-      <Sidebar />
+      {/* usePathname is unknown at prerender on dynamic routes such as /transactions/[id]. */}
+      <Suspense fallback={null}>
+        <Sidebar />
+      </Suspense>
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <Suspense fallback={<PageSkeleton />}>
           <RequireSession>{children}</RequireSession>
         </Suspense>
       </div>
-      <BottomNav />
+      <Suspense fallback={null}>
+        <BottomNav />
+      </Suspense>
       <ModalHost />
     </div>
   );

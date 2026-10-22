@@ -14,3 +14,8 @@ export function balanceAfter({ balance, subtype, effect, previousEffect = 0 }: B
   const after = balance - previousEffect + effect;
   return { after, short: effect < 0 && after < 0 && subtype !== "credit_card" };
 }
+
+/** Signed change a simple transaction makes to its account. */
+export function signedEffect(type: "income" | "expense" | "saving", amount: number) {
+  return type === "income" ? amount : -amount;
+}

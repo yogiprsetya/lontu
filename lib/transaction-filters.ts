@@ -124,3 +124,17 @@ export function formatPeriodLabel(period: Period) {
   if (YEAR.test(period)) return period;
   return monthLabel.format(new Date(`${period}-01T00:00:00Z`));
 }
+
+/** `<period>` in the download name; a range that is not a whole month or year is spelled out. */
+export function exportFilename({ from, to }: { from?: string; to?: string }) {
+  if (!from && !to) return "lontu-transaksi-semua.csv";
+  const month = from?.slice(0, 7);
+  if (from && to && month && periodToRange(month).from === from && periodToRange(month).to === to) {
+    return `lontu-transaksi-${month}.csv`;
+  }
+  const year = from?.slice(0, 4);
+  if (from && to && year && periodToRange(year).from === from && periodToRange(year).to === to) {
+    return `lontu-transaksi-${year}.csv`;
+  }
+  return `lontu-transaksi-${from ?? ""}_${to ?? ""}.csv`;
+}

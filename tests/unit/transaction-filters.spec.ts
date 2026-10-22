@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   filtersToSearchParams,
   countActiveFilters,
+  exportFilename,
   filtersToUrl,
   formatPeriodLabel,
   normalizeFilters,
@@ -185,5 +186,25 @@ describe("normalizeFilters with lockedType", () => {
       type: "expense",
       categoryId: CATEGORY,
     });
+  });
+});
+
+describe("exportFilename", () => {
+  it.each([
+    [{ from: "2026-10-01", to: "2026-10-31" }, "lontu-transaksi-2026-10.csv"],
+    [{ from: "2028-02-01", to: "2028-02-29" }, "lontu-transaksi-2028-02.csv"],
+    [{ from: "2026-01-01", to: "2026-12-31" }, "lontu-transaksi-2026.csv"],
+    [{}, "lontu-transaksi-semua.csv"],
+    [{ from: "2026-10-05", to: "2026-10-20" }, "lontu-transaksi-2026-10-05_2026-10-20.csv"],
+    [{ from: "2026-10-05" }, "lontu-transaksi-2026-10-05_.csv"],
+  ])("%j → %s", (range, name) => {
+    expect(exportFilename(range)).toBe(name);
+  });
+
+  it("agrees with periodToRange for every period shape", () => {
+    for (const period of ["2026-10", "2026", "all"]) {
+      const name = exportFilename(periodToRange(period));
+      expect(name).toBe(`lontu-transaksi-${period === "all" ? "semua" : period}.csv`);
+    }
   });
 });

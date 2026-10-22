@@ -33,13 +33,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `lib/csv.ts`: `toCSV(rows)` murni (escape, penjaga formula hanya untuk sel teks, BOM). `lib/server/transaction-export.ts`: ambil semua baris terfilter dengan urutan daftar, gabungkan nama akun/tujuan/kategori dan `spending_type` (Needs/Wants), label tipe ("Penyesuaian" untuk adjustment), lalu panggil `toCSV`. `app/api/transactions/export/route.ts` `GET` dengan filter yang sama (`cursor`/`limit` diabaikan) → 200 `text/csv; charset=utf-8`, `Content-Disposition: attachment; filename="lontu-transaksi-<period|semua>.csv"`. Kolom: `Tanggal, Jenis, Jumlah, Akun, Akun Tujuan, Kategori, Needs/Wants, Deskripsi`. Tes ditulis lebih dulu.
 
 **Acceptance criteria:**
-- [ ] Respons diawali BOM dan baris header. Jumlah baris data sama dengan jumlah baris `GET /api/transactions` pada filter yang sama (semua halaman), dengan urutan yang sama
-- [ ] Nama akun/kategori terarsip terisi. `description` `=1+1` keluar sebagai `'=1+1`. `Jumlah` adjustment negatif tetap `-50000`. Koma, kutip, dan newline di deskripsi ter-escape
-- [ ] Filter tidak valid → 400. Isolasi: CSV user B tidak pernah memuat data A. Tanpa session → 401. Baris soft-deleted tidak ikut
+- [x] Respons diawali BOM dan baris header. Jumlah baris data sama dengan jumlah baris `GET /api/transactions` pada filter yang sama (semua halaman), dengan urutan yang sama
+- [x] Nama akun/kategori terarsip terisi. `description` `=1+1` keluar sebagai `'=1+1`. `Jumlah` adjustment negatif tetap `-50000`. Koma, kutip, dan newline di deskripsi ter-escape
+- [x] Filter tidak valid → 400. Isolasi: CSV user B tidak pernah memuat data A. Tanpa session → 401. Baris soft-deleted tidak ikut
 
 **Verification:**
-- [ ] `pnpm vitest run tests/unit/csv.spec.ts tests/api/transactions-export.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/csv.spec.ts tests/api/transactions-export.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T29
 

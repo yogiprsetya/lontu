@@ -9,7 +9,7 @@ Index: [plan.md](plan.md) · Todo: [todo-12.md](todo-12.md) · Spec: [SPEC-trans
 ## Task
 
 - [x] T39: `/expenses` sebagai preset filter (S)
-- [ ] T40: `GET /api/transactions/export` (M)
+- [x] T40: `GET /api/transactions/export` (M)
 - [ ] T41: Menu "Ekspor CSV" di header daftar (XS)
 
 Urutan: T39 dan T40 bebas urutan. T41 butuh T40 dan T31.

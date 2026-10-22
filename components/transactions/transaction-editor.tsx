@@ -33,13 +33,13 @@ function DeleteButton({ id }: { id: string }) {
   const backToList = useBackToList();
   const [deleting, setDeleting] = useState(false);
 
-  // The row leaves the list right away; the toast reports how the server answered.
+  // The cached list drops the row at once; we only leave this page once the server agrees,
+  // so a failed delete keeps the user here with the row still in front of them.
   async function onDelete() {
     setDeleting(true);
-    const request = deleteTransaction(id);
-    backToList();
     try {
-      await request;
+      await deleteTransaction(id);
+      backToList();
       toast("Transaksi dihapus", {
         duration: UNDO_MS,
         action: {

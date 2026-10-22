@@ -25,8 +25,13 @@ export function periodMode(period: Period): PeriodMode {
   return YEAR.test(period) ? "year" : "month";
 }
 
+// Matches MIN_TRANSACTION_DATE: nothing can be recorded earlier, and a shorter year would parse as another mode.
+const MIN_YEAR = 2000;
+
 function isPeriod(value: string | null): value is Period {
-  return value !== null && (value === "all" || YEAR.test(value) || MONTH.test(value));
+  if (value === null) return false;
+  if (value === "all") return true;
+  return (YEAR.test(value) || MONTH.test(value)) && Number(value.slice(0, 4)) >= MIN_YEAR;
 }
 
 function validUuid(value: string | null) {
@@ -104,9 +109,13 @@ export function normalizeFilters(
 
 export function shiftPeriod(period: Period, delta: 1 | -1): Period {
   if (period === "all") return period;
-  if (YEAR.test(period)) return String(Number(period) + delta);
+  if (YEAR.test(period)) {
+    const year = Number(period) + delta;
+    return year < MIN_YEAR ? period : String(year);
+  }
   const [, year, month] = MONTH.exec(period) ?? [];
   const index = Number(year) * 12 + (Number(month) - 1) + delta;
+  if (Math.floor(index / 12) < MIN_YEAR) return period;
   return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
 }
 

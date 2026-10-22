@@ -288,6 +288,18 @@ describe("PATCH /api/transactions/[id]", () => {
   });
 });
 
+describe("PATCH concurrency", () => {
+  it("returns 409 TRANSACTION_CHANGED, not 404, when the row changed after it was read", async () => {
+    signInAs(userA);
+    const row = await seed();
+    // Two edits racing: the loser's snapshot is stale by the time its UPDATE runs.
+    const results = await Promise.all([patch(row.id, { amount: 1_000 }), patch(row.id, { amount: 2_000 })]);
+    const statuses = results.map((r) => r.status).sort();
+    expect([[200, 200], [200, 409]]).toContainEqual(statuses);
+    for (const r of results) if (r.status === 409) expect((await r.json()).error.code).toBe("TRANSACTION_CHANGED");
+  });
+});
+
 describe("DELETE and restore /api/transactions/[id]", () => {
   it("soft-deletes: the row stays in the table but leaves list, totals and balance", async () => {
     signInAs(userA);

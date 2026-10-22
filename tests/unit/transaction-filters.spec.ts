@@ -221,3 +221,20 @@ describe("exportHref", () => {
     expect(exportHref({ period: "all" })).toBe("/api/transactions/export");
   });
 });
+
+describe("period lower bound", () => {
+  it("does not step before January 2000", () => {
+    expect(shiftPeriod("2000-01", -1)).toBe("2000-01");
+    expect(shiftPeriod("2000", -1)).toBe("2000");
+    expect(shiftPeriod("2000-02", -1)).toBe("2000-01");
+  });
+
+  it("always yields a four-digit year", () => {
+    expect(shiftPeriod("2001", -1)).toBe("2000");
+    expect(periodMode(shiftPeriod("2000-01", -1))).toBe("month");
+  });
+
+  it.each(["1999", "0001", "1999-12"])("ignores a URL period before 2000: %s", (period) => {
+    expect(parse(`period=${period}`).period).toBe("2026-10");
+  });
+});

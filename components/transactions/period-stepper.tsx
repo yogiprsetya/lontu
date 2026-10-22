@@ -33,7 +33,7 @@ export function PeriodStepper({ period, onChange }: { period: Period; onChange: 
           variant="outline"
           className="size-11 shrink-0"
           aria-label="Periode sebelumnya"
-          disabled={mode === "all"}
+          disabled={shiftPeriod(period, -1) === period}
           onClick={() => onChange(shiftPeriod(period, -1))}
         >
           <ChevronLeftIcon aria-hidden />

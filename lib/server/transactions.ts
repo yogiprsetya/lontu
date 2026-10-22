@@ -186,6 +186,7 @@ export type UpdateResult =
   | { transaction: Transaction }
   | { notFound: true }
   | { notEditable: true }
+  | { changed: true }
   | { validation: z.ZodError }
   | { invalid: InvalidReference };
 
@@ -206,7 +207,10 @@ async function checkChangedReferences(userId: string, row: Row, input: Transacti
 
 export async function updateTransaction(userId: string, id: string, body: unknown): Promise<UpdateResult> {
   if (!isUuid(id)) return { notFound: true };
-  const [row] = await db.select().from(transactions).where(ownedLiveRow(userId, id));
+  const [row] = await db
+    .select({ ...getTableColumns(transactions), version: sql<string>`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint` })
+    .from(transactions)
+    .where(ownedLiveRow(userId, id));
   if (!row) return { notFound: true };
   if (row.type === "adjustment") return { notEditable: true };
 
@@ -227,9 +231,11 @@ export async function updateTransaction(userId: string, id: string, body: unknow
   const [updated] = await db
     .update(transactions)
     .set({ ...input, updatedAt: sql`now()` })
-    .where(ownedLiveRow(userId, id))
+    // Compared in microseconds (a JS Date would truncate): only if nobody changed the row since the checks above read it.
+    .where(and(ownedLiveRow(userId, id), sql`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint = ${row.version}::bigint`))
     .returning();
-  return updated ? { transaction: toTransaction(updated) } : { notFound: true };
+  if (updated) return { transaction: toTransaction(updated) };
+  return (await getTransaction(userId, id)) ? { changed: true } : { notFound: true };
 }
 
 async function findAnyTransaction(userId: string, id: string) {

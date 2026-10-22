@@ -11,7 +11,7 @@ Dari ponsel, pemilik bisa mencatat income, expense, saving, dan transfer (dengan
 - [x] T22: `POST /api/transactions` income/expense/saving (M)
 - [x] T23: `POST` transfer + biaya admin atomik (M, risiko sedang)
 - [x] T24: Form income/expense/saving di `/add/[type]` (M)
-- [ ] T25: Peringatan saldo kurang (S)
+- [x] T25: Peringatan saldo kurang (S)
 - [ ] T26: Form transfer + biaya admin (M)
 
 Urutan: T22 → T23 dan T22 → T24 → T25 → T26. T23 dan T24 tidak saling bergantung dan bisa paralel. T26 butuh T23 (API fee) dan T25 (peringatan saldo).

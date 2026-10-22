@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -12,9 +12,11 @@ import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAccounts } from "@/hooks/use-accounts";
 import { createTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
+import { formatIDR } from "@/lib/money";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
 import {
   MIN_TRANSACTION_DATE,
@@ -22,7 +24,9 @@ import {
   type SimpleTransactionType,
   simpleCreateSchema,
 } from "@/lib/schemas/transaction";
+import { balanceAfter } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
+import { useUIStore } from "@/stores/ui";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
@@ -40,6 +44,8 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
     resolver: zodResolver(simpleCreateSchema),
     defaultValues: { type, amount: 0, date: today, accountId: "", categoryId: "", description: "" },
   });
+  const [accountId, amount] = useWatch({ control, name: ["accountId", "amount"] });
+  const warning = useShortBalanceWarning(accountId, type === "income" ? amount : -amount);
 
   const onSubmit = handleSubmit(async (input) => {
     try {
@@ -74,7 +80,7 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
         control={control}
         name="accountId"
         render={({ field }) => (
-          <FormField id="transaction-account" label="Akun" error={errors.accountId?.message}>
+          <FormField id="transaction-account" label="Akun" error={errors.accountId?.message} hint={warning}>
             <AccountPicker
               id="transaction-account"
               value={field.value}
@@ -133,5 +139,23 @@ export function TransactionForm({ type }: { type: SimpleTransactionType }) {
         Simpan
       </Button>
     </form>
+  );
+}
+
+/** Non-blocking: the server accepts negative balances. */
+function useShortBalanceWarning(accountId: string, effect: number) {
+  const { data } = useAccounts();
+  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const account = data?.find((a) => a.id === accountId);
+  if (!account) return undefined;
+
+  const { after, short } = balanceAfter({ balance: account.balance, subtype: account.subtype, effect });
+  if (!short) return undefined;
+  return (
+    <span className="text-expense">
+      {hideAmounts
+        ? `Saldo ${account.name} tidak cukup.`
+        : `Saldo ${account.name} ${formatIDR(account.balance)} tidak cukup, akan menjadi ${formatIDR(after)}.`}
+    </span>
   );
 }

@@ -81,13 +81,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `lib/transaction-balance.ts`: `balanceAfter({ balance, subtype, effect, previousEffect = 0 })` mengembalikan `{ after, short }`, dengan `after = balance − previousEffect + effect` dan `short = after < 0 && subtype !== "credit_card"`. `effect` adalah perubahan bertanda pada akun (expense/saving/transfer sumber: negatif). Hubungkan ke `transaction-form.tsx`: teks peringatan di bawah picker akun ("Saldo {akun} Rp… tidak cukup, akan menjadi −Rp…"), mengikuti `hideAmounts`. Tombol Simpan tetap aktif.
 
 **Acceptance criteria:**
-- [ ] Expense/saving yang melebihi saldo akun (bukan `credit_card`) → peringatan tampil, Simpan tetap bisa ditekan dan tersimpan. Income dan akun `credit_card` tidak memicu peringatan
-- [ ] `balanceAfter` memperhitungkan `previousEffect` (mode edit): saldo DB 70.000 sesudah expense lama 30.000, diubah menjadi 90.000 → `after = 10000`, `short = false`
-- [ ] Dengan `hideAmounts` aktif, peringatan tidak menampilkan nominal
+- [x] Expense/saving yang melebihi saldo akun (bukan `credit_card`) → peringatan tampil, Simpan tetap bisa ditekan dan tersimpan. Income dan akun `credit_card` tidak memicu peringatan
+- [x] `balanceAfter` memperhitungkan `previousEffect` (mode edit): saldo DB 70.000 sesudah expense lama 30.000, diubah menjadi 90.000 → `after = 10000`, `short = false`
+- [x] Dengan `hideAmounts` aktif, peringatan tidak menampilkan nominal
 
 **Verification:**
-- [ ] `tests/unit/transaction-balance.spec.ts` hijau (kasus: tepat nol bukan kurang, negatif, `credit_card`, `previousEffect`, efek positif)
-- [ ] Manual: expense melebihi saldo di 360 px
+- [x] `tests/unit/transaction-balance.spec.ts` hijau (kasus: tepat nol bukan kurang, negatif, `credit_card`, `previousEffect`, efek positif)
+- [x] Manual: expense melebihi saldo di 360 px
+
+**Catatan:** `short` juga mensyaratkan `effect < 0`, karena rumus di deskripsi akan memperingatkan income ke akun yang sudah minus, padahal AC melarang income memicu peringatan. Peringatan dipasang sebagai `hint` di field akun, jadi ikut `aria-describedby` picker, berwarna `text-expense`. Diverifikasi headless di 360: tepat nol → tanpa peringatan, 150.000 dari 100.000 → "Saldo BCA Rp100.000 tidak cukup, akan menjadi -Rp50.000.", akun `credit_card` → tanpa peringatan, `hideAmounts` → "Saldo BCA tidak cukup.", Simpan tetap jalan (saldo −50.000), income ke akun minus → tanpa peringatan.
 
 **Dependencies:** T24
 

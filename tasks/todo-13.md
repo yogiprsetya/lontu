@@ -36,13 +36,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Expense 1.300.000 di Makan (budget 1.500.000, termasuk satu biaya admin transfer) → `spent 1300000`, `remaining 200000`, `percent 86`, `warning`. Expense tanggal 1 dan hari terakhir bulan ikut. Bulan lain, terhapus, transfer, saving, adjustment tidak ikut
-- [ ] `summary.total.spent` = `transactionTotals({ from, to }).expense`. `unbudgetedSpent` per grup benar. Kategori terarsip tanpa budget dan tanpa pengeluaran tidak muncul. Budget yang di-soft-delete (diset langsung di DB) → `budget null`, `status none`
-- [ ] `period` hilang/tidak valid → 400 `fields.period`. Isolasi: B tidak melihat kategori, budget, atau pengeluaran A. Tanpa session → 401
+- [x] Expense 1.300.000 di Makan (budget 1.500.000, termasuk satu biaya admin transfer) → `spent 1300000`, `remaining 200000`, `percent 86`, `warning`. Expense tanggal 1 dan hari terakhir bulan ikut. Bulan lain, terhapus, transfer, saving, adjustment tidak ikut
+- [x] `summary.total.spent` = `transactionTotals({ from, to }).expense`. `unbudgetedSpent` per grup benar. Kategori terarsip tanpa budget dan tanpa pengeluaran tidak muncul. Budget yang di-soft-delete (diset langsung di DB) → `budget null`, `status none`
+- [x] `period` hilang/tidak valid → 400 `fields.period`. Isolasi: B tidak melihat kategori, budget, atau pengeluaran A. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budget-usage.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budget-usage.spec.ts` hijau
 
 **Dependencies:** T42
 

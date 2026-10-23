@@ -3,6 +3,7 @@
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
 import { revalidateAccounts } from "@/hooks/use-accounts";
+import { isBudgetsKey } from "@/hooks/use-budgets";
 import { sendJSON } from "@/lib/fetcher";
 import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
@@ -19,9 +20,9 @@ export function isInfiniteTransactionsKey(key: unknown) {
   return isTransactionsKey(key) && (key as string).startsWith("$inf$");
 }
 
-/** Refreshes every list, totals and detail entry under /api/transactions. */
+/** Refreshes every list, totals and detail entry under /api/transactions, and budget usage built on them. */
 export function revalidateTransactions() {
-  return mutate(isTransactionsKey);
+  return mutate((key) => isTransactionsKey(key) || isBudgetsKey(key));
 }
 
 export async function createTransaction(input: TransactionCreateInput) {

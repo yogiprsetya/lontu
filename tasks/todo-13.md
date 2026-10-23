@@ -80,13 +80,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `isBudgetsKey` cocok dengan `/api/budgets?period=…` dan `/api/budgets/suggestion?…`, tidak cocok dengan `/api/budgetsx` atau `/api/transactions`
-- [ ] `revalidateTransactions()` memanggil `mutate` dengan matcher yang menerima key budget (dites dengan mock `mutate`)
-- [ ] Tidak ada data budget di Zustand
+- [x] `isBudgetsKey` cocok dengan `/api/budgets?period=…` dan `/api/budgets/suggestion?…`, tidak cocok dengan `/api/budgetsx` atau `/api/transactions`
+- [x] `revalidateTransactions()` memanggil `mutate` dengan matcher yang menerima key budget (dites dengan mock `mutate`)
+- [x] Tidak ada data budget di Zustand
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-budgets.spec.ts tests/unit/use-transactions.spec.ts tests/unit/use-categories.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/use-budgets.spec.ts tests/unit/use-transactions.spec.ts tests/unit/use-categories.spec.ts` hijau
 
 **Dependencies:** T43, T44
 

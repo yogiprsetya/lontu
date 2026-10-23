@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR, { mutate } from "swr";
+import { revalidateBudgets } from "@/hooks/use-budgets";
 import { sendJSON } from "@/lib/fetcher";
 import type { Category, CategoryCreateInput, CategoryKind } from "@/lib/schemas/category";
 
@@ -49,12 +50,13 @@ export async function renameCategory(id: string, name: string) {
 
 export async function archiveCategory(id: string) {
   const category = await sendJSON<Category>(`/api/categories/${id}`, "DELETE");
-  await revalidateCategories();
+  // Usage rows depend on whether a category is archived.
+  await Promise.all([revalidateCategories(), revalidateBudgets()]);
   return category;
 }
 
 export async function restoreCategory(id: string) {
   const category = await sendJSON<Category>(`/api/categories/${id}/restore`, "POST");
-  await revalidateCategories();
+  await Promise.all([revalidateCategories(), revalidateBudgets()]);
   return category;
 }

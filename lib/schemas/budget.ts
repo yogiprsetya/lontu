@@ -82,6 +82,16 @@ export type BudgetSetInput = z.infer<typeof budgetSetSchema>;
 
 export const budgetCopySchema = z.strictObject({ to: budgetPeriodSchema });
 
+export const budgetSuggestionQuerySchema = z.object({
+  period: budgetPeriodSchema,
+  income: z.coerce
+    .number("Income tidak valid")
+    .int("Income harus bilangan bulat rupiah")
+    .min(0, "Income minimal Rp0")
+    .max(1e12, "Maksimal 1 triliun")
+    .optional(),
+});
+
 export function periodToYearMonth(period: BudgetPeriod) {
   return { year: Number(period.slice(0, 4)), month: Number(period.slice(5, 7)) };
 }

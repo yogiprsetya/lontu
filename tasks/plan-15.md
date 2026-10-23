@@ -9,7 +9,7 @@ Pemilik membuka "Saran 50/30/20", melihat pool Needs/Wants/Saving dari income bu
 ## Task
 
 - [x] T52: `suggestBudgets` murni (S)
-- [ ] T53: `GET /api/budgets/suggestion` + query riwayat (M)
+- [x] T53: `GET /api/budgets/suggestion` + query riwayat (M)
 - [ ] T54: Panel saran di UI (M)
 
 Urutan: T52 → T53 → T54. T52 bisa dikerjakan kapan saja setelah T42.

@@ -34,13 +34,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Income September 10.000.000, riwayat Juli–September → respons sesuai T52 dengan `basisSource "previous_month"`. `income=7777777` → `"input"`. `current` terisi untuk kategori yang punya budget Oktober
-- [ ] Pengeluaran bulan berjalan, terhapus, dan kategori terarsip tidak ikut. Rentang lintas tahun (`period 2026-02` → Nov–Jan) benar
-- [ ] Tidak menulis baris apa pun. Isolasi: B tidak memakai income/pengeluaran A. Query tidak valid → 400. Tanpa session → 401
+- [x] Income September 10.000.000, riwayat Juli–September → respons sesuai T52 dengan `basisSource "previous_month"`. `income=7777777` → `"input"`. `current` terisi untuk kategori yang punya budget Oktober
+- [x] Pengeluaran bulan berjalan, terhapus, dan kategori terarsip tidak ikut. Rentang lintas tahun (`period 2026-02` → Nov–Jan) benar
+- [x] Tidak menulis baris apa pun. Isolasi: B tidak memakai income/pengeluaran A. Query tidak valid → 400. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budget-suggestion.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budget-suggestion.spec.ts` hijau
 
 **Dependencies:** T52
 

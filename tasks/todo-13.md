@@ -14,7 +14,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 - [x] Migrasi hanya berisi `ALTER TABLE "budgets" ADD COLUMN "deleted_at" timestamp with time zone`. Baris lama `deleted_at = null`
 - [x] `budgetPeriodSchema`: `2026-13`, `2026-1`, `1999-12`, dua bulan ke depan → gagal. Bulan depan lolos, termasuk Desember → Januari tahun berikutnya (fake timer). `monthRange("2028-02")` → `2028-02-01..2028-02-29`
-- [x] `budgetStatus`: 79% `ok`, 80% dan 100% `warning`, 101% `over`, `(0, 0)` `ok` dengan `percent = null`, `(0, 1)` `over`, `(null, x)` `none`. `percent` dibulatkan ke bawah, `remaining` boleh negatif
+- [x] `budgetStatus`: 79% `ok`, 80% dan 99% `warning`, 100% (sisa 0) dan 101% `over`, `(0, 0)` `ok` dengan `percent = null`, `(0, 1)` `over`, `(null, x)` `none`. `percent` dibulatkan ke bawah, `remaining` boleh negatif
 - [x] `budgetSetSchema` menolak `items` kosong/>100, `categoryId` ganda, `amount` −1/1.5/`"100"`/>1e12, field tak dikenal (`userId`)
 
 **Verification:**
@@ -102,14 +102,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `/budget?period=2026-10` bertahan setelah refresh. Stepper tidak melewati bulan depan, tombol ≥ 44 px
-- [ ] Angka sama dengan respons `GET`. Status terbaca tanpa warna. Warna `--budget` untuk warning, `--expense` untuk over
-- [ ] Catat expense dari **+** lalu kembali → angka berubah tanpa reload
-- [ ] 360 px tanpa horizontal scroll. `pnpm build` hijau (Suspense)
+- [x] `/budget?period=2026-10` bertahan setelah refresh. Stepper tidak melewati bulan depan, tombol ≥ 44 px
+- [x] Angka sama dengan respons `GET`. Status terbaca tanpa warna. Warna `--budget` untuk warning, `--expense` untuk over
+- [x] Catat expense dari **+** lalu kembali → angka berubah tanpa reload
+- [x] 360 px tanpa horizontal scroll. `pnpm build` hijau (Suspense)
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T45
@@ -126,13 +126,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Atur → simpan → baris dan ringkasan berubah tanpa reload. Edit nominal yang ada mengisi nilai lama
-- [ ] Budget 0 tersimpan dan berstatus `over` jika ada pengeluaran
-- [ ] Galat 400 tampil di form. Input 16 px, target ≥ 44 px, keyboard tidak menutupi Simpan di 360×800
+- [x] Atur → simpan → baris dan ringkasan berubah tanpa reload. Edit nominal yang ada mengisi nilai lama
+- [x] Budget 0 tersimpan dan berstatus `over` jika ada pengeluaran
+- [x] Galat 400 tampil di form. Input 16 px, target ≥ 44 px, keyboard tidak menutupi Simpan di 360×800
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024
+- [x] Manual 360×800 dan 1024
 - [x] `pnpm build` hijau
 
 **Dependencies:** T46
@@ -146,5 +146,5 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ### Checkpoint L
 
 - [x] Gerbang penuh hijau
-- [ ] Alur atur → catat expense → status berubah di 360×800 dan 1024
-- [ ] Review dengan Yogi
+- [x] Alur atur → catat expense → status berubah di 360×800 dan 1024
+- [x] Review dengan Yogi

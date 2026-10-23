@@ -22,7 +22,7 @@ Nomor 1–4 diputuskan Yogi pada 2026-10-23. Sisanya usulan untuk direview.
 5. **Set budget = upsert pada kunci `(kategori, bulan)`**, bukan create + edit per id. `PUT` yang sama dua kali menghasilkan keadaan yang sama, jadi `pwa-offline` bisa memutar ulang antrean tanpa id dari client. Baris yang sudah di-soft-delete dihidupkan lagi oleh upsert, sehingga index unik yang ada tetap penuh (tidak parsial).
 6. **Periode = `YYYY-MM`, dari 2000-01 sampai bulan depan (Asia/Jakarta).** Bulan depan diizinkan supaya budget bisa disiapkan di akhir bulan. Periode hidup di URL (`/budget?period=2026-10`), tidak di `usePeriodStore`, sama dengan keputusan #10 transactions.
 7. **Terpakai = `sum(amount)` transaksi `expense` tak terhapus** dengan `date` di bulan itu. Transfer, adjustment, dan saving tidak dihitung. Biaya admin transfer adalah expense biasa, jadi ikut terhitung.
-8. **Status per kategori:** `none` (tanpa budget), `ok` (< 80%), `warning` (≥ 80% dan ≤ 100%), `over` (> 100%, atau budget 0 dengan pengeluaran > 0). Dihitung oleh satu fungsi murni yang dipakai server dan client.
+8. **Status per kategori:** `none` (tanpa budget), `ok` (< 80%), `warning` (≥ 80% dan sisa > 0), `over` (sisa ≤ 0, yaitu terpakai ≥ budget, atau budget 0 dengan pengeluaran > 0). Dihitung oleh satu fungsi murni yang dipakai server dan client.
 9. **`amount` budget 0..1e12.** Budget 0 berarti "jangan belanja di kategori ini", bukan "tanpa budget".
 10. **Arsip kategori tidak menyentuh budget-nya.** Kategori terarsip tidak bisa diberi budget baru dan dilewati saat salin atau saran, tetapi budget lama dan pengeluarannya tetap tampil dengan label "(arsip)".
 11. **Respons memakai id, nama di-resolve di client** dari `useCategories({ includeArchived: true })`, sama dengan keputusan #8 transactions. `spendingType` ikut di respons karena pengelompokan dihitung di server.
@@ -185,7 +185,7 @@ Data dari DB (`lib/server/queries/budget-history.ts`), pembagian di fungsi murni
 
 - [ ] `PUT { period: "2026-10", items: [{ categoryId: <Makan>, amount: 1500000 }] }` → 200, `GET ?period=2026-10` memuat item Makan `budget = 1500000`. `PUT` kedua dengan 1.200.000 → id sama, `amount` berubah, tidak ada baris baru.
 - [ ] Dengan expense 1.300.000 di Makan bulan itu (termasuk satu biaya admin transfer): `spent = 1300000`, `remaining = 200000`, `percent = 86`, `status = "warning"`. Expense di bulan lain, expense terhapus, transfer, saving, dan adjustment tidak ikut.
-- [ ] Status: 79% → `ok`, 80% → `warning`, 100% → `warning`, 101% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`, tanpa budget → `none`.
+- [ ] Status: 79% → `ok`, 80% → `warning`, 99,99% (sisa > 0) → `warning`, 100% (sisa 0) → `over`, 101% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`, tanpa budget → `none`.
 - [ ] `summary.total.spent` sama dengan `GET /api/transactions/totals?from=…&to=…` `expense` untuk bulan yang sama, termasuk pengeluaran di kategori tanpa budget dan kategori terarsip. `unbudgetedSpent` benar per grup.
 - [ ] Kategori terarsip dengan budget atau pengeluaran di bulan itu tetap muncul. Kategori terarsip tanpa keduanya tidak muncul.
 - [ ] `PUT` dengan kategori income/saving, terarsip, milik user lain, atau tidak ada → 400 `fields.items`, dan **tidak ada baris** yang tertulis, termasuk untuk item lain yang valid. `categoryId` ganda, `items` kosong atau > 100, `amount` −1, 1.5, `"100"`, atau > 1e12 → 400. `period` `2026-13`, `1999-12`, atau dua bulan ke depan → 400 `fields.period`. Bulan depan → 200.

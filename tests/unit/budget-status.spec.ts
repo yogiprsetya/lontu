@@ -6,7 +6,8 @@ describe("budgetStatus", () => {
     [79_000, "ok", 79],
     [79_999, "ok", 79],
     [80_000, "warning", 80],
-    [100_000, "warning", 100],
+    [99_998, "warning", 99],
+    [100_000, "over", 100],
     [100_001, "over", 100],
     [101_000, "over", 101],
   ] as const)("spent %i of 100.000 is %s at %i%%", (spent, status, percent) => {

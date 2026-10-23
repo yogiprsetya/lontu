@@ -8,7 +8,7 @@ Dari ponsel, pemilik membuka `/budget`, memilih bulan, mengatur budget per kateg
 
 ## Task
 
-- [ ] T42: Migrasi `budgets.deleted_at`, schema Zod, `budgetStatus` (M)
+- [x] T42: Migrasi `budgets.deleted_at`, schema Zod, `budgetStatus` (M)
 - [ ] T43: `GET /api/budgets` + query `budgetUsage` (M, risiko tinggi)
 - [ ] T44: `PUT /api/budgets` upsert atomik (M)
 - [ ] T45: `hooks/use-budgets.ts` + matcher revalidasi lintas modul (S)

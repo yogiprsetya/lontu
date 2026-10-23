@@ -12,15 +12,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Migrasi hanya berisi `ALTER TABLE "budgets" ADD COLUMN "deleted_at" timestamp with time zone`. Baris lama `deleted_at = null`
-- [ ] `budgetPeriodSchema`: `2026-13`, `2026-1`, `1999-12`, dua bulan ke depan → gagal. Bulan depan lolos, termasuk Desember → Januari tahun berikutnya (fake timer). `monthRange("2028-02")` → `2028-02-01..2028-02-29`
-- [ ] `budgetStatus`: 79% `ok`, 80% dan 100% `warning`, 101% `over`, `(0, 0)` `ok` dengan `percent = null`, `(0, 1)` `over`, `(null, x)` `none`. `percent` dibulatkan ke bawah, `remaining` boleh negatif
-- [ ] `budgetSetSchema` menolak `items` kosong/>100, `categoryId` ganda, `amount` −1/1.5/`"100"`/>1e12, field tak dikenal (`userId`)
+- [x] Migrasi hanya berisi `ALTER TABLE "budgets" ADD COLUMN "deleted_at" timestamp with time zone`. Baris lama `deleted_at = null`
+- [x] `budgetPeriodSchema`: `2026-13`, `2026-1`, `1999-12`, dua bulan ke depan → gagal. Bulan depan lolos, termasuk Desember → Januari tahun berikutnya (fake timer). `monthRange("2028-02")` → `2028-02-01..2028-02-29`
+- [x] `budgetStatus`: 79% `ok`, 80% dan 100% `warning`, 101% `over`, `(0, 0)` `ok` dengan `percent = null`, `(0, 1)` `over`, `(null, x)` `none`. `percent` dibulatkan ke bawah, `remaining` boleh negatif
+- [x] `budgetSetSchema` menolak `items` kosong/>100, `categoryId` ganda, `amount` −1/1.5/`"100"`/>1e12, field tak dikenal (`userId`)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-schema.spec.ts tests/unit/budget-status.spec.ts` hijau
-- [ ] `tests/api/db-constraints.spec.ts` tetap hijau setelah migrasi
+- [x] `pnpm vitest run tests/unit/budget-schema.spec.ts tests/unit/budget-status.spec.ts` hijau
+- [x] `tests/api/db-constraints.spec.ts` tetap hijau setelah migrasi
 
 **Dependencies:** None
 

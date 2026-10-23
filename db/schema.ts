@@ -123,6 +123,7 @@ export const budgets = pgTable.withRLS(
     month: integer("month").notNull(),
     amount: money("amount").notNull(),
     createdAt: createdAt(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (t) => [
     check("budgets_month_check", sql`${t.month} between 1 and 12`),

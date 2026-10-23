@@ -40,3 +40,9 @@ export function formatBudgetAmount(amount: number, hideAmounts: boolean) {
 export function budgetTransactionsHref(period: BudgetPeriod, categoryId: string) {
   return `/transactions?${filtersToUrl({ period, type: "expense", categoryId })}`;
 }
+
+/** `copied` alone cannot tell "nothing new to copy" from "the source month was empty". */
+export function copyResultMessage(copied: number, sourceHasBudgets: boolean, sourceLabel: string) {
+  if (copied > 0) return `${copied} budget disalin dari ${sourceLabel}`;
+  return sourceHasBudgets ? "0 budget disalin. Semua kategori sudah punya budget." : `${sourceLabel} belum punya budget`;
+}

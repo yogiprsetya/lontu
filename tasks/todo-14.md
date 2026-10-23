@@ -84,7 +84,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024
-- [ ] `pnpm build` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T47, T50
 
@@ -96,6 +96,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint M
 
-- [ ] Gerbang penuh hijau
+- [x] Gerbang penuh hijau
 - [ ] Alur hapus/urungkan dan salin di 360×800 dan 1024
 - [ ] Review dengan Yogi

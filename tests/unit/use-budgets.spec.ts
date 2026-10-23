@@ -4,7 +4,7 @@ import type { BudgetUsage } from "@/lib/schemas/budget";
 vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
 
 const { mutate } = await import("swr");
-const { budgetsKey, deleteBudget, isBudgetsKey, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
+const { budgetsKey, copyBudgets, deleteBudget, isBudgetsKey, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
 const { revalidateTransactions } = await import("@/hooks/use-transactions");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -110,6 +110,18 @@ describe("deleteBudget", () => {
   it("restoreBudget posts to restore and revalidates", async () => {
     await restoreBudget("budget-makan");
     expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-makan/restore", expect.objectContaining({ method: "POST" }));
+    expect(revalidated(budgetKey)).toBe(true);
+  });
+});
+
+describe("copyBudgets", () => {
+  it("posts the target month and refreshes budget usage", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ copied: 2 }));
+    expect(await copyBudgets("2026-10")).toEqual({ copied: 2 });
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/budgets/copy",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ to: "2026-10" }) }),
+    );
     expect(revalidated(budgetKey)).toBe(true);
   });
 });

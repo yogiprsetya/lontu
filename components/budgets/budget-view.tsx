@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
+import { copyFromPreviousMonth, MonthActions, previousMonthLabel } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
@@ -88,6 +89,14 @@ export function BudgetView() {
     const rowsOf = (type: BudgetUsageItem["spendingType"]) => items.filter((i) => i.spendingType === type);
     content = (
       <>
+        {items.every((i) => i.budget === null) && (
+          <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-8 text-center">
+            <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
+            <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
+              Salin dari {previousMonthLabel(period)}
+            </Button>
+          </div>
+        )}
         <BudgetSummary summary={usage.data.summary} hideAmounts={hideAmounts} />
         {GROUPS.map(({ key, label }) => {
           const rows = rowsOf(key);
@@ -119,6 +128,7 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
+        <MonthActions period={period} />
       </div>
       {content}
       <ResponsiveModal

@@ -58,13 +58,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `PUT` Makan 1.500.000 → 200 `Budget[]` dengan `period "2026-10"`. `PUT` kedua 1.200.000 → id sama, `amount` baru, satu baris di DB. Baris yang `deleted_at`-nya diisi lalu di-`PUT` → id sama, `deleted_at null`, `created_at` tidak berubah
-- [ ] Satu item valid + satu kategori income/saving/terarsip/milik B/tidak ada → 400 `fields.items`, **nol baris** tertulis. Body tidak valid (T42) → 400. Bulan depan → 200
-- [ ] Isolasi: B tidak bisa `PUT` ke kategori A, `userId` di body → 400. Tanpa session → 401
+- [x] `PUT` Makan 1.500.000 → 200 `Budget[]` dengan `period "2026-10"`. `PUT` kedua 1.200.000 → id sama, `amount` baru, satu baris di DB. Baris yang `deleted_at`-nya diisi lalu di-`PUT` → id sama, `deleted_at null`, `created_at` tidak berubah
+- [x] Satu item valid + satu kategori income/saving/terarsip/milik B/tidak ada → 400 `fields.items`, **nol baris** tertulis. Body tidak valid (T42) → 400. Bulan depan → 200
+- [x] Isolasi: B tidak bisa `PUT` ke kategori A, `userId` di body → 400. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budgets.spec.ts tests/api/ownership.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budgets.spec.ts tests/api/ownership.spec.ts` hijau
 
 **Dependencies:** T42
 

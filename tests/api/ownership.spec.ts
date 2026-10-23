@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/db";
 import { accounts, categories } from "@/db/schema";
-import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
+import { findOwnedAccounts, findOwnedCategories, findOwnedCategory } from "@/lib/server/ownership";
 import { createTestUsers } from "../setup/db";
 
 let userA: string;
@@ -66,5 +66,17 @@ describe("findOwnedCategory", () => {
 
   it("returns undefined for another user's category", async () => {
     expect(await findOwnedCategory(userA, categoryB)).toBeUndefined();
+  });
+});
+
+describe("findOwnedCategories", () => {
+  it("returns id, kind and archivedAt for the user's own categories and skips foreign or unknown ids", async () => {
+    expect(await findOwnedCategories(userA, [categoryA, categoryB, randomUUID()])).toEqual([
+      { id: categoryA, kind: "spending", archivedAt: null },
+    ]);
+  });
+
+  it("returns an empty list for no ids", async () => {
+    expect(await findOwnedCategories(userA, [])).toEqual([]);
   });
 });

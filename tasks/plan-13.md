@@ -12,7 +12,7 @@ Dari ponsel, pemilik membuka `/budget`, memilih bulan, mengatur budget per kateg
 - [x] T43: `GET /api/budgets` + query `budgetUsage` (M, risiko tinggi)
 - [x] T44: `PUT /api/budgets` upsert atomik (M)
 - [x] T45: `hooks/use-budgets.ts` + matcher revalidasi lintas modul (S)
-- [ ] T46: Halaman `/budget` (baca): stepper bulan, ringkasan, daftar (M)
+- [x] T46: Halaman `/budget` (baca): stepper bulan, ringkasan, daftar (M)
 - [ ] T47: Form budget di `ResponsiveModal` (S)
 
 Urutan: T42 dulu. T43 dan T44 bebas urutan (paralel boleh). T45 butuh T43 + T44. T46 butuh T45. T47 butuh T46.

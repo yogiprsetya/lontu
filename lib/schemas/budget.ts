@@ -46,13 +46,20 @@ export type BudgetSuggestion = {
 
 export const MIN_BUDGET_PERIOD = "2000-01";
 
+export const BUDGET_PERIOD_FORMAT = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** Next month: budgets can be prepared before the month starts. */
+export function maxBudgetPeriod(today: string): BudgetPeriod {
+  return shiftPeriod(today.slice(0, 7), 1);
+}
+
 // Same-length YYYY-MM strings compare correctly as text. The upper bound is read at
 // parse time, so a long-lived schema never goes stale across a month boundary.
 export const budgetPeriodSchema = z
   .string("Periode tidak valid")
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Periode tidak valid")
+  .regex(BUDGET_PERIOD_FORMAT, "Periode tidak valid")
   .refine((p) => p >= MIN_BUDGET_PERIOD, "Periode minimal Januari 2000")
-  .refine((p) => p <= shiftPeriod(todayInJakarta().slice(0, 7), 1), "Periode maksimal bulan depan");
+  .refine((p) => p <= maxBudgetPeriod(todayInJakarta()), "Periode maksimal bulan depan");
 
 export const budgetAmount = z
   .int("Nominal harus bilangan bulat rupiah")

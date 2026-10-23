@@ -10,6 +10,9 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
 const route = await import("@/app/api/budgets/route");
+const item = await import("@/app/api/budgets/[id]/route");
+const restoreRoute = await import("@/app/api/budgets/[id]/restore/route");
+const { budgetUsage } = await import("@/lib/server/queries/budget-usage");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const noParams = { params: Promise.resolve({}) };
@@ -26,6 +29,16 @@ function put(body: unknown) {
     }),
     noParams,
   );
+}
+
+function del(id: string) {
+  return item.DELETE(new Request(`http://localhost/api/budgets/${id}`, { method: "DELETE" }), { params: Promise.resolve({ id }) });
+}
+
+function restore(id: string) {
+  return restoreRoute.POST(new Request(`http://localhost/api/budgets/${id}/restore`, { method: "POST" }), {
+    params: Promise.resolve({ id }),
+  });
 }
 
 let userA: string;
@@ -181,5 +194,77 @@ describe("PUT /api/budgets", () => {
     signInAs(null);
     const res = await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1 }] });
     expect(res.status).toBe(401);
+  });
+});
+
+describe("DELETE /api/budgets/[id] and restore", () => {
+  async function createBudget(month: string, categoryId: string, amount = 100_000) {
+    signInAs(userA);
+    const [budget] = (await (await put({ period: month, items: [{ categoryId, amount }] })).json()) as Budget[];
+    return budget;
+  }
+
+  it("soft-deletes, keeps the row, and turns the usage item back to none", async () => {
+    const budget = await createBudget("2026-06", cat.Transport);
+    const res = await del(budget.id);
+    expect(res.status).toBe(200);
+    const deleted = (await res.json()) as Budget;
+    expect(deleted).toEqual({ ...budget, deletedAt: expect.any(String) });
+
+    const [row] = await db.select().from(budgets).where(eq(budgets.id, budget.id));
+    expect(row.deletedAt).not.toBeNull();
+    const usage = await budgetUsage(userA, "2026-06");
+    expect(usage.items.find((i) => i.categoryId === cat.Transport)).toMatchObject({ budgetId: null, budget: null, status: "none" });
+  });
+
+  it("is idempotent: deleting again keeps the first deleted_at", async () => {
+    const budget = await createBudget("2026-05", cat.Transport);
+    const first = (await (await del(budget.id)).json()) as Budget;
+    const second = (await (await del(budget.id)).json()) as Budget;
+    expect(second.deletedAt).toBe(first.deletedAt);
+  });
+
+  it("restores, idempotently", async () => {
+    const budget = await createBudget("2026-04", cat.Transport);
+    await del(budget.id);
+    expect(await (await restore(budget.id)).json()).toEqual(budget);
+    expect(await (await restore(budget.id)).json()).toEqual(budget);
+  });
+
+  it("restores a budget whose category was archived since", async () => {
+    const [extra] = await db
+      .insert(categories)
+      .values({ userId: userA, name: "Sementara", kind: "spending", spendingType: "wants" })
+      .returning({ id: categories.id });
+    const budget = await createBudget("2026-03", extra.id);
+    await del(budget.id);
+    await db.update(categories).set({ archivedAt: new Date() }).where(eq(categories.id, extra.id));
+
+    const res = await restore(budget.id);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as Budget).deletedAt).toBeNull();
+  });
+
+  it.each(["not-a-uuid", randomUUID()])("returns 404 BUDGET_NOT_FOUND for id %s", async (id) => {
+    signInAs(userA);
+    for (const res of [await del(id), await restore(id)]) {
+      expect(res.status).toBe(404);
+      expect((await res.json()).error.code).toBe("BUDGET_NOT_FOUND");
+    }
+  });
+
+  it("returns 404 to user B for user A's budget and leaves it alone", async () => {
+    const budget = await createBudget("2026-02", cat.Transport);
+    signInAs(userB);
+    expect((await del(budget.id)).status).toBe(404);
+    expect((await restore(budget.id)).status).toBe(404);
+    const [row] = await db.select().from(budgets).where(eq(budgets.id, budget.id));
+    expect(row.deletedAt).toBeNull();
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    expect((await del(randomUUID())).status).toBe(401);
+    expect((await restore(randomUUID())).status).toBe(401);
   });
 });

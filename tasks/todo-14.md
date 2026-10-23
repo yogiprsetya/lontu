@@ -12,12 +12,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `DELETE` → 200 `Budget` dengan `deletedAt`, baris tetap di DB, usage item `budget null`. `DELETE` ulang tidak mengubah `deleted_at`. `restore` → aktif lagi, idempoten. `restore` dengan kategori terarsip → 200
-- [ ] Id bukan UUID, tidak ada, milik B → 404 `BUDGET_NOT_FOUND`. Tanpa session → 401
+- [x] `DELETE` → 200 `Budget` dengan `deletedAt`, baris tetap di DB, usage item `budget null`. `DELETE` ulang tidak mengubah `deleted_at`. `restore` → aktif lagi, idempoten. `restore` dengan kategori terarsip → 200
+- [x] Id bukan UUID, tidak ada, milik B → 404 `BUDGET_NOT_FOUND`. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budgets.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budgets.spec.ts` hijau
 
 **Dependencies:** T42, T44 (fixture budget lewat `setBudgets`)
 

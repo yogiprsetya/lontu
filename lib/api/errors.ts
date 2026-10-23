@@ -60,6 +60,10 @@ export function transactionChanged() {
   return conflict("TRANSACTION_CHANGED", "Transaksi berubah saat disimpan. Muat ulang lalu coba lagi.");
 }
 
+export function budgetNotFound() {
+  return notFound("BUDGET_NOT_FOUND", "Budget tidak ditemukan");
+}
+
 export function invalidCursor() {
   return error(400, "INVALID_CURSOR", "Cursor tidak valid");
 }

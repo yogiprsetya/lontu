@@ -1,5 +1,6 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
 import { budgets } from "@/db/schema";
 import { periodToYearMonth, yearMonthToPeriod, type Budget, type BudgetSetInput } from "@/lib/schemas/budget";
@@ -44,3 +45,18 @@ export async function setBudgets(
   const byCategory = new Map(rows.map((r) => [r.categoryId, r]));
   return items.map((i) => toBudget(byCategory.get(i.categoryId)!));
 }
+
+// coalesce keeps the first deleted_at, so repeating a delete changes nothing.
+async function setDeleted(userId: string, id: string, deleted: boolean): Promise<Budget | undefined> {
+  if (!z.uuid().safeParse(id).success) return undefined;
+  const [row] = await db
+    .update(budgets)
+    .set({ deletedAt: deleted ? sql`coalesce(${budgets.deletedAt}, now())` : null })
+    .where(and(eq(budgets.id, id), eq(budgets.userId, userId)))
+    .returning();
+  return row && toBudget(row);
+}
+
+export const softDeleteBudget = (userId: string, id: string) => setDeleted(userId, id, true);
+// Allowed even when the category is archived: it brings back an old budget, not a new one.
+export const restoreBudget = (userId: string, id: string) => setDeleted(userId, id, false);

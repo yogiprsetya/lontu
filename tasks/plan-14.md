@@ -8,7 +8,7 @@ Pemilik bisa menghapus budget dengan "Urungkan", dan menyiapkan bulan baru denga
 
 ## Task
 
-- [ ] T48: `DELETE /api/budgets/[id]` + `restore` (S)
+- [x] T48: `DELETE /api/budgets/[id]` + `restore` (S)
 - [ ] T49: Hapus budget + undo di UI (S)
 - [ ] T50: `POST /api/budgets/copy` (S)
 - [ ] T51: Menu aksi bulan "Salin dari …" + empty state (S)

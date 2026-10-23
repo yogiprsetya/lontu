@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { budgetPeriodFromParam, budgetTransactionsHref, copyResultMessage, groupStatus, statusLabel } from "@/lib/budget-format";
+import {
+  budgetPeriodFromParam,
+  budgetTransactionsHref,
+  copyResultMessage,
+  defaultSuggestionSelection,
+  groupStatus,
+  selectedSuggestionItems,
+  statusLabel,
+} from "@/lib/budget-format";
 import { maxBudgetPeriod } from "@/lib/schemas/budget";
 
 const today = "2026-10-23";
@@ -73,5 +81,28 @@ describe("copyResultMessage", () => {
 
   it("says the source month has no budget", () => {
     expect(copyResultMessage(0, false, "September 2026")).toBe("September 2026 belum punya budget");
+  });
+});
+
+describe("suggestion selection", () => {
+  const items = [
+    { categoryId: "makan", spendingType: "needs" as const, amount: 3_750_000, current: 1_200_000 },
+    { categoryId: "transport", spendingType: "needs" as const, amount: 1_250_000, current: null },
+    { categoryId: "hiburan", spendingType: "wants" as const, amount: 3_000_000, current: null },
+  ];
+
+  it("checks categories without a budget and leaves ones that would be replaced unchecked", () => {
+    expect([...defaultSuggestionSelection(items)]).toEqual(["transport", "hiburan"]);
+  });
+
+  it("sends only checked rows with their suggested amounts, in list order", () => {
+    expect(selectedSuggestionItems(items, new Set(["hiburan", "makan"]))).toEqual([
+      { categoryId: "makan", amount: 3_750_000 },
+      { categoryId: "hiburan", amount: 3_000_000 },
+    ]);
+  });
+
+  it("ignores checked ids that are no longer suggested", () => {
+    expect(selectedSuggestionItems(items, new Set(["gone"]))).toEqual([]);
   });
 });

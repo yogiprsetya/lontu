@@ -3,12 +3,16 @@
 import useSWR, { mutate } from "swr";
 import { removeBudgetFromUsage } from "@/lib/budget-cache";
 import { sendJSON } from "@/lib/fetcher";
-import type { Budget, BudgetPeriod, BudgetSetInput, BudgetUsage } from "@/lib/schemas/budget";
+import type { Budget, BudgetPeriod, BudgetSetInput, BudgetSuggestion, BudgetUsage } from "@/lib/schemas/budget";
 
 const BUDGETS_KEY = /^\/api\/budgets($|[/?])/;
 
 export function budgetsKey(period: BudgetPeriod) {
   return `/api/budgets?period=${period}`;
+}
+
+export function budgetSuggestionKey(period: BudgetPeriod, income?: number) {
+  return `/api/budgets/suggestion?period=${period}${income === undefined ? "" : `&income=${income}`}`;
 }
 
 export function isBudgetsKey(key: unknown) {
@@ -22,6 +26,11 @@ export function revalidateBudgets() {
 
 export function useBudgets(period: BudgetPeriod) {
   return useSWR<BudgetUsage>(budgetsKey(period));
+}
+
+/** Fetches only while the panel is open; keeps the last result on screen while a new income loads. */
+export function useBudgetSuggestion(period: BudgetPeriod, income: number | undefined, enabled: boolean) {
+  return useSWR<BudgetSuggestion>(enabled ? budgetSuggestionKey(period, income) : null, { keepPreviousData: true });
 }
 
 export async function setBudgets(input: BudgetSetInput) {

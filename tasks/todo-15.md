@@ -63,7 +63,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024, light dan dark
-- [ ] `pnpm build` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T47, T51, T53
 
@@ -75,7 +75,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint N (modul selesai)
 
-- [ ] Gerbang penuh hijau
+- [x] Gerbang penuh hijau
 - [ ] Semua acceptance criteria di SPEC-budgets.md tercentang
 - [ ] Manual 360×800 dan 1024, light dan dark: alur penuh
 - [ ] Review dengan Yogi, lalu tulis `SPEC-dashboard.md`

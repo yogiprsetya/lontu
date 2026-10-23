@@ -4,7 +4,9 @@ import type { BudgetUsage } from "@/lib/schemas/budget";
 vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
 
 const { mutate } = await import("swr");
-const { budgetsKey, copyBudgets, deleteBudget, isBudgetsKey, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
+const { budgetSuggestionKey, budgetsKey, copyBudgets, deleteBudget, isBudgetsKey, restoreBudget, setBudgets } = await import(
+  "@/hooks/use-budgets"
+);
 const { revalidateTransactions } = await import("@/hooks/use-transactions");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -28,6 +30,13 @@ afterEach(() => {
 describe("budgets SWR keys", () => {
   it("builds the contract key", () => {
     expect(budgetsKey("2026-10")).toBe(budgetKey);
+  });
+
+  it("builds the suggestion key, with income only when typed", () => {
+    expect(budgetSuggestionKey("2026-10")).toBe("/api/budgets/suggestion?period=2026-10");
+    expect(budgetSuggestionKey("2026-10", 7_777_777)).toBe("/api/budgets/suggestion?period=2026-10&income=7777777");
+    expect(budgetSuggestionKey("2026-10", 0)).toBe("/api/budgets/suggestion?period=2026-10&income=0");
+    expect(isBudgetsKey(budgetSuggestionKey("2026-10"))).toBe(true);
   });
 
   it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])("matches %s", (key) => {

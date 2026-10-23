@@ -7,6 +7,7 @@ import {
   maxBudgetPeriod,
   type BudgetGroup,
   type BudgetPeriod,
+  type BudgetSuggestion,
 } from "@/lib/schemas/budget";
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */
@@ -45,4 +46,13 @@ export function budgetTransactionsHref(period: BudgetPeriod, categoryId: string)
 export function copyResultMessage(copied: number, sourceHasBudgets: boolean, sourceLabel: string) {
   if (copied > 0) return `${copied} budget disalin dari ${sourceLabel}`;
   return sourceHasBudgets ? "0 budget disalin. Semua kategori sudah punya budget." : `${sourceLabel} belum punya budget`;
+}
+
+/** Rows that would replace an existing budget start unchecked. */
+export function defaultSuggestionSelection(items: BudgetSuggestion["items"]) {
+  return new Set(items.filter((i) => i.current === null).map((i) => i.categoryId));
+}
+
+export function selectedSuggestionItems(items: BudgetSuggestion["items"], selected: ReadonlySet<string>) {
+  return items.filter((i) => selected.has(i.categoryId)).map(({ categoryId, amount }) => ({ categoryId, amount }));
 }

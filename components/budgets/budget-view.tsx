@@ -6,6 +6,7 @@ import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
 import { copyFromPreviousMonth, MonthActions, previousMonthLabel } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
+import { SuggestionPanel } from "@/components/budgets/suggestion-panel";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
@@ -47,6 +48,7 @@ export function BudgetView() {
   const categories = useCategories({ includeArchived: true });
   // Only the category id: the row itself always comes from the SWR cache.
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
   const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
@@ -92,9 +94,14 @@ export function BudgetView() {
         {items.every((i) => i.budget === null) && (
           <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-8 text-center">
             <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
-            <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
-              Salin dari {previousMonthLabel(period)}
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
+                Salin dari {previousMonthLabel(period)}
+              </Button>
+              <Button variant="outline" className="h-11 text-base" onClick={() => setSuggesting(true)}>
+                Saran 50/30/20
+              </Button>
+            </div>
           </div>
         )}
         <BudgetSummary summary={usage.data.summary} hideAmounts={hideAmounts} />
@@ -128,7 +135,7 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
-        <MonthActions period={period} />
+        <MonthActions period={period} onSuggest={() => setSuggesting(true)} />
       </div>
       {content}
       <ResponsiveModal
@@ -147,6 +154,7 @@ export function BudgetView() {
           />
         )}
       </ResponsiveModal>
+      <SuggestionPanel period={period} open={suggesting} onOpenChange={setSuggesting} names={names} />
     </>
   );
 }

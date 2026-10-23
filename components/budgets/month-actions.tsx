@@ -1,6 +1,6 @@
 "use client";
 
-import { CopyIcon, EllipsisVerticalIcon } from "lucide-react";
+import { CopyIcon, EllipsisVerticalIcon, SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { budgetsKey, copyBudgets } from "@/hooks/use-budgets";
@@ -31,7 +31,7 @@ export async function copyFromPreviousMonth(period: BudgetPeriod) {
   }
 }
 
-export function MonthActions({ period }: { period: BudgetPeriod }) {
+export function MonthActions({ period, onSuggest }: { period: BudgetPeriod; onSuggest: () => void }) {
   const canCopy = shiftPeriod(period, -1) !== period;
 
   return (
@@ -50,6 +50,10 @@ export function MonthActions({ period }: { period: BudgetPeriod }) {
         >
           <CopyIcon className="size-5" aria-hidden />
           Salin dari {previousMonthLabel(period)}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="min-h-11 gap-3 text-base" onClick={onSuggest}>
+          <SparklesIcon className="size-5" aria-hidden />
+          Saran 50/30/20
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

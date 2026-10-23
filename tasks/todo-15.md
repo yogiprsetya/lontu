@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `basis 10.000.000` → pools `5.000.000 / 3.000.000 / 2.000.000`. Jumlah item per grup = pool grup (dibulatkan ke 1.000), semua item kelipatan 1.000
-- [ ] Bobot proporsional dengan rata-rata. Semua bobot grup 0 → bagi rata. Seri → `categoryId` naik mendapat sisa lebih dulu. Hasil deterministik
-- [ ] `basis 0` → `items` kosong. Grup tanpa kategori → tidak ada item. `basis 7.777.777` → needs pool `3.888.000`, wants `2.333.000`
+- [x] `basis 10.000.000` → pools `5.000.000 / 3.000.000 / 2.000.000`. Jumlah item per grup = pool grup (dibulatkan ke 1.000), semua item kelipatan 1.000
+- [x] Bobot proporsional dengan rata-rata. Semua bobot grup 0 → bagi rata. Seri → `categoryId` naik mendapat sisa lebih dulu. Hasil deterministik
+- [x] `basis 0` → `items` kosong. Grup tanpa kategori → tidak ada item. `basis 7.777.777` → needs pool `3.888.000`, wants `2.333.000`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-suggestion.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/budget-suggestion.spec.ts` hijau
 
 **Dependencies:** T42
 

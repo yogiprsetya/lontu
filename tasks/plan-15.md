@@ -8,7 +8,7 @@ Pemilik membuka "Saran 50/30/20", melihat pool Needs/Wants/Saving dari income bu
 
 ## Task
 
-- [ ] T52: `suggestBudgets` murni (S)
+- [x] T52: `suggestBudgets` murni (S)
 - [ ] T53: `GET /api/budgets/suggestion` + query riwayat (M)
 - [ ] T54: Panel saran di UI (M)
 

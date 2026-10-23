@@ -9,7 +9,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutny
 | `foundation` | [SPEC-foundation.md](../SPEC-foundation.md) | 1–4 | T1–T9 | Selesai (T9 ditunda) |
 | `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
-| `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Direncanakan 2026-10-23 |
+| `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
 
 ---
 

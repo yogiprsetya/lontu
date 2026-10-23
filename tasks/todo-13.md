@@ -145,6 +145,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint L
 
-- [ ] Gerbang penuh hijau
+- [x] Gerbang penuh hijau
 - [ ] Alur atur → catat expense → status berubah di 360×800 dan 1024
 - [ ] Review dengan Yogi

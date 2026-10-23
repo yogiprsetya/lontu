@@ -35,11 +35,11 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 - [ ] Hapus → baris langsung kembali "Atur budget" dan ringkasan berubah. "Urungkan" mengembalikannya
 - [ ] `DELETE` gagal (offline di DevTools) → baris kembali, toast error
-- [ ] `removeBudgetFromUsage` menghasilkan `summary` yang sama dengan respons server untuk keadaan yang sama
+- [x] `removeBudgetFromUsage` menghasilkan `summary` yang sama dengan respons server untuk keadaan yang sama
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-cache.spec.ts tests/unit/use-budgets.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/budget-cache.spec.ts tests/unit/use-budgets.spec.ts` hijau
 - [ ] Manual 360×800
 
 **Dependencies:** T47, T48

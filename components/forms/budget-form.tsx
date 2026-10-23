@@ -9,7 +9,7 @@ import { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { setBudgets } from "@/hooks/use-budgets";
+import { deleteBudget, restoreBudget, setBudgets } from "@/hooks/use-budgets";
 import { budgetTransactionsHref } from "@/lib/budget-format";
 import { applyServerErrors } from "@/lib/form-errors";
 import { budgetAmount, type BudgetPeriod, type BudgetUsageItem } from "@/lib/schemas/budget";
@@ -24,11 +24,11 @@ type BudgetFormProps = {
   item: BudgetUsageItem;
   onDone: () => void;
   onCancel: () => void;
-  /** Extra actions for an existing budget, rendered above Batal/Simpan. */
-  children?: React.ReactNode;
 };
 
-export function BudgetForm({ period, item, onDone, onCancel, children }: BudgetFormProps) {
+const UNDO_MS = 6000;
+
+export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) {
   const {
     control,
     handleSubmit,
@@ -48,6 +48,23 @@ export function BudgetForm({ period, item, onDone, onCancel, children }: BudgetF
       }
     }
   });
+
+  // The row clears at once (optimistic), so the modal closes before the server answers.
+  async function onDelete(id: string) {
+    onDone();
+    try {
+      await deleteBudget(period, id);
+      toast("Budget dihapus", {
+        duration: UNDO_MS,
+        action: {
+          label: "Urungkan",
+          onClick: () => void restoreBudget(id).catch(() => toast.error("Gagal mengurungkan. Coba lagi.")),
+        },
+      });
+    } catch {
+      toast.error("Gagal menghapus budget. Coba lagi.");
+    }
+  }
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-4">
@@ -80,7 +97,17 @@ export function BudgetForm({ period, item, onDone, onCancel, children }: BudgetF
         Lihat transaksi
       </Link>
 
-      {children}
+      {item.budgetId && (
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 text-base text-destructive"
+          disabled={isSubmitting}
+          onClick={() => void onDelete(item.budgetId!)}
+        >
+          Hapus budget
+        </Button>
+      )}
 
       <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
         <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>

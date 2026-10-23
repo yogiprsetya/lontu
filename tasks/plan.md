@@ -2,13 +2,14 @@
 
 Sumber: [SPEC.md](../SPEC.md) · 2026-10-20
 
-Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutnya (`budgets` → `dashboard` → `pwa-offline`) direncanakan setelah `SPEC-<module>.md` masing-masing ditulis.
+Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutnya (`dashboard` → `pwa-offline`) direncanakan setelah `SPEC-<module>.md` masing-masing ditulis.
 
 | Modul | Spec | Phase | Task | Status |
 |---|---|---|---|---|
 | `foundation` | [SPEC-foundation.md](../SPEC-foundation.md) | 1–4 | T1–T9 | Selesai (T9 ditunda) |
 | `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
+| `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Direncanakan 2026-10-23 |
 
 ---
 
@@ -199,3 +200,69 @@ Phase dikerjakan berurutan. Pengecualian: task server di phase 10–12 (T29, T30
 | Biaya admin yatim setelah transfer dihapus | Rendah | Diterima di spec. Toast dan teks bantuan menyebutnya. `parent_id` hanya jika sering terjadi (Ask first) |
 | Tanggal bergeser sehari (`new Date("YYYY-MM-DD")` dibaca UTC) | Sedang | Semua format dari string dengan `timeZone: "UTC"`, dites di `transaction-format.spec.ts` |
 | Keyboard virtual iOS menutupi tombol Simpan di form panjang (transfer + biaya) | Sedang | Footer sticky seperti form akun (T18). Cek manual di ponsel |
+
+---
+
+# Modul `budgets`
+
+Spec: [SPEC-budgets.md](../SPEC-budgets.md) · 2026-10-23
+
+## Overview
+
+Pemilik menetapkan budget bulanan per kategori spending, melihat terpakai/sisa/status per kategori dan ringkasan Needs/Wants, menghapus dengan undo, menyalin dari bulan lalu, dan menerapkan saran 50/30/20. Satu perubahan skema: kolom `budgets.deleted_at` (disetujui di spec, keputusan 2).
+
+## Kondisi repo saat ini
+
+- Tabel `budgets` sudah ada (index unik `(user_id, category_id, year, month)`, check `month 1..12`, `amount >= 0`), tanpa `deleted_at`. `app/(app)/budget/page.tsx` masih placeholder.
+- Siap dipakai: `withAuth`, `fieldError`, `notFound`, `findOwnedCategory` (satu id), `transactionTotals`/`transactionWhere`, `todayInJakarta`, `shiftPeriod`/`formatPeriodLabel` (`lib/transaction-filters.ts`), `MoneyInput`, `ResponsiveModal`, `useUIStore().open("manageCategories", { kind })`, `sonner` toast + pola undo dari `transaction-editor.tsx`, `checkbox`, `dropdown-menu`, token `--budget`/`--expense`, `hideAmounts`.
+- Belum ada: komponen progress (shadcn `progress` tidak terpasang), helper kepemilikan banyak kategori, `revalidateBudgets`.
+- Vitest `environment: "node"`: logika hook dipisah jadi fungsi murni. UI diverifikasi manual.
+
+## Dependency graph
+
+```
+T42 Migrasi deleted_at + schema + budgetStatus
+ ├─► T43 GET usage ──────────────┐
+ ├─► T44 PUT upsert ─────────────┼─► T45 Hook + revalidasi ─► T46 Halaman (baca) ─► T47 Form budget
+ │                               │                                   │
+ ├─► T48 DELETE/restore ─────────┼──────────────────────────────────►├─► T49 Hapus + undo (butuh T47)
+ ├─► T50 Copy API ───────────────┼──────────────────────────────────►├─► T51 Salin + empty state
+ │                               │                                   │
+ └─► T52 suggestBudgets (murni) ─► T53 Suggestion API ─────────────►└─► T54 Panel saran (butuh T47)
+```
+
+Task server (T43, T44, T48, T50, T52, T53) hanya butuh T42 dan bisa didahulukan atau paralel dengan task UI.
+
+## Phases
+
+| Phase | Plan | Todo | Task | Checkpoint |
+|---|---|---|---|---|
+| 13. Atur budget dan lihat pemakaian | [plan-13.md](plan-13.md) | [todo-13.md](todo-13.md) | T42–T47 | L |
+| 14. Hapus dan salin | [plan-14.md](plan-14.md) | [todo-14.md](todo-14.md) | T48–T51 | M |
+| 15. Saran 50/30/20 | [plan-15.md](plan-15.md) | [todo-15.md](todo-15.md) | T52–T54 | N (modul selesai) |
+
+## Aturan lintas phase
+
+- Irisan vertikal: setiap phase berakhir dengan alur yang bisa dicoba dari ponsel (atur → lihat → catat expense → status berubah; hapus/salin; saran). Di dalam irisan, API lebih dulu (tes Supabase mengunci kontrak), lalu UI.
+- Risiko tinggi didahulukan: SQL `budgetUsage` dan invariannya terhadap `transactionTotals` (T43), upsert yang menghidupkan baris terhapus (T44).
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 dan 1024.
+- Tidak ada dependency npm baru. Progress bar dibuat sebagai komponen kecil di `components/budgets/` (bukan `components/ui/`), jadi tidak butuh CLI shadcn.
+
+## Keputusan perencanaan (2026-10-23)
+
+1. **Open questions 5–7 di spec memakai default spec** (dasar income bulan lalu, ambang 80%, bulan depan diizinkan). Masing-masing terkunci di satu tempat (`suggestBudgets`, `budgetStatus`, `budgetPeriodSchema`), jadi perubahan nanti hanya menyentuh satu fungsi dan tesnya.
+2. **`findOwnedCategories(userId, ids)`** ditambahkan di `lib/server/ownership.ts` (T44), dengan pola `findOwnedAccounts`. `findOwnedCategory` tidak diubah.
+3. **Stepper bulan baru** (`components/budgets/month-stepper.tsx`) memakai `shiftPeriod`/`formatPeriodLabel`, bukan `PeriodStepper` yang punya mode tahun/semua. Batas maju = bulan depan.
+4. **Galat item di `fields.items`** (satu pesan), sama alasannya dengan `fields.fee` di transaksi.
+5. **Form budget dibuka dengan state lokal halaman** (`categoryId`), bukan `useUIStore`, karena hanya halaman Budget yang membukanya.
+
+## Risiko modul
+
+| Risiko | Dampak | Mitigasi |
+|---|---|---|
+| `budgetUsage` salah menghitung batas bulan atau melewatkan kategori terarsip | Tinggi | T43 mulai dari tes merah: expense di tanggal 1 dan akhir bulan, Februari kabisat, kategori terarsip, dan invarian `summary.total.spent = transactionTotals.expense` |
+| Upsert `on conflict do update` tidak menghidupkan baris terhapus atau menimpa `created_at` | Sedang | Tes T44: hapus langsung di DB lalu `PUT` → id sama, `deleted_at` null, `created_at` tetap |
+| `PUT` banyak item menulis sebagian saat satu kategori tidak valid | Sedang | Semua cek sebelum satu statement insert. Tes: satu item asing + satu valid → 400, tidak ada baris |
+| Halaman Budget basi setelah mencatat expense | Sedang | Matcher `/api/budgets` di `revalidateTransactions` dites di T45, dicek manual di checkpoint L |
+| `useSearchParams` di `/budget` merusak `cacheComponents` | Sedang | `<Suspense>`, `pnpm build` di T46 |
+| Pembulatan saran tidak menjumlah tepat ke pool | Rendah | `suggestBudgets` murni, dites dengan sisa terbesar dan seri (T52) |

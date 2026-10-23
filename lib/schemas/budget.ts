@@ -80,6 +80,8 @@ export const budgetSetSchema = z.strictObject({
 
 export type BudgetSetInput = z.infer<typeof budgetSetSchema>;
 
+export const budgetCopySchema = z.strictObject({ to: budgetPeriodSchema });
+
 export function periodToYearMonth(period: BudgetPeriod) {
   return { year: Number(period.slice(0, 4)), month: Number(period.slice(5, 7)) };
 }

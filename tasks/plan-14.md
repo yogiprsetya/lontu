@@ -10,7 +10,7 @@ Pemilik bisa menghapus budget dengan "Urungkan", dan menyiapkan bulan baru denga
 
 - [x] T48: `DELETE /api/budgets/[id]` + `restore` (S)
 - [x] T49: Hapus budget + undo di UI (S)
-- [ ] T50: `POST /api/budgets/copy` (S)
+- [x] T50: `POST /api/budgets/copy` (S)
 - [ ] T51: Menu aksi bulan "Salin dari …" + empty state (S)
 
 Urutan: T48 → T49, T50 → T51. Kedua pasangan bebas urutan. T49 dan T51 butuh T47.

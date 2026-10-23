@@ -56,13 +56,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Oktober: Makan, Hiburan, satu kategori terarsip. November sudah punya Makan 900.000 → `copied 1`, Makan November tetap 900.000, Hiburan tersalin, kategori terarsip dilewati. Ulang → `copied 0`
-- [ ] Budget November yang terhapus dihidupkan lagi dengan nominal Oktober. Oktober kosong → `copied 0`. `to` tidak valid → 400
-- [ ] Isolasi: copy B tidak pernah membaca atau menulis budget A. Tanpa session → 401
+- [x] Oktober: Makan, Hiburan, satu kategori terarsip. November sudah punya Makan 900.000 → `copied 1`, Makan November tetap 900.000, Hiburan tersalin, kategori terarsip dilewati. Ulang → `copied 0`
+- [x] Budget November yang terhapus dihidupkan lagi dengan nominal Oktober. Oktober kosong → `copied 0`. `to` tidak valid → 400
+- [x] Isolasi: copy B tidak pernah membaca atau menulis budget A. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budget-copy.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budget-copy.spec.ts` hijau
 
 **Dependencies:** T42
 

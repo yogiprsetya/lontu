@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { budgetPeriodFromParam, groupStatus, statusLabel } from "@/lib/budget-format";
+import { budgetPeriodFromParam, budgetTransactionsHref, groupStatus, statusLabel } from "@/lib/budget-format";
 import { maxBudgetPeriod } from "@/lib/schemas/budget";
 
 const today = "2026-10-23";
@@ -51,5 +51,13 @@ describe("groupStatus", () => {
       percent: null,
       status: "none",
     });
+  });
+});
+
+describe("budgetTransactionsHref", () => {
+  it("links to the month's expenses in one category", () => {
+    expect(budgetTransactionsHref("2026-10", "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b")).toBe(
+      "/transactions?period=2026-10&type=expense&categoryId=1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b",
+    );
   });
 });

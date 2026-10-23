@@ -1,5 +1,6 @@
 import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
 import { formatIDR } from "@/lib/money";
+import { filtersToUrl } from "@/lib/transaction-filters";
 import {
   BUDGET_PERIOD_FORMAT,
   MIN_BUDGET_PERIOD,
@@ -33,4 +34,9 @@ export function groupStatus(group: BudgetGroup) {
 
 export function formatBudgetAmount(amount: number, hideAmounts: boolean) {
   return hideAmounts ? "Rp•••••" : formatIDR(amount);
+}
+
+/** Same URL dashboard's Budget Summary links to. */
+export function budgetTransactionsHref(period: BudgetPeriod, categoryId: string) {
+  return `/transactions?${filtersToUrl({ period, type: "expense", categoryId })}`;
 }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
 import { MonthStepper } from "@/components/budgets/month-stepper";
+import { BudgetForm } from "@/components/forms/budget-form";
+import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +14,7 @@ import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { budgetPeriodFromParam } from "@/lib/budget-format";
 import { todayInJakarta } from "@/lib/date";
+import { formatPeriodLabel } from "@/lib/transaction-filters";
 import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
 
@@ -41,11 +44,16 @@ export function BudgetView() {
   const openModal = useUIStore((s) => s.open);
   const usage = useBudgets(period);
   const categories = useCategories({ includeArchived: true });
+  // Only the category id: the row itself always comes from the SWR cache.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
     () => new Map(categories.data?.map((c) => [c.id, c.archivedAt ? `${c.name} (arsip)` : c.name])),
     [categories.data],
   );
+  // Archived categories cannot take a new budget (the API rejects them), so their rows stay read-only.
+  const archived = useMemo(() => new Set(categories.data?.filter((c) => c.archivedAt).map((c) => c.id)), [categories.data]);
 
   // replace, not push: stepping through months must not fill the back stack.
   function setPeriod(next: BudgetPeriod) {
@@ -96,6 +104,7 @@ export function BudgetView() {
                     item={item}
                     name={names.get(item.categoryId) ?? "Kategori"}
                     hideAmounts={hideAmounts}
+                    onEdit={archived.has(item.categoryId) ? undefined : () => setEditingId(item.categoryId)}
                   />
                 ))}
               </ul>
@@ -112,6 +121,22 @@ export function BudgetView() {
         <MonthStepper period={period} onChange={setPeriod} />
       </div>
       {content}
+      <ResponsiveModal
+        open={!!editing}
+        onOpenChange={(open) => !open && setEditingId(null)}
+        title={editing ? (names.get(editing.categoryId) ?? "Kategori") : "Budget"}
+        description={formatPeriodLabel(period)}
+      >
+        {editing && (
+          <BudgetForm
+            key={`${period}-${editing.categoryId}`}
+            period={period}
+            item={editing}
+            onDone={() => setEditingId(null)}
+            onCancel={() => setEditingId(null)}
+          />
+        )}
+      </ResponsiveModal>
     </>
   );
 }

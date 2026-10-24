@@ -2,11 +2,9 @@
 
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createCategory, renameCategory } from "@/hooks/use-categories";
@@ -31,18 +29,17 @@ type CategoryFormProps = {
   /** Rename this category; omit to create one. */
   category?: Category;
   onDone: () => void;
-  onCancel: () => void;
   /** Extra actions for edit mode, rendered above Batal/Simpan. */
   children?: React.ReactNode;
 };
 
-export function CategoryForm({ kind, category, onDone, onCancel, children }: CategoryFormProps) {
+export function CategoryForm({ kind, category, onDone, children }: CategoryFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: category?.name ?? "", spendingType: category?.spendingType ?? "needs" },
@@ -64,7 +61,7 @@ export function CategoryForm({ kind, category, onDone, onCancel, children }: Cat
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-4">
+    <form id="category-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         Jenis: {KIND_LABELS[kind]}
         {category?.spendingType && ` · ${SPENDING_TYPE_LABELS[category.spendingType]}`}
@@ -109,16 +106,6 @@ export function CategoryForm({ kind, category, onDone, onCancel, children }: Cat
       )}
 
       {children}
-
-      <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
-        <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>
-          Batal
-        </Button>
-        <Button type="submit" className="h-11 flex-1 text-base" disabled={isSubmitting}>
-          {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
-          Simpan
-        </Button>
-      </div>
     </form>
   );
 }

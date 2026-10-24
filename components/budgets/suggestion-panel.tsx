@@ -11,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { setBudgets, useBudgetSuggestion } from "@/hooks/use-budgets";
-import { defaultSuggestionSelection, formatBudgetAmount, selectedSuggestionItems } from "@/lib/budget-format";
+import {
+  defaultSuggestionSelection,
+  formatBudgetAmount,
+  selectedSuggestionItems,
+} from "@/lib/budget-format";
 import { ApiError } from "@/lib/fetcher";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
@@ -31,21 +35,20 @@ type Props = {
   names: Map<string, string>;
 };
 
-export function SuggestionPanel({ period, open, onOpenChange, names }: Props) {
-  return (
-    <ResponsiveModal
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Saran 50/30/20"
-      description={`Budget ${formatPeriodLabel(period)} dari income dan pengeluaran 3 bulan terakhir.`}
-    >
-      {/* Mounted only while open, so typed income and checkboxes start fresh each time. */}
-      {open && <SuggestionContent key={period} period={period} names={names} onClose={() => onOpenChange(false)} />}
-    </ResponsiveModal>
-  );
+export function SuggestionPanel(props: Props) {
+  // Remounted on each opening, so typed income and checkboxes start fresh while the closing animation still plays.
+  const [session, setSession] = useState(0);
+  const [wasOpen, setWasOpen] = useState(props.open);
+  if (props.open !== wasOpen) {
+    setWasOpen(props.open);
+    if (props.open) setSession((n) => n + 1);
+  }
+
+  return <SuggestionContent key={`${props.period}-${session}`} {...props} />;
 }
 
-function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; names: Map<string, string>; onClose: () => void }) {
+function SuggestionContent({ period, open, onOpenChange, names }: Props) {
+  const onClose = () => onOpenChange(false);
   const hideAmounts = useUIStore((s) => s.hideAmounts);
   const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
   // `typed` follows the field; `income` follows it after a pause and drives the request.
@@ -53,7 +56,11 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
   const [income, setIncome] = useState<number | undefined>(undefined);
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const [applying, setApplying] = useState(false);
-  const { data, error, mutate, isValidating } = useBudgetSuggestion(period, income, true);
+  const { data, error, mutate, isValidating } = useBudgetSuggestion(
+    period,
+    income,
+    open,
+  );
 
   useEffect(() => {
     if (typed === null) return;
@@ -61,7 +68,9 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
     return () => clearTimeout(timer);
   }, [typed]);
 
-  const checked = selected ?? (data ? defaultSuggestionSelection(data.items) : new Set<string>());
+  const checked =
+    selected ??
+    (data ? defaultSuggestionSelection(data.items) : new Set<string>());
   const toApply = data ? selectedSuggestionItems(data.items, checked) : [];
   // Amounts on screen may belong to the previous income until the new one loads.
   const pending = isValidating || (typed !== null && typed !== income);
@@ -81,14 +90,20 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
       onClose();
     } catch (err) {
       const message = err instanceof ApiError && err.fields?.items?.[0];
-      toast.error(message ? `${message}. Muat ulang saran lalu coba lagi.` : "Gagal menerapkan saran. Coba lagi.");
+      toast.error(
+        message
+          ? `${message}. Muat ulang saran lalu coba lagi.`
+          : "Gagal menerapkan saran. Coba lagi.",
+      );
       setApplying(false);
     }
   }
 
   let body;
   if (error) {
-    body = <LoadError message="Gagal memuat saran." onRetry={() => void mutate()} />;
+    body = (
+      <LoadError message="Gagal memuat saran." onRetry={() => void mutate()} />
+    );
   } else if (!data) {
     body = (
       <div className="flex flex-col gap-3" aria-busy="true">
@@ -98,7 +113,11 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
       </div>
     );
   } else if (data.basis === 0) {
-    body = <p className="text-muted-foreground">Belum ada income bulan lalu. Isi income untuk melihat saran.</p>;
+    body = (
+      <p className="text-muted-foreground">
+        Belum ada income bulan lalu. Isi income untuk melihat saran.
+      </p>
+    );
   } else {
     body = (
       <div className="flex flex-col gap-4" aria-busy={pending}>
@@ -106,14 +125,27 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
           {[
             { label: "Needs 50%", amount: data.pools.needs },
             { label: "Wants 30%", amount: data.pools.wants },
-            { label: "Saving 20%", amount: data.pools.saving, hint: "acuan, tidak jadi budget" },
+            {
+              label: "Saving 20%",
+              amount: data.pools.saving,
+              hint: "acuan, tidak jadi budget",
+            },
           ].map(({ label, amount, hint }) => (
-            <div key={label} className="flex min-h-11 items-center justify-between gap-3 py-2">
+            <div
+              key={label}
+              className="flex min-h-11 items-center justify-between gap-3 py-2"
+            >
               <dt className="min-w-0">
                 {label}
-                {hint && <span className="block text-sm text-muted-foreground">{hint}</span>}
+                {hint && (
+                  <span className="block text-sm text-muted-foreground">
+                    {hint}
+                  </span>
+                )}
               </dt>
-              <dd className="shrink-0 font-medium tabular-nums">{money(amount)}</dd>
+              <dd className="shrink-0 font-medium tabular-nums">
+                {money(amount)}
+              </dd>
             </div>
           ))}
         </dl>
@@ -122,21 +154,32 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
           if (rows.length === 0) return null;
           return (
             <fieldset key={key} className="flex flex-col">
-              <legend className="text-sm font-semibold text-muted-foreground">{label}</legend>
+              <legend className="text-sm font-semibold text-muted-foreground">
+                {label}
+              </legend>
               <div className="divide-y">
                 {rows.map((item) => (
-                  <label key={item.categoryId} className="flex min-h-11 items-center gap-3 py-2">
+                  <label
+                    key={item.categoryId}
+                    className="flex min-h-11 items-center gap-3 py-2"
+                  >
                     <Checkbox
                       checked={checked.has(item.categoryId)}
                       onCheckedChange={(on) => toggle(item.categoryId, on)}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate">{names.get(item.categoryId) ?? "Kategori"}</span>
+                      <span className="block truncate">
+                        {names.get(item.categoryId) ?? "Kategori"}
+                      </span>
                       {item.current !== null && (
-                        <span className="block text-sm text-muted-foreground tabular-nums">Ganti {money(item.current)}</span>
+                        <span className="block text-sm text-muted-foreground tabular-nums">
+                          Ganti {money(item.current)}
+                        </span>
                       )}
                     </span>
-                    <span className="shrink-0 font-medium tabular-nums">{money(item.amount)}</span>
+                    <span className="shrink-0 font-medium tabular-nums">
+                      {money(item.amount)}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -148,40 +191,48 @@ function SuggestionContent({ period, names, onClose }: { period: BudgetPeriod; n
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-4">
-      <FormField
-        id="suggestion-income"
-        label="Income dasar"
-        hint={
-          data?.basisSource === "previous_month" && typed === null
-            ? `Income ${formatPeriodLabel(shiftPeriod(period, -1))}`
-            : "Ubah untuk menghitung ulang saran."
-        }
-      >
-        <MoneyInput
+    <ResponsiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Saran 50/30/20"
+      description={`Budget ${formatPeriodLabel(period)} dari income dan pengeluaran 3 bulan terakhir.`}
+      footer={
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onClose}>
+            Batal
+          </Button>
+          <Button
+            type="button"
+            className="h-11 flex-1 text-base"
+            disabled={applying || pending || toApply.length === 0}
+            onClick={() => void apply()}
+          >
+            {applying && <Loader2Icon className="animate-spin" aria-hidden />}
+            Terapkan ({toApply.length})
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <FormField
           id="suggestion-income"
-          value={typed ?? data?.basis ?? 0}
-          onChange={setTyped}
-          describedBy="suggestion-income-message"
-        />
-      </FormField>
-
-      {body}
-
-      <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
-        <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onClose}>
-          Batal
-        </Button>
-        <Button
-          type="button"
-          className="h-11 flex-1 text-base"
-          disabled={applying || pending || toApply.length === 0}
-          onClick={() => void apply()}
+          label="Income dasar"
+          hint={
+            data?.basisSource === "previous_month" && typed === null
+              ? `Income ${formatPeriodLabel(shiftPeriod(period, -1))}`
+              : "Ubah untuk menghitung ulang saran."
+          }
         >
-          {applying && <Loader2Icon className="animate-spin" aria-hidden />}
-          Terapkan ({toApply.length})
-        </Button>
+          <MoneyInput
+            id="suggestion-income"
+            value={typed ?? data?.basis ?? 0}
+            onChange={setTyped}
+            describedBy="suggestion-income-message"
+          />
+        </FormField>
+
+        {body}
       </div>
-    </div>
+    </ResponsiveModal>
   );
 }

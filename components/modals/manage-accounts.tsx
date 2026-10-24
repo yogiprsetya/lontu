@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { AccountForm } from "@/components/forms/account-form";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import {
   ArchiveButton,
@@ -75,7 +76,9 @@ export function ManageAccounts({
             <PlusIcon aria-hidden />
             Tambah akun
           </Button>
-        ) : undefined
+        ) : (
+          <FormActions form="account-form" onCancel={toList} />
+        )
       }
     >
       <ScrollArea className="w-full lg:h-56">
@@ -87,14 +90,13 @@ export function ManageAccounts({
           />
         )}
         {view.kind === "create" && (
-          <AccountForm onDone={toList} onCancel={toList} />
+          <AccountForm onDone={toList} />
         )}
         {view.kind === "edit" && (
           <AccountForm
             key={view.account.id}
             account={view.account}
             onDone={toList}
-            onCancel={toList}
           >
             <ArchiveButton
               label="Arsipkan akun"

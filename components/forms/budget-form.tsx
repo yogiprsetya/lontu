@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
@@ -12,7 +11,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { deleteBudget, restoreBudget, setBudgets } from "@/hooks/use-budgets";
 import { budgetTransactionsHref } from "@/lib/budget-format";
 import { applyServerErrors } from "@/lib/form-errors";
-import { budgetAmount, type BudgetPeriod, type BudgetUsageItem } from "@/lib/schemas/budget";
+import {
+  budgetAmount,
+  type BudgetPeriod,
+  type BudgetUsageItem,
+} from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({ amount: budgetAmount });
@@ -23,27 +26,40 @@ type BudgetFormProps = {
   period: BudgetPeriod;
   item: BudgetUsageItem;
   onDone: () => void;
-  onCancel: () => void;
 };
 
 const UNDO_MS = 6000;
 
-export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) {
+export function BudgetForm({
+  period,
+  item,
+  onDone,
+}: BudgetFormProps) {
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: { amount: item.budget ?? 0 } });
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { amount: item.budget ?? 0 },
+  });
 
   const onSubmit = handleSubmit(async ({ amount }) => {
     try {
-      await setBudgets({ period, items: [{ categoryId: item.categoryId, amount }] });
+      await setBudgets({
+        period,
+        items: [{ categoryId: item.categoryId, amount }],
+      });
       toast.success("Budget disimpan");
       onDone();
     } catch (err) {
       // The API reports problems on `period` or `items`; this form has one field to show them on.
-      if (!applyServerErrors(err, (_name: never, error) => setError("amount", error))) {
+      if (
+        !applyServerErrors(err, (_name: never, error) =>
+          setError("amount", error),
+        )
+      ) {
         toast.error("Gagal menyimpan budget. Coba lagi.");
       }
     }
@@ -58,7 +74,10 @@ export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) 
         duration: UNDO_MS,
         action: {
           label: "Urungkan",
-          onClick: () => void restoreBudget(id).catch(() => toast.error("Gagal mengurungkan. Coba lagi.")),
+          onClick: () =>
+            void restoreBudget(id).catch(() =>
+              toast.error("Gagal mengurungkan. Coba lagi."),
+            ),
         },
       });
     } catch {
@@ -67,7 +86,7 @@ export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) 
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-4">
+    <form id="budget-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <Controller
         control={control}
         name="amount"
@@ -92,7 +111,10 @@ export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) 
 
       <Link
         href={budgetTransactionsHref(period, item.categoryId)}
-        className={cn(buttonVariants({ variant: "outline" }), "h-11 self-start text-base")}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "h-11 self-start text-base",
+        )}
       >
         Lihat transaksi
       </Link>
@@ -108,16 +130,6 @@ export function BudgetForm({ period, item, onDone, onCancel }: BudgetFormProps) 
           Hapus budget
         </Button>
       )}
-
-      <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
-        <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>
-          Batal
-        </Button>
-        <Button type="submit" className="h-11 flex-1 text-base" disabled={isSubmitting}>
-          {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
-          Simpan
-        </Button>
-      </div>
     </form>
   );
 }

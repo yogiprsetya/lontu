@@ -8,6 +8,7 @@ import { copyFromPreviousMonth, MonthActions, previousMonthLabel } from "@/compo
 import { MonthStepper } from "@/components/budgets/month-stepper";
 import { SuggestionPanel } from "@/components/budgets/suggestion-panel";
 import { BudgetForm } from "@/components/forms/budget-form";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
@@ -143,6 +144,7 @@ export function BudgetView() {
         onOpenChange={(open) => !open && setEditingId(null)}
         title={editing ? (names.get(editing.categoryId) ?? "Kategori") : "Budget"}
         description={formatPeriodLabel(period)}
+        footer={<FormActions form="budget-form" onCancel={() => setEditingId(null)} />}
       >
         {editing && (
           <BudgetForm
@@ -150,7 +152,6 @@ export function BudgetView() {
             period={period}
             item={editing}
             onDone={() => setEditingId(null)}
-            onCancel={() => setEditingId(null)}
           />
         )}
       </ResponsiveModal>

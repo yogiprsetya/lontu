@@ -2,12 +2,10 @@
 
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -35,18 +33,17 @@ type AccountFormProps = {
   /** Edit this account; omit to create one. */
   account?: Account;
   onDone: () => void;
-  onCancel: () => void;
   /** Extra actions for edit mode, rendered above Batal/Simpan. */
   children?: React.ReactNode;
 };
 
-export function AccountForm({ account, onDone, onCancel, children }: AccountFormProps) {
+export function AccountForm({ account, onDone, children }: AccountFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormValues, unknown, AccountCreateInput>({
     resolver: zodResolver(accountCreateSchema),
     defaultValues: account
@@ -72,7 +69,7 @@ export function AccountForm({ account, onDone, onCancel, children }: AccountForm
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-4">
+    <form id="account-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <FormField id="account-name" label="Nama akun" error={errors.name?.message}>
         <Input
           id="account-name"
@@ -159,16 +156,6 @@ export function AccountForm({ account, onDone, onCancel, children }: AccountForm
       />
 
       {children}
-
-      <div className="sticky bottom-0 flex gap-2 bg-popover pt-2">
-        <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>
-          Batal
-        </Button>
-        <Button type="submit" className="h-11 flex-1 text-base" disabled={isSubmitting}>
-          {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
-          Simpan
-        </Button>
-      </div>
     </form>
   );
 }

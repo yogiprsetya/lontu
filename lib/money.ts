@@ -15,6 +15,9 @@ const units = [
   { value: 1e3, label: "rb" },
 ] as const;
 
+/** Shown in place of any amount while "hide amounts" is on. */
+export const HIDDEN_AMOUNT = "Rp•••••";
+
 export function formatIDR(amount: number): string {
   // ICU versions differ on the space after "Rp" (NBSP vs none); strip it so server and client render the same.
   return idrFormatter.format(amount).replace(/\s/g, "");

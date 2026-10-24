@@ -24,6 +24,13 @@ export function formatDateHeading(date: string, today: string) {
 
 export type AmountTone = "income" | "expense" | "budget" | "transfer";
 
+export const AMOUNT_TONE_CLASS: Record<AmountTone, string> = {
+  income: "text-income",
+  expense: "text-expense",
+  budget: "text-budget",
+  transfer: "text-transfer",
+};
+
 /** Colour is never the only cue: `formatSignedAmount` carries the sign too. */
 export function amountTone(type: ListTransactionType, amount: number): AmountTone {
   switch (type) {

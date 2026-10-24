@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
 import { LIST_TRANSACTION_TYPES, type ListTransactionType } from "@/lib/schemas/transaction";
-import type { TransactionType } from "@/lib/transaction-types";
 
 /** `YYYY-MM`, `YYYY` or `all`. Lives only in the page URL; the API takes `from`/`to`. */
 export type Period = string;
@@ -104,7 +103,7 @@ export function normalizeFilters(
   delete rest.categoryId;
   if (type === "transfer" || type === "adjustment") return rest;
   const kind = categoryKind(categoryId);
-  return kind && kind !== CATEGORY_KIND_FOR[type as Exclude<TransactionType, "transfer">] ? rest : filters;
+  return kind && kind !== CATEGORY_KIND_FOR[type] ? rest : filters;
 }
 
 export function shiftPeriod(period: Period, delta: 1 | -1): Period {

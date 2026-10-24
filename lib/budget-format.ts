@@ -1,5 +1,5 @@
 import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
-import { formatIDR } from "@/lib/money";
+import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { filtersToUrl } from "@/lib/transaction-filters";
 import {
   BUDGET_PERIOD_FORMAT,
@@ -40,7 +40,7 @@ export function groupStatus(group: BudgetGroup) {
 }
 
 export function formatBudgetAmount(amount: number, hideAmounts: boolean) {
-  return hideAmounts ? "Rp•••••" : formatIDR(amount);
+  return hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount);
 }
 
 /** Same URL dashboard's Budget Summary links to. */

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
+import { archiveLabel } from "@/lib/archived";
 import {
   CATEGORY_KINDS,
   CATEGORY_KIND_FOR,
@@ -43,9 +44,6 @@ const triggerClass = "w-full text-base data-[size=default]:h-11 md:text-sm";
 
 const typeLabel = (type: ListTransactionType) =>
   type === "adjustment" ? ADJUSTMENT_LABEL : TRANSACTION_TYPE_LABELS[type];
-
-const withArchiveLabel = (item: { name: string; archivedAt: string | null }) =>
-  item.archivedAt ? `${item.name} (arsip)` : item.name;
 
 function Field({
   id,
@@ -96,7 +94,7 @@ export function FilterPanel({
     { value: ALL, label: "Semua akun" },
     ...(accounts.data ?? []).map((a) => ({
       value: a.id,
-      label: withArchiveLabel(a),
+      label: archiveLabel(a),
     })),
   ];
   const takesCategory =
@@ -111,7 +109,7 @@ export function FilterPanel({
   );
   const categoryItems = [
     { value: ALL, label: "Semua kategori" },
-    ...categoryList.map((c) => ({ value: c.id, label: withArchiveLabel(c) })),
+    ...categoryList.map((c) => ({ value: c.id, label: archiveLabel(c) })),
   ];
 
   return (
@@ -259,7 +257,7 @@ function CategoryGroup({
       <SelectLabel>{label}</SelectLabel>
       {categories.map((c) => (
         <SelectItem key={c.id} value={c.id} className="min-h-11">
-          {withArchiveLabel(c)}
+          {archiveLabel(c)}
         </SelectItem>
       ))}
     </SelectGroup>

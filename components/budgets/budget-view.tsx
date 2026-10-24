@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
+import { archiveLabel } from "@/lib/archived";
 import { BUDGET_GROUPS, budgetPeriodFromParam } from "@/lib/budget-format";
 import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/transaction-filters";
@@ -48,7 +49,7 @@ export function BudgetView() {
   const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
-    () => new Map(categories.data?.map((c) => [c.id, c.archivedAt ? `${c.name} (arsip)` : c.name])),
+    () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
     [categories.data],
   );
   // Archived categories cannot take a new budget (the API rejects them), so their rows stay read-only.

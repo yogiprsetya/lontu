@@ -12,13 +12,14 @@ import {
 } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   archiveAccount,
   restoreAccount,
   useAccounts,
 } from "@/hooks/use-accounts";
-import { formatIDR } from "@/lib/money";
+import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import {
   ACCOUNT_SUBTYPE_LABELS,
   ACCOUNT_TYPE_LABELS,
@@ -27,7 +28,6 @@ import {
 } from "@/lib/schemas/account";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
-import { ScrollArea } from "../ui/scroll-area";
 
 type View =
   | { kind: "list" }
@@ -223,7 +223,7 @@ function AccountSummary({ account }: { account: Account }) {
           account.balance < 0 && "text-destructive",
         )}
       >
-        {hideAmounts ? "Rp•••••" : formatIDR(account.balance)}
+        {hideAmounts ? HIDDEN_AMOUNT : formatIDR(account.balance)}
       </span>
     </div>
   );

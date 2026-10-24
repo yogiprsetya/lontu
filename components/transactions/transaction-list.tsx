@@ -8,31 +8,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
+import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
+import { HIDDEN_AMOUNT } from "@/lib/money";
 import type { Transaction } from "@/lib/schemas/transaction";
 import {
+  AMOUNT_TONE_CLASS,
   amountTone,
   formatDateHeading,
   formatSignedAmount,
   groupByDate,
-  type AmountTone,
 } from "@/lib/transaction-format";
 import type { ListFilters } from "@/lib/transaction-filters";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
-const TONE_CLASS: Record<AmountTone, string> = {
-  income: "text-income",
-  expense: "text-expense",
-  budget: "text-budget",
-  transfer: "text-transfer",
-};
-
 type Names = Map<string, string>;
 
 function nameMap(items: { id: string; name: string; archivedAt: string | null }[] | undefined): Names {
-  return new Map(items?.map((i) => [i.id, i.archivedAt ? `${i.name} (arsip)` : i.name]));
+  return new Map(items?.map((i) => [i.id, archiveLabel(i)]));
 }
 
 function titleOf(t: Transaction, accounts: Names, categories: Names) {
@@ -52,8 +47,8 @@ function Row({ t, accounts, categories, hideAmounts }: { t: Transaction; account
             {t.description && ` · ${t.description}`}
           </p>
         </div>
-        <p className={cn("shrink-0 font-medium tabular-nums", TONE_CLASS[amountTone(t.type, t.amount)])}>
-          {hideAmounts ? "Rp•••••" : formatSignedAmount(t.type, t.amount)}
+        <p className={cn("shrink-0 font-medium tabular-nums", AMOUNT_TONE_CLASS[amountTone(t.type, t.amount)])}>
+          {hideAmounts ? HIDDEN_AMOUNT : formatSignedAmount(t.type, t.amount)}
         </p>
       </Link>
     </li>

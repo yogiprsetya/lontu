@@ -15,16 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
-import { budgetPeriodFromParam } from "@/lib/budget-format";
+import { BUDGET_GROUPS, budgetPeriodFromParam } from "@/lib/budget-format";
 import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/transaction-filters";
 import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
-
-const GROUPS = [
-  { key: "needs", label: "Needs" },
-  { key: "wants", label: "Wants" },
-] as const;
 
 function ViewSkeleton() {
   return (
@@ -106,7 +101,7 @@ export function BudgetView() {
           </div>
         )}
         <BudgetSummary summary={usage.data.summary} hideAmounts={hideAmounts} />
-        {GROUPS.map(({ key, label }) => {
+        {BUDGET_GROUPS.map(({ key, label }) => {
           const rows = rowsOf(key);
           if (rows.length === 0) return null;
           return (

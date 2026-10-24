@@ -16,6 +16,12 @@ export function budgetPeriodFromParam(value: string | null, today: string): Budg
   return valid ? value : today.slice(0, 7);
 }
 
+/** Spending types that take a budget, in display order. */
+export const BUDGET_GROUPS = [
+  { key: "needs", label: "Needs" },
+  { key: "wants", label: "Wants" },
+] as const;
+
 const STATUS_LABEL: Record<BudgetStatus, string | null> = {
   none: null,
   ok: null,

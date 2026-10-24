@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { setBudgets, useBudgetSuggestion } from "@/hooks/use-budgets";
 import {
+  BUDGET_GROUPS,
   defaultSuggestionSelection,
   formatBudgetAmount,
   selectedSuggestionItems,
@@ -22,11 +23,6 @@ import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
 import { useUIStore } from "@/stores/ui";
 
 const INCOME_DEBOUNCE_MS = 400;
-
-const GROUPS = [
-  { key: "needs", label: "Needs" },
-  { key: "wants", label: "Wants" },
-] as const;
 
 type Props = {
   period: BudgetPeriod;
@@ -149,7 +145,7 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
             </div>
           ))}
         </dl>
-        {GROUPS.map(({ key, label }) => {
+        {BUDGET_GROUPS.map(({ key, label }) => {
           const rows = data.items.filter((i) => i.spendingType === key);
           if (rows.length === 0) return null;
           return (

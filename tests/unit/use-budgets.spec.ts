@@ -4,10 +4,8 @@ import type { BudgetUsage } from "@/lib/schemas/budget";
 vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
 
 const { mutate } = await import("swr");
-const { budgetSuggestionKey, budgetsKey, copyBudgets, deleteBudget, isBudgetsKey, restoreBudget, setBudgets } = await import(
-  "@/hooks/use-budgets"
-);
-const { revalidateTransactions } = await import("@/hooks/use-transactions");
+const { budgetSuggestionKey, budgetsKey, copyBudgets, deleteBudget, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
+const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
 const mockedMutate = vi.mocked(mutate);
@@ -36,23 +34,28 @@ describe("budgets SWR keys", () => {
     expect(budgetSuggestionKey("2026-10")).toBe("/api/budgets/suggestion?period=2026-10");
     expect(budgetSuggestionKey("2026-10", 7_777_777)).toBe("/api/budgets/suggestion?period=2026-10&income=7777777");
     expect(budgetSuggestionKey("2026-10", 0)).toBe("/api/budgets/suggestion?period=2026-10&income=0");
-    expect(isBudgetsKey(budgetSuggestionKey("2026-10"))).toBe(true);
+    expect(isResourceKey("budgets", budgetSuggestionKey("2026-10"))).toBe(true);
   });
 
   it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])("matches %s", (key) => {
-    expect(isBudgetsKey(key)).toBe(true);
+    expect(isResourceKey("budgets", key)).toBe(true);
   });
 
   it.each([["/api/budgetsx"], ["/api/transactions"], [undefined], [[budgetKey]]])("does not match %j", (key) => {
-    expect(isBudgetsKey(key)).toBe(false);
+    expect(isResourceKey("budgets", key)).toBe(false);
   });
 });
 
 describe("cross-module revalidation", () => {
-  it("revalidateTransactions also refreshes budget usage", async () => {
-    await revalidateTransactions();
+  it("a transaction change also refreshes budget usage", async () => {
+    await invalidate("transactions");
     expect(revalidated(budgetKey)).toBe(true);
     expect(revalidated("/api/transactions?type=expense")).toBe(true);
+  });
+
+  it("a budget change leaves transactions and balances alone", async () => {
+    await invalidate("budgets");
+    expect(revalidated("/api/transactions?type=expense")).toBe(false);
     expect(revalidated("/api/accounts")).toBe(false);
   });
 

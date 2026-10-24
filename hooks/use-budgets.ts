@@ -2,10 +2,9 @@
 
 import useSWR, { mutate } from "swr";
 import { removeBudgetFromUsage } from "@/lib/budget-cache";
+import { invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Budget, BudgetPeriod, BudgetSetInput, BudgetSuggestion, BudgetUsage } from "@/lib/schemas/budget";
-
-const BUDGETS_KEY = /^\/api\/budgets($|[/?])/;
 
 export function budgetsKey(period: BudgetPeriod) {
   return `/api/budgets?period=${period}`;
@@ -13,15 +12,6 @@ export function budgetsKey(period: BudgetPeriod) {
 
 export function budgetSuggestionKey(period: BudgetPeriod, income?: number) {
   return `/api/budgets/suggestion?period=${period}${income === undefined ? "" : `&income=${income}`}`;
-}
-
-export function isBudgetsKey(key: unknown) {
-  return typeof key === "string" && BUDGETS_KEY.test(key);
-}
-
-/** Refreshes usage and suggestion entries for every month. */
-export function revalidateBudgets() {
-  return mutate(isBudgetsKey);
 }
 
 export function useBudgets(period: BudgetPeriod) {
@@ -35,7 +25,7 @@ export function useBudgetSuggestion(period: BudgetPeriod, income: number | undef
 
 export async function setBudgets(input: BudgetSetInput) {
   const saved = await sendJSON<Budget[]>("/api/budgets", "PUT", input);
-  await revalidateBudgets();
+  await invalidate("budgets");
   return saved;
 }
 
@@ -46,23 +36,23 @@ export async function deleteBudget(period: BudgetPeriod, id: string) {
   });
   try {
     const deleted = await sendJSON<Budget>(`/api/budgets/${id}`, "DELETE");
-    await revalidateBudgets();
+    await invalidate("budgets");
     return deleted;
   } catch (err) {
-    await revalidateBudgets();
+    await invalidate("budgets");
     throw err;
   }
 }
 
 export async function restoreBudget(id: string) {
   const restored = await sendJSON<Budget>(`/api/budgets/${id}/restore`, "POST");
-  await revalidateBudgets();
+  await invalidate("budgets");
   return restored;
 }
 
 /** Fills `to` from the month before; only categories without an active budget are touched. */
 export async function copyBudgets(to: BudgetPeriod) {
   const result = await sendJSON<{ copied: number }>("/api/budgets/copy", "POST", { to });
-  await revalidateBudgets();
+  await invalidate("budgets");
   return result;
 }

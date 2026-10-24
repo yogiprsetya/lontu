@@ -1,7 +1,7 @@
 "use client";
 
-import useSWR, { mutate } from "swr";
-import { revalidateBudgets } from "@/hooks/use-budgets";
+import useSWR from "swr";
+import { invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Category, CategoryCreateInput, CategoryKind } from "@/lib/schemas/category";
 
@@ -9,10 +9,6 @@ type Options = { kind?: CategoryKind; includeArchived?: boolean };
 
 export function categoriesKey({ includeArchived = false }: Options = {}) {
   return includeArchived ? "/api/categories?include=archived" : "/api/categories";
-}
-
-export function isCategoriesKey(key: unknown) {
-  return typeof key === "string" && key.startsWith("/api/categories");
 }
 
 export function filterByKind(categories: Category[], kind?: CategoryKind) {
@@ -32,31 +28,26 @@ export function useCategories(options: Options = {}) {
   return { ...swr, data: swr.data && filterByKind(swr.data, options.kind) };
 }
 
-function revalidateCategories() {
-  return mutate(isCategoriesKey);
-}
-
 export async function createCategory(input: CategoryCreateInput) {
   const category = await sendJSON<Category>("/api/categories", "POST", input);
-  await revalidateCategories();
+  await invalidate("categories");
   return category;
 }
 
 export async function renameCategory(id: string, name: string) {
   const category = await sendJSON<Category>(`/api/categories/${id}`, "PATCH", { name });
-  await revalidateCategories();
+  await invalidate("categories");
   return category;
 }
 
 export async function archiveCategory(id: string) {
   const category = await sendJSON<Category>(`/api/categories/${id}`, "DELETE");
-  // Usage rows depend on whether a category is archived.
-  await Promise.all([revalidateCategories(), revalidateBudgets()]);
+  await invalidate("categories");
   return category;
 }
 
 export async function restoreCategory(id: string) {
   const category = await sendJSON<Category>(`/api/categories/${id}/restore`, "POST");
-  await Promise.all([revalidateCategories(), revalidateBudgets()]);
+  await invalidate("categories");
   return category;
 }

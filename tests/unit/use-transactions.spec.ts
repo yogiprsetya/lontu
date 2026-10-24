@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isInfiniteTransactionsKey, isTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { isResourceKey } from "@/lib/cache-invalidation";
+
+const isTransactionsKey = (key: unknown) => isResourceKey("transactions", key);
 
 describe("isTransactionsKey", () => {
   it.each([

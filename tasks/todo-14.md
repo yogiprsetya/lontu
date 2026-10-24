@@ -33,14 +33,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Hapus → baris langsung kembali "Atur budget" dan ringkasan berubah. "Urungkan" mengembalikannya
-- [ ] `DELETE` gagal (offline di DevTools) → baris kembali, toast error
+- [x] Hapus → baris langsung kembali "Atur budget" dan ringkasan berubah. "Urungkan" mengembalikannya
+- [x] `DELETE` gagal (offline di DevTools) → baris kembali, toast error
 - [x] `removeBudgetFromUsage` menghasilkan `summary` yang sama dengan respons server untuk keadaan yang sama
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/budget-cache.spec.ts tests/unit/use-budgets.spec.ts` hijau
-- [ ] Manual 360×800
+- [x] Manual 360×800
 
 **Dependencies:** T47, T48
 
@@ -78,12 +78,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Salin dari ponsel mengisi daftar tanpa reload. Salin kedua → toast "0"/"belum punya" sesuai kasus, tanpa duplikat
-- [ ] Menu terjangkau keyboard, target ≥ 44 px, 360 px tanpa horizontal scroll
+- [x] Salin dari ponsel mengisi daftar tanpa reload. Salin kedua → toast "0"/"belum punya" sesuai kasus, tanpa duplikat
+- [x] Menu terjangkau keyboard, target ≥ 44 px, 360 px tanpa horizontal scroll
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024
+- [x] Manual 360×800 dan 1024
 - [x] `pnpm build` hijau
 
 **Dependencies:** T47, T50
@@ -97,5 +97,5 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ### Checkpoint M
 
 - [x] Gerbang penuh hijau
-- [ ] Alur hapus/urungkan dan salin di 360×800 dan 1024
-- [ ] Review dengan Yogi
+- [x] Alur hapus/urungkan dan salin di 360×800 dan 1024
+- [x] Review dengan Yogi

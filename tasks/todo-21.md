@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `installPromptState`: standalone → hidden; event ada → prompt; Safari iOS tanpa event → ios-instructions; Chrome iOS (`CriOS`) tanpa event → hidden; ditutup 29 hari lalu → hidden, 31 hari lalu → tampil
+- [x] `installPromptState`: standalone → hidden; event ada → prompt; Safari iOS tanpa event → ios-instructions; Chrome iOS (`CriOS`) tanpa event → hidden; ditutup 29 hari lalu → hidden, 31 hari lalu → tampil
 - [ ] Android Chrome: kartu → dialog pasang bawaan, setelah terpasang kartu hilang. iPhone Safari: kartu instruksi. "Nanti" bertahan setelah reload
 - [ ] Kartu tidak menggeser layout dashboard saat muncul (ruang hanya dipakai saat `prompt`/`ios-instructions`, CLS < 0,1), tombol ≥ 44 px, 360 px tanpa horizontal scroll
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/install-prompt.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/install-prompt.spec.ts` hijau
 - [ ] `pnpm build` hijau. Manual di Android Chrome dan iPhone Safari (preview Vercel, butuh HTTPS)
 
 **Dependencies:** T66

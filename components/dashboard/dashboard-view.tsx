@@ -6,6 +6,7 @@ import { DashboardBudgetSummary } from "@/components/dashboard/budget-summary";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { ExpenseActivity } from "@/components/dashboard/expense-activity";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
+import { InstallCard } from "@/components/pwa/install-card";
 import { PendingNotice } from "@/components/pwa/pending-notice";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
 import { dashboardPeriodFromParam } from "@/lib/dashboard-period";
@@ -45,6 +46,10 @@ export function DashboardView() {
       </div>
       <div className="min-w-0 lg:col-start-1 lg:row-start-4">
         <CategoryBreakdown period={period} />
+      </div>
+      {/* Last, so appearing after hydration never pushes the numbers down. */}
+      <div className="min-w-0 empty:hidden lg:col-span-2 lg:row-start-5">
+        <InstallCard />
       </div>
     </div>
   );

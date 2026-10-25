@@ -28,11 +28,19 @@ describe("useUIStore", () => {
     expect(useUIStore.getState().hideAmounts).toBe(!before);
   });
 
-  it("persists only hideAmounts", () => {
+  it("persists only hideAmounts and installDismissedAt", () => {
     useUIStore.getState().open("manageCategories");
 
     const stored = JSON.parse(localStorage.getItem("lontu-ui") ?? "{}");
 
-    expect(stored.state).toEqual({ hideAmounts: useUIStore.getState().hideAmounts });
+    expect(stored.state).toEqual({
+      hideAmounts: useUIStore.getState().hideAmounts,
+      installDismissedAt: useUIStore.getState().installDismissedAt,
+    });
+  });
+
+  it("records when the install card was dismissed", () => {
+    useUIStore.getState().dismissInstall(1_000);
+    expect(useUIStore.getState().installDismissedAt).toBe(1_000);
   });
 });

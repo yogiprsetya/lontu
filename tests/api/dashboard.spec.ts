@@ -27,6 +27,7 @@ const zero = { income: 0, expense: 0, saving: 0, net: 0 };
 let userA: string;
 let userB: string;
 let cleanup: () => PromiseLike<unknown>;
+let cat: Record<string, string>;
 
 beforeAll(async () => {
   const created = await createTestUsers(2);
@@ -47,11 +48,12 @@ beforeAll(async () => {
     .values([
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "Listrik", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      { userId: userA, name: "Hiburan", kind: "spending", spendingType: "wants" },
       { userId: userA, name: "Gaji", kind: "income" },
       { userId: userA, name: "Tabungan", kind: "saving" },
     ])
     .returning({ id: categories.id, name: categories.name });
-  const cat = Object.fromEntries(rows.map((r) => [r.name, r.id]));
+  cat = Object.fromEntries(rows.map((r) => [r.name, r.id]));
 
   const a = { userId: userA, accountId: account.id };
   await db.insert(transactions).values([
@@ -77,7 +79,8 @@ afterAll(async () => {
 
 describe("dashboardSummary", () => {
   it("totals the current month to date, leaving out transfers, adjustments and deleted rows", async () => {
-    const { activity, ...summary } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    const { activity, categories, ...summary } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    expect(categories).toHaveLength(2);
     expect(activity).toHaveLength(25);
     expect(summary).toEqual({
       period: "2026-10",
@@ -85,7 +88,7 @@ describe("dashboardSummary", () => {
       previous: { period: "2026-09", range: { from: "2026-09-01", to: "2026-09-25" } },
       totals: { income: 10_000_000, expense: 3_000_000, saving: 1_000_000, net: 6_000_000 },
       previousTotals: { income: 8_000_000, expense: 400_000, saving: 0, net: 7_600_000 },
-    } satisfies Omit<DashboardSummary, "activity">);
+    } satisfies Omit<DashboardSummary, "activity" | "categories">);
   });
 
   it("compares a past month with the full month before it", async () => {
@@ -105,6 +108,7 @@ describe("dashboardSummary", () => {
     expect(empty.totals).toEqual(zero);
     expect(empty.activity).toHaveLength(31);
     expect(empty.activity.every((b) => b.expense === 0)).toBe(true);
+    expect(empty.categories).toEqual([]);
     expect(empty.previousTotals).toEqual(zero);
     const first = await dashboardSummary(userA, "2000-01", "2026-10-25");
     expect(first.previousTotals).toEqual(zero);
@@ -116,6 +120,23 @@ describe("dashboardSummary", () => {
     expect(summary.activity).toHaveLength(25);
     expect(summary.activity.every((b) => b.expense === 0)).toBe(true);
     expect(summary.previousTotals).toEqual(zero);
+    expect(summary.categories).toEqual([]);
+  });
+});
+
+describe("dashboardSummary categories", () => {
+  it("lists every category with spending, archived ones included, largest first", async () => {
+    const { categories, totals } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    expect(categories).toEqual([
+      { categoryId: cat.Makan, spendingType: "needs", amount: 2_050_000 },
+      { categoryId: cat.Listrik, spendingType: "needs", amount: 950_000 },
+    ]);
+    expect(categories.reduce((sum, c) => sum + c.amount, 0)).toBe(totals.expense);
+  });
+
+  it("stays inside the range", async () => {
+    const { categories } = await dashboardSummary(userA, "2026-09", "2026-10-25");
+    expect(categories).toEqual([{ categoryId: cat.Makan, spendingType: "needs", amount: 1_000_000 }]);
   });
 });
 

@@ -56,3 +56,20 @@ type Bucket = DashboardSummary["activity"][number];
 export function activityPeak(activity: Bucket[]): Bucket | null {
   return activity.reduce<Bucket | null>((peak, b) => (b.expense > (peak?.expense ?? 0) ? b : peak), null);
 }
+
+/** `categoryId: null` is "Lainnya". */
+export type CategorySlice = { categoryId: string | null; amount: number; percent: number };
+
+/**
+ * The `n` largest categories plus "Lainnya" for the rest. Lainnya needs two or more
+ * leftovers: folding a single category would only hide its name. Amounts add up exactly.
+ */
+export function topCategories(rows: DashboardSummary["categories"], n = 5): CategorySlice[] {
+  const total = rows.reduce((sum, row) => sum + row.amount, 0);
+  const percent = (amount: number) => Math.round((amount * 100) / total);
+  const kept = rows.length > n + 1 ? rows.slice(0, n) : rows;
+  const slices: CategorySlice[] = kept.map(({ categoryId, amount }) => ({ categoryId, amount, percent: percent(amount) }));
+  const rest = rows.slice(kept.length).reduce((sum, row) => sum + row.amount, 0);
+  if (rest > 0) slices.push({ categoryId: null, amount: rest, percent: percent(rest) });
+  return slices;
+}

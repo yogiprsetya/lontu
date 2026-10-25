@@ -7,6 +7,7 @@ import {
   formatShortPeriod,
   percentChange,
   sumBalances,
+  topCategories,
 } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
 
@@ -122,5 +123,30 @@ describe("activityPeak", () => {
   it("is null when nothing was spent", () => {
     expect(activityPeak([{ bucket: "2026-10-01", expense: 0 }])).toBeNull();
     expect(activityPeak([])).toBeNull();
+  });
+});
+
+describe("topCategories", () => {
+  const rows = (amounts: number[]) =>
+    amounts.map((amount, i) => ({ categoryId: `c${i + 1}`, spendingType: "needs" as const, amount }));
+  const sum = (slices: { amount: number }[]) => slices.reduce((total, s) => total + s.amount, 0);
+
+  it("keeps the top 5 and folds the rest into Lainnya", () => {
+    const slices = topCategories(rows([400, 200, 100, 100, 50, 50, 50, 50]));
+    expect(slices.map((s) => s.categoryId)).toEqual(["c1", "c2", "c3", "c4", "c5", null]);
+    expect(slices[5]).toEqual({ categoryId: null, amount: 150, percent: 15 });
+    expect(slices[0].percent).toBe(40);
+    expect(sum(slices)).toBe(1000);
+  });
+
+  it("does not make a Lainnya for a single leftover category", () => {
+    const slices = topCategories(rows([300, 200, 200, 100, 100, 100]));
+    expect(slices).toHaveLength(6);
+    expect(slices.every((s) => s.categoryId !== null)).toBe(true);
+    expect(sum(slices)).toBe(1000);
+  });
+
+  it("is empty without spending", () => {
+    expect(topCategories([])).toEqual([]);
   });
 });

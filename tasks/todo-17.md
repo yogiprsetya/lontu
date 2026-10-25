@@ -80,13 +80,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Semua kategori dengan expense > 0 muncul, termasuk terarsip, urutan benar. Kategori tanpa expense tidak muncul. Invarian `sum(categories.amount) = totals.expense`
-- [ ] `topCategories` dengan 8 → 5 + "Lainnya" (jumlah 3 sisanya). 6 → 6 tanpa "Lainnya". Jumlah selalu sama dengan input
-- [ ] Isolasi: kategori B tidak pernah memuat kategori atau expense A
+- [x] Semua kategori dengan expense > 0 muncul, termasuk terarsip, urutan benar. Kategori tanpa expense tidak muncul. Invarian `sum(categories.amount) = totals.expense`
+- [x] `topCategories` dengan 8 → 5 + "Lainnya" (jumlah 3 sisanya). 6 → 6 tanpa "Lainnya". Jumlah selalu sama dengan input
+- [x] Isolasi: kategori B tidak pernah memuat kategori atau expense A
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/dashboard.spec.ts tests/unit/dashboard-format.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/dashboard.spec.ts tests/unit/dashboard-format.spec.ts` hijau
 
 **Dependencies:** T56
 

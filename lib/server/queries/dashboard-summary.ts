@@ -1,9 +1,12 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { categories, transactions } from "@/db/schema";
 import { dashboardMode, dashboardRanges } from "@/lib/dashboard-period";
+import type { SpendingType } from "@/lib/schemas/category";
 import type { DashboardMode, DashboardPeriod, DashboardSummary, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
 import { transactionTotals } from "@/lib/server/queries/transaction-totals";
+import { transactionWhere } from "@/lib/server/transactions";
 
 const BUCKET = {
   month: { step: sql.raw("interval '1 day'"), label: "YYYY-MM-DD" },
@@ -37,13 +40,27 @@ async function totalsWithNet(userId: string, range: DateRange): Promise<Dashboar
   return { ...totals, net: totals.income - totals.expense - totals.saving };
 }
 
+async function expenseByCategory(userId: string, range: DateRange) {
+  const amount = sql<number>`sum(${transactions.amount})::bigint`.mapWith(Number);
+  const rows = await db
+    .select({ categoryId: categories.id, spendingType: categories.spendingType, amount })
+    .from(transactions)
+    .innerJoin(categories, and(eq(categories.id, transactions.categoryId), eq(categories.userId, userId)))
+    .where(transactionWhere(userId, { ...range, type: "expense" }))
+    .groupBy(categories.id, categories.spendingType)
+    .having(sql`sum(${transactions.amount}) > 0`)
+    .orderBy(desc(amount), asc(categories.id));
+  return rows.map((row) => ({ ...row, spendingType: row.spendingType as SpendingType }));
+}
+
 /** `today` is a parameter so tests can pin it; the route passes `todayInJakarta()`. */
 export async function dashboardSummary(userId: string, period: DashboardPeriod, today: string): Promise<DashboardSummary> {
   const { range, previous } = dashboardRanges(period, today);
-  const [totals, previousTotals, activity] = await Promise.all([
+  const [totals, previousTotals, activity, byCategory] = await Promise.all([
     totalsWithNet(userId, range),
     totalsWithNet(userId, previous.range),
     expenseActivity(userId, range, dashboardMode(period)),
+    expenseByCategory(userId, range),
   ]);
-  return { period, range, previous, totals, previousTotals, activity };
+  return { period, range, previous, totals, previousTotals, activity, categories: byCategory };
 }

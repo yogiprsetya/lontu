@@ -11,7 +11,7 @@ Pemilik melihat ke mana uangnya pergi: batang expense per hari (bulan) atau per 
 - [x] T59: Pasang shadcn chart + token warna grafik (S, risiko tinggi)
 - [x] T60: `activity` di `dashboardSummary` (S)
 - [x] T61: Grafik Expense Activity (M) (cek manual tertunda)
-- [ ] T62: `categories` di `dashboardSummary` + `topCategories` (S)
+- [x] T62: `categories` di `dashboardSummary` + `topCategories` (S)
 - [ ] T63: Donut per kategori + legenda (M)
 
 Urutan: T59 lebih dulu (gagal cepat jika Recharts bermasalah dengan React 19.3 atau melewati budget bundle). T60 dan T62 hanya butuh T56 dan boleh dikerjakan paralel dengan T59. T61 butuh T59 + T60, T63 butuh T59 + T62.

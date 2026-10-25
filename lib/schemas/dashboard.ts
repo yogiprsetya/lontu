@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
+import type { SpendingType } from "@/lib/schemas/category";
 import type { TransactionTotals } from "@/lib/schemas/transaction";
 
 /** `YYYY-MM` or `YYYY`. */
@@ -22,6 +23,8 @@ export type DashboardSummary = {
   previousTotals: DashboardTotals;
   /** `YYYY-MM-DD` per day (month mode) or `YYYY-MM` per month (year mode), ascending, empty buckets at 0. */
   activity: { bucket: string; expense: number }[];
+  /** Every spending category with expense > 0 in `range`, archived ones included; amount desc, then id. */
+  categories: { categoryId: string; spendingType: SpendingType; amount: number }[];
 };
 
 export const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;

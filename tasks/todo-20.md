@@ -34,13 +34,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `isNetworkError`: `TypeError("Failed to fetch")`, `AbortError`, `TimeoutError` → true. `ApiError` 400/500 → false
-- [ ] Outbox: `enqueue` id sama tidak menggandakan, `list` hanya item user itu urut `createdAt`, `retry` mengubah `failed` → `pending`, `subscribe` terpanggil di setiap perubahan
-- [ ] Replay dengan `send` palsu: FIFO; 201/200 menghapus; 400/409 → `failed` dengan pesan + `fields` lalu lanjut; 401 → `stopped: "auth"`, sisa tetap `pending`; galat jaringan/5xx → `stopped: "network"`, `attempts + 1`; item `failed` dan item user lain tidak dikirim
+- [x] `isNetworkError`: `TypeError("Failed to fetch")`, `AbortError`, `TimeoutError` → true. `ApiError` 400/500 → false
+- [x] Outbox: `enqueue` id sama tidak menggandakan, `list` hanya item user itu urut `createdAt`, `retry` mengubah `failed` → `pending`, `subscribe` terpanggil di setiap perubahan
+- [x] Replay dengan `send` palsu: FIFO; 201/200 menghapus; 400/409 → `failed` dengan pesan + `fields` lalu lanjut; 401 → `stopped: "auth"`, sisa tetap `pending`; galat jaringan/5xx → `stopped: "network"`, `attempts + 1`; item `failed` dan item user lain tidak dikirim
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/network-error.spec.ts tests/unit/outbox.spec.ts tests/unit/replay.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/network-error.spec.ts tests/unit/outbox.spec.ts tests/unit/replay.spec.ts` hijau
 
 **Dependencies:** T69 (`idb-keyval` terpasang)
 

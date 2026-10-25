@@ -13,7 +13,7 @@ export async function clearOfflineCaches(cacheStorage: CacheDeleter | undefined 
 
 export async function ensureCacheOwner(
   userId: string,
-  { store = browserStore, clear = () => clearOfflineCaches() }: { store?: KeyValueStore; clear?: () => Promise<void> } = {},
+  { store = browserStore, clear = () => clearOfflineCaches() }: { store?: Pick<KeyValueStore, "get" | "set">; clear?: () => Promise<void> } = {},
 ) {
   if ((await store.get<string>(OWNER_KEY)) === userId) return;
   await clear();

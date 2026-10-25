@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { clearOfflineCaches, ensureCacheOwner } from "@/lib/offline/clear";
 import type { KeyValueStore } from "@/lib/offline/storage";
 
-function mapStore(initial: Record<string, unknown> = {}): KeyValueStore & { data: Map<string, unknown> } {
+function mapStore(initial: Record<string, unknown> = {}): Pick<KeyValueStore, "get" | "set"> & { data: Map<string, unknown> } {
   const data = new Map(Object.entries(initial));
   return {
     data,

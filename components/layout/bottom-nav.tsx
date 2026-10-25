@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AddMenu } from "./add-menu";
 import { budgetItem, dashboardItem, expensesItem, isActivePath, type NavItem, settingsItem, transactionsItem } from "./nav-items";
-import { signOutToLogin } from "./sign-out";
+import { useSignOut } from "./sign-out";
 
 const slotClass =
   "flex min-h-14 min-w-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md text-[11px] font-medium tracking-tight outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -33,6 +33,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 }
 
 export function BottomNav() {
+  const signOut = useSignOut();
   const pathname = usePathname();
   const moreActive = [expensesItem, settingsItem].some((i) => isActivePath(pathname, i.href));
 
@@ -61,7 +62,7 @@ export function BottomNav() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="min-h-11 gap-3 text-base" onClick={() => void signOutToLogin()}>
+            <DropdownMenuItem className="min-h-11 gap-3 text-base" onClick={() => void signOut()}>
               <LogOutIcon className="size-5" aria-hidden />
               Logout
             </DropdownMenuItem>

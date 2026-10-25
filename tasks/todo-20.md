@@ -101,7 +101,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Unit (adapter `Map`): `clearOfflineData("a")` menghapus item `a`, item `b` tetap
+- [x] Unit (adapter `Map`): `clearOfflineData("a")` menghapus item `a`, item `b` tetap
 - [ ] Manual: sign-out dengan 1 item tertunda → konfirmasi. Batal → item tetap, masih login. Lanjut → outbox kosong untuk user itu, cache kosong
 - [ ] Sign-out tanpa item tertunda → tanpa konfirmasi (perilaku lama)
 

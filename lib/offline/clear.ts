@@ -1,4 +1,5 @@
 import { USER_DATA_CACHES } from "./cache-names";
+import { outbox as defaultOutbox, type Outbox } from "./outbox";
 import { browserStore, type KeyValueStore } from "./storage";
 
 const OWNER_KEY = "cacheOwner";
@@ -18,4 +19,13 @@ export async function ensureCacheOwner(
   if ((await store.get<string>(OWNER_KEY)) === userId) return;
   await clear();
   await store.set(OWNER_KEY, userId);
+}
+
+/** Everything this user left on the device: cached reads and unsent transactions. Other users' items stay. */
+export async function clearOfflineData(
+  userId: string,
+  { outbox = defaultOutbox, clearCaches = () => clearOfflineCaches() }: { outbox?: Outbox; clearCaches?: () => Promise<void> } = {},
+) {
+  const items = await outbox.list(userId);
+  await Promise.all([clearCaches(), ...items.map((item) => outbox.remove(item.id))]);
 }

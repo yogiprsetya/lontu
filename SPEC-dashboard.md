@@ -121,24 +121,24 @@ Hanya membaca. Param lain diabaikan.
 
 **API**
 
-- [ ] Dengan income 10.000.000, expense 3.000.000 (dua kategori, salah satunya terarsip, termasuk satu biaya admin transfer), saving 1.000.000, satu transfer, dan satu adjustment di Oktober 2026: `GET ?period=2026-10` → `totals = { income: 10000000, expense: 3000000, saving: 1000000, net: 6000000 }`. Transfer, adjustment, dan baris terhapus tidak ikut.
-- [ ] Pada tanggal 25 Oktober 2026 (fake timer), `period=2026-10` → `range = 2026-10-01..2026-10-25`, `previous.range = 2026-09-01..2026-09-25`, dan expense 26 September tidak masuk `previousTotals`. Pada 31 Oktober → pembanding sampai 30 September. `period=2026-09` (sudah lewat) → pembanding 1–31 Agustus penuh.
-- [ ] Mode tahun: pada 2028-02-29, `period=2028` → `range = 2028-01-01..2028-02-29`, `previous.range = 2027-01-01..2027-02-28`. `period=2025` → pembanding 2024 penuh.
-- [ ] `activity` mode bulan: satu bucket per hari dari tanggal 1 sampai `range.to` (25 bucket pada 25 Okt, 30 untuk September penuh, 29 untuk Februari 2028), hari tanpa expense bernilai 0, expense tanggal 1 dan hari terakhir masuk bucket yang benar. Mode tahun: bucket `YYYY-MM`, tidak melewati bulan berjalan.
-- [ ] `categories` berisi setiap kategori dengan expense > 0 di `range` (termasuk terarsip), urut `amount desc`, dan tidak memuat kategori tanpa expense.
-- [ ] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets?period=…` `summary.total.spent`.
-- [ ] Periode tanpa transaksi → semua total 0, `categories` kosong, `activity` berisi bucket 0.
-- [ ] `period` kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, atau tahun depan → 400 `fields.period`.
-- [ ] **Isolasi:** respons user B tidak pernah memuat transaksi atau kategori A (total, aktivitas, dan kategori B tetap 0 walau A punya data di periode yang sama).
-- [ ] Tanpa session → 401 `UNAUTHORIZED`.
+- [x] Dengan income 10.000.000, expense 3.000.000 (dua kategori, salah satunya terarsip, termasuk satu biaya admin transfer), saving 1.000.000, satu transfer, dan satu adjustment di Oktober 2026: `GET ?period=2026-10` → `totals = { income: 10000000, expense: 3000000, saving: 1000000, net: 6000000 }`. Transfer, adjustment, dan baris terhapus tidak ikut.
+- [x] Pada tanggal 25 Oktober 2026 (fake timer), `period=2026-10` → `range = 2026-10-01..2026-10-25`, `previous.range = 2026-09-01..2026-09-25`, dan expense 26 September tidak masuk `previousTotals`. Pada 31 Oktober → pembanding sampai 30 September. `period=2026-09` (sudah lewat) → pembanding 1–31 Agustus penuh.
+- [x] Mode tahun: pada 2028-02-29, `period=2028` → `range = 2028-01-01..2028-02-29`, `previous.range = 2027-01-01..2027-02-28`. `period=2025` → pembanding 2024 penuh.
+- [x] `activity` mode bulan: satu bucket per hari dari tanggal 1 sampai `range.to` (25 bucket pada 25 Okt, 30 untuk September penuh, 29 untuk Februari 2028), hari tanpa expense bernilai 0, expense tanggal 1 dan hari terakhir masuk bucket yang benar. Mode tahun: bucket `YYYY-MM`, tidak melewati bulan berjalan.
+- [x] `categories` berisi setiap kategori dengan expense > 0 di `range` (termasuk terarsip), urut `amount desc`, dan tidak memuat kategori tanpa expense.
+- [x] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets?period=…` `summary.total.spent`.
+- [x] Periode tanpa transaksi → semua total 0, `categories` kosong, `activity` berisi bucket 0.
+- [x] `period` kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, atau tahun depan → 400 `fields.period`.
+- [x] **Isolasi:** respons user B tidak pernah memuat transaksi atau kategori A (total, aktivitas, dan kategori B tetap 0 walau A punya data di periode yang sama).
+- [x] Tanpa session → 401 `UNAUTHORIZED`.
 
 **Unit**
 
-- [ ] `percentChange`: 100 → 112 = 12, 100 → 88 = −12, 0 → 50 = `null`, 0 → 0 = `null`, 3 → 4 = 33. `changeTone`: expense naik = buruk, income naik = baik, perubahan 0 = netral.
-- [ ] `topCategories` dengan 8 kategori → 5 + "Lainnya" berisi jumlah 3 sisanya. ≤ 6 kategori → tanpa "Lainnya" (tidak membuat "Lainnya" untuk satu kategori). Jumlah selalu sama dengan input.
-- [ ] `sumBalances` melewati akun terarsip, kartu kredit negatif mengurangi total, subtotal per `type` benar.
+- [x] `percentChange`: 100 → 112 = 12, 100 → 88 = −12, 0 → 50 = `null`, 0 → 0 = `null`, 3 → 4 = 33. `changeTone`: expense naik = buruk, income naik = baik, perubahan 0 = netral.
+- [x] `topCategories` dengan 8 kategori → 5 + "Lainnya" berisi jumlah 3 sisanya. ≤ 6 kategori → tanpa "Lainnya" (tidak membuat "Lainnya" untuk satu kategori). Jumlah selalu sama dengan input.
+- [x] `sumBalances` melewati akun terarsip, kartu kredit negatif mengurangi total, subtotal per `type` benar.
 
-**UI (manual di 360 px dan 1024 px)**
+**UI (manual di 360 px dan 1024 px)** · Belum dicek manual per 2026-10-25: butuh login Google di perangkat. Lighthouse dan ukuran JS dicatat di [plan.md](tasks/plan.md) § dashboard.
 
 - [ ] `/dashboard` tanpa query menampilkan bulan berjalan. `/dashboard?period=2026` bertahan setelah refresh. Stepper tidak bisa maju melewati periode berjalan, dan mode tahun menyembunyikan Budget Summary dengan teks penggantinya.
 - [ ] Mencatat expense dari **+** lalu kembali ke `/dashboard` memperbarui kartu, grafik, donut, saldo, dan Budget Summary tanpa reload.
@@ -147,7 +147,7 @@ Hanya membaca. Param lain diabaikan.
 - [ ] Tanpa akun: CTA "Tambah akun" membuka modal. Bulan tanpa expense: teks + tombol "Catat expense".
 - [ ] Perubahan vs periode lalu terbaca tanpa warna (ikon + teks), layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px.
 - [ ] Tidak ada layout shift saat data selesai dimuat (Lighthouse CLS < 0,1). JS first load `/dashboard` < 200 KB gzip.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

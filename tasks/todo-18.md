@@ -37,12 +37,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 - [ ] 360 px dan 1024 px sesuai urutan di atas, tanpa horizontal scroll. Mematikan jaringan untuk satu request menampilkan error di bagian itu saja
 - [ ] Lighthouse mobile `/dashboard`: Performance ≥ 90, Accessibility ≥ 95, CLS < 0,1. JS first load < 200 KB gzip
-- [ ] Acceptance criteria API, unit, dan UI di SPEC-dashboard.md tercentang atau dicatat sebagai tertunda
+- [x] Acceptance criteria API, unit, dan UI di SPEC-dashboard.md tercentang atau dicatat sebagai tertunda
 
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024, light dan dark
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 
 **Dependencies:** T61, T63, T64
 

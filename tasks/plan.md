@@ -10,7 +10,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutny
 | `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
 | `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
-| `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Direncanakan |
+| `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran) |
 
 ---
 
@@ -335,4 +335,18 @@ T57 boleh paralel dengan T56. T60 dan T62 hanya butuh T56 dan boleh paralel deng
 | Angka dashboard berbeda dari `/transactions` atau `/budget` | Sedang | `transactionWhere` dan `budgetUsage` dipakai ulang, invarian dites di T56, T60, T62 |
 | Dashboard basi setelah mencatat transaksi | Sedang | `AFFECTS.transactions` memuat `dashboard`, dites di T57 |
 | CLS dari bagian yang selesai memuat di waktu berbeda | Sedang | Skeleton bertinggi tetap, Lighthouse di T65 |
+
+## Catatan ukuran (2026-10-25)
+
+Diukur dari chunk JS yang dirujuk HTML prerender (gzip), bukan output `pnpm build` (Next 16.4 tidak lagi mencetak ukuran).
+
+| Titik | `/dashboard` |
+|---|---|
+| Sebelum modul (placeholder, T58 belum) | ±364 KB, sama dengan `/transactions` (365,7) dan `/settings` (362,1) |
+| T59 (chart terpasang, belum dirender) | 364,0 KB |
+| T61 (Expense Activity) | 366,6 KB |
+| T63 (donut) | 367,4 KB |
+| T65 (layout akhir) | 369,5 KB |
+
+Recharts ada di chunk lazy terpisah (±100 KB gzip) lewat `next/dynamic` dan tidak termasuk first load. Target 200 KB di SPEC.md sudah terlewati oleh app shell bersama (react-dom ±70 KB, zod ±48 KB, next-auth, sonner, dan lainnya) sebelum modul ini dimulai. Dashboard sendiri menambah ±5 KB. Perlu keputusan terpisah (Ask first): audit app shell atau revisi target.
 

@@ -23,14 +23,27 @@ export function DashboardView() {
     router.replace(`${pathname}?period=${next}`, { scroll: false });
   }
 
+  // DOM order is the mobile reading order; on lg the grid moves charts left and balance + budget right.
   return (
-    <>
-      <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
-      <BalanceCard period={period} />
-      <SummaryCards period={period} />
-      <DashboardBudgetSummary period={period} />
-      <ExpenseActivity period={period} />
-      <CategoryBreakdown period={period} />
-    </>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+      <div className="lg:col-span-2">
+        <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
+      </div>
+      <div className="min-w-0 lg:col-start-2 lg:row-start-3">
+        <BalanceCard period={period} />
+      </div>
+      <div className="min-w-0 lg:col-span-2 lg:row-start-2">
+        <SummaryCards period={period} />
+      </div>
+      <div className="min-w-0 lg:col-start-2 lg:row-start-4">
+        <DashboardBudgetSummary period={period} />
+      </div>
+      <div className="min-w-0 lg:col-start-1 lg:row-start-3">
+        <ExpenseActivity period={period} />
+      </div>
+      <div className="min-w-0 lg:col-start-1 lg:row-start-4">
+        <CategoryBreakdown period={period} />
+      </div>
+    </div>
   );
 }

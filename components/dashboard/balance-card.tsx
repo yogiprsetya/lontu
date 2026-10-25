@@ -23,7 +23,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const tone = (amount: number) => !hideAmounts && amount < 0 && "text-expense";
 
   if (error) return <LoadError message="Gagal memuat saldo." onRetry={() => void mutate()} />;
-  if (!data) return <Skeleton className="h-36 w-full rounded-lg" aria-busy="true" />;
+  if (!data) return <Skeleton className="h-48 w-full rounded-lg" aria-busy="true" />;
 
   if (data.length === 0) {
     return (

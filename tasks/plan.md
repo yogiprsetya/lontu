@@ -11,7 +11,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
 | `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
 | `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran) |
-| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Direncanakan. T66 menunggu jawaban open questions #1–#2 di spec |
+| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Berjalan (T66–T76). Open questions dijawab 2026-10-25 |
 
 ---
 

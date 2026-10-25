@@ -8,7 +8,7 @@ Aplikasi terpasang yang dibuka dalam mode pesawat menampilkan dashboard, daftar 
 
 ## Task
 
-- [ ] T66: Spike Serwist configurator + baca offline `/dashboard` (M)
+- [x] T66: Spike Serwist configurator + baca offline `/dashboard` (M) (cek manual cold start offline tertunda)
 - [ ] T67: `/~offline`, banner offline, state "belum ada data tersimpan" (M)
 - [ ] T68: Toast "Versi baru tersedia" (S)
 - [ ] T69: Hapus cache saat sign-out dan saat pemilik berganti (S)

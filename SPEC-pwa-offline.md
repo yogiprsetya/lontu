@@ -1,6 +1,6 @@
 # Spec module: `pwa-offline`
 
-Status: draft · 2026-10-25 · @Yogi
+Status: disetujui · 2026-10-25 · @Yogi
 Bergantung pada: `transactions` (dan `accounts-categories`, `budgets`, `dashboard` sebagai data yang di-cache) · Dipakai oleh: — · Indeks: [SPEC.md](SPEC.md)
 
 ## Objective
@@ -13,7 +13,7 @@ Di luar cakupan: edit, hapus, urungkan, budget, akun, dan kategori saat offline 
 
 ## Keputusan
 
-Semua usulan untuk direview (lihat [Open questions](#open-questions)).
+Disetujui 2026-10-25: semua Open questions memakai usulan spec.
 
 1. **Serwist mode configurator, bukan plugin webpack.** `next build` memakai Turbopack, dan `@serwist/next` versi plugin hanya jalan di webpack. Mode configurator (`@serwist/next/config` + `@serwist/cli`) membangun `public/sw.js` setelah `next build` dari `serwist.config.mjs`, jadi **`next.config.ts` tidak disentuh**. Script `build` menjadi `next build && serwist build`. Di `next dev` service worker tidak didaftarkan.
 2. **Satu sumber data offline: cache service worker untuk `GET /api/*`.** SWR tidak diubah dan tidak dipersist ke IndexedDB. Saat offline, fetch SWR dijawab SW dari cache, jadi semua hook (`useAccounts`, `useDashboard`, `useTransactions`, …) otomatis menampilkan respons terakhir. Ini menggantikan "cache SWR di IndexedDB" di capability map (perlu persetujuan, Open question #1). Alasannya: satu lapis cache, tanpa gerbang hidrasi async sebelum render, dan cold start offline tetap jalan. Trade-off: saat online dengan jaringan lambat, data lama baru tampil setelah timeout jaringan (keputusan #3), bukan seketika.
@@ -230,6 +230,8 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md).
 - **Bundle:** `@serwist/next/react` + outbox menambah JS di semua halaman. Target < 10 KB gzip. `/dashboard` sudah di atas 200 KB (plan.md § Catatan ukuran), jadi tambahan ini tidak boleh dibebankan ke chunk grafik.
 
 ## Open questions
+
+Dijawab 2026-10-25: semua memakai usulan di bawah (#1 cache SW saja, #2 dependency + script `build`, #3 hanya create, #4 "Coba lagi"/"Buang" saja, #5 tanpa `experimental.useOffline`, #6 tertunda tidak mengubah saldo).
 
 1. **Cache SW saja, tanpa persist SWR ke IndexedDB** (keputusan #2): setuju? Ini mengubah teks capability map di SPEC.md ("cache SWR di IndexedDB" → "cache API di service worker").
 2. **Dependency:** SPEC.md mencantumkan `@serwist/next` dan `idb-keyval`. Mode configurator butuh tambahan `serwist` (kelas worker) dan `@serwist/cli` (dev), plus script `build` berubah. Setuju?

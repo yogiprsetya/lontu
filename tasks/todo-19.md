@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `pnpm build` menghasilkan `public/sw.js`. `curl -I /sw.js` tanpa cookie → 200, bukan redirect
+- [x] `pnpm build` menghasilkan `public/sw.js`. `curl -I /sw.js` tanpa cookie → 200, bukan redirect
 - [ ] Setelah membuka `/dashboard` online: DevTools Offline + reload → dashboard tampil dengan angka terakhir (HTML dari `pages`, `/api/dashboard`, `/api/accounts`, `/api/budgets` dari `lontu-api`)
 - [ ] `/api/auth/session`, `/api/transactions/export`, respons 401, dan redirect tidak pernah muncul di Cache Storage
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [ ] Manual: `pnpm start`, Chrome DevTools > Application (SW aktif, isi cache) dan Network Offline
 - [ ] Gagal membuktikan cold start offline → stop, catat temuan di plan-19, tanyakan Yogi
 

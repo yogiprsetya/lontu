@@ -42,7 +42,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Verification:**
 
-- [ ] Tes matcher proxy (pakai yang ada dari T2, atau tambah `tests/unit/proxy.spec.ts`) mencakup `/sw.js` dan `/~offline` tidak dialihkan, `/dashboard` tetap dialihkan tanpa cookie
+- [x] Tes matcher proxy (pakai yang ada dari T2, atau tambah `tests/unit/proxy.spec.ts`) mencakup `/sw.js` dan `/~offline` tidak dialihkan, `/dashboard` tetap dialihkan tanpa cookie
 - [ ] `pnpm build` hijau. Manual 360×800 offline
 
 **Dependencies:** T66

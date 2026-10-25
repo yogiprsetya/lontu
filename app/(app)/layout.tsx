@@ -4,6 +4,7 @@ import { PageSkeleton } from "@/components/layout/page-skeleton";
 import { RequireSession } from "@/components/layout/require-session";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ModalHost } from "@/components/modals/modal-host";
+import { OfflineBanner } from "@/components/pwa/offline-banner";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -13,6 +14,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <Sidebar />
       </Suspense>
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <OfflineBanner />
         <Suspense fallback={<PageSkeleton />}>
           <RequireSession>{children}</RequireSession>
         </Suspense>

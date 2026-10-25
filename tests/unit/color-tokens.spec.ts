@@ -38,3 +38,23 @@ describe.each([":root", ".dark"])("semantic color tokens in %s", (scope) => {
     expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+const CHARTS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"];
+
+describe.each([":root", ".dark"])("chart color tokens in %s", (scope) => {
+  // WCAG 1.4.11: graphical objects need 3:1. "Lainnya" uses --muted-foreground.
+  it.each([...CHARTS, "muted-foreground"])("--%s has at least 3:1 contrast on --background", (name) => {
+    expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(3);
+  });
+
+  it("gives every category slice its own hue", () => {
+    const hues = CHARTS.map((name) => token(scope, name));
+    for (const [i, [, c1, h1]] of hues.entries()) {
+      expect(c1).toBeGreaterThanOrEqual(0.1);
+      for (const [, , h2] of hues.slice(i + 1)) {
+        const gap = Math.abs(h1 - h2) % 360;
+        expect(Math.min(gap, 360 - gap)).toBeGreaterThanOrEqual(40);
+      }
+    }
+  });
+});

@@ -12,14 +12,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `components/ui/chart.tsx` hanya hasil CLI, `recharts` ada di `package.json`, tidak ada file lain yang berubah tanpa diperiksa
-- [ ] Tes kontras `--chart-1..5` hijau di light dan dark
-- [ ] `pnpm build` hijau. Ukuran first load sebelum/sesudah dicatat di pesan commit
+- [x] `components/ui/chart.tsx` hanya hasil CLI, `recharts` ada di `package.json`, tidak ada file lain yang berubah tanpa diperiksa
+- [x] Tes kontras `--chart-1..5` hijau di light dan dark
+- [x] `pnpm build` hijau. Ukuran first load sebelum/sesudah dicatat di pesan commit
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/color-tokens.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/color-tokens.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T58
 

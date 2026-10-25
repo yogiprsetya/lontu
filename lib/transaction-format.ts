@@ -71,8 +71,9 @@ export function nameMap(items: { id: string; name: string; archivedAt: string | 
   return new Map(items?.map((i) => [i.id, archiveLabel(i)]));
 }
 
+// Optional ids so an unsent create body (which has only its type's fields) works too.
 export function titleOf(
-  t: Pick<Transaction, "type" | "accountId" | "toAccountId" | "categoryId">,
+  t: Pick<Transaction, "type" | "accountId"> & { toAccountId?: string | null; categoryId?: string | null },
   accounts: Names,
   categories: Names,
 ) {

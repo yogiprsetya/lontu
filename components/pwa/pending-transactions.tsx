@@ -26,16 +26,7 @@ import { useUIStore } from "@/stores/ui";
 function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts: Names; categories: Names }) {
   const hideAmounts = useUIStore((s) => s.hideAmounts);
   const { body } = item;
-  const title = titleOf(
-    {
-      type: body.type,
-      accountId: body.accountId,
-      toAccountId: body.type === "transfer" ? body.toAccountId : null,
-      categoryId: body.type === "transfer" ? null : body.categoryId,
-    },
-    accounts,
-    categories,
-  );
+  const title = titleOf(body, accounts, categories);
   const fee = body.type === "transfer" ? body.fee : undefined;
   const failed = item.status === "failed";
 

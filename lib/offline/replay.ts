@@ -28,12 +28,8 @@ export async function replayOutbox({
   for (const item of await outbox.list(userId)) {
     if (item.status !== "pending") continue;
 
-    let res: Response | undefined;
-    try {
-      res = await send(item.body);
-    } catch {
-      res = undefined;
-    }
+    // No response at all (offline, timeout) is handled like a 5xx below.
+    const res = await send(item.body).catch(() => undefined);
 
     if (res?.ok) {
       await outbox.remove(item.id);

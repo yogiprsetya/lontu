@@ -23,3 +23,13 @@ export async function findOwnedCategory(userId: string, id: string) {
     .where(and(eq(categories.userId, userId), eq(categories.id, id)));
   return row && { ...row, kind: row.kind as CategoryKind };
 }
+
+/** The subset of `ids` owned by `userId`, with kind and archivedAt. Unknown or foreign ids are left out. */
+export async function findOwnedCategories(userId: string, ids: string[]) {
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select({ id: categories.id, kind: categories.kind, archivedAt: categories.archivedAt })
+    .from(categories)
+    .where(and(eq(categories.userId, userId), inArray(categories.id, ids)));
+  return rows.map((row) => ({ ...row, kind: row.kind as CategoryKind }));
+}

@@ -3,7 +3,7 @@
 import { LoadError } from "@/components/settings/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTransactionTotals } from "@/hooks/use-transactions";
-import { abbreviateIDR, formatIDR } from "@/lib/money";
+import { abbreviateIDR, formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import type { ListFilters } from "@/lib/transaction-filters";
 import { useUIStore } from "@/stores/ui";
 
@@ -28,7 +28,7 @@ export function TotalsStrip({ filters }: { filters: ListFilters }) {
             {!data ? (
               <Skeleton className="h-6 w-full" />
             ) : hideAmounts ? (
-              "Rp•••••"
+              HIDDEN_AMOUNT
             ) : (
               // Full rupiah does not fit three-up at 360 px once it passes seven digits.
               <span title={formatIDR(data[key])}>{data[key] >= 1e7 ? `Rp${abbreviateIDR(data[key])}` : formatIDR(data[key])}</span>

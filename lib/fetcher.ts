@@ -31,7 +31,7 @@ export async function fetcher<T = unknown>(url: string): Promise<T> {
 }
 
 /** For mutations: sends `body` as JSON and throws ApiError on a non-2xx response. */
-export async function sendJSON<T = unknown>(url: string, method: "POST" | "PATCH" | "DELETE", body?: unknown) {
+export async function sendJSON<T = unknown>(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown) {
   const init: RequestInit =
     body === undefined
       ? { method }

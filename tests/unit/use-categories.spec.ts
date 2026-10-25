@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { categoriesKey, filterByKind, groupBySpendingType, isCategoriesKey } from "@/hooks/use-categories";
+import { categoriesKey, filterByKind, groupBySpendingType } from "@/hooks/use-categories";
+import { isResourceKey } from "@/lib/cache-invalidation";
 import type { Category } from "@/lib/schemas/category";
 
 function category(name: string, kind: Category["kind"], spendingType: Category["spendingType"] = null): Category {
@@ -39,7 +40,7 @@ describe("categories SWR keys", () => {
   });
 
   it("matches only category keys", () => {
-    expect(isCategoriesKey("/api/categories?include=archived")).toBe(true);
-    expect(isCategoriesKey("/api/accounts")).toBe(false);
+    expect(isResourceKey("categories", "/api/categories?include=archived")).toBe(true);
+    expect(isResourceKey("categories", "/api/accounts")).toBe(false);
   });
 });

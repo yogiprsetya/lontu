@@ -221,6 +221,6 @@ Scan struk (OCR) dan upload receipt, transaksi berulang, multi-currency, pendaft
 1. ~~DB untuk tes API~~ **Diputuskan:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Lihat Testing strategy.
 2. ~~Login di E2E~~ **Ditunda:** E2E tidak dikerjakan di foundation. Usulan provider Credentials khusus tes (`E2E_AUTH=1`, bukan production) dibahas lagi saat E2E dijadwalkan.
 3. ~~Saldo tidak cukup saat transfer/expense~~ **Diputuskan 2026-10-21:** peringatan non-blokir di form, server tidak menolak. Lihat [SPEC-transactions.md](SPEC-transactions.md).
-4. ~~Biaya admin transfer~~ **Diputuskan 2026-10-21:** masuk MVP sebagai expense terpisah tanpa tautan ke transfer. **Saran 50/30/20** di Budget: masih terbuka, dibahas di `SPEC-budgets.md`.
+4. ~~Biaya admin transfer~~ **Diputuskan 2026-10-21:** masuk MVP sebagai expense terpisah tanpa tautan ke transfer. **Saran 50/30/20** di Budget: **diputuskan 2026-10-23**, saran nominal otomatis per kategori. Lihat [SPEC-budgets.md](SPEC-budgets.md).
 5. ~~Halaman Expenses vs `/transactions?type=expense`~~ **Diputuskan 2026-10-21:** `/expenses` menjadi preset filter dari komponen daftar yang sama.
 6. ~~Nama package~~ **Diputuskan:** `lontu`.

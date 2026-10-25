@@ -7,6 +7,7 @@ import {
   KIND_LABELS,
   SPENDING_TYPE_LABELS,
 } from "@/components/forms/category-form";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import {
   ArchiveButton,
@@ -88,7 +89,9 @@ export function ManageCategories({
             <PlusIcon aria-hidden />
             Tambah kategori {KIND_LABELS[tab]}
           </Button>
-        ) : undefined
+        ) : (
+          <FormActions form="category-form" onCancel={toList} />
+        )
       }
     >
       {view.kind === "list" ? (
@@ -126,14 +129,13 @@ export function ManageCategories({
           ))}
         </Tabs>
       ) : view.kind === "create" ? (
-        <CategoryForm kind={tab} onDone={toList} onCancel={toList} />
+        <CategoryForm kind={tab} onDone={toList} />
       ) : (
         <CategoryForm
           key={view.category.id}
           kind={view.category.kind}
           category={view.category}
           onDone={toList}
-          onCancel={toList}
         >
           <ArchiveButton
             label="Arsipkan kategori"

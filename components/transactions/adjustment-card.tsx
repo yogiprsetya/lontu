@@ -1,14 +1,14 @@
 "use client";
 
 import { useAccounts } from "@/hooks/use-accounts";
+import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
+import { HIDDEN_AMOUNT } from "@/lib/money";
 import type { Transaction } from "@/lib/schemas/transaction";
-import { amountTone, formatDateHeading, formatSignedAmount } from "@/lib/transaction-format";
+import { AMOUNT_TONE_CLASS, amountTone, formatDateHeading, formatSignedAmount } from "@/lib/transaction-format";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
-
-const TONE_CLASS = { income: "text-income", expense: "text-expense", budget: "text-budget", transfer: "text-transfer" };
 
 /** Adjustments come from changing an account's opening balance, so they are shown but not edited. */
 export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
@@ -18,11 +18,11 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
   const rows: [string, React.ReactNode][] = [
     ["Jenis", ADJUSTMENT_LABEL],
     ["Tanggal", formatDateHeading(transaction.date, todayInJakarta())],
-    ["Akun", account ? (account.archivedAt ? `${account.name} (arsip)` : account.name) : "…"],
+    ["Akun", account ? archiveLabel(account) : "…"],
     [
       "Jumlah",
-      <span key="amount" className={cn("font-medium tabular-nums", TONE_CLASS[amountTone("adjustment", transaction.amount)])}>
-        {hideAmounts ? "Rp•••••" : formatSignedAmount("adjustment", transaction.amount)}
+      <span key="amount" className={cn("font-medium tabular-nums", AMOUNT_TONE_CLASS[amountTone("adjustment", transaction.amount)])}>
+        {hideAmounts ? HIDDEN_AMOUNT : formatSignedAmount("adjustment", transaction.amount)}
       </span>,
     ],
     ...(transaction.description ? ([["Deskripsi", transaction.description]] as [string, React.ReactNode][]) : []),

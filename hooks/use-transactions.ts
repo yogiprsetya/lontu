@@ -2,31 +2,19 @@
 
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
-import { revalidateAccounts } from "@/hooks/use-accounts";
+import { invalidate, isResourceKey } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
 import type { Transaction, TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
 
-// `$inf$` is useSWRInfinite's prefix for its aggregate entry.
-const TRANSACTIONS_KEY = /^(\$inf\$)?\/api\/transactions($|[/?])/;
-
-export function isTransactionsKey(key: unknown) {
-  return typeof key === "string" && TRANSACTIONS_KEY.test(key);
-}
-
 export function isInfiniteTransactionsKey(key: unknown) {
-  return isTransactionsKey(key) && (key as string).startsWith("$inf$");
-}
-
-/** Refreshes every list, totals and detail entry under /api/transactions. */
-export function revalidateTransactions() {
-  return mutate(isTransactionsKey);
+  return isResourceKey("transactions", key) && (key as string).startsWith("$inf$");
 }
 
 export async function createTransaction(input: TransactionCreateInput) {
   const created = await sendJSON<TransactionCreated>("/api/transactions", "POST", input);
-  await Promise.all([revalidateTransactions(), revalidateAccounts()]);
+  await invalidate("transactions");
   return created;
 }
 
@@ -67,7 +55,7 @@ export function useTransaction(id: string) {
 
 export async function updateTransaction(id: string, input: Partial<TransactionUpdateInput>) {
   const updated = await sendJSON<Transaction>(`/api/transactions/${id}`, "PATCH", input);
-  await Promise.all([revalidateTransactions(), revalidateAccounts()]);
+  await invalidate("transactions");
   return updated;
 }
 
@@ -85,16 +73,16 @@ export async function deleteTransaction(id: string) {
   );
   try {
     const deleted = await sendJSON<Transaction>(detailKey, "DELETE");
-    await Promise.all([mutate((key) => isTransactionsKey(key) && key !== detailKey), revalidateAccounts()]);
+    await invalidate("transactions", { except: detailKey });
     return deleted;
   } catch (err) {
-    await revalidateTransactions();
+    await invalidate("transactions");
     throw err;
   }
 }
 
 export async function restoreTransaction(id: string) {
   const restored = await sendJSON<Transaction>(`/api/transactions/${id}/restore`, "POST");
-  await Promise.all([revalidateTransactions(), revalidateAccounts()]);
+  await invalidate("transactions");
   return restored;
 }

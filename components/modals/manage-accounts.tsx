@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
 import { AccountForm } from "@/components/forms/account-form";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import {
   ArchiveButton,
@@ -11,13 +12,14 @@ import {
 } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   archiveAccount,
   restoreAccount,
   useAccounts,
 } from "@/hooks/use-accounts";
-import { formatIDR } from "@/lib/money";
+import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import {
   ACCOUNT_SUBTYPE_LABELS,
   ACCOUNT_TYPE_LABELS,
@@ -26,7 +28,6 @@ import {
 } from "@/lib/schemas/account";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
-import { ScrollArea } from "../ui/scroll-area";
 
 type View =
   | { kind: "list" }
@@ -75,7 +76,9 @@ export function ManageAccounts({
             <PlusIcon aria-hidden />
             Tambah akun
           </Button>
-        ) : undefined
+        ) : (
+          <FormActions form="account-form" onCancel={toList} />
+        )
       }
     >
       <ScrollArea className="w-full lg:h-56">
@@ -87,14 +90,13 @@ export function ManageAccounts({
           />
         )}
         {view.kind === "create" && (
-          <AccountForm onDone={toList} onCancel={toList} />
+          <AccountForm onDone={toList} />
         )}
         {view.kind === "edit" && (
           <AccountForm
             key={view.account.id}
             account={view.account}
             onDone={toList}
-            onCancel={toList}
           >
             <ArchiveButton
               label="Arsipkan akun"
@@ -221,7 +223,7 @@ function AccountSummary({ account }: { account: Account }) {
           account.balance < 0 && "text-destructive",
         )}
       >
-        {hideAmounts ? "Rp•••••" : formatIDR(account.balance)}
+        {hideAmounts ? HIDDEN_AMOUNT : formatIDR(account.balance)}
       </span>
     </div>
   );

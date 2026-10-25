@@ -8,7 +8,7 @@ Pemilik membuka `/dashboard` dan melihat total saldo, kartu Income/Expense/Savin
 
 ## Task
 
-- [ ] T55: Schema periode + `dashboardRanges` murni (S)
+- [x] T55: Schema periode + `dashboardRanges` murni (S)
 - [ ] T56: `GET /api/dashboard` (totals + pembanding) (M)
 - [ ] T57: Format murni, `useDashboard`, resource `dashboard` di cache (M)
 - [ ] T58: Halaman dashboard: header, Account Balance, kartu (M)
@@ -18,7 +18,7 @@ Urutan: T55 → T56 → T57 → T58. T57 hanya butuh T55 (tipe) dan boleh parale
 ## Keputusan
 
 - **Rentang dihitung dari string**, memakai `periodToRange` dan `shiftPeriod` dari `lib/transaction-filters.ts`. Pemotongan period-to-date: `to` periode berjalan = hari ini, `to` pembanding = tanggal yang sama di periode lalu, dipotong ke hari terakhir bulan itu. Untuk mode tahun, bulan dan hari yang sama di tahun lalu (29 Feb → 28 Feb).
-- **Pembanding di bawah 2000-01** (`shiftPeriod` berhenti di batas): `previous` = range kosong yang menghasilkan totals 0, sehingga persen tampil "—". Tidak ada 400.
+- **Pembanding di bawah 2000-01:** `previous` = `1999-12` / `1999` dengan rentang aslinya (dihitung tanpa `shiftPeriod`, yang berhenti di 2000). Tidak ada transaksi sebelum `MIN_TRANSACTION_DATE`, jadi totals 0 dan persen tampil "—" tanpa kasus khusus. Tidak ada 400.
 - **`dashboardSummary` menerima `today`** sebagai argumen supaya tes API bisa memakai tanggal tetap tanpa fake timer di route. Route mengisi `todayInJakarta()`.
 - **Respons tumbuh secara aditif:** phase ini mengirim `period`, `range`, `previous`, `totals`, `previousTotals`. `activity` dan `categories` ditambahkan di phase 17 (T60, T62). Tipe `DashboardSummary` di `lib/schemas/dashboard.ts` diperluas di sana.
 - **`PeriodStepper` mendapat prop `modes?`** (default ketiga mode) supaya dashboard menyembunyikan "Semua". Perilaku `/transactions` tidak berubah.

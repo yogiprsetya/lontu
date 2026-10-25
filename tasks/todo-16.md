@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `2026-10` pada 2026-10-25 → range `10-01..10-25`, previous `2026-09`, `09-01..09-25`. Pada 2026-10-31 → previous sampai `09-30`. `2026-09` (lewat) → previous Agustus penuh. `2026-01` → previous `2025-12`
-- [ ] `2028` pada 2028-02-29 → range `2028-01-01..2028-02-29`, previous `2027-01-01..2027-02-28`. `2025` → previous 2024 penuh. `2000-01` / `2000` → previous range kosong
-- [ ] Schema menolak kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, tahun depan (fake timer, termasuk 31 Desember)
+- [x] `2026-10` pada 2026-10-25 → range `10-01..10-25`, previous `2026-09`, `09-01..09-25`. Pada 2026-10-31 → previous sampai `09-30`. `2026-09` (lewat) → previous Agustus penuh. `2026-01` → previous `2025-12`
+- [x] `2028` pada 2028-02-29 → range `2028-01-01..2028-02-29`, previous `2027-01-01..2027-02-28`. `2025` → previous 2024 penuh. `2000-01` / `2000` → previous `1999-12` / `1999` (selalu 0 karena tidak ada transaksi sebelum 2000)
+- [x] Schema menolak kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, tahun depan (fake timer, termasuk 31 Desember)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/dashboard-schema.spec.ts tests/unit/dashboard-period.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/dashboard-schema.spec.ts tests/unit/dashboard-period.spec.ts` hijau
 
 **Dependencies:** None
 

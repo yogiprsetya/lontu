@@ -9,7 +9,7 @@ Pemilik membuka `/dashboard` dan melihat total saldo, kartu Income/Expense/Savin
 ## Task
 
 - [x] T55: Schema periode + `dashboardRanges` murni (S)
-- [ ] T56: `GET /api/dashboard` (totals + pembanding) (M)
+- [x] T56: `GET /api/dashboard` (totals + pembanding) (M)
 - [ ] T57: Format murni, `useDashboard`, resource `dashboard` di cache (M)
 - [ ] T58: Halaman dashboard: header, Account Balance, kartu (M)
 

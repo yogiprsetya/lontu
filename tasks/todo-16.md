@@ -34,13 +34,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario spec (income 10 jt, expense 3 jt termasuk biaya admin dan kategori terarsip, saving 1 jt, transfer, adjustment, baris terhapus) → `totals = { 10000000, 3000000, 1000000, net 6000000 }`. Expense 26 Sep tidak masuk `previousTotals` dengan `today = 2026-10-25`
-- [ ] Invarian: `totals.expense` = `budgetUsage(userId, "2026-10").summary.total.spent`. Periode kosong → semua 0
-- [ ] Query tidak valid → 400 `fields.period`. Isolasi: totals B tetap 0 walau A punya data. Tanpa session → 401
+- [x] Skenario spec (income 10 jt, expense 3 jt termasuk biaya admin dan kategori terarsip, saving 1 jt, transfer, adjustment, baris terhapus) → `totals = { 10000000, 3000000, 1000000, net 6000000 }`. Expense 26 Sep tidak masuk `previousTotals` dengan `today = 2026-10-25`
+- [x] Invarian: `totals.expense` = `budgetUsage(userId, "2026-10").summary.total.spent`. Periode kosong → semua 0
+- [x] Query tidak valid → 400 `fields.period`. Isolasi: totals B tetap 0 walau A punya data. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/dashboard.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/dashboard.spec.ts` hijau
 
 **Dependencies:** T55
 

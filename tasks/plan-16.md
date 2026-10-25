@@ -10,7 +10,7 @@ Pemilik membuka `/dashboard` dan melihat total saldo, kartu Income/Expense/Savin
 
 - [x] T55: Schema periode + `dashboardRanges` murni (S)
 - [x] T56: `GET /api/dashboard` (totals + pembanding) (M)
-- [ ] T57: Format murni, `useDashboard`, resource `dashboard` di cache (M)
+- [x] T57: Format murni, `useDashboard`, resource `dashboard` di cache (M)
 - [ ] T58: Halaman dashboard: header, Account Balance, kartu (M)
 
 Urutan: T55 → T56 → T57 → T58. T57 hanya butuh T55 (tipe) dan boleh paralel dengan T56.

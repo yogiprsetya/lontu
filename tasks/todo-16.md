@@ -56,13 +56,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `percentChange`: 100→112 = 12, 100→88 = −12, 0→50 = `null`, 0→0 = `null`, 3→4 = 33. `changeTone`: expense naik = bad, income/saving/net naik = good, 0 = neutral
-- [ ] `sumBalances` melewati akun terarsip, kartu kredit negatif mengurangi total, subtotal per `type` benar, daftar kosong → 0
-- [ ] `affectedBy("transactions")` memuat `dashboard`. `affectedBy("accounts")`, `("categories")`, `("budgets")` tidak. `isResourceKey("dashboard", "/api/dashboard?period=2026-10")` true
+- [x] `percentChange`: 100→112 = 12, 100→88 = −12, 0→50 = `null`, 0→0 = `null`, 3→4 = 33. `changeTone`: expense naik = bad, income/saving/net naik = good, 0 = neutral
+- [x] `sumBalances` melewati akun terarsip, kartu kredit negatif mengurangi total, subtotal per `type` benar, daftar kosong → 0
+- [x] `affectedBy("transactions")` memuat `dashboard`. `affectedBy("accounts")`, `("categories")`, `("budgets")` tidak. `isResourceKey("dashboard", "/api/dashboard?period=2026-10")` true
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/dashboard-format.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/dashboard-format.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
 
 **Dependencies:** T55
 

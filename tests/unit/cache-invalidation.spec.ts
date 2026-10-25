@@ -15,6 +15,7 @@ const keys = {
   categories: "/api/categories",
   transactions: "$inf$/api/transactions?type=expense",
   budgets: "/api/budgets?period=2026-10",
+  dashboard: "/api/dashboard?period=2026-10",
 } as const;
 
 /** True when some mutate call received a matcher that accepts `key`. */
@@ -39,6 +40,7 @@ describe("isResourceKey", () => {
     ["transactions", "/api/transactions/totals?type=expense"],
     ["transactions", "$inf$/api/transactions"],
     ["budgets", "/api/budgets/suggestion?period=2026-10"],
+    ["dashboard", "/api/dashboard?period=2026-10"],
   ] as const)("%s matches %s", (resource, key) => {
     expect(isResourceKey(resource, key)).toBe(true);
   });
@@ -47,6 +49,7 @@ describe("isResourceKey", () => {
     ["accounts", "/api/accountsx"],
     ["categories", "/api/accounts"],
     ["budgets", "$inf$/api/budgets"],
+    ["dashboard", "/api/dashboards"],
     ["transactions", undefined],
     ["transactions", ["/api/transactions"]],
   ] as const)("%s does not match %j", (resource, key) => {
@@ -56,10 +59,11 @@ describe("isResourceKey", () => {
 
 describe("affectedBy", () => {
   it.each([
-    ["transactions", ["transactions", "accounts", "budgets"]],
+    ["transactions", ["transactions", "accounts", "budgets", "dashboard"]],
     ["accounts", ["accounts", "transactions"]],
     ["categories", ["categories", "budgets"]],
     ["budgets", ["budgets"]],
+    ["dashboard", ["dashboard"]],
   ] as const)("a %s change refreshes %j", (resource, expected) => {
     expect(affectedBy(resource)).toEqual(expected);
   });
@@ -83,9 +87,10 @@ describe("invalidate", () => {
 });
 
 describe("mutations refresh what they make stale", () => {
-  it("deleting a transaction refreshes budget usage and balances", async () => {
+  it("deleting a transaction refreshes budget usage, balances and the dashboard", async () => {
     await deleteTransaction(id);
     expect(revalidated(keys.budgets)).toBe(true);
+    expect(revalidated(keys.dashboard)).toBe(true);
     expect(revalidated(keys.accounts)).toBe(true);
     expect(revalidated(`/api/transactions/${id}`)).toBe(false);
   });
@@ -94,5 +99,6 @@ describe("mutations refresh what they make stale", () => {
     await updateAccount(id, { initialBalance: 100 });
     expect(revalidated(keys.transactions)).toBe(true);
     expect(revalidated(keys.accounts)).toBe(true);
+    expect(revalidated(keys.dashboard)).toBe(false);
   });
 });

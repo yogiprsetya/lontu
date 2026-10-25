@@ -1,6 +1,6 @@
 import { mutate } from "swr";
 
-export type Resource = "accounts" | "categories" | "transactions" | "budgets";
+export type Resource = "accounts" | "categories" | "transactions" | "budgets" | "dashboard";
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
 const KEYS: Record<Resource, RegExp> = {
@@ -8,17 +8,20 @@ const KEYS: Record<Resource, RegExp> = {
   categories: /^\/api\/categories($|[/?])/,
   transactions: /^(\$inf\$)?\/api\/transactions($|[/?])/,
   budgets: /^\/api\/budgets($|[/?])/,
+  dashboard: /^\/api\/dashboard($|[/?])/,
 };
 
 /** What a change to each resource also makes stale on the server. Direct edges only. */
 const AFFECTS: Record<Resource, Resource[]> = {
-  // Balances and budget usage are sums over transactions.
-  transactions: ["accounts", "budgets"],
+  // Balances, budget usage and the dashboard are sums over transactions.
+  transactions: ["accounts", "budgets", "dashboard"],
   // An initial-balance edit records an adjustment transaction.
   accounts: ["transactions"],
   // Usage rows depend on whether a category is archived.
   categories: ["budgets"],
   budgets: [],
+  // Read-only. Adjustments are not counted and names resolve on the client.
+  dashboard: [],
 };
 
 export function isResourceKey(resource: Resource, key: unknown) {

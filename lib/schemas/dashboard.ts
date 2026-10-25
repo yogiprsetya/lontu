@@ -20,6 +20,8 @@ export type DashboardSummary = {
   previous: { period: DashboardPeriod; range: DateRange };
   totals: DashboardTotals;
   previousTotals: DashboardTotals;
+  /** `YYYY-MM-DD` per day (month mode) or `YYYY-MM` per month (year mode), ascending, empty buckets at 0. */
+  activity: { bucket: string; expense: number }[];
 };
 
 export const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;

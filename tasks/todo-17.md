@@ -35,13 +35,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `2026-10` dengan `today = 2026-10-25` → 25 bucket `2026-10-01..2026-10-25`. `2026-09` → 30, `2028-02` → 29. Hari tanpa expense = 0. Expense tanggal 1 dan hari terakhir di bucket yang benar
-- [ ] Mode tahun → bucket `YYYY-MM`, tidak melewati bulan berjalan. Income, saving, transfer, adjustment, baris terhapus tidak ikut
-- [ ] Invarian `sum(activity.expense) = totals.expense`. Isolasi: aktivitas B 0 semua walau A punya data
+- [x] `2026-10` dengan `today = 2026-10-25` → 25 bucket `2026-10-01..2026-10-25`. `2026-09` → 30, `2028-02` → 29. Hari tanpa expense = 0. Expense tanggal 1 dan hari terakhir di bucket yang benar
+- [x] Mode tahun → bucket `YYYY-MM`, tidak melewati bulan berjalan. Income, saving, transfer, adjustment, baris terhapus tidak ikut
+- [x] Invarian `sum(activity.expense) = totals.expense`. Isolasi: aktivitas B 0 semua walau A punya data
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/dashboard.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/dashboard.spec.ts` hijau
 
 **Dependencies:** T56
 

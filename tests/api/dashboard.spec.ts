@@ -66,6 +66,8 @@ beforeAll(async () => {
     { ...a, type: "income", amount: 8_000_000, date: "2026-09-05", categoryId: cat.Gaji },
     { ...a, type: "expense", amount: 400_000, date: "2026-09-25", categoryId: cat.Makan },
     { ...a, type: "expense", amount: 600_000, date: "2026-09-26", categoryId: cat.Makan },
+    { ...a, type: "expense", amount: 100_000, date: "2028-02-01", categoryId: cat.Makan },
+    { ...a, type: "expense", amount: 200_000, date: "2028-02-29", categoryId: cat.Makan },
   ]);
 });
 
@@ -75,14 +77,15 @@ afterAll(async () => {
 
 describe("dashboardSummary", () => {
   it("totals the current month to date, leaving out transfers, adjustments and deleted rows", async () => {
-    const summary = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    const { activity, ...summary } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    expect(activity).toHaveLength(25);
     expect(summary).toEqual({
       period: "2026-10",
       range: { from: "2026-10-01", to: "2026-10-25" },
       previous: { period: "2026-09", range: { from: "2026-09-01", to: "2026-09-25" } },
       totals: { income: 10_000_000, expense: 3_000_000, saving: 1_000_000, net: 6_000_000 },
       previousTotals: { income: 8_000_000, expense: 400_000, saving: 0, net: 7_600_000 },
-    } satisfies DashboardSummary);
+    } satisfies Omit<DashboardSummary, "activity">);
   });
 
   it("compares a past month with the full month before it", async () => {
@@ -100,6 +103,8 @@ describe("dashboardSummary", () => {
   it("returns zeros for an empty period and for the 1999 comparison of January 2000", async () => {
     const empty = await dashboardSummary(userA, "2026-07", "2026-10-25");
     expect(empty.totals).toEqual(zero);
+    expect(empty.activity).toHaveLength(31);
+    expect(empty.activity.every((b) => b.expense === 0)).toBe(true);
     expect(empty.previousTotals).toEqual(zero);
     const first = await dashboardSummary(userA, "2000-01", "2026-10-25");
     expect(first.previousTotals).toEqual(zero);
@@ -108,7 +113,46 @@ describe("dashboardSummary", () => {
   it("never counts another user's transactions", async () => {
     const summary = await dashboardSummary(userB, "2026-10", "2026-10-25");
     expect(summary.totals).toEqual(zero);
+    expect(summary.activity).toHaveLength(25);
+    expect(summary.activity.every((b) => b.expense === 0)).toBe(true);
     expect(summary.previousTotals).toEqual(zero);
+  });
+});
+
+describe("dashboardSummary activity", () => {
+  const byBucket = (activity: DashboardSummary["activity"]) => Object.fromEntries(activity.map((b) => [b.bucket, b.expense]));
+
+  it("has one bucket per day up to today, empty days at 0, only expenses", async () => {
+    const { activity, totals } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    expect(activity.map((b) => b.bucket)).toEqual(
+      Array.from({ length: 25 }, (_, i) => `2026-10-${String(i + 1).padStart(2, "0")}`),
+    );
+    expect(byBucket(activity)).toMatchObject({ "2026-10-01": 2_000_000, "2026-10-10": 950_000, "2026-10-25": 50_000, "2026-10-02": 0 });
+    expect(activity.reduce((sum, b) => sum + b.expense, 0)).toBe(totals.expense);
+  });
+
+  it("covers a whole past month, the first and the last day included", async () => {
+    const september = await dashboardSummary(userA, "2026-09", "2026-10-25");
+    expect(september.activity).toHaveLength(30);
+    expect(byBucket(september.activity)).toMatchObject({ "2026-09-25": 400_000, "2026-09-26": 600_000, "2026-09-30": 0 });
+
+    const february = await dashboardSummary(userA, "2028-02", "2028-03-10");
+    expect(february.activity).toHaveLength(29);
+    expect(february.activity[0]).toEqual({ bucket: "2028-02-01", expense: 100_000 });
+    expect(february.activity[28]).toEqual({ bucket: "2028-02-29", expense: 200_000 });
+  });
+
+  it("has one bucket per month in year mode, stopping at the current month", async () => {
+    const { activity, totals } = await dashboardSummary(userA, "2026", "2026-10-25");
+    expect(activity.map((b) => b.bucket)).toEqual(Array.from({ length: 10 }, (_, i) => `2026-${String(i + 1).padStart(2, "0")}`));
+    expect(byBucket(activity)).toMatchObject({ "2026-08": 0, "2026-09": 1_000_000, "2026-10": 3_000_000 });
+    expect(activity.reduce((sum, b) => sum + b.expense, 0)).toBe(totals.expense);
+
+    const leap = await dashboardSummary(userA, "2028", "2028-02-29");
+    expect(leap.activity).toEqual([
+      { bucket: "2028-01", expense: 0 },
+      { bucket: "2028-02", expense: 300_000 },
+    ]);
   });
 });
 

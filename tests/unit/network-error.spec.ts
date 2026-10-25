@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "@/lib/fetcher";
-import { isNetworkError } from "@/lib/offline/network-error";
+import { failureMessage, isNetworkError } from "@/lib/offline/network-error";
 
 describe("isNetworkError", () => {
   it.each([
@@ -18,5 +18,19 @@ describe("isNetworkError", () => {
     ["a non-error", "offline"],
   ])("is false for %s", (_, err) => {
     expect(isNetworkError(err)).toBe(false);
+  });
+});
+
+describe("failureMessage", () => {
+  it("says the change needs internet for a network error", () => {
+    expect(failureMessage(new TypeError("Failed to fetch"), "Gagal menyimpan akun. Coba lagi.")).toBe(
+      "Tidak ada koneksi. Perubahan ini butuh internet.",
+    );
+  });
+
+  it("keeps the caller's message otherwise", () => {
+    expect(failureMessage(new ApiError(500, "INTERNAL", "x"), "Gagal menyimpan akun. Coba lagi.")).toBe(
+      "Gagal menyimpan akun. Coba lagi.",
+    );
   });
 });

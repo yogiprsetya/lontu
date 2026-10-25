@@ -4,3 +4,10 @@ export function isNetworkError(err: unknown): boolean {
   if (err instanceof TypeError) return true;
   return err instanceof Error && (err.name === "AbortError" || err.name === "TimeoutError");
 }
+
+export const OFFLINE_MUTATION_MESSAGE = "Tidak ada koneksi. Perubahan ini butuh internet.";
+
+/** The toast for a failed mutation: offline gets its own message instead of "coba lagi". */
+export function failureMessage(err: unknown, fallback: string) {
+  return isNetworkError(err) ? OFFLINE_MUTATION_MESSAGE : fallback;
+}

@@ -56,13 +56,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Unit (fetch dan `navigator.onLine` di-stub): offline → `queued` tanpa fetch; fetch menolak → `queued` dengan `id` sama dengan yang dikirim; 400 → `ApiError`, tidak mengantre; 500 → melempar, tidak mengantre; online sukses → body memuat `id`
+- [x] Unit (fetch dan `navigator.onLine` di-stub): offline → `queued` tanpa fetch; fetch menolak → `queued` dengan `id` sama dengan yang dikirim; 400 → `ApiError`, tidak mengantre; 500 → melempar, tidak mengantre; online sukses → body memuat `id`
 - [ ] Manual: offline catat expense → toast `queued`, navigasi ke `/transactions`. Online → dalam ≤ 5 s terkirim, daftar, saldo, budget, dan dashboard berubah tanpa reload
 - [ ] Manual: throttle Offline tepat setelah Simpan dan dua tab terbuka saat online kembali → tetap satu baris
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-transactions.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/use-transactions.spec.ts` hijau
 - [ ] `pnpm build` hijau. Manual dengan `pnpm start` dan DevTools
 
 **Dependencies:** T70, T71

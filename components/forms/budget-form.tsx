@@ -17,6 +17,7 @@ import {
   type BudgetUsageItem,
 } from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
+import { failureMessage } from "@/lib/offline/network-error";
 
 const formSchema = z.object({ amount: budgetAmount });
 
@@ -60,7 +61,7 @@ export function BudgetForm({
           setError("amount", error),
         )
       ) {
-        toast.error("Gagal menyimpan budget. Coba lagi.");
+        toast.error(failureMessage(err, "Gagal menyimpan budget. Coba lagi."));
       }
     }
   });
@@ -75,13 +76,13 @@ export function BudgetForm({
         action: {
           label: "Urungkan",
           onClick: () =>
-            void restoreBudget(id).catch(() =>
-              toast.error("Gagal mengurungkan. Coba lagi."),
+            void restoreBudget(id).catch((err) =>
+              toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi.")),
             ),
         },
       });
-    } catch {
-      toast.error("Gagal menghapus budget. Coba lagi.");
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal menghapus budget. Coba lagi."));
     }
   }
 

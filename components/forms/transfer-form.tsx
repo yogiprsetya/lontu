@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useBackToList } from "@/hooks/use-back-to-list";
+import { useProfile } from "@/hooks/use-profile";
 import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
@@ -29,6 +30,7 @@ import {
   transferCreateSchema,
 } from "@/lib/schemas/transaction";
 import { useUIStore } from "@/stores/ui";
+import { failureMessage } from "@/lib/offline/network-error";
 
 type FormValues = z.input<typeof transferCreateSchema>;
 
@@ -56,6 +58,7 @@ export function TransferForm({ transaction }: { transaction?: Transaction }) {
 
 function TransferFields({ transaction }: { transaction?: Transaction }) {
   const router = useRouter();
+  const { data: profile } = useProfile();
   const backToList = useBackToList();
   const today = todayInJakarta();
   const [hasFee, setHasFee] = useState(false);
@@ -100,12 +103,13 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
-        await createTransaction(input);
-        toast.success(input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan");
+        const outcome = await createTransaction(input, { userId: profile?.id });
+        if (outcome.status === "queued") toast("Disimpan di perangkat, dikirim saat online");
+        else toast.success(input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan");
         router.push("/transactions");
       }
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan transfer. Coba lagi.");
+      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transfer. Coba lagi."));
     }
   });
 

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { ModalHost } from "@/components/modals/modal-host";
 import { CacheOwnerCheck } from "@/components/pwa/cache-owner-check";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
+import { OutboxReplay } from "@/components/pwa/outbox-replay";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       </Suspense>
       <ModalHost />
       <CacheOwnerCheck />
+      <OutboxReplay />
     </div>
   );
 }

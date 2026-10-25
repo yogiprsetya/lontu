@@ -8,6 +8,7 @@ import { copyResultMessage } from "@/lib/budget-format";
 import { fetcher } from "@/lib/fetcher";
 import type { BudgetPeriod, BudgetUsage } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
+import { failureMessage } from "@/lib/offline/network-error";
 
 export function previousMonthLabel(period: BudgetPeriod) {
   return formatPeriodLabel(shiftPeriod(period, -1));
@@ -26,8 +27,8 @@ export async function copyFromPreviousMonth(period: BudgetPeriod) {
         () => false,
       ));
     toast(copyResultMessage(copied, sourceHasBudgets, formatPeriodLabel(source)));
-  } catch {
-    toast.error("Gagal menyalin budget. Coba lagi.");
+  } catch (err) {
+    toast.error(failureMessage(err, "Gagal menyalin budget. Coba lagi."));
   }
 }
 

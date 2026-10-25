@@ -14,6 +14,7 @@ import { useBackToList } from "@/hooks/use-back-to-list";
 import { deleteTransaction, restoreTransaction, useTransaction } from "@/hooks/use-transactions";
 import { ApiError } from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
+import { failureMessage } from "@/lib/offline/network-error";
 
 function NotFound() {
   return (
@@ -44,11 +45,11 @@ function DeleteButton({ id }: { id: string }) {
         duration: UNDO_MS,
         action: {
           label: "Urungkan",
-          onClick: () => void restoreTransaction(id).catch(() => toast.error("Gagal mengurungkan. Coba lagi.")),
+          onClick: () => void restoreTransaction(id).catch((err) => toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi."))),
         },
       });
-    } catch {
-      toast.error("Gagal menghapus transaksi. Coba lagi.");
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal menghapus transaksi. Coba lagi."));
       setDeleting(false);
     }
   }

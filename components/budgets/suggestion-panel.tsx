@@ -21,6 +21,7 @@ import { ApiError } from "@/lib/fetcher";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
 import { useUIStore } from "@/stores/ui";
+import { failureMessage } from "@/lib/offline/network-error";
 
 const INCOME_DEBOUNCE_MS = 400;
 
@@ -89,7 +90,7 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
       toast.error(
         message
           ? `${message}. Muat ulang saran lalu coba lagi.`
-          : "Gagal menerapkan saran. Coba lagi.",
+          : failureMessage(err, "Gagal menerapkan saran. Coba lagi."),
       );
       setApplying(false);
     }

@@ -16,6 +16,7 @@ import {
   type SpendingType,
   categoryRenameSchema,
 } from "@/lib/schemas/category";
+import { failureMessage } from "@/lib/offline/network-error";
 
 export const KIND_LABELS: Record<CategoryKind, string> = { income: "Income", saving: "Saving", spending: "Spending" };
 export const SPENDING_TYPE_LABELS: Record<SpendingType, string> = { needs: "Needs", wants: "Wants" };
@@ -56,7 +57,7 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
       }
       onDone();
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan kategori. Coba lagi.");
+      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan kategori. Coba lagi."));
     }
   });
 

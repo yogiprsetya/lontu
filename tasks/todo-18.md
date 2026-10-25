@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `budgetHighlights`: `over` sebelum `warning`, urut `percent` turun, `ok`/`none` tidak ikut, maksimal 3
+- [x] `budgetHighlights`: `over` sebelum `warning`, urut `percent` turun, `ok`/`none` tidak ikut, maksimal 3
 - [ ] Angka sama dengan `/budget` untuk bulan yang sama. Catat expense yang melewati 80% → kategori muncul tanpa reload
 - [ ] Status terbaca tanpa warna, baris ≥ 44 px, `hideAmounts` menyamarkan nominal
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/dashboard-format.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/dashboard-format.spec.ts` hijau
 - [ ] Manual 360×800 dan 1024, light dan dark. `pnpm build` hijau
 
 **Dependencies:** T58

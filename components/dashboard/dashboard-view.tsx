@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BalanceCard } from "@/components/dashboard/balance-card";
+import { DashboardBudgetSummary } from "@/components/dashboard/budget-summary";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { ExpenseActivity } from "@/components/dashboard/expense-activity";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -27,6 +28,7 @@ export function DashboardView() {
       <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
       <BalanceCard period={period} />
       <SummaryCards period={period} />
+      <DashboardBudgetSummary period={period} />
       <ExpenseActivity period={period} />
       <CategoryBreakdown period={period} />
     </>

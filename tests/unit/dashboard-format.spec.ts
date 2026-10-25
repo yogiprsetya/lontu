@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   activityPeak,
+  budgetHighlights,
   changeTone,
   formatBucket,
   formatRangeLabel,
@@ -10,6 +11,7 @@ import {
   topCategories,
 } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
+import type { BudgetUsageItem } from "@/lib/schemas/budget";
 
 function account(overrides: Partial<Account>): Account {
   return {
@@ -148,5 +150,28 @@ describe("topCategories", () => {
 
   it("is empty without spending", () => {
     expect(topCategories([])).toEqual([]);
+  });
+});
+
+describe("budgetHighlights", () => {
+  function item(categoryId: string, status: BudgetUsageItem["status"], percent: number | null): BudgetUsageItem {
+    return { categoryId, spendingType: "needs", budgetId: null, budget: null, spent: 0, remaining: null, percent, status };
+  }
+
+  it("puts over-budget categories first, then warnings, each by percent descending", () => {
+    const result = budgetHighlights([
+      item("ok", "ok", 50),
+      item("warn-85", "warning", 85),
+      item("over-110", "over", 110),
+      item("none", "none", null),
+      item("warn-95", "warning", 95),
+      item("over-150", "over", 150),
+    ]);
+    expect(result.map((i) => i.categoryId)).toEqual(["over-150", "over-110", "warn-95"]);
+  });
+
+  it("returns fewer when fewer need attention", () => {
+    expect(budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map((i) => i.categoryId)).toEqual(["warn"]);
+    expect(budgetHighlights([item("ok", "ok", 10)])).toEqual([]);
   });
 });

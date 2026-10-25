@@ -8,7 +8,7 @@ Pemilik melihat budget yang hampir habis langsung dari dashboard dan bisa membuk
 
 ## Task
 
-- [ ] T64: Kartu Budget Summary (M)
+- [x] T64: Kartu Budget Summary (M) (cek manual tertunda)
 - [ ] T65: Layout `lg`, state kosong/error, verifikasi NFR (S)
 
 Urutan: T64 → T65.

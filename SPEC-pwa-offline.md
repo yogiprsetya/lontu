@@ -156,12 +156,12 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 
 **Unit**
 
-- [ ] `isNetworkError`: `TypeError("Failed to fetch")`, `AbortError`, `TimeoutError` → true. `ApiError` 500 → false.
-- [ ] `replayOutbox` dengan `send` palsu: FIFO; 201/200 menghapus; 400 menandai `failed` lalu lanjut; 401 berhenti dengan `stopped: "auth"` dan sisa tetap `pending`; galat jaringan berhenti dengan `attempts + 1`; item user lain tidak dikirim.
-- [ ] `outbox` dengan adapter `Map`: `enqueue` dengan `id` yang sama tidak menggandakan, `retry` mengembalikan `failed` ke `pending`, `subscribe` dipanggil setiap perubahan.
-- [ ] `createTransaction`: offline (`navigator.onLine = false`) → `queued` tanpa fetch; fetch menolak → `queued` dengan `id` yang sama dengan yang dikirim; 400 → melempar `ApiError` dan tidak mengantre; 500 → melempar, tidak mengantre.
-- [ ] `installPromptState`: standalone → hidden; event ada → prompt; iOS Safari tanpa event → ios-instructions; ditutup 29 hari lalu → hidden, 31 hari lalu → tampil.
-- [ ] Schema: `id`/`fee.id` opsional, UUID, `fee.id ≠ id`.
+- [x] `isNetworkError`: `TypeError("Failed to fetch")`, `AbortError`, `TimeoutError` → true. `ApiError` 500 → false.
+- [x] `replayOutbox` dengan `send` palsu: FIFO; 201/200 menghapus; 400 menandai `failed` lalu lanjut; 401 berhenti dengan `stopped: "auth"` dan sisa tetap `pending`; galat jaringan berhenti dengan `attempts + 1`; item user lain tidak dikirim.
+- [x] `outbox` dengan adapter `Map`: `enqueue` dengan `id` yang sama tidak menggandakan, `retry` mengembalikan `failed` ke `pending`, `subscribe` dipanggil setiap perubahan.
+- [x] `createTransaction`: offline (`navigator.onLine = false`) → `queued` tanpa fetch; fetch menolak → `queued` dengan `id` yang sama dengan yang dikirim; 400 → melempar `ApiError` dan tidak mengantre; 500 → melempar, tidak mengantre.
+- [x] `installPromptState`: standalone → hidden; event ada → prompt; iOS Safari tanpa event → ios-instructions; ditutup 29 hari lalu → hidden, 31 hari lalu → tampil.
+- [x] Schema: `id`/`fee.id` opsional, UUID, `fee.id ≠ id`.
 
 **Manual (`pnpm build && pnpm start`, Chrome DevTools dan ponsel Android + iPhone)**
 
@@ -178,7 +178,7 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 - [ ] Sign-out dengan item tertunda → konfirmasi muncul. Setelah keluar: Cache Storage `lontu-api`/`pages*` kosong, outbox tidak berisi item user itu.
 - [ ] `Page.getInstallabilityErrors` kosong (Lighthouse 12 tidak punya kategori PWA, sama dengan T8).
 - [ ] Banner dan kartu benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px. Kode PWA di bundle client < 10 KB gzip (dari output `pnpm build`).
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

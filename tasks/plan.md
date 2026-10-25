@@ -11,7 +11,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
 | `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
 | `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran) |
-| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Berjalan (T66–T76). Open questions dijawab 2026-10-25 |
+| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Kode selesai (T66–T76). Cek manual di perangkat (Android Chrome, iPhone Safari, DevTools) dan review Yogi di checkpoint R–T tertunda. JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 
 ---
 
@@ -406,6 +406,23 @@ T70 tidak bergantung pada SW dan boleh dikerjakan kapan saja (juga paralel denga
 2. **Open questions #3–#6 memakai default spec** (hanya create diantrekan, "Coba lagi"/"Buang", tanpa `experimental.useOffline`, tertunda tidak mengubah saldo). Ditanyakan lagi di checkpoint R sebelum phase 20.
 3. **Tanpa `fake-indexeddb`:** outbox menerima adapter penyimpanan, tes memakai `Map`.
 4. **`idb-keyval` dipasang di T69** (pemilik cache), lalu dipakai ulang outbox di T71.
+
+## Catatan ukuran pwa-offline (2026-10-25)
+
+Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9). Sebelum = `6d2030d` (spec modul, belum ada kode), sesudah = T75.
+
+| Halaman | Sebelum | Sesudah | Tambahan |
+|---|---|---|---|
+| `/dashboard` | 368,1 KB | 374,6 KB | +6,5 KB |
+| `/transactions` | 364,9 KB | 371,9 KB | +7,0 KB |
+| `/settings` | 360,7 KB | 366,6 KB | +5,9 KB |
+
+Di bawah target < 10 KB. Service worker (`public/sw.js`, 43 KB mentah) tidak termasuk first load. Precache: 47 URL, ±1,87 MB.
+
+## Temuan verifikasi T76 (2026-10-25)
+
+- Otomatis hijau: `pnpm lint && pnpm typecheck && pnpm test` (900 tes) dan `pnpm build` (menulis `public/sw.js`). `curl` tanpa cookie: `/sw.js` 200, `/~offline` 200, `/dashboard` 307 ke `/login`.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir Manual di spec, termasuk cold start offline `/dashboard` (inti spike T66), `Page.getInstallabilityErrors`, toast versi baru, dan pemasangan di Android/iPhone. Jika cold start offline gagal, ikuti mitigasi Risiko modul baris pertama.
 
 ## Risiko modul
 

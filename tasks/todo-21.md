@@ -36,12 +36,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [ ] Semua butir Manual di spec tercentang, atau dicatat sebagai temuan dengan task lanjutan
-- [ ] Tambahan JS first load dari modul ini < 10 KB gzip, angka dicatat di plan.md
-- [ ] Status modul `pwa-offline` di tabel plan.md diperbarui
+- [x] Tambahan JS first load dari modul ini < 10 KB gzip, angka dicatat di plan.md
+- [x] Status modul `pwa-offline` di tabel plan.md diperbarui
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 
 **Dependencies:** T74, T75
 

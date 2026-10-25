@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { changeTone, formatRangeLabel, formatShortPeriod, percentChange, sumBalances } from "@/lib/dashboard-format";
+import {
+  activityPeak,
+  changeTone,
+  formatBucket,
+  formatRangeLabel,
+  formatShortPeriod,
+  percentChange,
+  sumBalances,
+} from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
 
 function account(overrides: Partial<Account>): Account {
@@ -84,5 +92,35 @@ describe("formatRangeLabel", () => {
 
   it("is a single day when from equals to", () => {
     expect(formatRangeLabel({ from: "2026-10-01", to: "2026-10-01" })).toBe("1 Okt 2026");
+  });
+});
+
+describe("formatBucket", () => {
+  it("labels a day bucket by its day number on the axis and in full elsewhere", () => {
+    expect(formatBucket("2026-10-01", "tick")).toBe("1");
+    expect(formatBucket("2026-10-15", "tick")).toBe("15");
+    expect(formatBucket("2026-10-31", "full")).toBe("31 Okt 2026");
+  });
+
+  it("labels a month bucket by its short name", () => {
+    expect(formatBucket("2026-01", "tick")).toBe("Jan");
+    expect(formatBucket("2026-01", "full")).toBe("Januari 2026");
+  });
+});
+
+describe("activityPeak", () => {
+  it("is the first bucket with the highest expense", () => {
+    expect(
+      activityPeak([
+        { bucket: "2026-10-01", expense: 100 },
+        { bucket: "2026-10-02", expense: 300 },
+        { bucket: "2026-10-03", expense: 300 },
+      ]),
+    ).toEqual({ bucket: "2026-10-02", expense: 300 });
+  });
+
+  it("is null when nothing was spent", () => {
+    expect(activityPeak([{ bucket: "2026-10-01", expense: 0 }])).toBeNull();
+    expect(activityPeak([])).toBeNull();
   });
 });

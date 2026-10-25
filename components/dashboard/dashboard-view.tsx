@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BalanceCard } from "@/components/dashboard/balance-card";
+import { ExpenseActivity } from "@/components/dashboard/expense-activity";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
 import { dashboardPeriodFromParam } from "@/lib/dashboard-period";
@@ -25,6 +26,7 @@ export function DashboardView() {
       <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
       <BalanceCard period={period} />
       <SummaryCards period={period} />
+      <ExpenseActivity period={period} />
     </>
   );
 }

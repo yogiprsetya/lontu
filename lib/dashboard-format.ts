@@ -1,5 +1,6 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
-import type { DashboardPeriod, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
+import type { DashboardPeriod, DashboardSummary, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
+import { formatPeriodLabel } from "@/lib/transaction-filters";
 
 export type ChangeTone = "good" | "bad" | "neutral";
 
@@ -42,4 +43,16 @@ export function formatRangeLabel({ from, to }: DateRange) {
   if (from === to) return `${dayOf(from)} ${monthOf(from)} ${year}`;
   if (from.slice(0, 7) === to.slice(0, 7)) return `${dayOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
   return `${dayOf(from)} ${monthOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
+}
+
+/** A `YYYY-MM-DD` day or `YYYY-MM` month bucket, short for the axis or full for text. */
+export function formatBucket(bucket: string, style: "tick" | "full") {
+  if (bucket.length === 7) return style === "tick" ? monthOf(bucket) : formatPeriodLabel(bucket);
+  return style === "tick" ? dayOf(bucket) : formatRangeLabel({ from: bucket, to: bucket });
+}
+
+type Bucket = DashboardSummary["activity"][number];
+
+export function activityPeak(activity: Bucket[]): Bucket | null {
+  return activity.reduce<Bucket | null>((peak, b) => (b.expense > (peak?.expense ?? 0) ? b : peak), null);
 }

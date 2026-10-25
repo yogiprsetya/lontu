@@ -10,7 +10,7 @@ Pemilik melihat ke mana uangnya pergi: batang expense per hari (bulan) atau per 
 
 - [x] T59: Pasang shadcn chart + token warna grafik (S, risiko tinggi)
 - [x] T60: `activity` di `dashboardSummary` (S)
-- [ ] T61: Grafik Expense Activity (M)
+- [x] T61: Grafik Expense Activity (M) (cek manual tertunda)
 - [ ] T62: `categories` di `dashboardSummary` + `topCategories` (S)
 - [ ] T63: Donut per kategori + legenda (M)
 

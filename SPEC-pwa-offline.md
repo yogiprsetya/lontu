@@ -144,15 +144,15 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 
 **API**
 
-- [ ] `POST` expense dengan `id` baru → 201, `transaction.id` sama dengan `id` yang dikirim.
-- [ ] Mengirim body yang sama dua kali → 201 lalu 200 dengan baris yang sama. Jumlah baris user tidak bertambah dan saldo akun hanya berkurang sekali.
-- [ ] Transfer dengan `id` + `fee.id`, diulang → 200 dengan `transaction` dan `fee` yang sama, tidak ada transfer atau biaya admin ganda.
-- [ ] Replay setelah akun sumber diarsipkan → 200 (baris lama), bukan 400.
-- [ ] Replay `id` yang sudah di-soft-delete → 200, baris tetap terhapus (tidak dihidupkan lagi).
-- [ ] Dua `POST` paralel dengan `id` sama → satu 201, satu 200, tepat satu baris.
-- [ ] **Isolasi:** user B mengirim `id` milik transaksi A → 409 `TRANSACTION_ID_TAKEN`, respons tidak memuat data A, baris A tidak berubah. Sama untuk `fee.id`.
-- [ ] `fee.id === id` → 400 `fields.fee`. `id` bukan UUID → 400 `fields.id`. `PATCH` dengan `id` → 400.
-- [ ] Tanpa `id`: semua tes `tests/api/transactions*.spec.ts` yang ada tetap hijau tanpa diubah.
+- [x] `POST` expense dengan `id` baru → 201, `transaction.id` sama dengan `id` yang dikirim.
+- [x] Mengirim body yang sama dua kali → 201 lalu 200 dengan baris yang sama. Jumlah baris user tidak bertambah dan saldo akun hanya berkurang sekali.
+- [x] Transfer dengan `id` + `fee.id`, diulang → 200 dengan `transaction` dan `fee` yang sama, tidak ada transfer atau biaya admin ganda.
+- [x] Replay setelah akun sumber diarsipkan → 200 (baris lama), bukan 400.
+- [x] Replay `id` yang sudah di-soft-delete → 200, baris tetap terhapus (tidak dihidupkan lagi).
+- [x] Dua `POST` paralel dengan `id` sama → satu 201, satu 200, tepat satu baris.
+- [x] **Isolasi:** user B mengirim `id` milik transaksi A → 409 `TRANSACTION_ID_TAKEN`, respons tidak memuat data A, baris A tidak berubah. Sama untuk `fee.id`.
+- [x] `fee.id === id` → 400 `fields.fee`. `id` bukan UUID → 400 `fields.id`. `PATCH` dengan `id` → 400.
+- [x] Tanpa `id`: semua tes `tests/api/transactions*.spec.ts` yang ada tetap hijau tanpa diubah.
 
 **Unit**
 

@@ -174,3 +174,32 @@ describe("transactionUpdateSchema", () => {
     expect(errors.fieldErrors.toAccountId).toEqual(["Akun tujuan harus berbeda"]);
   });
 });
+
+describe("client transaction ids", () => {
+  const id = "5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e";
+  const feeId = "6c7d8e9f-0a1b-4c2d-9e3f-4a5b6c7d8e9f";
+
+  it("keeps an optional id on simple creates", () => {
+    expect(transactionCreateSchema.parse(expense({ id })).id).toBe(id);
+    expect(transactionCreateSchema.parse(expense()).id).toBeUndefined();
+  });
+
+  it("rejects a non-UUID id on fields.id", () => {
+    expect(fieldErrors(transactionCreateSchema.safeParse(expense({ id: "abc" }))).fieldErrors.id).toBeDefined();
+  });
+
+  it("keeps id and fee.id on a transfer", () => {
+    const parsed = transactionCreateSchema.parse(transfer({ id, fee: { id: feeId, amount: 2_500, categoryId } }));
+    expect(parsed).toMatchObject({ id, fee: { id: feeId } });
+  });
+
+  it("rejects a fee.id equal to the transfer id on fields.fee", () => {
+    const result = transactionCreateSchema.safeParse(transfer({ id, fee: { id, amount: 2_500, categoryId } }));
+    expect(fieldErrors(result).fieldErrors.fee).toBeDefined();
+  });
+
+  it("rejects id on PATCH", () => {
+    expect(transactionUpdateSchema("expense").safeParse({ id, amount: 1_000 }).success).toBe(false);
+    expect(transactionUpdateSchema("transfer").safeParse({ id, amount: 1_000 }).success).toBe(false);
+  });
+});

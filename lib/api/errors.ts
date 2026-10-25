@@ -60,6 +60,11 @@ export function transactionChanged() {
   return conflict("TRANSACTION_CHANGED", "Transaksi berubah saat disimpan. Muat ulang lalu coba lagi.");
 }
 
+// Same response whoever owns the id, so it never confirms that another user's row exists.
+export function transactionIdTaken() {
+  return conflict("TRANSACTION_ID_TAKEN", "Id transaksi sudah dipakai. Simpan ulang dari form.");
+}
+
 export function budgetNotFound() {
   return notFound("BUDGET_NOT_FOUND", "Budget tidak ditemukan");
 }

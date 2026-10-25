@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { and, desc, eq, getTableColumns, gte, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
@@ -80,11 +80,35 @@ async function checkReferences(userId: string, input: TransactionCreateInput): P
   return accounts ?? fee;
 }
 
+type IdTaken = { idTaken: true };
+
+/** Thrown inside the insert transaction when a client id is already in use, to roll it back. */
+class IdConflict extends Error {}
+
+/**
+ * A create already stored under these client ids. Any row that belongs to another user, or a fee
+ * id without its transfer, is reported as taken without revealing what the row holds.
+ */
+async function findReplay(userId: string, id: string, feeId?: string): Promise<TransactionCreated | IdTaken | undefined> {
+  const rows = await db
+    .select()
+    .from(transactions)
+    .where(inArray(transactions.id, feeId ? [id, feeId] : [id]));
+  if (rows.length === 0) return undefined;
+  const main = rows.find((r) => r.id === id);
+  if (!main || rows.some((r) => r.userId !== userId)) return { idTaken: true };
+  const fee = rows.find((r) => r.id === feeId);
+  return { transaction: toTransaction(main), fee: fee ? toTransaction(fee) : null };
+}
+
+// onConflictDoNothing turns a duplicate id from a concurrent request into "no row" instead of an error.
 async function insertSimple(userId: string, input: SimpleCreateInput): Promise<TransactionCreated> {
   const [row] = await db
     .insert(transactions)
     .values({ userId, ...input })
+    .onConflictDoNothing()
     .returning();
+  if (!row) throw new IdConflict();
   return { transaction: toTransaction(row), fee: null };
 }
 
@@ -93,12 +117,15 @@ async function insertTransfer(userId: string, { fee, ...input }: TransferCreateI
     const [row] = await tx
       .insert(transactions)
       .values({ userId, ...input })
+      .onConflictDoNothing()
       .returning();
+    if (!row) throw new IdConflict();
     if (!fee) return { transaction: toTransaction(row), fee: null };
 
     const [feeRow] = await tx
       .insert(transactions)
       .values({
+        id: fee.id,
         userId,
         type: "expense",
         amount: fee.amount,
@@ -107,18 +134,36 @@ async function insertTransfer(userId: string, { fee, ...input }: TransferCreateI
         categoryId: fee.categoryId,
         description: FEE_DESCRIPTION,
       })
+      .onConflictDoNothing()
       .returning();
+    if (!feeRow) throw new IdConflict();
     return { transaction: toTransaction(row), fee: toTransaction(feeRow) };
   });
 }
 
-export async function createTransaction(
-  userId: string,
-  input: TransactionCreateInput,
-): Promise<TransactionCreated | { invalid: InvalidReference }> {
+export type CreateResult = { created: TransactionCreated; replayed: boolean } | { invalid: InvalidReference } | IdTaken;
+
+/**
+ * With a client `id`, a repeat of an earlier create returns the stored rows (first write wins).
+ * The replay check runs before the reference checks: an account archived after the first write
+ * must not turn a retry into a 400.
+ */
+export async function createTransaction(userId: string, input: TransactionCreateInput): Promise<CreateResult> {
+  const feeId = input.type === "transfer" ? input.fee?.id : undefined;
+  const replay = input.id ? await findReplay(userId, input.id, feeId) : undefined;
+  if (replay) return "idTaken" in replay ? replay : { created: replay, replayed: true };
+
   const invalid = await checkReferences(userId, input);
   if (invalid) return { invalid };
-  return input.type === "transfer" ? insertTransfer(userId, input) : insertSimple(userId, input);
+  try {
+    const created = await (input.type === "transfer" ? insertTransfer(userId, input) : insertSimple(userId, input));
+    return { created, replayed: false };
+  } catch (err) {
+    if (!(err instanceof IdConflict) || !input.id) throw err;
+    // A concurrent request with the same id committed first.
+    const raced = await findReplay(userId, input.id, feeId);
+    return raced && !("idTaken" in raced) ? { created: raced, replayed: true } : { idTaken: true };
+  }
 }
 
 // Computed in SQL: a JS Date keeps only milliseconds, so keyset paging on it skips or repeats

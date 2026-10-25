@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `id` baru → 201 dengan id itu. Body sama dua kali → 201 lalu 200, satu baris, saldo berkurang sekali. Transfer + `fee.id` diulang → 200 dengan `transaction` dan `fee` yang sama, tanpa baris ganda
-- [ ] Replay setelah akun diarsipkan → 200. Replay baris yang sudah di-soft-delete → 200, baris tetap terhapus. Dua `POST` paralel (`Promise.all`) dengan id sama → satu 201 + satu 200, tepat satu baris
-- [ ] User B memakai `id` atau `fee.id` milik A → 409 `TRANSACTION_ID_TAKEN` tanpa data A, baris A tidak berubah. `fee.id === id` → 400 `fields.fee`, `id` bukan UUID → 400 `fields.id`, `PATCH` dengan `id` → 400. Tes transaksi lama hijau tanpa diubah
+- [x] `id` baru → 201 dengan id itu. Body sama dua kali → 201 lalu 200, satu baris, saldo berkurang sekali. Transfer + `fee.id` diulang → 200 dengan `transaction` dan `fee` yang sama, tanpa baris ganda
+- [x] Replay setelah akun diarsipkan → 200. Replay baris yang sudah di-soft-delete → 200, baris tetap terhapus. Dua `POST` paralel (`Promise.all`) dengan id sama → satu 201 + satu 200, tepat satu baris
+- [x] User B memakai `id` atau `fee.id` milik A → 409 `TRANSACTION_ID_TAKEN` tanpa data A, baris A tidak berubah. `fee.id === id` → 400 `fields.fee`, `id` bukan UUID → 400 `fields.id`, `PATCH` dengan `id` → 400. Tes transaksi lama hijau tanpa diubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/transactions-idempotency.spec.ts tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/transactions-idempotency.spec.ts tests/unit/transaction-schema.spec.ts tests/api/transactions.spec.ts` hijau
 
 **Dependencies:** None
 

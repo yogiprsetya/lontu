@@ -1,4 +1,4 @@
-import { badRequest, fieldError, invalidCursor, invalidJson } from "@/lib/api/errors";
+import { badRequest, fieldError, invalidCursor, invalidJson, transactionIdTaken } from "@/lib/api/errors";
 import { withAuth } from "@/lib/api/with-auth";
 import { transactionCreateSchema, transactionListQuerySchema } from "@/lib/schemas/transaction";
 import { createTransaction, listTransactions } from "@/lib/server/transactions";
@@ -21,5 +21,6 @@ export const POST = withAuth(async (req, { userId }) => {
 
   const result = await createTransaction(userId, parsed.data);
   if ("invalid" in result) return fieldError(result.invalid.field, result.invalid.message);
-  return Response.json(result, { status: 201 });
+  if ("idTaken" in result) return transactionIdTaken();
+  return Response.json(result.created, { status: result.replayed ? 200 : 201 });
 });

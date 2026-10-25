@@ -8,7 +8,7 @@ Pemilik mencatat income, expense, saving, atau transfer (dengan biaya admin) saa
 
 ## Task
 
-- [ ] T70: `POST /api/transactions` idempoten dengan `id` dari client (M)
+- [x] T70: `POST /api/transactions` idempoten dengan `id` dari client (M)
 - [ ] T71: Outbox dan `replayOutbox` murni (M)
 - [ ] T72: Create mengantre saat offline + replay otomatis (M)
 - [ ] T73: Bagian "Menunggu dikirim" dan catatan di dashboard (M)

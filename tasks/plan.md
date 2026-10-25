@@ -2,7 +2,7 @@
 
 Sumber: [SPEC.md](../SPEC.md) · 2026-10-20
 
-Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutnya (`dashboard` → `pwa-offline`) direncanakan setelah `SPEC-<module>.md` masing-masing ditulis.
+Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutnya (`pwa-offline`) direncanakan setelah `SPEC-pwa-offline.md` ditulis.
 
 | Modul | Spec | Phase | Task | Status |
 |---|---|---|---|---|
@@ -10,6 +10,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutny
 | `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
 | `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
+| `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Direncanakan |
 
 ---
 
@@ -266,3 +267,72 @@ Task server (T43, T44, T48, T50, T52, T53) hanya butuh T42 dan bisa didahulukan 
 | Halaman Budget basi setelah mencatat expense | Sedang | Matcher `/api/budgets` di `revalidateTransactions` dites di T45, dicek manual di checkpoint L |
 | `useSearchParams` di `/budget` merusak `cacheComponents` | Sedang | `<Suspense>`, `pnpm build` di T46 |
 | Pembulatan saran tidak menjumlah tepat ke pool | Rendah | `suggestBudgets` murni, dites dengan sisa terbesar dan seri (T52) |
+
+---
+
+# Modul `dashboard`
+
+Spec: [SPEC-dashboard.md](../SPEC-dashboard.md) · 2026-10-25
+
+## Overview
+
+Pemilik membuka `/dashboard` dan melihat total saldo, kartu Income/Expense/Saving/Sisa dengan perubahan vs periode lalu (period-to-date), grafik expense per hari atau bulan, donut per kategori, dan budget yang hampir habis. Setiap angka bisa di-tap ke `/transactions` dengan filter yang menyusunnya. Tidak ada perubahan skema. Satu dependency baru lewat shadcn CLI: `recharts` (sudah tercantum di Tech stack).
+
+## Kondisi repo saat ini
+
+- `app/(app)/dashboard/page.tsx` masih placeholder. Belum ada `components/dashboard/`, `components/ui/chart.tsx`, atau `recharts`.
+- Siap dipakai: `transactionTotals` + `transactionWhere`, `budgetUsage`, `useAccounts`, `useCategories`, `useBudgets`, `invalidate` / `affectedBy` di `lib/cache-invalidation.ts`, `periodToRange` / `shiftPeriod` / `formatPeriodLabel` (`lib/transaction-filters.ts`), `PeriodStepper` (mode bulan/tahun/semua), `BudgetProgress`, `formatIDR` / `abbreviateIDR` / `HIDDEN_AMOUNT`, `hideAmounts`, `todayInJakarta`.
+- Token `--chart-1..5` masih abu-abu bawaan shadcn, belum bisa membedakan kategori. `color-tokens.spec.ts` baru menguji token semantik.
+- `usePeriodStore` tidak dipakai di mana pun (open question 5 di spec).
+- Vitest `environment: "node"`: logika UI dipisah jadi fungsi murni (`dashboard-period.ts`, `dashboard-format.ts`). UI diverifikasi manual.
+
+## Dependency graph
+
+```
+T55 Schema periode + dashboardRanges (murni)
+ ├─► T56 GET /api/dashboard (totals) ─┬─► T60 activity ────────┐
+ │                                    ├─► T62 categories ──────┼──┐
+ │                                    │                        │  │
+ └─► T57 Format + useDashboard + cache┴─► T58 Halaman (header, saldo, kartu)
+                                              ├─► T59 shadcn chart + token ─┬─► T61 Expense Activity (T60)
+                                              │                             └─► T63 Donut (T62)
+                                              └─► T64 Budget Summary
+                                                        T61 + T63 + T64 ─► T65 Layout + NFR
+```
+
+T57 boleh paralel dengan T56. T60 dan T62 hanya butuh T56 dan boleh paralel dengan T58/T59.
+
+## Phases
+
+| Phase | Plan | Todo | Task | Checkpoint |
+|---|---|---|---|---|
+| 16. Ringkasan dan saldo | [plan-16.md](plan-16.md) | [todo-16.md](todo-16.md) | T55–T58 | O |
+| 17. Grafik aktivitas dan kategori | [plan-17.md](plan-17.md) | [todo-17.md](todo-17.md) | T59–T63 | P |
+| 18. Budget Summary dan penyelesaian | [plan-18.md](plan-18.md) | [todo-18.md](todo-18.md) | T64–T65 | Q (modul selesai) |
+
+## Aturan lintas phase
+
+- Irisan vertikal: setiap phase berakhir dengan dashboard yang bisa dicoba dari ponsel (kartu + saldo → grafik → budget). Di dalam irisan, API lebih dulu (tes Supabase mengunci kontrak dan invarian), lalu UI.
+- Risiko tinggi didahulukan: aturan period-to-date (T55), kompatibilitas Recharts dan ukuran bundle (T59, sebelum komponen grafik ditulis).
+- Respons `GET /api/dashboard` tumbuh aditif: totals (T56), `activity` (T60), `categories` (T62).
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 dan 1024.
+
+## Keputusan perencanaan (2026-10-25)
+
+1. **Open questions 1–4 dan 6 di spec memakai default spec** (period-to-date, kartu Sisa, mode tahun, donut top 5 per kategori, tanpa transaksi terakhir). Aturan pembanding terkunci di `dashboardRanges`, persen di `percentChange`, top N di `topCategories`, jadi perubahan nanti hanya menyentuh satu fungsi dan tesnya. Mode tahun bisa dibuang dengan menghapus satu nilai di `modes` dan cabang di schema.
+2. **Open question 5 (`usePeriodStore`) belum dikerjakan.** Ditanyakan di checkpoint O.
+3. **`PeriodStepper` mendapat prop `modes`** daripada membuat stepper baru, karena dashboard butuh bulan dan tahun (berbeda dari `MonthStepper` budgets).
+4. **`dashboardSummary(userId, period, today)`** menerima `today` supaya tes API memakai tanggal tetap.
+5. **Token `--chart-1..5` diganti** dengan hue berbeda ≥ 3:1 terhadap background (T59). Ini mengubah `app/globals.css`, bukan `components/ui/`.
+
+## Risiko modul
+
+| Risiko | Dampak | Mitigasi |
+|---|---|---|
+| Recharts tidak cocok dengan React 19.3 / `cacheComponents` | Tinggi | T59 dikerjakan sebelum komponen grafik. Gagal → stop, Ask first |
+| JS first load `/dashboard` > 200 KB gzip | Sedang | `next/dynamic` untuk grafik, ukuran dicatat di T59, T61, T63, T65 |
+| Pemotongan period-to-date salah di akhir bulan, kabisat, atau pergantian tahun | Sedang | T55 dimulai dari tes merah untuk semua kasus |
+| Angka dashboard berbeda dari `/transactions` atau `/budget` | Sedang | `transactionWhere` dan `budgetUsage` dipakai ulang, invarian dites di T56, T60, T62 |
+| Dashboard basi setelah mencatat transaksi | Sedang | `AFFECTS.transactions` memuat `dashboard`, dites di T57 |
+| CLS dari bagian yang selesai memuat di waktu berbeda | Sedang | Skeleton bertinggi tetap, Lighthouse di T65 |
+

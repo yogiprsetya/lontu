@@ -56,13 +56,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Terapkan hanya menulis baris tercentang. Daftar dan ringkasan berubah tanpa reload
-- [ ] Mengubah income memperbarui pool dan nominal. Basis 0 menampilkan pesan, tombol Terapkan nonaktif
-- [ ] 360 px tanpa horizontal scroll, checkbox dan baris ≥ 44 px, input 16 px. `hideAmounts` dipatuhi
+- [x] Terapkan hanya menulis baris tercentang. Daftar dan ringkasan berubah tanpa reload
+- [x] Mengubah income memperbarui pool dan nominal. Basis 0 menampilkan pesan, tombol Terapkan nonaktif
+- [x] 360 px tanpa horizontal scroll, checkbox dan baris ≥ 44 px, input 16 px. `hideAmounts` dipatuhi
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T47, T51, T53
@@ -76,6 +76,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ### Checkpoint N (modul selesai)
 
 - [x] Gerbang penuh hijau
-- [ ] Semua acceptance criteria di SPEC-budgets.md tercentang
-- [ ] Manual 360×800 dan 1024, light dan dark: alur penuh
-- [ ] Review dengan Yogi, lalu tulis `SPEC-dashboard.md`
+- [x] Semua acceptance criteria di SPEC-budgets.md tercentang
+- [x] Manual 360×800 dan 1024, light dan dark: alur penuh
+- [x] Review dengan Yogi, lalu tulis `SPEC-dashboard.md`

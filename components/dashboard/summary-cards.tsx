@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon } from "lucide-react";
+import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon, type LucideIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "@/hooks/use-dashboard";
@@ -27,28 +27,33 @@ const TONE_CLASS: Record<ChangeTone, string> = {
 
 const CARD_CLASS = "flex min-h-32 min-w-0 flex-col gap-1 rounded-lg border px-3 py-3";
 
+function ChangeLine({ tone, icon: Icon, text }: { tone: ChangeTone; icon: LucideIcon; text: string }) {
+  return (
+    <p className={cn("flex items-start gap-1 text-sm", TONE_CLASS[tone])}>
+      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <span className="min-w-0">{text}</span>
+    </p>
+  );
+}
+
 function Change({ metric, summary, hideAmounts }: { metric: keyof DashboardTotals; summary: DashboardSummary; hideAmounts: boolean }) {
   const current = summary.totals[metric];
   const previous = summary.previousTotals[metric];
   const delta = current - previous;
   const against = formatShortPeriod(summary.previous.period);
+  const percent = percentChange(current, previous);
+
+  if (metric !== "net" && percent === null) return <ChangeLine tone="neutral" icon={MinusIcon} text="—" />;
+  if (delta === 0) return <ChangeLine tone="neutral" icon={MinusIcon} text={`sama dengan ${against}`} />;
+
   // Sisa can change sign, so a percentage would mislead; it shows the difference in rupiah.
-  const percent = metric === "net" ? null : percentChange(current, previous);
-
-  const noBase = metric !== "net" && percent === null;
-  let text = "—";
-  if (!noBase && delta === 0) text = `sama dengan ${against}`;
-  else if (!noBase) {
-    const size = metric === "net" ? (hideAmounts ? HIDDEN_AMOUNT : formatIDR(Math.abs(delta))) : `${Math.abs(percent!)}%`;
-    text = `${delta > 0 ? "naik" : "turun"} ${size} dari ${against}`;
-  }
-
-  const Icon = noBase || delta === 0 ? MinusIcon : delta > 0 ? ArrowUpRightIcon : ArrowDownRightIcon;
+  const size = metric === "net" ? (hideAmounts ? HIDDEN_AMOUNT : formatIDR(Math.abs(delta))) : `${Math.abs(percent ?? 0)}%`;
   return (
-    <p className={cn("flex items-start gap-1 text-sm", TONE_CLASS[noBase ? "neutral" : changeTone(metric, delta)])}>
-      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
-      <span className="min-w-0">{text}</span>
-    </p>
+    <ChangeLine
+      tone={changeTone(metric, delta)}
+      icon={delta > 0 ? ArrowUpRightIcon : ArrowDownRightIcon}
+      text={`${delta > 0 ? "naik" : "turun"} ${size} dari ${against}`}
+    />
   );
 }
 

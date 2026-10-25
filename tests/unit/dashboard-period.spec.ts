@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardMode, dashboardRanges } from "@/lib/dashboard-period";
+import { dashboardMode, dashboardPeriodFromParam, dashboardRanges } from "@/lib/dashboard-period";
 
 describe("dashboardMode", () => {
   it("tells months from years", () => {
@@ -65,4 +65,17 @@ describe("dashboardRanges, year", () => {
       range: { from: "1999-01-01", to: "1999-12-31" },
     });
   });
+});
+
+describe("dashboardPeriodFromParam", () => {
+  it.each(["2026-10", "2026-01", "2026", "2000", "2000-01"])("keeps %s", (value) => {
+    expect(dashboardPeriodFromParam(value, "2026-10-25")).toBe(value);
+  });
+
+  it.each([null, "", "all", "2026-11", "2027", "1999", "1999-12", "2026-13", "26-10"])(
+    "falls back to the current month for %j",
+    (value) => {
+      expect(dashboardPeriodFromParam(value, "2026-10-25")).toBe("2026-10");
+    },
+  );
 });

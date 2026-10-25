@@ -22,14 +22,17 @@ export type DashboardSummary = {
   previousTotals: DashboardTotals;
 };
 
-const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;
+export const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;
 
-// Same-length strings compare correctly as text. Today is read at parse time, so a
-// long-lived schema never goes stale across a month boundary.
+// Same-length strings compare correctly as text.
+export function isPastOrCurrentPeriod(period: DashboardPeriod, today: string) {
+  return period.slice(0, 4) >= "2000" && period <= today.slice(0, period.length);
+}
+
+// Today is read at parse time, so a long-lived schema never goes stale across a month boundary.
 export const dashboardPeriodSchema = z
   .string("Periode tidak valid")
   .regex(DASHBOARD_PERIOD_FORMAT, "Periode tidak valid")
-  .refine((p) => p.slice(0, 4) >= "2000", "Periode minimal tahun 2000")
-  .refine((p) => p <= todayInJakarta().slice(0, p.length), "Periode tidak boleh di masa depan");
+  .refine((p) => isPastOrCurrentPeriod(p, todayInJakarta()), "Periode antara tahun 2000 dan sekarang");
 
 export const dashboardQuerySchema = z.object({ period: dashboardPeriodSchema });

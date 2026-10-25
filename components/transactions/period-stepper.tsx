@@ -19,8 +19,16 @@ const MODES: { value: PeriodMode; label: string }[] = [
   { value: "all", label: "Semua" },
 ];
 
-export function PeriodStepper({ period, onChange }: { period: Period; onChange: (period: Period) => void }) {
+type Props = {
+  period: Period;
+  onChange: (period: Period) => void;
+  /** Which ranges the select offers; all three by default. */
+  modes?: readonly PeriodMode[];
+};
+
+export function PeriodStepper({ period, onChange, modes = ["month", "year", "all"] }: Props) {
   const today = todayInJakarta();
+  const items = MODES.filter((m) => modes.includes(m.value));
   const mode = periodMode(period);
   // Nothing can be recorded after today, so stepping past the current period only shows an empty list.
   const next = shiftPeriod(period, 1);
@@ -52,7 +60,7 @@ export function PeriodStepper({ period, onChange }: { period: Period; onChange: 
         </Button>
       </div>
       <Select
-        items={MODES}
+        items={items}
         value={mode}
         onValueChange={(value) => value && onChange(switchPeriodMode(period, value as PeriodMode, today))}
       >
@@ -60,7 +68,7 @@ export function PeriodStepper({ period, onChange }: { period: Period; onChange: 
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {MODES.map((m) => (
+          {items.map((m) => (
             <SelectItem key={m.value} value={m.value} className="min-h-11">
               {m.label}
             </SelectItem>

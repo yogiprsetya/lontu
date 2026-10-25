@@ -1,5 +1,5 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
-import type { DashboardTotals } from "@/lib/schemas/dashboard";
+import type { DashboardPeriod, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
 
 export type ChangeTone = "good" | "bad" | "neutral";
 
@@ -23,4 +23,23 @@ export function sumBalances(accounts: Account[]) {
     if (!account.archivedAt) byType[account.type] += account.balance;
   }
   return { total: Object.values(byType).reduce((sum, value) => sum + value, 0), byType };
+}
+
+const shortMonth = new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", month: "short" });
+
+// Parsed as UTC midnight and formatted in UTC, so the day never shifts with the device zone.
+const monthOf = (date: string) => shortMonth.format(new Date(`${date.slice(0, 7)}-01T00:00:00Z`));
+const dayOf = (date: string) => String(Number(date.slice(8, 10)));
+
+/** "Sep" for a month, "2025" for a year. */
+export function formatShortPeriod(period: DashboardPeriod) {
+  return period.length === 4 ? period : monthOf(period);
+}
+
+/** "1–25 Sep 2026", or "1 Jan–28 Feb 2027" across months. */
+export function formatRangeLabel({ from, to }: DateRange) {
+  const year = to.slice(0, 4);
+  if (from === to) return `${dayOf(from)} ${monthOf(from)} ${year}`;
+  if (from.slice(0, 7) === to.slice(0, 7)) return `${dayOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
+  return `${dayOf(from)} ${monthOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
 }

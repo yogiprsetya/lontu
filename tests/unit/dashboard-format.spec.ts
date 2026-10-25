@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { changeTone, percentChange, sumBalances } from "@/lib/dashboard-format";
+import { changeTone, formatRangeLabel, formatShortPeriod, percentChange, sumBalances } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
 
 function account(overrides: Partial<Account>): Account {
@@ -62,5 +62,27 @@ describe("sumBalances", () => {
 
   it("is 0 without accounts", () => {
     expect(sumBalances([])).toEqual({ total: 0, byType: { transaction: 0, asset: 0 } });
+  });
+});
+
+describe("formatShortPeriod", () => {
+  it("names a month by its short name and a year by its number", () => {
+    expect(formatShortPeriod("2026-09")).toBe("Sep");
+    expect(formatShortPeriod("2025-12")).toBe("Des");
+    expect(formatShortPeriod("2025")).toBe("2025");
+  });
+});
+
+describe("formatRangeLabel", () => {
+  it("writes the month once for a range inside one month", () => {
+    expect(formatRangeLabel({ from: "2026-09-01", to: "2026-09-25" })).toBe("1–25 Sep 2026");
+  });
+
+  it("writes both months for a range across months", () => {
+    expect(formatRangeLabel({ from: "2027-01-01", to: "2027-02-28" })).toBe("1 Jan–28 Feb 2027");
+  });
+
+  it("is a single day when from equals to", () => {
+    expect(formatRangeLabel({ from: "2026-10-01", to: "2026-10-01" })).toBe("1 Okt 2026");
   });
 });

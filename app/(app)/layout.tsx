@@ -4,6 +4,7 @@ import { PageSkeleton } from "@/components/layout/page-skeleton";
 import { RequireSession } from "@/components/layout/require-session";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ModalHost } from "@/components/modals/modal-host";
+import { CacheOwnerCheck } from "@/components/pwa/cache-owner-check";
 import { OfflineBanner } from "@/components/pwa/offline-banner";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
@@ -23,6 +24,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         <BottomNav />
       </Suspense>
       <ModalHost />
+      <CacheOwnerCheck />
     </div>
   );
 }

@@ -82,12 +82,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [ ] Sign-out → Cache Storage tidak berisi `lontu-api`/`pages*`, precache aset tetap ada
-- [ ] `ensureCacheOwner` dengan adapter `Map`: pemilik sama → tidak menghapus, berbeda atau kosong-lalu-diisi → menghapus sekali dan menyimpan pemilik baru
-- [ ] Browser tanpa `caches` (mis. `next dev` tanpa HTTPS) → sign-out tetap jalan
+- [x] `ensureCacheOwner` dengan adapter `Map`: pemilik sama → tidak menghapus, berbeda atau kosong-lalu-diisi → menghapus sekali dan menyimpan pemilik baru
+- [x] Browser tanpa `caches` (mis. `next dev` tanpa HTTPS) → sign-out tetap jalan
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/offline-clear.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/offline-clear.spec.ts` hijau
 - [ ] Manual: sign-out lalu periksa DevTools > Cache Storage
 
 **Dependencies:** T66

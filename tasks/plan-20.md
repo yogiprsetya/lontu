@@ -11,7 +11,7 @@ Pemilik mencatat income, expense, saving, atau transfer (dengan biaya admin) saa
 - [x] T70: `POST /api/transactions` idempoten dengan `id` dari client (M)
 - [x] T71: Outbox dan `replayOutbox` murni (M)
 - [x] T72: Create mengantre saat offline + replay otomatis (M) (cek manual tertunda)
-- [ ] T73: Bagian "Menunggu dikirim" dan catatan di dashboard (M)
+- [x] T73: Bagian "Menunggu dikirim" dan catatan di dashboard (M) (cek manual tertunda)
 - [ ] T74: Sign-out dengan item tertunda (S)
 
 Urutan: T70 dan T71 paralel → T72 → T73 → T74.

@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { PendingTransactions } from "@/components/pwa/pending-transactions";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
-import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
 import { HIDDEN_AMOUNT } from "@/lib/money";
 import type { Transaction } from "@/lib/schemas/transaction";
@@ -18,23 +18,13 @@ import {
   formatDateHeading,
   formatSignedAmount,
   groupByDate,
+  nameMap,
+  titleOf,
+  type Names,
 } from "@/lib/transaction-format";
 import type { ListFilters } from "@/lib/transaction-filters";
-import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
-
-type Names = Map<string, string>;
-
-function nameMap(items: { id: string; name: string; archivedAt: string | null }[] | undefined): Names {
-  return new Map(items?.map((i) => [i.id, archiveLabel(i)]));
-}
-
-function titleOf(t: Transaction, accounts: Names, categories: Names) {
-  if (t.type === "transfer") return `${accounts.get(t.accountId) ?? "Akun"} → ${accounts.get(t.toAccountId!) ?? "Akun"}`;
-  if (t.type === "adjustment") return ADJUSTMENT_LABEL;
-  return (t.categoryId && categories.get(t.categoryId)) || "Tanpa kategori";
-}
 
 function Row({ t, accounts, categories, hideAmounts }: { t: Transaction; accounts: Names; categories: Names; hideAmounts: boolean }) {
   return (
@@ -65,7 +55,17 @@ function ListSkeleton() {
   );
 }
 
+// Queued creates sit above the list whatever the filters, so they are never hidden by one.
 export function TransactionList({ filters }: { filters: ListFilters }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <PendingTransactions />
+      <SavedTransactions filters={filters} />
+    </div>
+  );
+}
+
+function SavedTransactions({ filters }: { filters: ListFilters }) {
   const hideAmounts = useUIStore((s) => s.hideAmounts);
   const tx = useTransactions(filters);
   const accounts = useAccounts({ includeArchived: true });

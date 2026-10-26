@@ -83,8 +83,8 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
 export function DashboardBudgetSummary({ period }: { period: DashboardPeriod }) {
   return (
-    <section aria-labelledby="budget-title" className="flex min-w-0 flex-col gap-3 rounded-lg border px-4 py-4">
-      <h2 id="budget-title" className="font-semibold">
+    <section aria-labelledby="budget-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+      <h2 id="budget-title" className="font-heading text-lg font-bold">
         Budget
       </h2>
       {dashboardMode(period) === "month" ? (

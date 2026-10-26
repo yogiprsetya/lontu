@@ -18,7 +18,7 @@ export function BudgetProgress({ percent, status, label }: { percent: number | n
       aria-valuemax={100}
       aria-valuenow={value}
       aria-valuetext={label}
-      className="h-2 w-full overflow-hidden rounded-full bg-muted"
+      className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
     >
       <div className={cn("h-full rounded-full transition-[width]", FILL[status])} style={{ width: `${value}%` }} />
     </div>

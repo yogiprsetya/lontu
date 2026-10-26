@@ -14,7 +14,7 @@ export function BudgetRow({ item, name, hideAmounts, onEdit }: Props) {
     return (
       <li className="flex min-h-14 items-center justify-between gap-3 py-2">
         <div className="min-w-0">
-          <p className="truncate font-medium">{name}</p>
+          <p className="truncate font-bold">{name}</p>
           <p className="truncate text-sm text-muted-foreground tabular-nums">{money(item.spent)} terpakai</p>
         </div>
         <Button variant="outline" className="h-11 shrink-0 text-base" disabled={!onEdit} onClick={onEdit}>
@@ -33,7 +33,7 @@ export function BudgetRow({ item, name, hideAmounts, onEdit }: Props) {
         className="flex min-h-14 w-full flex-col gap-2 py-3 text-left disabled:cursor-default"
       >
         <span className="flex w-full items-baseline justify-between gap-3">
-          <span className="min-w-0 truncate font-medium">{name}</span>
+          <span className="min-w-0 truncate font-bold">{name}</span>
           <span
             className={cn(
               "shrink-0 text-sm tabular-nums",
@@ -54,7 +54,7 @@ export function BudgetRow({ item, name, hideAmounts, onEdit }: Props) {
             {item.percent !== null && ` · ${item.percent}%`}
           </span>
           {text && (
-            <span className={cn("font-medium", item.status === "over" ? "text-expense" : "text-budget")}>{text}</span>
+            <span className={cn("font-bold", item.status === "over" ? "text-expense" : "text-budget")}>{text}</span>
           )}
         </span>
       </button>

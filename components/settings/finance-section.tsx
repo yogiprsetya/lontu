@@ -14,7 +14,7 @@ export function FinanceSection() {
   const toggleHideAmounts = useUIStore((s) => s.toggleHideAmounts);
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="-mx-3 -my-3 flex flex-col gap-1">
       <button type="button" className={rowClass} onClick={() => open("manageAccounts")}>
         <WalletIcon className="size-5 text-muted-foreground" aria-hidden />
         <span className="flex-1">Kelola akun</span>

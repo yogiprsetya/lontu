@@ -2,22 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, WalletIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddMenu } from "./add-menu";
 import { isActivePath, sidebarItems } from "./nav-items";
 import { useSignOut } from "./sign-out";
 
 const itemClass =
-  "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50";
+  "flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-semibold outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function Sidebar() {
   const pathname = usePathname();
   const signOut = useSignOut();
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 border-r bg-sidebar px-3 py-6 lg:flex">
-      <Link href="/dashboard" className="px-3 text-xl font-semibold tracking-tight">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 bg-sidebar px-4 py-6 shadow-soft lg:flex">
+      <Link href="/dashboard" className="flex items-center gap-3 px-2 font-heading text-2xl font-extrabold tracking-tight">
+        <span aria-hidden className="flex size-10 items-center justify-center rounded-xl bg-sunny text-sunny-foreground">
+          <WalletIcon className="size-5" />
+        </span>
         Lontu
       </Link>
       <AddMenu variant="sidebar" />
@@ -29,7 +32,7 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={cn(itemClass, active ? "bg-muted text-foreground" : "text-muted-foreground")}
+              className={cn(itemClass, active ? "bg-sunny font-bold text-sunny-foreground hover:bg-sunny" : "text-muted-foreground")}
             >
               <item.icon className="size-5" aria-hidden />
               {item.label}

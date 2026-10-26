@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon, type LucideIcon } from "lucide-react";
+import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon, ScaleIcon, type LucideIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
+import { TYPE_STYLES } from "@/components/transactions/type-chip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { changeTone, formatRangeLabel, formatShortPeriod, percentChange, type ChangeTone } from "@/lib/dashboard-format";
@@ -13,11 +14,11 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
 const CARDS = [
-  { key: "income", label: "Income", amountTone: "text-income" },
-  { key: "expense", label: "Expense", amountTone: "text-expense" },
-  { key: "saving", label: "Saving", amountTone: "text-budget" },
-  { key: "net", label: "Sisa", amountTone: "" },
-] as const satisfies { key: keyof DashboardTotals; label: string; amountTone: string }[];
+  { key: "income", label: "Income", ...TYPE_STYLES.income },
+  { key: "expense", label: "Expense", ...TYPE_STYLES.expense },
+  { key: "saving", label: "Saving", ...TYPE_STYLES.saving },
+  { key: "net", label: "Sisa", icon: ScaleIcon, tile: "surface" },
+] as const satisfies { key: keyof DashboardTotals; label: string; icon: LucideIcon; tile: string }[];
 
 const TONE_CLASS: Record<ChangeTone, string> = {
   good: "text-income",
@@ -25,11 +26,11 @@ const TONE_CLASS: Record<ChangeTone, string> = {
   neutral: "text-muted-foreground",
 };
 
-const CARD_CLASS = "flex min-h-32 min-w-0 flex-col gap-1 rounded-lg border px-3 py-3";
+const CARD_CLASS = "flex min-h-36 min-w-0 flex-col gap-1 rounded-2xl px-3.5 py-4 sm:px-4";
 
 function ChangeLine({ tone, icon: Icon, text }: { tone: ChangeTone; icon: LucideIcon; text: string }) {
   return (
-    <p className={cn("flex items-start gap-1 text-sm", TONE_CLASS[tone])}>
+    <p className={cn("flex items-start gap-1 text-sm font-semibold", TONE_CLASS[tone])}>
       <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
       <span className="min-w-0">{text}</span>
     </p>
@@ -68,21 +69,24 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
       <h2 id="summary-title" className="sr-only">
         Ringkasan periode
       </h2>
-      <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-busy={!data}>
-        {CARDS.map(({ key, label, amountTone }) => {
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy={!data}>
+        {CARDS.map(({ key, label, icon: Icon, tile }) => {
           if (!data) {
             return (
               <li key={key}>
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Skeleton className="h-36 w-full rounded-2xl" />
               </li>
             );
           }
           const amount = data.totals[key];
           const body = (
             <>
-              <span className="text-sm text-muted-foreground">{label}</span>
+              <span className="flex items-center gap-1.5 text-sm font-bold">
+                <Icon aria-hidden className="size-4" />
+                {label}
+              </span>
               <span
-                className={cn("truncate text-base font-semibold tabular-nums sm:text-lg", amountTone, key === "net" && !hideAmounts && amount < 0 && "text-expense")}
+                className={cn("truncate font-heading text-lg font-extrabold tabular-nums text-foreground sm:text-2xl", key === "net" && !hideAmounts && amount < 0 && "text-expense")}
                 title={hideAmounts ? undefined : formatIDR(amount)}
               >
                 {hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount)}
@@ -93,11 +97,11 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
           return (
             <li key={key} className="min-w-0">
               {key === "net" ? (
-                <div className={CARD_CLASS}>{body}</div>
+                <div className={cn(CARD_CLASS, tile)}>{body}</div>
               ) : (
                 <Link
                   href={`/transactions?${filtersToUrl({ period, type: key })}`}
-                  className={cn(CARD_CLASS, "transition-colors hover:bg-muted/50")}
+                  className={cn(CARD_CLASS, tile, "transition-[filter] hover:brightness-[0.97] dark:hover:brightness-110")}
                 >
                   {body}
                 </Link>
@@ -107,7 +111,7 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
         })}
       </ul>
       {data ? (
-        <p className="h-5 text-sm text-muted-foreground">Dibanding {formatRangeLabel(data.previous.range)}</p>
+        <p className="h-5 text-sm font-semibold text-muted-foreground">Dibanding {formatRangeLabel(data.previous.range)}</p>
       ) : (
         <Skeleton className="h-5 w-40" />
       )}

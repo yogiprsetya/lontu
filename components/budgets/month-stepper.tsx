@@ -11,9 +11,9 @@ export function MonthStepper({ period, onChange }: { period: BudgetPeriod; onCha
   const next = shiftPeriod(period, 1);
 
   return (
-    <div className="flex min-w-0 flex-1 items-center justify-between gap-1">
+    <div className="surface flex min-w-0 flex-1 items-center justify-between gap-1 p-1.5">
       <Button
-        variant="outline"
+        variant="secondary"
         className="size-11 shrink-0"
         aria-label="Bulan sebelumnya"
         disabled={previous === period}
@@ -21,11 +21,11 @@ export function MonthStepper({ period, onChange }: { period: BudgetPeriod; onCha
       >
         <ChevronLeftIcon aria-hidden />
       </Button>
-      <p className="min-w-0 flex-1 truncate text-center text-base font-semibold" aria-live="polite">
+      <p className="min-w-0 flex-1 truncate text-center font-heading text-lg font-bold" aria-live="polite">
         {formatPeriodLabel(period)}
       </p>
       <Button
-        variant="outline"
+        variant="secondary"
         className="size-11 shrink-0"
         aria-label="Bulan berikutnya"
         disabled={next > maxBudgetPeriod(todayInJakarta())}

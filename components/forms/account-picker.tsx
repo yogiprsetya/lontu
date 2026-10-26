@@ -38,7 +38,7 @@ export function AccountPicker({ id, value, onChange, exclude, keep, invalid, des
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed px-4 py-4">
+      <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Belum ada akun aktif.</p>
         <Button type="button" variant="outline" className="h-11 text-base" onClick={() => open("manageAccounts")}>
           <PlusIcon aria-hidden />

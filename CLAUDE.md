@@ -9,6 +9,7 @@ Specs are the source of truth and are written in Indonesian:
 - [SPEC.md](SPEC.md): capability map, locked decisions, cross-module rules
 - `SPEC-<module>.md`: per-module detail and contracts (the providing module owns the contract)
 - [tasks/plan.md](tasks/plan.md): plan index; per-phase `tasks/plan-N.md` + `tasks/todo-N.md`
+- [DESIGN.md](DESIGN.md): visual design direction (palette, type, surfaces, components). Follow it for any UI work
 
 If a decision changes, update the relevant spec first, then the code.
 

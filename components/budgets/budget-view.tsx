@@ -25,9 +25,9 @@ import { useUIStore } from "@/stores/ui";
 function ViewSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true">
-      <Skeleton className="h-28 w-full" />
+      <Skeleton className="h-28 w-full rounded-2xl" />
       {Array.from({ length: 5 }, (_, i) => (
-        <Skeleton key={i} className="h-16 w-full" />
+        <Skeleton key={i} className="h-16 w-full rounded-2xl" />
       ))}
     </div>
   );
@@ -76,7 +76,7 @@ export function BudgetView() {
     content = <ViewSkeleton />;
   } else if (usage.data.items.length === 0) {
     content = (
-      <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
         <p className="text-muted-foreground">Belum ada kategori spending untuk diberi budget.</p>
         <Button className="h-11 text-base" onClick={() => openModal("manageCategories", { kind: "spending" })}>
           Tambah kategori
@@ -89,7 +89,7 @@ export function BudgetView() {
     content = (
       <>
         {items.every((i) => i.budget === null) && (
-          <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-8 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
             <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
             <div className="flex flex-wrap justify-center gap-2">
               <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
@@ -107,10 +107,10 @@ export function BudgetView() {
           if (rows.length === 0) return null;
           return (
             <section key={key} aria-labelledby={`budget-${key}`}>
-              <h2 id={`budget-${key}`} className="text-sm font-semibold text-muted-foreground">
+              <h2 id={`budget-${key}`} className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
                 {label}
               </h2>
-              <ul className="divide-y">
+              <ul className="surface divide-y px-4">
                 {rows.map((item) => (
                   <BudgetRow
                     key={item.categoryId}

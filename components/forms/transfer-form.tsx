@@ -44,7 +44,7 @@ export function TransferForm({ transaction }: { transaction?: Transaction }) {
   if (!accounts) return <Skeleton className="h-64 w-full" aria-label="Memuat akun" />;
   if (!transaction && accounts.length < 2) {
     return (
-      <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed px-4 py-4">
+      <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Transfer butuh minimal dua akun aktif.</p>
         <Button type="button" variant="outline" className="h-11 text-base" onClick={() => open("manageAccounts")}>
           <PlusIcon aria-hidden />
@@ -200,7 +200,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
           Biaya admin dicatat sebagai expense terpisah. Mengubah atau menghapus transfer ini tidak mengubahnya.
         </p>
       ) : (
-        <fieldset className="flex flex-col gap-4 rounded-lg border px-4 py-2">
+        <fieldset className="flex flex-col gap-4 surface px-5 py-3">
           <label className="flex min-h-11 items-center gap-3 text-base md:text-sm">
             <Checkbox
               checked={hasFee}

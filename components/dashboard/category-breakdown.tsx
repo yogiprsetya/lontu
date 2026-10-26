@@ -89,8 +89,8 @@ export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
   }
 
   return (
-    <section aria-labelledby="categories-title" className="flex min-w-0 flex-col gap-3 rounded-lg border px-4 py-4">
-      <h2 id="categories-title" className="font-semibold">
+    <section aria-labelledby="categories-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+      <h2 id="categories-title" className="font-heading text-lg font-bold">
         Pengeluaran per kategori
       </h2>
       {content}

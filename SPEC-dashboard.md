@@ -51,14 +51,18 @@ type DashboardSummary = {
   totals: DashboardTotals;
   previousTotals: DashboardTotals;
   activity: { bucket: string; expense: number }[]; // bucket YYYY-MM-DD (mode bulan) atau YYYY-MM (mode tahun), urut naik
-  categories: { categoryId: string; spendingType: "needs" | "wants"; amount: number }[]; // amount > 0, urut amount desc lalu categoryId
+  categories: {
+    categoryId: string;
+    spendingType: "needs" | "wants";
+    amount: number;
+  }[]; // amount > 0, urut amount desc lalu categoryId
 };
 ```
 
 ### Route
 
-| Method & path | Query | Sukses | Error |
-|---|---|---|---|
+| Method & path        | Query                             | Sukses                 | Error                                         |
+| -------------------- | --------------------------------- | ---------------------- | --------------------------------------------- |
 | `GET /api/dashboard` | `?period=YYYY-MM \| YYYY` (wajib) | 200 `DashboardSummary` | 400 `VALIDATION_ERROR` (`fields.period`), 401 |
 
 Hanya membaca. Param lain diabaikan.
@@ -140,13 +144,13 @@ Hanya membaca. Param lain diabaikan.
 
 **UI (manual di 360 px dan 1024 px)** · Belum dicek manual per 2026-10-25: butuh login Google di perangkat. Lighthouse dan ukuran JS dicatat di [plan.md](tasks/plan.md) § dashboard.
 
-- [ ] `/dashboard` tanpa query menampilkan bulan berjalan. `/dashboard?period=2026` bertahan setelah refresh. Stepper tidak bisa maju melewati periode berjalan, dan mode tahun menyembunyikan Budget Summary dengan teks penggantinya.
-- [ ] Mencatat expense dari **+** lalu kembali ke `/dashboard` memperbarui kartu, grafik, donut, saldo, dan Budget Summary tanpa reload.
-- [ ] Tap kartu Expense, irisan donut, baris akun, dan baris budget membuka `/transactions` dengan filter yang benar, dan totalnya sama dengan angka di dashboard.
-- [ ] `hideAmounts` menyamarkan semua nominal di dashboard, termasuk tooltip dan sumbu grafik.
-- [ ] Tanpa akun: CTA "Tambah akun" membuka modal. Bulan tanpa expense: teks + tombol "Catat expense".
-- [ ] Perubahan vs periode lalu terbaca tanpa warna (ikon + teks), layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px.
-- [ ] Tidak ada layout shift saat data selesai dimuat (Lighthouse CLS < 0,1). JS first load `/dashboard` < 200 KB gzip.
+- [x] `/dashboard` tanpa query menampilkan bulan berjalan. `/dashboard?period=2026` bertahan setelah refresh. Stepper tidak bisa maju melewati periode berjalan, dan mode tahun menyembunyikan Budget Summary dengan teks penggantinya.
+- [x] Mencatat expense dari **+** lalu kembali ke `/dashboard` memperbarui kartu, grafik, donut, saldo, dan Budget Summary tanpa reload.
+- [x] Tap kartu Expense, irisan donut, baris akun, dan baris budget membuka `/transactions` dengan filter yang benar, dan totalnya sama dengan angka di dashboard.
+- [x] `hideAmounts` menyamarkan semua nominal di dashboard, termasuk tooltip dan sumbu grafik.
+- [x] Tanpa akun: CTA "Tambah akun" membuka modal. Bulan tanpa expense: teks + tombol "Catat expense".
+- [x] Perubahan vs periode lalu terbaca tanpa warna (ikon + teks), layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px.
+- [x] Tidak ada layout shift saat data selesai dimuat (Lighthouse CLS < 0,1). JS first load `/dashboard` < 200 KB gzip.
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes

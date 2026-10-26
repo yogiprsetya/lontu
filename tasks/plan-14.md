@@ -24,14 +24,14 @@ Urutan: T48 → T49, T50 → T51. Kedua pasangan bebas urutan. T49 dan T51 butuh
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
+| Risiko                                                                                    | Dampak | Mitigasi                                                                        |
+| ----------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------- |
 | `do update … where` tidak menghitung baris yang dilewati, atau malah menimpa budget aktif | Sedang | Tes T50: tujuan sudah punya Makan → nominal tetap, `copied` tidak menghitungnya |
-| Summary optimistic tidak cocok dengan server | Rendah | Revalidasi setelah sukses. Fungsi murni dites terhadap respons `GET` contoh |
-| Salin menghidupkan budget yang sengaja dihapus | Rendah | Diterima di spec (Risiko). Toast menyebut jumlah yang disalin |
+| Summary optimistic tidak cocok dengan server                                              | Rendah | Revalidasi setelah sukses. Fungsi murni dites terhadap respons `GET` contoh     |
+| Salin menghidupkan budget yang sengaja dihapus                                            | Rendah | Diterima di spec (Risiko). Toast menyebut jumlah yang disalin                   |
 
 ## Checkpoint M
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800 dan 1024: hapus → "Urungkan" mengembalikan, salin ke bulan depan mengisi daftar, salin kedua → "0 budget disalin"
-- [ ] Review dengan Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual 360×800 dan 1024: hapus → "Urungkan" mengembalikan, salin ke bulan depan mengisi daftar, salin kedua → "0 budget disalin"
+- [x] Review dengan Yogi

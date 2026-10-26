@@ -28,16 +28,16 @@ Urutan: T34 → T35 → T36, dan T37 → T38 (butuh T35, T36). T34 dan T37 tidak
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Optimistic pada key `$inf$` membuat agregat berbeda dari cache halaman, SWR lalu memuat ulang halaman itu | Rendah | Perilaku yang diinginkan (revalidasi tetap berjalan). Diverifikasi manual: baris tidak muncul kembali sesaat |
-| `PATCH` membaca-lalu-menulis tanpa kunci baris | Rendah | Pemilik tunggal. Hasil gabungan divalidasi dari baris yang baru dibaca. Dua edit bersamaan → yang terakhir menang |
-| Form edit memakai ulang `TransactionForm`/`TransferForm` dan merusak mode create | Sedang | Mode edit hanya mengubah `defaultValues`, field tipe read-only, dan pemanggil mutasi. Tes manual create setelah T35 dan T36 |
-| Mengedit transaksi lama yang akunnya terarsip memblokir simpan | Sedang | Aturan "tidak berubah → boleh" di server dan picker yang tetap menampilkan nilai terpilih berlabel "(arsip)" |
+| Risiko                                                                                                    | Dampak | Mitigasi                                                                                                                    |
+| --------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Optimistic pada key `$inf$` membuat agregat berbeda dari cache halaman, SWR lalu memuat ulang halaman itu | Rendah | Perilaku yang diinginkan (revalidasi tetap berjalan). Diverifikasi manual: baris tidak muncul kembali sesaat                |
+| `PATCH` membaca-lalu-menulis tanpa kunci baris                                                            | Rendah | Pemilik tunggal. Hasil gabungan divalidasi dari baris yang baru dibaca. Dua edit bersamaan → yang terakhir menang           |
+| Form edit memakai ulang `TransactionForm`/`TransferForm` dan merusak mode create                          | Sedang | Mode edit hanya mengubah `defaultValues`, field tipe read-only, dan pemanggil mutasi. Tes manual create setelah T35 dan T36 |
+| Mengedit transaksi lama yang akunnya terarsip memblokir simpan                                            | Sedang | Aturan "tidak berubah → boleh" di server dan picker yang tetap menampilkan nilai terpilih berlabel "(arsip)"                |
 
 ## Checkpoint J
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Acceptance criteria edit, hapus, restore, dan isolasi di SPEC-transactions.md tercentang
-- [ ] Manual 360×800 dan 1024: edit semua tipe, hapus + urungkan, hapus adjustment (saldo awal efektif bergeser kembali), gagal-hapus memulihkan baris
-- [ ] Review dengan Yogi sebelum phase 12
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Acceptance criteria edit, hapus, restore, dan isolasi di SPEC-transactions.md tercentang
+- [x] Manual 360×800 dan 1024: edit semua tipe, hapus + urungkan, hapus adjustment (saldo awal efektif bergeser kembali), gagal-hapus memulihkan baris
+- [x] Review dengan Yogi sebelum phase 12

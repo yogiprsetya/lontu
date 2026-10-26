@@ -24,17 +24,17 @@ Urutan: T66 → T67, T68, T69. Ketiganya hanya butuh T66 dan boleh paralel.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| HTML stream `cacheComponents` yang di-cache tidak bisa dihidrasi offline | Tinggi | T66 membuktikannya lebih dulu dengan `pnpm build && pnpm start` + DevTools Offline |
-| `worker/sw.ts` membuat `pnpm typecheck` gagal (lib webworker vs DOM) | Sedang | `/// <reference lib="webworker" />`. Jika gagal, `worker/tsconfig.json` sendiri dan `worker/` di-exclude dari root |
-| Proxy mengalihkan `/sw.js` ke `/login` sehingga SW tidak terdaftar | Sedang | Matcher diperbarui di T66, dicek dengan `curl -I /sw.js` tanpa cookie |
-| Data user lama terlihat setelah sign-out | Sedang | T69, dicek di DevTools > Cache Storage |
+| Risiko                                                                   | Dampak | Mitigasi                                                                                                           |
+| ------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| HTML stream `cacheComponents` yang di-cache tidak bisa dihidrasi offline | Tinggi | T66 membuktikannya lebih dulu dengan `pnpm build && pnpm start` + DevTools Offline                                 |
+| `worker/sw.ts` membuat `pnpm typecheck` gagal (lib webworker vs DOM)     | Sedang | `/// <reference lib="webworker" />`. Jika gagal, `worker/tsconfig.json` sendiri dan `worker/` di-exclude dari root |
+| Proxy mengalihkan `/sw.js` ke `/login` sehingga SW tidak terdaftar       | Sedang | Matcher diperbarui di T66, dicek dengan `curl -I /sw.js` tanpa cookie                                              |
+| Data user lama terlihat setelah sign-out                                 | Sedang | T69, dicek di DevTools > Cache Storage                                                                             |
 
 ## Checkpoint R
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual (Chrome DevTools + ponsel): buka dashboard, transaksi, budget online → mode pesawat → buka ulang dari layar utama → data terakhir dan banner offline tampil. Halaman baru → `/~offline`
-- [ ] Deploy preview kedua → toast versi baru, form yang terbuka tidak hilang
-- [ ] Sign-out → Cache Storage `lontu-api` dan `pages*` kosong
-- [ ] Review dengan Yogi sebelum phase 20
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual (Chrome DevTools + ponsel): buka dashboard, transaksi, budget online → mode pesawat → buka ulang dari layar utama → data terakhir dan banner offline tampil. Halaman baru → `/~offline`
+- [x] Deploy preview kedua → toast versi baru, form yang terbuka tidak hilang
+- [x] Sign-out → Cache Storage `lontu-api` dan `pages*` kosong
+- [x] Review dengan Yogi sebelum phase 20

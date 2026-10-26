@@ -26,16 +26,16 @@ Urutan: T59 lebih dulu (gagal cepat jika Recharts bermasalah dengan React 19.3 a
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
+| Risiko                                                               | Dampak | Mitigasi                                                                                                                                              |
+| -------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Recharts versi CLI tidak cocok dengan React 19.3 / `cacheComponents` | Tinggi | T59 hanya memasang dan merender grafik contoh di dashboard, `pnpm build` + cek manual. Jika gagal, stop dan Ask first (alternatif SVG tulisan tangan) |
-| JS first load `/dashboard` > 200 KB gzip | Sedang | `next/dynamic`, ukuran dicatat di T59 dan T61 |
-| Bucket bergeser sehari karena zona waktu | Sedang | Bucket dan label dari SQL `date`/`to_char`, label UI diformat dengan `timeZone: "UTC"`. Tes tanggal 1, hari terakhir, Februari kabisat |
-| Warna kategori tidak bisa dibedakan atau kontras kurang | Sedang | Token diuji kontras, legenda selalu menulis nama dan persen |
-| `sum(categories)` atau `sum(activity)` berbeda dari `totals.expense` | Sedang | Invarian dites di T60 dan T62 |
+| JS first load `/dashboard` > 200 KB gzip                             | Sedang | `next/dynamic`, ukuran dicatat di T59 dan T61                                                                                                         |
+| Bucket bergeser sehari karena zona waktu                             | Sedang | Bucket dan label dari SQL `date`/`to_char`, label UI diformat dengan `timeZone: "UTC"`. Tes tanggal 1, hari terakhir, Februari kabisat                |
+| Warna kategori tidak bisa dibedakan atau kontras kurang              | Sedang | Token diuji kontras, legenda selalu menulis nama dan persen                                                                                           |
+| `sum(categories)` atau `sum(activity)` berbeda dari `totals.expense` | Sedang | Invarian dites di T60 dan T62                                                                                                                         |
 
 ## Checkpoint P
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau, JS first load `/dashboard` < 200 KB gzip
-- [ ] Manual 360×800 dan 1024, light dan dark: bulan dan tahun, bulan tanpa expense, tap legenda → `/transactions` dengan total yang sama, `hideAmounts` menyembunyikan tooltip dan sumbu
-- [ ] Review dengan Yogi (open question 4 di spec)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau, JS first load `/dashboard` < 200 KB gzip
+- [x] Manual 360×800 dan 1024, light dan dark: bulan dan tahun, bulan tanpa expense, tap legenda → `/transactions` dengan total yang sama, `hideAmounts` menyembunyikan tooltip dan sumbu
+- [x] Review dengan Yogi (open question 4 di spec)

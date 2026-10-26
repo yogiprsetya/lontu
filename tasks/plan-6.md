@@ -23,13 +23,13 @@ Urutan: T14 → T15. T16 hanya butuh tabel yang sudah ada dan schema dari T12/T1
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
+| Risiko                                                                         | Dampak | Mitigasi                                                                                  |
+| ------------------------------------------------------------------------------ | ------ | ----------------------------------------------------------------------------------------- |
 | Pesan error discriminated union Zod v4 untuk `kind` tidak dikenal kurang jelas | Rendah | Tes unit memastikan `fields.kind` dan `fields.spendingType` berisi pesan bahasa Indonesia |
-| Duplikasi pola route antara akun dan kategori | Rendah | Terima dulu duplikasi kecil. Ekstrak helper hanya jika pola ketiga muncul (budgets) |
+| Duplikasi pola route antara akun dan kategori                                  | Rendah | Terima dulu duplikasi kecil. Ekstrak helper hanya jika pola ketiga muncul (budgets)       |
 
 ## Checkpoint E
 
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [x] Semua acceptance criteria API di SPEC-accounts-categories.md (selain UI) tercentang
-- [ ] Review dengan Yogi sebelum phase 7
+- [x] Review dengan Yogi sebelum phase 7

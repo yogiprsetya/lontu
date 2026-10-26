@@ -24,5 +24,5 @@ Butuh phase 1 selesai (T2 untuk tabel `users`, T3 untuk `auth()`).
 
 ## Checkpoint B
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] `/api/me` sesuai pola route handler acuan di SPEC.md, termasuk tes isolasi user
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `/api/me` sesuai pola route handler acuan di SPEC.md, termasuk tes isolasi user

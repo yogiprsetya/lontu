@@ -23,11 +23,11 @@ Urutan: T1 → T2 → T3. T3 butuh tabel `users` dari T2 untuk upsert di callbac
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `next-auth@5` tidak kompatibel dengan Next 16.4 / React 19.3 | Tinggi | Cek peer deps di T1 sebelum menulis kode auth. Jika bentrok, berhenti dan tanya. Jangan ganti library sendiri |
-| API Drizzle 1.0 RC berbeda dari 0.x (`drizzle-orm/postgres-js`, `check()`, index ekspresi) | Tinggi | Baca `.d.ts` dan docs versi terpasang, bukan ingatan tentang 0.x |
-| Pooler Supabase menolak DDL | Sedang | Migrasi lewat koneksi langsung (port 5432) dengan env terpisah jika perlu |
+| Risiko                                                                                     | Dampak | Mitigasi                                                                                                      |
+| ------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------- |
+| `next-auth@5` tidak kompatibel dengan Next 16.4 / React 19.3                               | Tinggi | Cek peer deps di T1 sebelum menulis kode auth. Jika bentrok, berhenti dan tanya. Jangan ganti library sendiri |
+| API Drizzle 1.0 RC berbeda dari 0.x (`drizzle-orm/postgres-js`, `check()`, index ekspresi) | Tinggi | Baca `.d.ts` dan docs versi terpasang, bukan ingatan tentang 0.x                                              |
+| Pooler Supabase menolak DDL                                                                | Sedang | Migrasi lewat koneksi langsung (port 5432) dengan env terpisah jika perlu                                     |
 
 ## Blocker
 
@@ -36,7 +36,7 @@ Urutan: T1 → T2 → T3. T3 butuh tabel `users` dari T2 untuk upsert di callbac
 
 ## Checkpoint A
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Migrasi jalan di DB kosong dan di Supabase
-- [ ] Login Google berhasil secara manual, email di luar allowlist ditolak
-- [ ] Review dengan Yogi sebelum phase 2
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Migrasi jalan di DB kosong dan di Supabase
+- [x] Login Google berhasil secara manual, email di luar allowlist ditolak
+- [x] Review dengan Yogi sebelum phase 2

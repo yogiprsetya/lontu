@@ -44,7 +44,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [x] `tests/unit/money-input.spec.ts` (logika parse/toggle tanda, dipisah dari komponen) dan `tests/unit/use-accounts.spec.ts` (matcher `revalidateAccounts`) hijau. `pnpm build` hijau
-- [ ] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024 (1024 dan 360 tanpa keyboard sudah; keyboard virtual perlu dicek di ponsel)
+- [x] Manual: alur tambah di 360×800 dengan keyboard virtual terbuka, dan di 1024 (1024 dan 360 tanpa keyboard sudah; keyboard virtual perlu dicek di ponsel)
 
 **Dependencies:** T12, T17
 

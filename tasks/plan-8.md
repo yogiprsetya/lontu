@@ -27,16 +27,16 @@ Urutan: T22 → T23 dan T22 → T24 → T25 → T26. T23 dan T24 tidak saling be
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `db.transaction` untuk transfer + fee di pooler transaction mode | Rendah | Pola sama dengan `updateAccount` (T13). Tes memastikan tidak ada baris tertulis saat fee tidak valid |
-| `date` ≤ hari ini Jakarta diuji dengan jam sistem | Rendah | Schema membaca `todayInJakarta()` saat parse (tidak basi lewat tengah malam). Tes unit memakai fake timer di 17:30 UTC, yang sudah besok di Jakarta |
-| Form transfer panjang di drawer/keyboard virtual iOS | Sedang | Footer sticky seperti form akun. Cek manual di ponsel setelah T26 |
-| Mengubah `add/[type]` memutus tautan manifest "Tambah Expense" | Rendah | Rute dan `generateStaticParams` tidak berubah; hanya isi halaman |
+| Risiko                                                           | Dampak | Mitigasi                                                                                                                                            |
+| ---------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `db.transaction` untuk transfer + fee di pooler transaction mode | Rendah | Pola sama dengan `updateAccount` (T13). Tes memastikan tidak ada baris tertulis saat fee tidak valid                                                |
+| `date` ≤ hari ini Jakarta diuji dengan jam sistem                | Rendah | Schema membaca `todayInJakarta()` saat parse (tidak basi lewat tengah malam). Tes unit memakai fake timer di 17:30 UTC, yang sudah besok di Jakarta |
+| Form transfer panjang di drawer/keyboard virtual iOS             | Sedang | Footer sticky seperti form akun. Cek manual di ponsel setelah T26                                                                                   |
+| Mengubah `add/[type]` memutus tautan manifest "Tambah Expense"   | Rendah | Rute dan `generateStaticParams` tidak berubah; hanya isi halaman                                                                                    |
 
 ## Checkpoint G
 
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [x] Acceptance criteria API pembuatan di SPEC-transactions.md (empat butir pertama dan referensi/validasi) tercentang
 - [x] Manual 360×800 dan 1024 (headless, keyboard virtual belum): catat empat tipe, saldo di Kelola akun benar, transfer dengan biaya admin menambah dua baris (Drizzle Studio)
-- [ ] Review dengan Yogi sebelum phase 9
+- [x] Review dengan Yogi sebelum phase 9

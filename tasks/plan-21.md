@@ -22,15 +22,15 @@ Urutan: T75 → T76.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `beforeinstallprompt` sudah lewat saat dashboard dirender | Sedang | Listener di providers, event disimpan di modul |
+| Risiko                                                        | Dampak | Mitigasi                                                                                           |
+| ------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| `beforeinstallprompt` sudah lewat saat dashboard dirender     | Sedang | Listener di providers, event disimpan di modul                                                     |
 | Deteksi Safari iOS salah (Chrome iOS juga WebKit tanpa event) | Rendah | Instruksi hanya untuk Safari iOS (`CriOS`/`FxiOS` dikecualikan), dites di `install-prompt.spec.ts` |
-| Kode PWA menambah JS di semua halaman | Sedang | Diukur di T76 dengan metode yang sama dengan Catatan ukuran dashboard, target < 10 KB gzip |
+| Kode PWA menambah JS di semua halaman                         | Sedang | Diukur di T76 dengan metode yang sama dengan Catatan ukuran dashboard, target < 10 KB gzip         |
 
 ## Checkpoint T (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-pwa-offline.md tercentang
-- [ ] Android Chrome dan iPhone Safari: pasang → mode pesawat → baca, catat, online → terkirim
-- [ ] Review dengan Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-pwa-offline.md tercentang
+- [x] Android Chrome dan iPhone Safari: pasang → mode pesawat → baca, catat, online → terkirim
+- [x] Review dengan Yogi

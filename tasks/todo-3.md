@@ -11,11 +11,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `app/providers.tsx` (SWRConfig dengan `fetcher`, ThemeProvider default `system`, Toaster), `lib/fetcher.ts` + `ApiError`, root layout (`lang="id"`, metadata "Lontu", `viewport.themeColor`, `tabular-nums`), token `--income`/`--expense`/`--budget`/`--transfer` di `globals.css`, serta `stores/period.ts` dan `stores/ui.ts`. Komponen shadcn yang dibutuhkan (`sonner`, dll.) ditambah lewat CLI.
 
 **Acceptance criteria:**
+
 - [x] `fetcher` melempar `ApiError { status, code, message, fields }` untuk respons non-2xx dengan format error seragam
 - [x] Dark mode mengikuti sistem, bisa diubah manual, dan bertahan setelah reload. Setiap token warna lolos 4.5:1 terhadap background di light dan dark
 - [x] `usePeriodStore` default ke bulan berjalan di Asia/Jakarta. `useUIStore` hanya mem-`persist` `hideAmounts`
 
 **Verification:**
+
 - [x] `tests/unit/fetcher.spec.ts`, `tests/unit/period-store.spec.ts`, `tests/unit/ui-store.spec.ts`, `tests/unit/color-tokens.spec.ts` (termasuk tanggal di batas tengah malam UTC vs WIB) hijau
 - [x] Manual (Playwright): pilih Gelap di Settings, reload, tema bertahan. Kontras dicek otomatis oleh `color-tokens.spec.ts` (terendah 5,17:1)
 - [x] `pnpm build` hijau
@@ -33,11 +35,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** `app/(app)/layout.tsx` dengan BottomNav 5 slot (Dashboard, Transactions, +, Budget, More) di bawah `lg` dan Sidebar di `lg` ke atas. Tombol + membuka menu Income/Expense/Saving/Transfer ke `/add/[type]`. More berisi Settings dan Logout. Halaman dashboard, transactions, expenses, budget, settings, dan `add/[type]` berupa placeholder dengan judul dan empty state. Bagian yang membaca session dibungkus `<Suspense>`.
 
 **Acceptance criteria:**
+
 - [x] Di 360 px: bottom nav 5 slot, setiap target ≥ 44×44 px, padding `env(safe-area-inset-bottom)`, tanpa horizontal scroll
 - [x] Di 1024 px: sidebar tampil, bottom nav tersembunyi
 - [x] Menu + menuju keempat `/add/[type]`. Type di luar empat itu → 404. Logout mengakhiri session dan kembali ke `/login`
 
 **Verification:**
+
 - [x] `pnpm build` hijau tanpa error "uncached data outside Suspense"
 - [x] Manual di DevTools: 360 px dan 1024 px, navigasi keyboard di nav dan menu +
 - [x] `pnpm lint && pnpm typecheck` hijau
@@ -57,11 +61,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Komponen `components/layout/responsive-modal.tsx` yang merender Drawer di bawah `lg` dan Dialog di `lg` ke atas, dengan satu API (`open`, `onOpenChange`, `title`, `description`, `children`, `footer`). Tambah `drawer` dan `dialog` lewat shadcn CLI.
 
 **Acceptance criteria:**
+
 - [x] Di 360 px tampil sebagai Drawer, di 1024 px sebagai Dialog, tanpa mount ganda
 - [x] Fokus terkunci di dalam modal, Escape menutup, fokus kembali ke pemicu
 - [x] Judul terhubung ke `aria-labelledby`
 
 **Verification:**
+
 - [x] Manual: buka dari halaman placeholder Settings di dua lebar layar
 - [x] `pnpm lint && pnpm typecheck && pnpm build` hijau
 
@@ -80,11 +86,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Pulihkan ikon dari commit `c9de1eb`, tambah ikon maskable (Open question #4), dan tulis `app/manifest.ts` dengan `display: "standalone"`, `start_url: "/dashboard"`, dan shortcut "Tambah Expense" → `/add/expense`.
 
 **Acceptance criteria:**
+
 - [x] `/manifest.webmanifest` bisa diakses tanpa login (tidak dialihkan proxy)
 - [x] Manifest memuat ikon 192, 512, dan maskable, serta shortcut "Tambah Expense"
 - [x] Chrome menyatakan installable (CDP `Page.getInstallabilityErrors` kosong di profil non-incognito; Lighthouse 12 sudah tidak punya audit installability)
 
 **Verification:**
+
 - [x] `tests/unit/manifest.spec.ts` (field wajib, ikon, shortcut) hijau
 - [x] Manual: `pnpm build && pnpm start`, `/manifest.webmanifest` dan ikon 200 tanpa login
 
@@ -99,8 +107,9 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ---
 
 ### Checkpoint C: setelah T5–T8
+
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [x] Shell, modal, tema, dan manifest diperiksa manual
-- [ ] Review dengan Yogi
+- [x] Review dengan Yogi
 
 **Catatan (2026-10-20):** Diperiksa headless dengan Playwright terhadap `next start` dan cookie session lokal: 360 px (5 slot nav ≥ 44×44, tanpa horizontal scroll di semua halaman, Drawer), 1024 px (sidebar, bottom nav hilang, Dialog), tema (ikut sistem dark, pilihan manual bertahan setelah reload). Installability dicek lewat `Page.getInstallabilityErrors` Chrome (kosong), karena Lighthouse 12 tidak lagi punya kategori PWA.

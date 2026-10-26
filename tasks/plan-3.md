@@ -23,10 +23,10 @@ Urutan: T5 → T6 → (T7, T8). T5 hanya bergantung pada T1, jadi bisa dikerjaka
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Layout `(app)` memicu error "uncached data outside Suspense" saat build | Sedang | Bungkus bagian yang membaca session di `<Suspense>`. `pnpm build` menjadi verifikasi T6 |
-| Kontras token `--income`/`--expense`/`--budget`/`--transfer` gagal 4.5:1 di salah satu tema | Rendah | Cek setiap pasangan warna dengan checker kontras di T5 |
+| Risiko                                                                                      | Dampak | Mitigasi                                                                                |
+| ------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| Layout `(app)` memicu error "uncached data outside Suspense" saat build                     | Sedang | Bungkus bagian yang membaca session di `<Suspense>`. `pnpm build` menjadi verifikasi T6 |
+| Kontras token `--income`/`--expense`/`--budget`/`--transfer` gagal 4.5:1 di salah satu tema | Rendah | Cek setiap pasangan warna dengan checker kontras di T5                                  |
 
 ## Pertanyaan
 
@@ -38,4 +38,4 @@ Urutan: T5 → T6 → (T7, T8). T5 hanya bergantung pada T1, jadi bisa dikerjaka
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [x] Shell benar di 360 px dan 1024 px, dark mode bertahan setelah reload
 - [x] Chrome: manifest installable
-- [ ] Review dengan Yogi
+- [x] Review dengan Yogi

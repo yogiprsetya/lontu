@@ -23,15 +23,15 @@ Urutan: T52 → T53 → T54. T52 bisa dikerjakan kapan saja setelah T42.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Jumlah per grup tidak sama dengan pool | Rendah | Properti diuji di T52 dengan beberapa bobot acak tetap (seed tetap, tanpa dependency baru) |
-| Batas "3 bulan penuh" bergeser di Januari/Februari | Sedang | Rentang dari `shiftPeriod` + `monthRange`, dites lintas tahun |
-| Refetch tiap ketukan membebani DB | Rendah | Debounce, dan query hanya dua agregat |
+| Risiko                                             | Dampak | Mitigasi                                                                                   |
+| -------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Jumlah per grup tidak sama dengan pool             | Rendah | Properti diuji di T52 dengan beberapa bobot acak tetap (seed tetap, tanpa dependency baru) |
+| Batas "3 bulan penuh" bergeser di Januari/Februari | Sedang | Rentang dari `shiftPeriod` + `monthRange`, dites lintas tahun                              |
+| Refetch tiap ketukan membebani DB                  | Rendah | Debounce, dan query hanya dua agregat                                                      |
 
 ## Checkpoint N (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-budgets.md tercentang
-- [ ] Manual 360×800 dan 1024, light dan dark: atur → lihat → hapus/urungkan → salin → saran → terapkan, tanpa horizontal scroll, target ≥ 44 px
-- [ ] Review dengan Yogi (termasuk open questions 5–7 di spec), lalu tulis `SPEC-dashboard.md`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-budgets.md tercentang
+- [x] Manual 360×800 dan 1024, light dan dark: atur → lihat → hapus/urungkan → salin → saran → terapkan, tanpa horizontal scroll, target ≥ 44 px
+- [x] Review dengan Yogi (termasuk open questions 5–7 di spec), lalu tulis `SPEC-dashboard.md`

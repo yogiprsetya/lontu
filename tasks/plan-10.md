@@ -27,15 +27,15 @@ Urutan: T29 → T30 dan T29 → T31 → T32 (butuh T30) dan T31 → T33. T30 dan
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `useSearchParams` membuat halaman keluar dari prerender `cacheComponents` | Sedang | Komponen daftar di dalam `<Suspense>` di page. `pnpm build` di T31 |
-| `from`/`to` pada kolom `date` dibaca zona waktu | Rendah | Selalu string `YYYY-MM-DD`. `periodToRange` murni, dites untuk Februari kabisat (2028) dan pergantian tahun |
-| Filter `accountId` dengan `or` memperlambat query | Rendah | Index `(user_id, account_id)` dan `(user_id, to_account_id)` sudah ada. Tidak ada perubahan skema |
+| Risiko                                                                    | Dampak | Mitigasi                                                                                                    |
+| ------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------- |
+| `useSearchParams` membuat halaman keluar dari prerender `cacheComponents` | Sedang | Komponen daftar di dalam `<Suspense>` di page. `pnpm build` di T31                                          |
+| `from`/`to` pada kolom `date` dibaca zona waktu                           | Rendah | Selalu string `YYYY-MM-DD`. `periodToRange` murni, dites untuk Februari kabisat (2028) dan pergantian tahun |
+| Filter `accountId` dengan `or` memperlambat query                         | Rendah | Index `(user_id, account_id)` dan `(user_id, to_account_id)` sudah ada. Tidak ada perubahan skema           |
 
 ## Checkpoint I
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Acceptance criteria filter dan totals di SPEC-transactions.md tercentang
-- [ ] Manual: refresh `/transactions?period=2026-10&type=expense` mempertahankan semuanya, back berfungsi, total sama dengan jumlah baris yang terlihat
-- [ ] Review dengan Yogi sebelum phase 11
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Acceptance criteria filter dan totals di SPEC-transactions.md tercentang
+- [x] Manual: refresh `/transactions?period=2026-10&type=expense` mempertahankan semuanya, back berfungsi, total sama dengan jumlah baris yang terlihat
+- [x] Review dengan Yogi sebelum phase 11

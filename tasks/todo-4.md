@@ -13,11 +13,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Description:** Provider Credentials khusus tes di `lib/auth.ts` yang hanya aktif saat `E2E_AUTH=1` dan `NODE_ENV !== "production"` (Open question #2). Konfigurasi Playwright dengan viewport 360×800 dan 1280×800, plus smoke test shell.
 
 **Acceptance criteria:**
+
 - [x] Provider tes tidak terdaftar saat `E2E_AUTH` kosong atau di production. Dibuktikan dengan tes unit
 - [x] Smoke test: login tes → `/dashboard` → bottom nav (360) / sidebar (1280) tampil → tanpa horizontal scroll → logout
 - [x] Tanpa session, `/dashboard` dialihkan ke `/login`
 
 **Verification:**
+
 - [x] `pnpm test:e2e` hijau di kedua viewport
 - [x] `pnpm build` dengan `NODE_ENV=production` tidak memuat provider tes
 
@@ -32,6 +34,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 ---
 
 ### Checkpoint: Foundation selesai
+
 - [x] Semua acceptance criteria di SPEC-foundation.md tercentang
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (tanpa `test:e2e`, ditunda)
-- [ ] Review dengan Yogi, lalu tulis `SPEC-accounts-categories.md`
+- [x] Review dengan Yogi, lalu tulis `SPEC-accounts-categories.md`

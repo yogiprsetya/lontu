@@ -24,17 +24,17 @@ Urutan: T39 dan T40 bebas urutan. T41 butuh T40 dan T31.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Penjaga formula merusak angka negatif | Sedang | Hanya sel teks yang dijaga. Tes untuk `Jumlah = -50000` dan `description = "-1"` |
+| Risiko                                             | Dampak | Mitigasi                                                                             |
+| -------------------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| Penjaga formula merusak angka negatif              | Sedang | Hanya sel teks yang dijaga. Tes untuk `Jumlah = -50000` dan `description = "-1"`     |
 | `Content-Disposition` dengan karakter di nama file | Rendah | Nama file dibangun dari `period` yang sudah tervalidasi (`YYYY-MM`, `YYYY`, `semua`) |
-| Ekspor sangat besar | Rendah | Diterima di spec untuk satu pemilik. Ganti dengan stream jika terjadi |
-| `lockedType` bocor ke URL `/transactions` | Rendah | `normalizeFilters` menerima `lockedType` dan dites |
+| Ekspor sangat besar                                | Rendah | Diterima di spec untuk satu pemilik. Ganti dengan stream jika terjadi                |
+| `lockedType` bocor ke URL `/transactions`          | Rendah | `normalizeFilters` menerima `lockedType` dan dites                                   |
 
 ## Checkpoint K (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-transactions.md tercentang
-- [ ] Manual di 360×800 dan 1024 (light dan dark): seluruh alur catat → lihat → filter → ubah → hapus → ekspor, tanpa horizontal scroll, target sentuh ≥ 44 px
-- [ ] CSV terbuka benar di spreadsheet (huruf Indonesia, angka tidak berubah)
-- [ ] Review dengan Yogi, lalu tulis `SPEC-budgets.md`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-transactions.md tercentang
+- [x] Manual di 360×800 dan 1024 (light dan dark): seluruh alur catat → lihat → filter → ubah → hapus → ekspor, tanpa horizontal scroll, target sentuh ≥ 44 px
+- [x] CSV terbuka benar di spreadsheet (huruf Indonesia, angka tidak berubah)
+- [x] Review dengan Yogi, lalu tulis `SPEC-budgets.md`

@@ -33,13 +33,13 @@ Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan ko
 
 ## Aturan domain
 
-| Tipe | Efek pada saldo | Kategori | Field |
-|---|---|---|---|
-| `income` | `+amount` pada `account_id` | wajib, `kind = income` | `accountId`, `categoryId` |
-| `expense` | `−amount` | wajib, `kind = spending` | idem |
-| `saving` | `−amount` (uang pindah ke tabungan, tidak dihitung sebagai pengeluaran) | wajib, `kind = saving` | idem |
-| `transfer` | `−amount` di `account_id`, `+amount` di `to_account_id` | tidak ada | `accountId`, `toAccountId` (≠ `accountId`) |
-| `adjustment` | bertanda | tidak ada | dibuat hanya oleh modul `accounts-categories` |
+| Tipe         | Efek pada saldo                                                         | Kategori                 | Field                                         |
+| ------------ | ----------------------------------------------------------------------- | ------------------------ | --------------------------------------------- |
+| `income`     | `+amount` pada `account_id`                                             | wajib, `kind = income`   | `accountId`, `categoryId`                     |
+| `expense`    | `−amount`                                                               | wajib, `kind = spending` | idem                                          |
+| `saving`     | `−amount` (uang pindah ke tabungan, tidak dihitung sebagai pengeluaran) | wajib, `kind = saving`   | idem                                          |
+| `transfer`   | `−amount` di `account_id`, `+amount` di `to_account_id`                 | tidak ada                | `accountId`, `toAccountId` (≠ `accountId`)    |
+| `adjustment` | bertanda                                                                | tidak ada                | dibuat hanya oleh modul `accounts-categories` |
 
 - Efek saldo dihitung view `account_balances`, bukan TS. Modul ini tidak menulis saldo.
 - Pemetaan tipe → `kind` kategori memakai `CATEGORY_KIND_FOR` dari `lib/schemas/category.ts`.
@@ -75,38 +75,38 @@ type TransactionCreated = { transaction: Transaction; fee: Transaction | null };
 
 ### Filter (query string untuk list, totals, export)
 
-| Param | Nilai | Catatan |
-|---|---|---|
-| `type` | `income \| expense \| saving \| transfer \| adjustment` | satu nilai |
-| `accountId` | `z.uuid()` | cocok dengan `account_id` **atau** `to_account_id` |
-| `categoryId` | `z.uuid()` | |
-| `from`, `to` | `YYYY-MM-DD`, inklusif | `from ≤ to`, keduanya opsional |
-| `cursor`, `limit` | list saja | `limit` 1–100, default 30 |
+| Param             | Nilai                                                   | Catatan                                            |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| `type`            | `income \| expense \| saving \| transfer \| adjustment` | satu nilai                                         |
+| `accountId`       | `z.uuid()`                                              | cocok dengan `account_id` **atau** `to_account_id` |
+| `categoryId`      | `z.uuid()`                                              |                                                    |
+| `from`, `to`      | `YYYY-MM-DD`, inklusif                                  | `from ≤ to`, keduanya opsional                     |
+| `cursor`, `limit` | list saja                                               | `limit` 1–100, default 30                          |
 
 Param tak dikenal diabaikan. Nilai tidak valid → 400 `VALIDATION_ERROR` dengan `fields`. `accountId`/`categoryId` milik user lain atau tidak ada → daftar kosong (bukan 404).
 
 ### Route
 
-| Method & path | Body / query | Sukses | Error |
-|---|---|---|---|
-| `GET /api/transactions` | filter + `cursor`, `limit` | 200 `TransactionPage` | 400 `VALIDATION_ERROR`, 400 `INVALID_CURSOR` |
-| `POST /api/transactions` | lihat di bawah | 201 `TransactionCreated` | 400 |
-| `GET /api/transactions/[id]` | — | 200 `Transaction` | 404 |
-| `PATCH /api/transactions/[id]` | subset field yang boleh diubah | 200 `Transaction` | 400, 404, 409 `TRANSACTION_NOT_EDITABLE` (adjustment) |
-| `DELETE /api/transactions/[id]` | — | 200 `Transaction` (`deletedAt` terisi). Idempoten: hapus ulang tidak mengubah `deleted_at` | 404 |
-| `POST /api/transactions/[id]/restore` | — | 200 `Transaction` (aktif). Idempoten | 404 |
-| `GET /api/transactions/totals` | filter (tanpa `cursor`/`limit`) | 200 `TransactionTotals` (nol jika kosong) | 400 |
-| `GET /api/transactions/export` | filter | 200 `text/csv` | 400 |
+| Method & path                         | Body / query                    | Sukses                                                                                     | Error                                                 |
+| ------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `GET /api/transactions`               | filter + `cursor`, `limit`      | 200 `TransactionPage`                                                                      | 400 `VALIDATION_ERROR`, 400 `INVALID_CURSOR`          |
+| `POST /api/transactions`              | lihat di bawah                  | 201 `TransactionCreated`                                                                   | 400                                                   |
+| `GET /api/transactions/[id]`          | —                               | 200 `Transaction`                                                                          | 404                                                   |
+| `PATCH /api/transactions/[id]`        | subset field yang boleh diubah  | 200 `Transaction`                                                                          | 400, 404, 409 `TRANSACTION_NOT_EDITABLE` (adjustment) |
+| `DELETE /api/transactions/[id]`       | —                               | 200 `Transaction` (`deletedAt` terisi). Idempoten: hapus ulang tidak mengubah `deleted_at` | 404                                                   |
+| `POST /api/transactions/[id]/restore` | —                               | 200 `Transaction` (aktif). Idempoten                                                       | 404                                                   |
+| `GET /api/transactions/totals`        | filter (tanpa `cursor`/`limit`) | 200 `TransactionTotals` (nol jika kosong)                                                  | 400                                                   |
+| `GET /api/transactions/export`        | filter                          | 200 `text/csv`                                                                             | 400                                                   |
 
 `DELETE` dan `restore` melihat baris yang sudah dihapus. `GET` dan `PATCH` tidak.
 
 **Body `POST`** (discriminated union pada `type`, `z.strictObject`, field tak dikenal → 400):
 
-| `type` | Field |
-|---|---|
-| `income`, `expense`, `saving` | `amount`, `date`, `accountId`, `categoryId`, `description?` |
-| `transfer` | `amount`, `date`, `accountId`, `toAccountId`, `description?`, `fee?: { amount, categoryId }` |
-| `adjustment` | selalu 400 |
+| `type`                        | Field                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------- |
+| `income`, `expense`, `saving` | `amount`, `date`, `accountId`, `categoryId`, `description?`                                  |
+| `transfer`                    | `amount`, `date`, `accountId`, `toAccountId`, `description?`, `fee?: { amount, categoryId }` |
+| `adjustment`                  | selalu 400                                                                                   |
 
 `fee` hanya ada saat create. Jika ada, server membuat `expense` dengan `account_id` = akun sumber, `date` sama, `description = "Biaya admin transfer"`, dan `categoryId` dari `fee` (harus `kind = spending`). Transfer dan biaya ditulis dalam satu `db.transaction`. Semua validasi dan cek kepemilikan selesai sebelum insert pertama.
 
@@ -127,10 +127,22 @@ Bentuk schema acuan:
 const base = { amount, date, accountId: z.uuid(), description };
 
 export const transactionCreateSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.enum(["income", "expense", "saving"]), ...base, categoryId: z.uuid() }),
+  z.strictObject({
+    type: z.enum(["income", "expense", "saving"]),
+    ...base,
+    categoryId: z.uuid(),
+  }),
   z
-    .strictObject({ type: z.literal("transfer"), ...base, toAccountId: z.uuid(), fee: feeSchema.optional() })
-    .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" }),
+    .strictObject({
+      type: z.literal("transfer"),
+      ...base,
+      toAccountId: z.uuid(),
+      fee: feeSchema.optional(),
+    })
+    .refine((v) => v.toAccountId !== v.accountId, {
+      path: ["toAccountId"],
+      error: "Akun tujuan harus berbeda",
+    }),
 ]);
 ```
 
@@ -214,14 +226,14 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Dari dashboard: **+** → Expense → nominal → akun → kategori → Simpan mendarat di `/transactions` dengan baris baru paling atas di grup "Hari ini". Saldo akun di Kelola akun sudah berubah tanpa reload.
-- [ ] Peringatan saldo muncul saat nominal melebihi saldo (bukan `credit_card`), tidak memblokir Simpan, dan di mode edit memperhitungkan nominal lama.
-- [ ] Filter, periode, dan tombol back bertahan: refresh `/transactions?period=2026-10&type=expense` mempertahankan semuanya. Mengganti Jenis ke Transfer menghapus filter kategori.
-- [ ] `/expenses` hanya menampilkan expense dan tidak punya filter Jenis. Total, periode, dan filter lain bekerja sama dengan `/transactions`.
-- [ ] Hapus → baris langsung hilang, toast "Urungkan" mengembalikannya, saldo kembali. `DELETE` yang gagal mengembalikan baris dan menampilkan toast error.
-- [ ] Transaksi dengan akun/kategori terarsip menampilkan namanya dengan "(arsip)" di daftar dan form edit.
+- [x] Dari dashboard: **+** → Expense → nominal → akun → kategori → Simpan mendarat di `/transactions` dengan baris baru paling atas di grup "Hari ini". Saldo akun di Kelola akun sudah berubah tanpa reload.
+- [x] Peringatan saldo muncul saat nominal melebihi saldo (bukan `credit_card`), tidak memblokir Simpan, dan di mode edit memperhitungkan nominal lama.
+- [x] Filter, periode, dan tombol back bertahan: refresh `/transactions?period=2026-10&type=expense` mempertahankan semuanya. Mengganti Jenis ke Transfer menghapus filter kategori.
+- [x] `/expenses` hanya menampilkan expense dan tidak punya filter Jenis. Total, periode, dan filter lain bekerja sama dengan `/transactions`.
+- [x] Hapus → baris langsung hilang, toast "Urungkan" mengembalikannya, saldo kembali. `DELETE` yang gagal mengembalikan baris dan menampilkan toast error.
+- [x] Transaksi dengan akun/kategori terarsip menampilkan namanya dengan "(arsip)" di daftar dan form edit.
 - [x] Error validasi dari server tampil di field yang sesuai. Tanpa akun atau kategori, form menawarkan menambahnya lewat modal tanpa kehilangan isian.
-- [ ] Layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px.
+- [x] Layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, input 16 px.
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes

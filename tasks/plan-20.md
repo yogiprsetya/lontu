@@ -25,18 +25,18 @@ Urutan: T70 dan T71 paralel → T72 → T73 → T74.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Transaksi ganda saat replay (respons hilang, dua tab) | Tinggi | T70: replay 200, dua `POST` paralel dengan id sama → satu baris. T72: Web Lock + id tetap. Dicek manual dengan throttle Offline setelah Simpan |
-| `id` milik user lain membocorkan data | Tinggi | T70: 409 tanpa isi baris, tes isolasi A/B untuk `id` dan `fee.id` |
-| Replay gagal permanen setelah akun diarsipkan | Sedang | Cek replay sebelum cek referensi (T70). Item baru yang ditolak → `failed` dengan pesan (T71, T73) |
-| Transaksi tertunda hilang saat sign-out | Sedang | Konfirmasi di T74 |
-| Saldo terlihat salah karena item tertunda tidak dihitung | Rendah | Catatan "belum masuk saldo dan ringkasan" di dashboard (T73) |
+| Risiko                                                   | Dampak | Mitigasi                                                                                                                                       |
+| -------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Transaksi ganda saat replay (respons hilang, dua tab)    | Tinggi | T70: replay 200, dua `POST` paralel dengan id sama → satu baris. T72: Web Lock + id tetap. Dicek manual dengan throttle Offline setelah Simpan |
+| `id` milik user lain membocorkan data                    | Tinggi | T70: 409 tanpa isi baris, tes isolasi A/B untuk `id` dan `fee.id`                                                                              |
+| Replay gagal permanen setelah akun diarsipkan            | Sedang | Cek replay sebelum cek referensi (T70). Item baru yang ditolak → `failed` dengan pesan (T71, T73)                                              |
+| Transaksi tertunda hilang saat sign-out                  | Sedang | Konfirmasi di T74                                                                                                                              |
+| Saldo terlihat salah karena item tertunda tidak dihitung | Rendah | Catatan "belum masuk saldo dan ringkasan" di dashboard (T73)                                                                                   |
 
 ## Checkpoint S
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual (ponsel Android + iPhone, `pnpm build && pnpm start` atau preview): offline catat expense dan transfer + biaya → "Menunggu dikirim (2)" → online → terkirim ≤ 5 s, saldo dan dashboard berubah, tanpa duplikat
-- [ ] Throttle Offline tepat setelah Simpan → tetap satu baris. Dua tab → tetap satu baris
-- [ ] Item dengan akun terarsip → gagal, "Coba lagi" setelah dipulihkan berhasil, "Buang" menghapus
-- [ ] Review dengan Yogi sebelum phase 21
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual (ponsel Android + iPhone, `pnpm build && pnpm start` atau preview): offline catat expense dan transfer + biaya → "Menunggu dikirim (2)" → online → terkirim ≤ 5 s, saldo dan dashboard berubah, tanpa duplikat
+- [x] Throttle Offline tepat setelah Simpan → tetap satu baris. Dua tab → tetap satu baris
+- [x] Item dengan akun terarsip → gagal, "Coba lagi" setelah dipulihkan berhasil, "Buang" menghapus
+- [x] Review dengan Yogi sebelum phase 21

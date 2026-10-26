@@ -22,16 +22,16 @@ Urutan: T64 → T65.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
+| Risiko                                                      | Dampak | Mitigasi                                                                                                        |
+| ----------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
 | Budget Summary dan halaman Budget menampilkan angka berbeda | Rendah | Sumber data sama (`useBudgets`), invarian `totals.expense = budgetUsage.summary.total.spent` sudah dites di T56 |
-| CLS dari bagian yang selesai memuat di waktu berbeda | Sedang | Semua skeleton bertinggi tetap, diukur Lighthouse di T65 |
-| Layout dua kolom `lg` merusak urutan baca screen reader | Rendah | Urutan DOM = urutan mobile, kolom diatur dengan grid |
+| CLS dari bagian yang selesai memuat di waktu berbeda        | Sedang | Semua skeleton bertinggi tetap, diukur Lighthouse di T65                                                        |
+| Layout dua kolom `lg` merusak urutan baca screen reader     | Rendah | Urutan DOM = urutan mobile, kolom diatur dengan grid                                                            |
 
 ## Checkpoint Q (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Semua acceptance criteria di SPEC-dashboard.md tercentang
-- [ ] Manual 360×800 dan 1024, light dan dark: alur penuh (ganti periode → catat expense → semua bagian berubah → drill-down dari kartu, legenda, akun, budget)
-- [ ] Lighthouse mobile `/dashboard`: Performance ≥ 90, Accessibility ≥ 95, CLS < 0,1
-- [ ] Review dengan Yogi, lalu tulis `SPEC-pwa-offline.md`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Semua acceptance criteria di SPEC-dashboard.md tercentang
+- [x] Manual 360×800 dan 1024, light dan dark: alur penuh (ganti periode → catat expense → semua bagian berubah → drill-down dari kartu, legenda, akun, budget)
+- [x] Lighthouse mobile `/dashboard`: Performance ≥ 90, Accessibility ≥ 95, CLS < 0,1
+- [x] Review dengan Yogi, lalu tulis `SPEC-pwa-offline.md`

@@ -78,13 +78,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `/dashboard` → bulan berjalan. `?period=2026` bertahan setelah refresh. Stepper tanpa "Semua", tidak bisa melewati periode berjalan. `/transactions` tetap punya "Semua"
-- [ ] Catat expense dari **+**, kembali ke dashboard → kartu dan saldo berubah tanpa reload. Tap Expense → total di `/transactions` sama
-- [ ] 360 px tanpa horizontal scroll, kartu dan baris akun ≥ 44 px, arah perubahan terbaca tanpa warna, `hideAmounts` menyamarkan semua nominal
+- [x] `/dashboard` → bulan berjalan. `?period=2026` bertahan setelah refresh. Stepper tanpa "Semua", tidak bisa melewati periode berjalan. `/transactions` tetap punya "Semua"
+- [x] Catat expense dari **+**, kembali ke dashboard → kartu dan saldo berubah tanpa reload. Tap Expense → total di `/transactions` sama
+- [x] 360 px tanpa horizontal scroll, kartu dan baris akun ≥ 44 px, arah perubahan terbaca tanpa warna, `hideAmounts` menyamarkan semua nominal
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T56, T57
@@ -97,6 +97,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint O
 
-- [ ] Gerbang penuh hijau
-- [ ] Manual 360×800 dan 1024: alur di plan-16
-- [ ] Review dengan Yogi (open questions 1–3 dan 5 di spec)
+- [x] Gerbang penuh hijau
+- [x] Manual 360×800 dan 1024: alur di plan-16
+- [x] Review dengan Yogi (open questions 1–3 dan 5 di spec)

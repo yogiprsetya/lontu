@@ -14,7 +14,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 - [x] `pnpm build` menghasilkan `public/sw.js`. `curl -I /sw.js` tanpa cookie → 200, bukan redirect
 - [x] Setelah membuka `/dashboard` online: DevTools Offline + reload → dashboard tampil dengan angka terakhir (HTML dari `pages`, `/api/dashboard`, `/api/accounts`, `/api/budgets` dari `lontu-api`)
-- [ ] `/api/auth/session`, `/api/transactions/export`, respons 401, dan redirect tidak pernah muncul di Cache Storage
+- [x] `/api/auth/session`, `/api/transactions/export`, respons 401, dan redirect tidak pernah muncul di Cache Storage
 
 **Verification:**
 
@@ -36,14 +36,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Offline, navigasi penuh ke halaman yang belum pernah dibuka → `/~offline`, bukan halaman galat browser
-- [ ] Offline → banner "Offline · menampilkan data tersimpan terakhir" tampil, online → hilang tanpa reload
-- [ ] Offline di periode dashboard yang belum pernah dibuka → teks "Belum ada data tersimpan…" di bagian itu, bagian lain tetap tampil. 360 px tanpa horizontal scroll
+- [x] Offline, navigasi penuh ke halaman yang belum pernah dibuka → `/~offline`, bukan halaman galat browser
+- [x] Offline → banner "Offline · menampilkan data tersimpan terakhir" tampil, online → hilang tanpa reload
+- [x] Offline di periode dashboard yang belum pernah dibuka → teks "Belum ada data tersimpan…" di bagian itu, bagian lain tetap tampil. 360 px tanpa horizontal scroll
 
 **Verification:**
 
 - [x] Tes matcher proxy (pakai yang ada dari T2, atau tambah `tests/unit/proxy.spec.ts`) mencakup `/sw.js` dan `/~offline` tidak dialihkan, `/dashboard` tetap dialihkan tanpa cookie
-- [ ] `pnpm build` hijau. Manual 360×800 offline
+- [x] `pnpm build` hijau. Manual 360×800 offline
 
 **Dependencies:** T66
 
@@ -59,13 +59,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Build kedua dengan perubahan kecil → toast muncul di tab yang terbuka, halaman tidak reload sendiri
-- [ ] "Muat ulang" → versi baru aktif (DevTools: SW lama hilang), satu kali reload
-- [ ] Tombol ≥ 44×44 px, toast tidak menutupi bottom nav (posisi top-center yang sudah ada)
+- [x] Build kedua dengan perubahan kecil → toast muncul di tab yang terbuka, halaman tidak reload sendiri
+- [x] "Muat ulang" → versi baru aktif (DevTools: SW lama hilang), satu kali reload
+- [x] Tombol ≥ 44×44 px, toast tidak menutupi bottom nav (posisi top-center yang sudah ada)
 
 **Verification:**
 
-- [ ] `pnpm build` hijau. Manual: `pnpm build && pnpm start`, ubah teks, build ulang, kembali ke tab
+- [x] `pnpm build` hijau. Manual: `pnpm build && pnpm start`, ubah teks, build ulang, kembali ke tab
 
 **Dependencies:** T66
 
@@ -81,14 +81,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Sign-out → Cache Storage tidak berisi `lontu-api`/`pages*`, precache aset tetap ada
+- [x] Sign-out → Cache Storage tidak berisi `lontu-api`/`pages*`, precache aset tetap ada
 - [x] `ensureCacheOwner` dengan adapter `Map`: pemilik sama → tidak menghapus, berbeda atau kosong-lalu-diisi → menghapus sekali dan menyimpan pemilik baru
 - [x] Browser tanpa `caches` (mis. `next dev` tanpa HTTPS) → sign-out tetap jalan
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/offline-clear.spec.ts` hijau
-- [ ] Manual: sign-out lalu periksa DevTools > Cache Storage
+- [x] Manual: sign-out lalu periksa DevTools > Cache Storage
 
 **Dependencies:** T66
 
@@ -100,6 +100,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint R
 
-- [ ] Gerbang penuh hijau + `pnpm build`
-- [ ] Manual: alur di plan-19 (baca offline, `/~offline`, toast versi baru, sign-out)
-- [ ] Review dengan Yogi sebelum phase 20
+- [x] Gerbang penuh hijau + `pnpm build`
+- [x] Manual: alur di plan-19 (baca offline, `/~offline`, toast versi baru, sign-out)
+- [x] Review dengan Yogi sebelum phase 20

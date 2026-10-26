@@ -19,16 +19,17 @@ Disetujui 2026-10-25: semua Open questions memakai usulan spec.
 2. **Satu sumber data offline: cache service worker untuk `GET /api/*`.** SWR tidak diubah dan tidak dipersist ke IndexedDB. Saat offline, fetch SWR dijawab SW dari cache, jadi semua hook (`useAccounts`, `useDashboard`, `useTransactions`, …) otomatis menampilkan respons terakhir. Ini menggantikan "cache SWR di IndexedDB" di capability map (perlu persetujuan, Open question #1). Alasannya: satu lapis cache, tanpa gerbang hidrasi async sebelum render, dan cold start offline tetap jalan. Trade-off: saat online dengan jaringan lambat, data lama baru tampil setelah timeout jaringan (keputusan #3), bukan seketika.
 3. **Strategi cache:**
 
-   | Request | Strategi | Cache | Batas |
-   |---|---|---|---|
-   | `/_next/static/**`, ikon, `/~offline` | precache (versi build) | precache Serwist | — |
-   | `GET /api/*` kecuali `/api/auth/*` dan `/api/transactions/export` | NetworkFirst, timeout 4 s, hanya status 200 | `lontu-api` | 200 entri, 30 hari sejak terakhir dipakai |
-   | Navigasi HTML (halaman `(app)`) | NetworkFirst, timeout 4 s, hanya status 200 | `pages` | 32 entri, 30 hari |
-   | RSC (`RSC: 1`) dan prefetch RSC | NetworkFirst (`defaultCache`) | `pages-rsc`, `pages-rsc-prefetch` | 32 entri, 30 hari |
-   | `/login`, `/api/auth/*`, `/api/transactions/export`, semua non-GET | NetworkOnly | — | — |
-   | Navigasi yang gagal dan tidak ada di cache | fallback `/~offline` | precache | — |
+   | Request                                                            | Strategi                                    | Cache                             | Batas                                     |
+   | ------------------------------------------------------------------ | ------------------------------------------- | --------------------------------- | ----------------------------------------- |
+   | `/_next/static/**`, ikon, `/~offline`                              | precache (versi build)                      | precache Serwist                  | —                                         |
+   | `GET /api/*` kecuali `/api/auth/*` dan `/api/transactions/export`  | NetworkFirst, timeout 4 s, hanya status 200 | `lontu-api`                       | 200 entri, 30 hari sejak terakhir dipakai |
+   | Navigasi HTML (halaman `(app)`)                                    | NetworkFirst, timeout 4 s, hanya status 200 | `pages`                           | 32 entri, 30 hari                         |
+   | RSC (`RSC: 1`) dan prefetch RSC                                    | NetworkFirst (`defaultCache`)               | `pages-rsc`, `pages-rsc-prefetch` | 32 entri, 30 hari                         |
+   | `/login`, `/api/auth/*`, `/api/transactions/export`, semua non-GET | NetworkOnly                                 | —                                 | —                                         |
+   | Navigasi yang gagal dan tidak ada di cache                         | fallback `/~offline`                        | precache                          | —                                         |
 
    Aturan `lontu-api` dan `pages` ditulis sendiri dan diletakkan **sebelum** `defaultCache` (bawaannya hanya 16 entri API, 1 hari). Redirect (`/dashboard` tanpa session → `/login`) dan 401 tidak pernah di-cache. `precachePrerendered: false`: shell prerender halaman `(app)` hanya berisi skeleton dari `<Suspense>` + `RequireSession`, dan menyajikannya dari precache akan menampilkan skeleton selamanya.
+
 4. **`/~offline`** adalah halaman statis (tanpa session, tanpa data): "Kamu sedang offline. Halaman ini belum pernah dibuka di perangkat ini." + tautan ke Dashboard dan Tambah Expense. `proxy.ts` tidak mengalihkan `/~offline` dan `/sw.js`.
 5. **Pembaruan SW dikendalikan pengguna.** `skipWaiting: false`, `clientsClaim: true`. Saat SW baru `waiting`, muncul toast persisten "Versi baru tersedia" dengan tombol "Muat ulang" → `messageSkipWaiting()`, lalu reload saat `controlling`. Tidak ada reload otomatis (bisa membuang isi form). `reloadOnOnline: false` di `SerwistProvider` dengan alasan yang sama.
 6. **Hanya create transaksi yang masuk antrean.** Empat jenis (income, expense, saving, transfer termasuk biaya admin). Mutasi lain saat offline gagal seperti sekarang, dengan pesan seragam "Tidak ada koneksi. Perubahan ini butuh internet." (deteksi lewat `isNetworkError(err)`, bukan `ApiError`). Mengantre edit/hapus butuh urutan dan resolusi konflik terhadap data server, terlalu mahal untuk MVP (Open question #3).
@@ -37,14 +38,15 @@ Disetujui 2026-10-25: semua Open questions memakai usulan spec.
 9. **Outbox di IndexedDB lewat `idb-keyval`**, database `lontu`, store `kv`, kunci `outbox:<id transaksi>` (store yang sama menyimpan `cacheOwner`). Isi: `{ id, userId, body, createdAt, status: "pending" | "failed", attempts, error? }`. Modul `lib/offline/outbox.ts` menerima adapter penyimpanan (default `idb-keyval`), jadi bisa dites dengan `Map` tanpa IndexedDB palsu. State outbox dibaca komponen lewat `useSyncExternalStore`, **bukan** Zustand (bukan state UI) dan bukan cache SWR.
 10. **Pengiriman ulang (replay) dijalankan dari halaman**, bukan Background Sync (tidak ada di Safari iOS). Pemicu: aplikasi dibuka, event `online`, tab kembali `visible`, interval 30 s selama online dan outbox berisi `pending`, dan tombol "Kirim sekarang". Satu putaran berjalan di bawah Web Lock `lontu-outbox` (`ifAvailable`), jadi dua tab tidak mengirim bersamaan (kalaupun terjadi, keputusan #7 mencegah duplikat). Urutan FIFO `createdAt`, satu per satu. Hasil per item:
 
-    | Respons | Tindakan |
-    |---|---|
-    | 201 / 200 | hapus dari outbox |
-    | 400, 409 | `status = "failed"`, simpan `error` (pesan + `fields`), lanjut ke item berikutnya |
-    | 401 | hentikan putaran, item tetap `pending`, banner "Masuk lagi untuk mengirim transaksi tertunda" |
-    | galat jaringan, timeout, 5xx | hentikan putaran, `attempts + 1`, coba lagi di pemicu berikutnya |
+    | Respons                      | Tindakan                                                                                      |
+    | ---------------------------- | --------------------------------------------------------------------------------------------- |
+    | 201 / 200                    | hapus dari outbox                                                                             |
+    | 400, 409                     | `status = "failed"`, simpan `error` (pesan + `fields`), lanjut ke item berikutnya             |
+    | 401                          | hentikan putaran, item tetap `pending`, banner "Masuk lagi untuk mengirim transaksi tertunda" |
+    | galat jaringan, timeout, 5xx | hentikan putaran, `attempts + 1`, coba lagi di pemicu berikutnya                              |
 
     Setelah putaran yang mengirim minimal satu item: satu kali `invalidate("transactions")` (saldo, budget, dan dashboard ikut lewat `AFFECTS`).
+
 11. **Transaksi tertunda tidak dimasukkan ke cache SWR.** Tidak ada baris palsu di daftar ber-cursor, saldo, total, budget, atau dashboard. Sebagai gantinya: bagian "Menunggu dikirim (N)" di atas daftar `/transactions` dan `/expenses` (semua item outbox user ini, tanpa mengikuti filter), dan catatan di dashboard "N transaksi belum terkirim, belum masuk saldo dan ringkasan". Ini bentuk "optimistic create" yang dijanjikan keputusan #7 transactions (Open question #6). Baris tertunda memakai nama akun/kategori dari cache, badge "Tertunda" atau "Gagal: {pesan}", dan aksi "Buang" (dengan konfirmasi). Baris gagal juga punya "Coba lagi" (mis. setelah akun yang diarsipkan dipulihkan). Baris tertunda tidak bisa diedit.
 12. **Indikator offline:** banner tipis di shell, "Offline · menampilkan data tersimpan terakhir", plus jumlah tertunda bila ada. Sumbernya `useOnlineStatus()` (`navigator.onLine` + event `online`/`offline`). `experimental.useOffline` Next.js tidak diaktifkan karena butuh perubahan `next.config.ts` dan masih eksperimental (Open question #5). State error SWR saat offline tanpa cache menampilkan "Belum ada data tersimpan untuk tampilan ini" menggantikan pesan galat umum.
 13. **Banner pasang:** hanya di `/dashboard`, hanya saat tidak `display-mode: standalone`.
@@ -61,17 +63,26 @@ Perubahan pada `POST /api/transactions` ([SPEC-transactions.md](SPEC-transaction
 
 ### Body
 
-| `type` | Field tambahan (opsional) |
-|---|---|
-| `income`, `expense`, `saving` | `id: uuid` |
-| `transfer` | `id: uuid`, `fee.id: uuid` |
+| `type`                        | Field tambahan (opsional)  |
+| ----------------------------- | -------------------------- |
+| `income`, `expense`, `saving` | `id: uuid`                 |
+| `transfer`                    | `id: uuid`, `fee.id: uuid` |
 
 ```ts
 // lib/schemas/transaction.ts
 const clientId = z.uuid("Id transaksi tidak valid").optional();
 
-const fee = z.strictObject({ id: clientId, amount, categoryId }, "Biaya admin tidak valid");
-const base = { id: clientId, amount, date, accountId: z.uuid("Pilih akun"), description };
+const fee = z.strictObject(
+  { id: clientId, amount, categoryId },
+  "Biaya admin tidak valid",
+);
+const base = {
+  id: clientId,
+  amount,
+  date,
+  accountId: z.uuid("Pilih akun"),
+  description,
+};
 // transfer: refine tambahan, fee.id ≠ id (path ["fee"])
 ```
 
@@ -81,13 +92,13 @@ const base = { id: clientId, amount, date, accountId: z.uuid("Pilih akun"), desc
 
 Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 
-| Kondisi | Respons |
-|---|---|
-| Tanpa `id` | seperti sekarang: 201 `TransactionCreated` |
-| `id` baru | insert dengan `id` (dan `fee.id` bila ada) → 201 `TransactionCreated` |
+| Kondisi                                                            | Respons                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tanpa `id`                                                         | seperti sekarang: 201 `TransactionCreated`                                                                                                                                                                              |
+| `id` baru                                                          | insert dengan `id` (dan `fee.id` bila ada) → 201 `TransactionCreated`                                                                                                                                                   |
 | `id` sudah ada milik user ini (termasuk yang sudah di-soft-delete) | **200** `TransactionCreated` dari baris tersimpan, tanpa insert dan tanpa cek referensi. `fee` = baris `fee.id` jika dikirim dan milik user ini, selain itu `null`. Body pada replay diabaikan (tulisan pertama menang) |
-| `id` atau `fee.id` sudah dipakai baris user lain | 409 `TRANSACTION_ID_TAKEN`, tanpa isi baris itu |
-| `fee.id` sama dengan `id` | 400 `VALIDATION_ERROR` (`fields.fee`) |
+| `id` atau `fee.id` sudah dipakai baris user lain                   | 409 `TRANSACTION_ID_TAKEN`, tanpa isi baris itu                                                                                                                                                                         |
+| `fee.id` sama dengan `id`                                          | 400 `VALIDATION_ERROR` (`fields.fee`)                                                                                                                                                                                   |
 
 - Cek replay sebelum cek referensi, karena akun atau kategori bisa sudah diarsipkan setelah tulisan pertama berhasil, dan replay tetap harus sukses.
 - Balapan dua request dengan `id` sama: insert kedua kena konflik primary key (`onConflictDoNothing`), lalu server membaca ulang dan menjawab seperti baris replay (200) atau 409 jika milik user lain. Transfer + fee tetap dalam satu `db.transaction`.
@@ -165,19 +176,19 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 
 **Manual (`pnpm build && pnpm start`, Chrome DevTools dan ponsel Android + iPhone)**
 
-- [ ] `/sw.js` 200 tanpa login. DevTools > Application: SW aktif, precache berisi `/~offline` dan aset `_next/static`.
-- [ ] Buka dashboard, transaksi, dan budget online, lalu mode pesawat dan buka ulang aplikasi terpasang dari layar utama: ketiganya menampilkan data terakhir, banner offline tampil.
-- [ ] Offline: halaman atau periode yang belum pernah dibuka → `/~offline` (navigasi penuh) atau "Belum ada data tersimpan" (data SWR), bukan layar kosong atau error umum.
-- [ ] Offline: catat expense dan transfer dengan biaya admin → toast "Disimpan di perangkat…", muncul di "Menunggu dikirim (2)", dashboard menampilkan catatan tertunda.
-- [ ] Online kembali → dalam ≤ 5 s kedua item hilang dari bagian tertunda, muncul di daftar, saldo dan dashboard berubah, tanpa reload dan tanpa duplikat.
-- [ ] Throttle "Offline" tepat setelah tombol Simpan ditekan (request terkirim, respons hilang) → setelah online, tetap satu baris.
-- [ ] Item yang akunnya diarsipkan sebelum terkirim → "Gagal: …", "Coba lagi" setelah akun dipulihkan berhasil, "Buang" menghapusnya.
-- [ ] Dua tab terbuka saat online kembali → tidak ada duplikat.
-- [ ] Deploy versi baru → toast "Versi baru tersedia", "Muat ulang" memuat versi baru. Tanpa menekan tombol, form yang sedang diisi tidak hilang.
-- [ ] Android Chrome: kartu "Pasang Lontu" → dialog pasang bawaan. iPhone Safari: kartu instruksi. "Nanti" menyembunyikan kartu setelah reload. Di aplikasi terpasang kartu tidak tampil.
-- [ ] Sign-out dengan item tertunda → konfirmasi muncul. Setelah keluar: Cache Storage `lontu-api`/`pages*` kosong, outbox tidak berisi item user itu.
-- [ ] `Page.getInstallabilityErrors` kosong (Lighthouse 12 tidak punya kategori PWA, sama dengan T8).
-- [ ] Banner dan kartu benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px. Kode PWA di bundle client < 10 KB gzip (dari output `pnpm build`).
+- [x] `/sw.js` 200 tanpa login. DevTools > Application: SW aktif, precache berisi `/~offline` dan aset `_next/static`.
+- [x] Buka dashboard, transaksi, dan budget online, lalu mode pesawat dan buka ulang aplikasi terpasang dari layar utama: ketiganya menampilkan data terakhir, banner offline tampil.
+- [x] Offline: halaman atau periode yang belum pernah dibuka → `/~offline` (navigasi penuh) atau "Belum ada data tersimpan" (data SWR), bukan layar kosong atau error umum.
+- [x] Offline: catat expense dan transfer dengan biaya admin → toast "Disimpan di perangkat…", muncul di "Menunggu dikirim (2)", dashboard menampilkan catatan tertunda.
+- [x] Online kembali → dalam ≤ 5 s kedua item hilang dari bagian tertunda, muncul di daftar, saldo dan dashboard berubah, tanpa reload dan tanpa duplikat.
+- [x] Throttle "Offline" tepat setelah tombol Simpan ditekan (request terkirim, respons hilang) → setelah online, tetap satu baris.
+- [x] Item yang akunnya diarsipkan sebelum terkirim → "Gagal: …", "Coba lagi" setelah akun dipulihkan berhasil, "Buang" menghapusnya.
+- [x] Dua tab terbuka saat online kembali → tidak ada duplikat.
+- [x] Deploy versi baru → toast "Versi baru tersedia", "Muat ulang" memuat versi baru. Tanpa menekan tombol, form yang sedang diisi tidak hilang.
+- [x] Android Chrome: kartu "Pasang Lontu" → dialog pasang bawaan. iPhone Safari: kartu instruksi. "Nanti" menyembunyikan kartu setelah reload. Di aplikasi terpasang kartu tidak tampil.
+- [x] Sign-out dengan item tertunda → konfirmasi muncul. Setelah keluar: Cache Storage `lontu-api`/`pages*` kosong, outbox tidak berisi item user itu.
+- [x] `Page.getInstallabilityErrors` kosong (Lighthouse 12 tidak punya kategori PWA, sama dengan T8).
+- [x] Banner dan kartu benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px. Kode PWA di bundle client < 10 KB gzip (dari output `pnpm build`).
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes

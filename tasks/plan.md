@@ -4,14 +4,14 @@ Sumber: [SPEC.md](../SPEC.md) · 2026-10-20
 
 Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` adalah modul terakhir.
 
-| Modul | Spec | Phase | Task | Status |
-|---|---|---|---|---|
-| `foundation` | [SPEC-foundation.md](../SPEC-foundation.md) | 1–4 | T1–T9 | Selesai (T9 ditunda) |
-| `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7 | T10–T21 | Selesai (review Yogi tertunda) |
-| `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
-| `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
-| `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran) |
-| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Kode selesai (T66–T76). Cek manual di perangkat (Android Chrome, iPhone Safari, DevTools) dan review Yogi di checkpoint R–T tertunda. JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
+| Modul                 | Spec                                                          | Phase | Task    | Status                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `foundation`          | [SPEC-foundation.md](../SPEC-foundation.md)                   | 1–4   | T1–T9   | Selesai (T9 ditunda)                                                                                                                                                                              |
+| `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7   | T10–T21 | Selesai (review Yogi tertunda)                                                                                                                                                                    |
+| `transactions`        | [SPEC-transactions.md](../SPEC-transactions.md)               | 8–12  | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda                                                                                                        |
+| `budgets`             | [SPEC-budgets.md](../SPEC-budgets.md)                         | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda                                                                                                        |
+| `dashboard`           | [SPEC-dashboard.md](../SPEC-dashboard.md)                     | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran)                                      |
+| `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Kode selesai (T66–T76). Cek manual di perangkat (Android Chrome, iPhone Safari, DevTools) dan review Yogi di checkpoint R–T tertunda. JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 
 ---
 
@@ -49,11 +49,11 @@ T2 dan T3 tidak saling bergantung, kecuali upsert `users` di callback `signIn` y
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 1. Fondasi teknis | [plan-1.md](plan-1.md) | [todo-1.md](todo-1.md) | T1–T3 | A |
-| 2. Kontrak API | [plan-2.md](plan-2.md) | [todo-2.md](todo-2.md) | T4 | B |
-| 3. UI shell | [plan-3.md](plan-3.md) | [todo-3.md](todo-3.md) | T5–T8 | C |
+| Phase                        | Plan                   | Todo                   | Task           | Checkpoint                         |
+| ---------------------------- | ---------------------- | ---------------------- | -------------- | ---------------------------------- |
+| 1. Fondasi teknis            | [plan-1.md](plan-1.md) | [todo-1.md](todo-1.md) | T1–T3          | A                                  |
+| 2. Kontrak API               | [plan-2.md](plan-2.md) | [todo-2.md](todo-2.md) | T4             | B                                  |
+| 3. UI shell                  | [plan-3.md](plan-3.md) | [todo-3.md](todo-3.md) | T5–T8          | C                                  |
 | ~~4. Verifikasi end-to-end~~ | [plan-4.md](plan-4.md) | [todo-4.md](todo-4.md) | ~~T9~~ ditunda | Foundation selesai setelah phase 3 |
 
 Phase dikerjakan berurutan. Pengecualian: T5 (phase 3) hanya butuh T1 dan boleh dikerjakan paralel dengan phase 1–2.
@@ -100,11 +100,11 @@ T17 Settings + profil (hanya butuh /api/me)
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 5. Data akun & kategori | [plan-5.md](plan-5.md) | [todo-5.md](todo-5.md) | T10–T13 | D |
-| 6. API kategori & kontrak | [plan-6.md](plan-6.md) | [todo-6.md](todo-6.md) | T14–T16 | E |
-| 7. UI Settings & modal | [plan-7.md](plan-7.md) | [todo-7.md](todo-7.md) | T17–T21 | F (modul selesai) |
+| Phase                     | Plan                   | Todo                   | Task    | Checkpoint        |
+| ------------------------- | ---------------------- | ---------------------- | ------- | ----------------- |
+| 5. Data akun & kategori   | [plan-5.md](plan-5.md) | [todo-5.md](todo-5.md) | T10–T13 | D                 |
+| 6. API kategori & kontrak | [plan-6.md](plan-6.md) | [todo-6.md](todo-6.md) | T14–T16 | E                 |
+| 7. UI Settings & modal    | [plan-7.md](plan-7.md) | [todo-7.md](todo-7.md) | T17–T21 | F (modul selesai) |
 
 Phase dikerjakan berurutan. Pengecualian: T17 hanya butuh foundation dan boleh dikerjakan paralel dengan phase 5–6. Di phase 7, T19 dan T20 bisa dikerjakan paralel.
 
@@ -165,13 +165,13 @@ Task sisi server (T29, T30, T34, T37, T40) tidak bergantung pada UI dan bisa dik
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 8. Catat transaksi | [plan-8.md](plan-8.md) | [todo-8.md](todo-8.md) | T22–T26 | G |
-| 9. Daftar transaksi | [plan-9.md](plan-9.md) | [todo-9.md](todo-9.md) | T27–T28 | H |
-| 10. Periode, total, filter | [plan-10.md](plan-10.md) | [todo-10.md](todo-10.md) | T29–T33 | I |
-| 11. Ubah dan hapus | [plan-11.md](plan-11.md) | [todo-11.md](todo-11.md) | T34–T38 | J |
-| 12. Expenses dan ekspor | [plan-12.md](plan-12.md) | [todo-12.md](todo-12.md) | T39–T41 | K (modul selesai) |
+| Phase                      | Plan                     | Todo                     | Task    | Checkpoint        |
+| -------------------------- | ------------------------ | ------------------------ | ------- | ----------------- |
+| 8. Catat transaksi         | [plan-8.md](plan-8.md)   | [todo-8.md](todo-8.md)   | T22–T26 | G                 |
+| 9. Daftar transaksi        | [plan-9.md](plan-9.md)   | [todo-9.md](todo-9.md)   | T27–T28 | H                 |
+| 10. Periode, total, filter | [plan-10.md](plan-10.md) | [todo-10.md](todo-10.md) | T29–T33 | I                 |
+| 11. Ubah dan hapus         | [plan-11.md](plan-11.md) | [todo-11.md](todo-11.md) | T34–T38 | J                 |
+| 12. Expenses dan ekspor    | [plan-12.md](plan-12.md) | [todo-12.md](todo-12.md) | T39–T41 | K (modul selesai) |
 
 Phase dikerjakan berurutan. Pengecualian: task server di phase 10–12 (T29, T30, T34, T37, T40) boleh didahulukan.
 
@@ -193,15 +193,15 @@ Phase dikerjakan berurutan. Pengecualian: task server di phase 10–12 (T29, T30
 
 ## Risiko modul
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Cursor kehilangan mikrodetik `created_at` sehingga baris terlewat/dobel di batas halaman | Tinggi | T27 mulai dari tes merah dengan dua baris yang `created_at`-nya hanya beda mikrodetik. Cursor memakai `extract(epoch …)` di SQL, bukan `Date` JS |
-| Matcher `revalidateTransactions` atau optimistic delete tidak menyentuh key `$inf$` | Sedang | `isTransactionsKey` dites terhadap kedua bentuk key. T28 memverifikasi manual: tambah transaksi dari form → daftar ikut berubah tanpa reload. Fallback: state halaman sendiri dengan satu key SWR per halaman |
-| `useSearchParams` di `/transactions` merusak `cacheComponents` | Sedang | Selalu di dalam `<Suspense>`. `pnpm build` menjadi verifikasi T28, T31, T39 |
-| Transaksi DB (transfer + biaya) di pooler transaction mode | Rendah | Pola yang sama dengan T13 yang sudah terbukti. Tes atomik di T23 |
-| Biaya admin yatim setelah transfer dihapus | Rendah | Diterima di spec. Toast dan teks bantuan menyebutnya. `parent_id` hanya jika sering terjadi (Ask first) |
-| Tanggal bergeser sehari (`new Date("YYYY-MM-DD")` dibaca UTC) | Sedang | Semua format dari string dengan `timeZone: "UTC"`, dites di `transaction-format.spec.ts` |
-| Keyboard virtual iOS menutupi tombol Simpan di form panjang (transfer + biaya) | Sedang | Footer sticky seperti form akun (T18). Cek manual di ponsel |
+| Risiko                                                                                   | Dampak | Mitigasi                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cursor kehilangan mikrodetik `created_at` sehingga baris terlewat/dobel di batas halaman | Tinggi | T27 mulai dari tes merah dengan dua baris yang `created_at`-nya hanya beda mikrodetik. Cursor memakai `extract(epoch …)` di SQL, bukan `Date` JS                                                              |
+| Matcher `revalidateTransactions` atau optimistic delete tidak menyentuh key `$inf$`      | Sedang | `isTransactionsKey` dites terhadap kedua bentuk key. T28 memverifikasi manual: tambah transaksi dari form → daftar ikut berubah tanpa reload. Fallback: state halaman sendiri dengan satu key SWR per halaman |
+| `useSearchParams` di `/transactions` merusak `cacheComponents`                           | Sedang | Selalu di dalam `<Suspense>`. `pnpm build` menjadi verifikasi T28, T31, T39                                                                                                                                   |
+| Transaksi DB (transfer + biaya) di pooler transaction mode                               | Rendah | Pola yang sama dengan T13 yang sudah terbukti. Tes atomik di T23                                                                                                                                              |
+| Biaya admin yatim setelah transfer dihapus                                               | Rendah | Diterima di spec. Toast dan teks bantuan menyebutnya. `parent_id` hanya jika sering terjadi (Ask first)                                                                                                       |
+| Tanggal bergeser sehari (`new Date("YYYY-MM-DD")` dibaca UTC)                            | Sedang | Semua format dari string dengan `timeZone: "UTC"`, dites di `transaction-format.spec.ts`                                                                                                                      |
+| Keyboard virtual iOS menutupi tombol Simpan di form panjang (transfer + biaya)           | Sedang | Footer sticky seperti form akun (T18). Cek manual di ponsel                                                                                                                                                   |
 
 ---
 
@@ -237,11 +237,11 @@ Task server (T43, T44, T48, T50, T52, T53) hanya butuh T42 dan bisa didahulukan 
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 13. Atur budget dan lihat pemakaian | [plan-13.md](plan-13.md) | [todo-13.md](todo-13.md) | T42–T47 | L |
-| 14. Hapus dan salin | [plan-14.md](plan-14.md) | [todo-14.md](todo-14.md) | T48–T51 | M |
-| 15. Saran 50/30/20 | [plan-15.md](plan-15.md) | [todo-15.md](todo-15.md) | T52–T54 | N (modul selesai) |
+| Phase                               | Plan                     | Todo                     | Task    | Checkpoint        |
+| ----------------------------------- | ------------------------ | ------------------------ | ------- | ----------------- |
+| 13. Atur budget dan lihat pemakaian | [plan-13.md](plan-13.md) | [todo-13.md](todo-13.md) | T42–T47 | L                 |
+| 14. Hapus dan salin                 | [plan-14.md](plan-14.md) | [todo-14.md](todo-14.md) | T48–T51 | M                 |
+| 15. Saran 50/30/20                  | [plan-15.md](plan-15.md) | [todo-15.md](todo-15.md) | T52–T54 | N (modul selesai) |
 
 ## Aturan lintas phase
 
@@ -260,14 +260,14 @@ Task server (T43, T44, T48, T50, T52, T53) hanya butuh T42 dan bisa didahulukan 
 
 ## Risiko modul
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `budgetUsage` salah menghitung batas bulan atau melewatkan kategori terarsip | Tinggi | T43 mulai dari tes merah: expense di tanggal 1 dan akhir bulan, Februari kabisat, kategori terarsip, dan invarian `summary.total.spent = transactionTotals.expense` |
-| Upsert `on conflict do update` tidak menghidupkan baris terhapus atau menimpa `created_at` | Sedang | Tes T44: hapus langsung di DB lalu `PUT` → id sama, `deleted_at` null, `created_at` tetap |
-| `PUT` banyak item menulis sebagian saat satu kategori tidak valid | Sedang | Semua cek sebelum satu statement insert. Tes: satu item asing + satu valid → 400, tidak ada baris |
-| Halaman Budget basi setelah mencatat expense | Sedang | Matcher `/api/budgets` di `revalidateTransactions` dites di T45, dicek manual di checkpoint L |
-| `useSearchParams` di `/budget` merusak `cacheComponents` | Sedang | `<Suspense>`, `pnpm build` di T46 |
-| Pembulatan saran tidak menjumlah tepat ke pool | Rendah | `suggestBudgets` murni, dites dengan sisa terbesar dan seri (T52) |
+| Risiko                                                                                     | Dampak | Mitigasi                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `budgetUsage` salah menghitung batas bulan atau melewatkan kategori terarsip               | Tinggi | T43 mulai dari tes merah: expense di tanggal 1 dan akhir bulan, Februari kabisat, kategori terarsip, dan invarian `summary.total.spent = transactionTotals.expense` |
+| Upsert `on conflict do update` tidak menghidupkan baris terhapus atau menimpa `created_at` | Sedang | Tes T44: hapus langsung di DB lalu `PUT` → id sama, `deleted_at` null, `created_at` tetap                                                                           |
+| `PUT` banyak item menulis sebagian saat satu kategori tidak valid                          | Sedang | Semua cek sebelum satu statement insert. Tes: satu item asing + satu valid → 400, tidak ada baris                                                                   |
+| Halaman Budget basi setelah mencatat expense                                               | Sedang | Matcher `/api/budgets` di `revalidateTransactions` dites di T45, dicek manual di checkpoint L                                                                       |
+| `useSearchParams` di `/budget` merusak `cacheComponents`                                   | Sedang | `<Suspense>`, `pnpm build` di T46                                                                                                                                   |
+| Pembulatan saran tidak menjumlah tepat ke pool                                             | Rendah | `suggestBudgets` murni, dites dengan sisa terbesar dan seri (T52)                                                                                                   |
 
 ---
 
@@ -305,10 +305,10 @@ T57 boleh paralel dengan T56. T60 dan T62 hanya butuh T56 dan boleh paralel deng
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 16. Ringkasan dan saldo | [plan-16.md](plan-16.md) | [todo-16.md](todo-16.md) | T55–T58 | O |
-| 17. Grafik aktivitas dan kategori | [plan-17.md](plan-17.md) | [todo-17.md](todo-17.md) | T59–T63 | P |
+| Phase                               | Plan                     | Todo                     | Task    | Checkpoint        |
+| ----------------------------------- | ------------------------ | ------------------------ | ------- | ----------------- |
+| 16. Ringkasan dan saldo             | [plan-16.md](plan-16.md) | [todo-16.md](todo-16.md) | T55–T58 | O                 |
+| 17. Grafik aktivitas dan kategori   | [plan-17.md](plan-17.md) | [todo-17.md](todo-17.md) | T59–T63 | P                 |
 | 18. Budget Summary dan penyelesaian | [plan-18.md](plan-18.md) | [todo-18.md](todo-18.md) | T64–T65 | Q (modul selesai) |
 
 ## Aturan lintas phase
@@ -328,26 +328,26 @@ T57 boleh paralel dengan T56. T60 dan T62 hanya butuh T56 dan boleh paralel deng
 
 ## Risiko modul
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Recharts tidak cocok dengan React 19.3 / `cacheComponents` | Tinggi | T59 dikerjakan sebelum komponen grafik. Gagal → stop, Ask first |
-| JS first load `/dashboard` > 200 KB gzip | Sedang | `next/dynamic` untuk grafik, ukuran dicatat di T59, T61, T63, T65 |
-| Pemotongan period-to-date salah di akhir bulan, kabisat, atau pergantian tahun | Sedang | T55 dimulai dari tes merah untuk semua kasus |
-| Angka dashboard berbeda dari `/transactions` atau `/budget` | Sedang | `transactionWhere` dan `budgetUsage` dipakai ulang, invarian dites di T56, T60, T62 |
-| Dashboard basi setelah mencatat transaksi | Sedang | `AFFECTS.transactions` memuat `dashboard`, dites di T57 |
-| CLS dari bagian yang selesai memuat di waktu berbeda | Sedang | Skeleton bertinggi tetap, Lighthouse di T65 |
+| Risiko                                                                         | Dampak | Mitigasi                                                                            |
+| ------------------------------------------------------------------------------ | ------ | ----------------------------------------------------------------------------------- |
+| Recharts tidak cocok dengan React 19.3 / `cacheComponents`                     | Tinggi | T59 dikerjakan sebelum komponen grafik. Gagal → stop, Ask first                     |
+| JS first load `/dashboard` > 200 KB gzip                                       | Sedang | `next/dynamic` untuk grafik, ukuran dicatat di T59, T61, T63, T65                   |
+| Pemotongan period-to-date salah di akhir bulan, kabisat, atau pergantian tahun | Sedang | T55 dimulai dari tes merah untuk semua kasus                                        |
+| Angka dashboard berbeda dari `/transactions` atau `/budget`                    | Sedang | `transactionWhere` dan `budgetUsage` dipakai ulang, invarian dites di T56, T60, T62 |
+| Dashboard basi setelah mencatat transaksi                                      | Sedang | `AFFECTS.transactions` memuat `dashboard`, dites di T57                             |
+| CLS dari bagian yang selesai memuat di waktu berbeda                           | Sedang | Skeleton bertinggi tetap, Lighthouse di T65                                         |
 
 ## Catatan ukuran (2026-10-25)
 
 Diukur dari chunk JS yang dirujuk HTML prerender (gzip), bukan output `pnpm build` (Next 16.4 tidak lagi mencetak ukuran).
 
-| Titik | `/dashboard` |
-|---|---|
+| Titik                                  | `/dashboard`                                                         |
+| -------------------------------------- | -------------------------------------------------------------------- |
 | Sebelum modul (placeholder, T58 belum) | ±364 KB, sama dengan `/transactions` (365,7) dan `/settings` (362,1) |
-| T59 (chart terpasang, belum dirender) | 364,0 KB |
-| T61 (Expense Activity) | 366,6 KB |
-| T63 (donut) | 367,4 KB |
-| T65 (layout akhir) | 369,5 KB |
+| T59 (chart terpasang, belum dirender)  | 364,0 KB                                                             |
+| T61 (Expense Activity)                 | 366,6 KB                                                             |
+| T63 (donut)                            | 367,4 KB                                                             |
+| T65 (layout akhir)                     | 369,5 KB                                                             |
 
 Recharts ada di chunk lazy terpisah (±100 KB gzip) lewat `next/dynamic` dan tidak termasuk first load. Target 200 KB di SPEC.md sudah terlewati oleh app shell bersama (react-dom ±70 KB, zod ±48 KB, next-auth, sonner, dan lainnya) sebelum modul ini dimulai. Dashboard sendiri menambah ±5 KB. Perlu keputusan terpisah (Ask first): audit app shell atau revisi target.
 
@@ -387,11 +387,11 @@ T70 tidak bergantung pada SW dan boleh dikerjakan kapan saja (juga paralel denga
 
 ## Phases
 
-| Phase | Plan | Todo | Task | Checkpoint |
-|---|---|---|---|---|
-| 19. Service worker dan baca offline | [plan-19.md](plan-19.md) | [todo-19.md](todo-19.md) | T66–T69 | R |
-| 20. Antrean transaksi offline | [plan-20.md](plan-20.md) | [todo-20.md](todo-20.md) | T70–T74 | S |
-| 21. Pasang dan penyelesaian | [plan-21.md](plan-21.md) | [todo-21.md](todo-21.md) | T75–T76 | T (modul selesai) |
+| Phase                               | Plan                     | Todo                     | Task    | Checkpoint        |
+| ----------------------------------- | ------------------------ | ------------------------ | ------- | ----------------- |
+| 19. Service worker dan baca offline | [plan-19.md](plan-19.md) | [todo-19.md](todo-19.md) | T66–T69 | R                 |
+| 20. Antrean transaksi offline       | [plan-20.md](plan-20.md) | [todo-20.md](todo-20.md) | T70–T74 | S                 |
+| 21. Pasang dan penyelesaian         | [plan-21.md](plan-21.md) | [todo-21.md](todo-21.md) | T75–T76 | T (modul selesai) |
 
 ## Aturan lintas phase
 
@@ -411,11 +411,11 @@ T70 tidak bergantung pada SW dan boleh dikerjakan kapan saja (juga paralel denga
 
 Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9). Sebelum = `6d2030d` (spec modul, belum ada kode), sesudah = T75.
 
-| Halaman | Sebelum | Sesudah | Tambahan |
-|---|---|---|---|
-| `/dashboard` | 368,1 KB | 374,6 KB | +6,5 KB |
-| `/transactions` | 364,9 KB | 371,9 KB | +7,0 KB |
-| `/settings` | 360,7 KB | 366,6 KB | +5,9 KB |
+| Halaman         | Sebelum  | Sesudah  | Tambahan |
+| --------------- | -------- | -------- | -------- |
+| `/dashboard`    | 368,1 KB | 374,6 KB | +6,5 KB  |
+| `/transactions` | 364,9 KB | 371,9 KB | +7,0 KB  |
+| `/settings`     | 360,7 KB | 366,6 KB | +5,9 KB  |
 
 Di bawah target < 10 KB. Service worker (`public/sw.js`, 43 KB mentah) tidak termasuk first load. Precache: 47 URL, ±1,87 MB.
 
@@ -426,12 +426,11 @@ Di bawah target < 10 KB. Service worker (`public/sw.js`, 43 KB mentah) tidak ter
 
 ## Risiko modul
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Serwist configurator + Turbopack + `cacheComponents` tidak bisa menyajikan halaman offline | Tinggi | T66 spike lebih dulu. Gagal → stop, Ask first (`@serwist/turbopack` butuh `next.config.ts`) |
-| Transaksi ganda saat replay | Tinggi | T70 (replay 200, `POST` paralel), T72 (Web Lock, id tetap), cek manual throttle setelah Simpan |
-| Data user lain bocor lewat `id` atau cache bersama | Tinggi | T70 409 tanpa isi + tes A/B, T69/T74 pembersihan saat sign-out dan ganti pemilik |
-| Reload otomatis membuang isi form | Sedang | `skipWaiting: false`, `reloadOnOnline: false`, tombol "Muat ulang" (T66, T68) |
-| iOS menghapus storage, item tertunda hilang | Sedang | Replay setiap aplikasi dibuka online, `navigator.storage.persist()` (T72) |
-| JS tambahan di semua halaman | Rendah | Target < 10 KB gzip, diukur di T76 |
-
+| Risiko                                                                                     | Dampak | Mitigasi                                                                                       |
+| ------------------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------------------------------- |
+| Serwist configurator + Turbopack + `cacheComponents` tidak bisa menyajikan halaman offline | Tinggi | T66 spike lebih dulu. Gagal → stop, Ask first (`@serwist/turbopack` butuh `next.config.ts`)    |
+| Transaksi ganda saat replay                                                                | Tinggi | T70 (replay 200, `POST` paralel), T72 (Web Lock, id tetap), cek manual throttle setelah Simpan |
+| Data user lain bocor lewat `id` atau cache bersama                                         | Tinggi | T70 409 tanpa isi + tes A/B, T69/T74 pembersihan saat sign-out dan ganti pemilik               |
+| Reload otomatis membuang isi form                                                          | Sedang | `skipWaiting: false`, `reloadOnOnline: false`, tombol "Muat ulang" (T66, T68)                  |
+| iOS menghapus storage, item tertunda hilang                                                | Sedang | Replay setiap aplikasi dibuka online, `navigator.storage.persist()` (T72)                      |
+| JS tambahan di semua halaman                                                               | Rendah | Target < 10 KB gzip, diukur di T76                                                             |

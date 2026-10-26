@@ -31,9 +31,9 @@ Nomor 1–4 diputuskan Yogi pada 2026-10-23. Sisanya usulan untuk direview.
 
 Disetujui lewat keputusan #2. Migrasi baru hanya **menambah** kolom, tidak mengubah atau menghapus kolom.
 
-| Objek | Sebelum | Sesudah |
-|---|---|---|
-| `budgets.deleted_at` | tidak ada | `timestamptz null` |
+| Objek                                 | Sebelum                               | Sesudah                      |
+| ------------------------------------- | ------------------------------------- | ---------------------------- |
+| `budgets.deleted_at`                  | tidak ada                             | `timestamptz null`           |
 | `budgets_user_category_period_unique` | `(user_id, category_id, year, month)` | tidak berubah (keputusan #5) |
 
 Tidak ada index baru. Query usage membaca `transactions` per user dan rentang tanggal, dan skala pribadi tidak membutuhkan index tambahan. Jika `EXPLAIN` menunjukkan perlu, itu Ask first.
@@ -87,20 +87,25 @@ type BudgetSuggestion = {
   basis: number; // income yang dipakai sebagai dasar
   basisSource: "previous_month" | "input";
   pools: { needs: number; wants: number; saving: number }; // 50 / 30 / 20
-  items: { categoryId: string; spendingType: "needs" | "wants"; amount: number; current: number | null }[];
+  items: {
+    categoryId: string;
+    spendingType: "needs" | "wants";
+    amount: number;
+    current: number | null;
+  }[];
 };
 ```
 
 ### Route
 
-| Method & path | Body / query | Sukses | Error |
-|---|---|---|---|
-| `GET /api/budgets` | `?period=YYYY-MM` (wajib) | 200 `BudgetUsage` | 400 `VALIDATION_ERROR` |
-| `PUT /api/budgets` | `{ period, items: [{ categoryId, amount }] }` | 200 `Budget[]` (urutan sama dengan `items`) | 400 |
-| `DELETE /api/budgets/[id]` | — | 200 `Budget` (`deletedAt` terisi). Idempoten | 404 |
-| `POST /api/budgets/[id]/restore` | — | 200 `Budget` (aktif). Idempoten | 404 |
-| `POST /api/budgets/copy` | `{ to: YYYY-MM }` | 200 `{ copied: number }` | 400 |
-| `GET /api/budgets/suggestion` | `?period=YYYY-MM&income=<int>` (`income` opsional) | 200 `BudgetSuggestion` | 400 |
+| Method & path                    | Body / query                                       | Sukses                                       | Error                  |
+| -------------------------------- | -------------------------------------------------- | -------------------------------------------- | ---------------------- |
+| `GET /api/budgets`               | `?period=YYYY-MM` (wajib)                          | 200 `BudgetUsage`                            | 400 `VALIDATION_ERROR` |
+| `PUT /api/budgets`               | `{ period, items: [{ categoryId, amount }] }`      | 200 `Budget[]` (urutan sama dengan `items`)  | 400                    |
+| `DELETE /api/budgets/[id]`       | —                                                  | 200 `Budget` (`deletedAt` terisi). Idempoten | 404                    |
+| `POST /api/budgets/[id]/restore` | —                                                  | 200 `Budget` (aktif). Idempoten              | 404                    |
+| `POST /api/budgets/copy`         | `{ to: YYYY-MM }`                                  | 200 `{ copied: number }`                     | 400                    |
+| `GET /api/budgets/suggestion`    | `?period=YYYY-MM&income=<int>` (`income` opsional) | 200 `BudgetSuggestion`                       | 400                    |
 
 **`PUT`:** `items` 1–100, `categoryId` unik di dalam `items`. Setiap `categoryId` harus milik user, aktif, dan `kind = spending`. Jika satu item gagal, tidak ada yang ditulis (semua cek selesai sebelum insert, lalu satu statement `insert … on conflict (user_id, category_id, year, month) do update set amount = excluded.amount, deleted_at = null`). `created_at` baris lama tetap.
 
@@ -183,26 +188,26 @@ Data dari DB (`lib/server/queries/budget-history.ts`), pembagian di fungsi murni
 
 **API**
 
-- [ ] `PUT { period: "2026-10", items: [{ categoryId: <Makan>, amount: 1500000 }] }` → 200, `GET ?period=2026-10` memuat item Makan `budget = 1500000`. `PUT` kedua dengan 1.200.000 → id sama, `amount` berubah, tidak ada baris baru.
-- [ ] Dengan expense 1.300.000 di Makan bulan itu (termasuk satu biaya admin transfer): `spent = 1300000`, `remaining = 200000`, `percent = 86`, `status = "warning"`. Expense di bulan lain, expense terhapus, transfer, saving, dan adjustment tidak ikut.
-- [ ] Status: 79% → `ok`, 80% → `warning`, 99,99% (sisa > 0) → `warning`, 100% (sisa 0) → `over`, 101% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`, tanpa budget → `none`.
-- [ ] `summary.total.spent` sama dengan `GET /api/transactions/totals?from=…&to=…` `expense` untuk bulan yang sama, termasuk pengeluaran di kategori tanpa budget dan kategori terarsip. `unbudgetedSpent` benar per grup.
-- [ ] Kategori terarsip dengan budget atau pengeluaran di bulan itu tetap muncul. Kategori terarsip tanpa keduanya tidak muncul.
-- [ ] `PUT` dengan kategori income/saving, terarsip, milik user lain, atau tidak ada → 400 `fields.items`, dan **tidak ada baris** yang tertulis, termasuk untuk item lain yang valid. `categoryId` ganda, `items` kosong atau > 100, `amount` −1, 1.5, `"100"`, atau > 1e12 → 400. `period` `2026-13`, `1999-12`, atau dua bulan ke depan → 400 `fields.period`. Bulan depan → 200.
-- [ ] `DELETE` mengisi `deleted_at`, item usage kembali `budget = null`, `status = "none"`. `restore` mengembalikannya. Keduanya idempoten. `PUT` pada kategori + bulan yang budget-nya terhapus menghidupkan baris yang sama dengan nominal baru.
-- [ ] `copy { to: "2026-11" }` dengan Oktober berisi Makan, Hiburan, dan satu kategori terarsip, dan November sudah berisi Makan → `copied = 1` (Hiburan saja), Makan November tidak berubah, kategori terarsip dilewati. Diulang → `copied = 0`. Oktober kosong → `copied = 0`.
-- [ ] `suggestion` dengan income bulan lalu 10.000.000 → `basis = 10000000`, `pools = { needs: 5000000, wants: 3000000, saving: 2000000 }`, jumlah item needs = 5.000.000 dan wants = 3.000.000, semua kelipatan 1.000, proporsional dengan riwayat 3 bulan. `income=7777777` → `basisSource = "input"`, pool dibulatkan ke 1.000. Tanpa income → `items` kosong. `suggestion` tidak menulis baris apa pun.
-- [ ] **Isolasi:** user B mendapat 404 untuk `DELETE`/`restore` budget A, `GET`/`suggestion` B tidak pernah memuat budget, kategori, atau pengeluaran A, `copy` B tidak menyalin budget A, dan B tidak bisa `PUT` ke kategori A.
-- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`.
+- [x] `PUT { period: "2026-10", items: [{ categoryId: <Makan>, amount: 1500000 }] }` → 200, `GET ?period=2026-10` memuat item Makan `budget = 1500000`. `PUT` kedua dengan 1.200.000 → id sama, `amount` berubah, tidak ada baris baru.
+- [x] Dengan expense 1.300.000 di Makan bulan itu (termasuk satu biaya admin transfer): `spent = 1300000`, `remaining = 200000`, `percent = 86`, `status = "warning"`. Expense di bulan lain, expense terhapus, transfer, saving, dan adjustment tidak ikut.
+- [x] Status: 79% → `ok`, 80% → `warning`, 99,99% (sisa > 0) → `warning`, 100% (sisa 0) → `over`, 101% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`, tanpa budget → `none`.
+- [x] `summary.total.spent` sama dengan `GET /api/transactions/totals?from=…&to=…` `expense` untuk bulan yang sama, termasuk pengeluaran di kategori tanpa budget dan kategori terarsip. `unbudgetedSpent` benar per grup.
+- [x] Kategori terarsip dengan budget atau pengeluaran di bulan itu tetap muncul. Kategori terarsip tanpa keduanya tidak muncul.
+- [x] `PUT` dengan kategori income/saving, terarsip, milik user lain, atau tidak ada → 400 `fields.items`, dan **tidak ada baris** yang tertulis, termasuk untuk item lain yang valid. `categoryId` ganda, `items` kosong atau > 100, `amount` −1, 1.5, `"100"`, atau > 1e12 → 400. `period` `2026-13`, `1999-12`, atau dua bulan ke depan → 400 `fields.period`. Bulan depan → 200.
+- [x] `DELETE` mengisi `deleted_at`, item usage kembali `budget = null`, `status = "none"`. `restore` mengembalikannya. Keduanya idempoten. `PUT` pada kategori + bulan yang budget-nya terhapus menghidupkan baris yang sama dengan nominal baru.
+- [x] `copy { to: "2026-11" }` dengan Oktober berisi Makan, Hiburan, dan satu kategori terarsip, dan November sudah berisi Makan → `copied = 1` (Hiburan saja), Makan November tidak berubah, kategori terarsip dilewati. Diulang → `copied = 0`. Oktober kosong → `copied = 0`.
+- [x] `suggestion` dengan income bulan lalu 10.000.000 → `basis = 10000000`, `pools = { needs: 5000000, wants: 3000000, saving: 2000000 }`, jumlah item needs = 5.000.000 dan wants = 3.000.000, semua kelipatan 1.000, proporsional dengan riwayat 3 bulan. `income=7777777` → `basisSource = "input"`, pool dibulatkan ke 1.000. Tanpa income → `items` kosong. `suggestion` tidak menulis baris apa pun.
+- [x] **Isolasi:** user B mendapat 404 untuk `DELETE`/`restore` budget A, `GET`/`suggestion` B tidak pernah memuat budget, kategori, atau pengeluaran A, `copy` B tidak menyalin budget A, dan B tidak bisa `PUT` ke kategori A.
+- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Bulan baru: "Salin dari September" mengisi daftar tanpa reload. "Saran 50/30/20" menampilkan pratinjau, baris yang akan menimpa tidak tercentang, "Terapkan" menulis hanya baris tercentang.
-- [ ] Mencatat expense dari **+** lalu kembali ke `/budget` memperbarui terpakai dan status tanpa reload.
-- [ ] Hapus budget → baris langsung kembali "Atur budget", "Urungkan" mengembalikannya. `DELETE` gagal mengembalikan baris dan menampilkan toast error.
-- [ ] `/budget?period=2026-10` bertahan setelah refresh. Stepper tidak bisa melewati bulan depan.
-- [ ] Status terbaca tanpa warna (teks "Hampir habis" / "Melebihi budget"), layout benar di 360 px, target sentuh ≥ 44 px, input 16 px.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] Bulan baru: "Salin dari September" mengisi daftar tanpa reload. "Saran 50/30/20" menampilkan pratinjau, baris yang akan menimpa tidak tercentang, "Terapkan" menulis hanya baris tercentang.
+- [x] Mencatat expense dari **+** lalu kembali ke `/budget` memperbarui terpakai dan status tanpa reload.
+- [x] Hapus budget → baris langsung kembali "Atur budget", "Urungkan" mengembalikannya. `DELETE` gagal mengembalikan baris dan menampilkan toast error.
+- [x] `/budget?period=2026-10` bertahan setelah refresh. Stepper tidak bisa melewati bulan depan.
+- [x] Status terbaca tanpa warna (teks "Hampir habis" / "Melebihi budget"), layout benar di 360 px, target sentuh ≥ 44 px, input 16 px.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

@@ -26,15 +26,15 @@ Urutan: T55 → T56 → T57 → T58. T57 hanya butuh T55 (tipe) dan boleh parale
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Pemotongan hari salah di 31→30, Februari kabisat, atau Desember→Januari | Sedang | T55 mulai dari tes merah untuk semua kasus itu |
-| Totals dashboard berbeda dari `/transactions` atau `/budget` | Sedang | T56 memakai `transactionTotals` + `transactionWhere` apa adanya. Invarian vs `budgetUsage` dites |
-| Dashboard basi setelah mencatat transaksi | Sedang | Kasus `affectedBy("transactions")` di `cache-invalidation.spec.ts` (T57), dicek manual di checkpoint O |
-| `useSearchParams` di `/dashboard` merusak `cacheComponents` | Sedang | `<Suspense>`, `pnpm build` di T58 |
+| Risiko                                                                  | Dampak | Mitigasi                                                                                               |
+| ----------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| Pemotongan hari salah di 31→30, Februari kabisat, atau Desember→Januari | Sedang | T55 mulai dari tes merah untuk semua kasus itu                                                         |
+| Totals dashboard berbeda dari `/transactions` atau `/budget`            | Sedang | T56 memakai `transactionTotals` + `transactionWhere` apa adanya. Invarian vs `budgetUsage` dites       |
+| Dashboard basi setelah mencatat transaksi                               | Sedang | Kasus `affectedBy("transactions")` di `cache-invalidation.spec.ts` (T57), dicek manual di checkpoint O |
+| `useSearchParams` di `/dashboard` merusak `cacheComponents`             | Sedang | `<Suspense>`, `pnpm build` di T58                                                                      |
 
 ## Checkpoint O
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800 dan 1024: ganti bulan/tahun, refresh mempertahankan periode, catat expense → kartu dan saldo berubah, tap kartu → `/transactions` dengan total yang sama
-- [ ] Review dengan Yogi, termasuk open questions 1–3 dan 5 di spec sebelum phase 17
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual 360×800 dan 1024: ganti bulan/tahun, refresh mempertahankan periode, catat expense → kartu dan saldo berubah, tap kartu → `/transactions` dengan total yang sama
+- [x] Review dengan Yogi, termasuk open questions 1–3 dan 5 di spec sebelum phase 17

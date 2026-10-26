@@ -28,16 +28,16 @@ Urutan: T42 dulu. T43 dan T44 bebas urutan (paralel boleh). T45 butuh T43 + T44.
 
 ## Risiko
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| Batas bulan / kategori terarsip salah di `budgetUsage` | Tinggi | Tes merah lebih dulu di T43, termasuk invarian terhadap `transactionTotals` |
+| Risiko                                                  | Dampak | Mitigasi                                                                                       |
+| ------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- |
+| Batas bulan / kategori terarsip salah di `budgetUsage`  | Tinggi | Tes merah lebih dulu di T43, termasuk invarian terhadap `transactionTotals`                    |
 | drizzle-kit RC menghasilkan migrasi yang menyentuh view | Sedang | Baca `migration.sql` sebelum `db:migrate`. Hanya `ALTER TABLE "budgets" ADD COLUMN` yang boleh |
-| Upsert menimpa `created_at` | Rendah | Kolom tidak ada di `set`. Dites |
-| Halaman basi setelah catat expense | Sedang | Matcher dites di T45, dicek manual di checkpoint L |
+| Upsert menimpa `created_at`                             | Rendah | Kolom tidak ada di `set`. Dites                                                                |
+| Halaman basi setelah catat expense                      | Sedang | Matcher dites di T45, dicek manual di checkpoint L                                             |
 
 ## Checkpoint L
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800 dan 1024: atur budget Makan 1.500.000 → catat expense 1.300.000 → status "Hampir habis" 86% tanpa reload. Bulan lain kosong. Stepper berhenti di bulan depan
-- [ ] Kategori terarsip dengan pengeluaran bulan itu tampil dengan "(arsip)"
-- [ ] Review dengan Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual 360×800 dan 1024: atur budget Makan 1.500.000 → catat expense 1.300.000 → status "Hampir habis" 86% tanpa reload. Bulan lain kosong. Stepper berhenti di bulan depan
+- [x] Kategori terarsip dengan pengeluaran bulan itu tampil dengan "(arsip)"
+- [x] Review dengan Yogi

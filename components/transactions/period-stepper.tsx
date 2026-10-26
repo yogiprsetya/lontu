@@ -36,9 +36,9 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year", "all
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex min-w-0 flex-1 items-center justify-between gap-1">
+      <div className="surface flex min-w-0 flex-1 items-center justify-between gap-1 p-1.5">
         <Button
-          variant="outline"
+          variant="secondary"
           className="size-11 shrink-0"
           aria-label="Periode sebelumnya"
           disabled={shiftPeriod(period, -1) === period}
@@ -46,11 +46,11 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year", "all
         >
           <ChevronLeftIcon aria-hidden />
         </Button>
-        <p className="min-w-0 flex-1 truncate text-center text-base font-semibold" aria-live="polite">
+        <p className="min-w-0 flex-1 truncate text-center font-heading text-base font-bold sm:text-lg" aria-live="polite">
           {formatPeriodLabel(period)}
         </p>
         <Button
-          variant="outline"
+          variant="secondary"
           className="size-11 shrink-0"
           aria-label="Periode berikutnya"
           disabled={!canGoNext}
@@ -64,7 +64,7 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year", "all
         value={mode}
         onValueChange={(value) => value && onChange(switchPeriodMode(period, value as PeriodMode, today))}
       >
-        <SelectTrigger className="w-28 text-base data-[size=default]:h-11 md:text-sm" aria-label="Rentang periode">
+        <SelectTrigger className="w-24 rounded-2xl border-0 bg-card text-base font-bold shadow-soft data-[size=default]:h-14 md:text-sm dark:bg-card" aria-label="Rentang periode">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

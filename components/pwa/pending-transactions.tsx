@@ -46,7 +46,7 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
         </p>
       </div>
       <p className={failed ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"}>
-        <span className="rounded-md border px-1.5 py-0.5 text-xs font-medium">{failed ? "Gagal" : "Tertunda"}</span>
+        <span className="rounded-full border px-2 py-0.5 text-xs font-bold">{failed ? "Gagal" : "Tertunda"}</span>
         {failed && item.error && ` ${item.error.message}`}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -90,9 +90,9 @@ export function PendingTransactions() {
   return (
     <div aria-live="polite">
       {items.length > 0 && (
-        <section aria-labelledby="pending-heading" className="flex flex-col gap-2 rounded-lg border px-4 py-3">
+        <section aria-labelledby="pending-heading" className="flex flex-col gap-2 surface px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="pending-heading" className="font-semibold">
+            <h2 id="pending-heading" className="font-heading text-lg font-bold">
               Menunggu dikirim ({items.length})
             </h2>
             {online && items.some((i) => i.status === "pending") && (

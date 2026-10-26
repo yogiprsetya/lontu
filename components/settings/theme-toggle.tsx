@@ -20,7 +20,7 @@ export function ThemeToggle() {
 
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-sm font-medium">Tema</legend>
+      <legend className="mb-2 text-sm font-bold">Tema</legend>
       <div className="grid grid-cols-3 gap-2">
         {options.map(({ value, label, icon: Icon }) => {
           const selected = mounted && theme === value;
@@ -31,8 +31,8 @@ export function ThemeToggle() {
               aria-pressed={selected}
               onClick={() => setTheme(value)}
               className={cn(
-                "flex min-h-11 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
-                selected ? "border-foreground bg-muted" : "text-muted-foreground hover:bg-muted",
+                "flex min-h-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-bold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                selected ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground shadow-soft hover:bg-muted",
               )}
             >
               <Icon className="size-4" aria-hidden />

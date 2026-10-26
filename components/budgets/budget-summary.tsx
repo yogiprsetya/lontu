@@ -13,19 +13,19 @@ export function BudgetSummary({ summary, hideAmounts }: { summary: BudgetUsage["
   const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
 
   return (
-    <section aria-label="Ringkasan budget" className="grid gap-2 sm:grid-cols-3">
+    <section aria-label="Ringkasan budget" className="grid gap-3 sm:grid-cols-3">
       {GROUPS.map(({ key, label }) => {
         const group = summary[key];
         const { budgetedSpent, remaining, percent, status } = groupStatus(group);
         const text = statusLabel(status);
         return (
-          <div key={key} className="flex min-w-0 flex-col gap-2 rounded-lg border px-3 py-3">
-            <h2 className="text-sm text-muted-foreground">{label}</h2>
+          <div key={key} className="flex min-w-0 flex-col gap-2 surface px-4 py-4">
+            <h2 className="text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">{label}</h2>
             {remaining === null ? (
               <p className="font-medium">Belum ada budget</p>
             ) : (
               <>
-                <p className="truncate font-semibold tabular-nums">
+                <p className="truncate font-heading text-lg font-extrabold tabular-nums">
                   {money(budgetedSpent)} <span className="font-normal text-muted-foreground">dari {money(group.budget)}</span>
                 </p>
                 <BudgetProgress

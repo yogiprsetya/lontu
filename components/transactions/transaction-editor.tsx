@@ -18,7 +18,7 @@ import { failureMessage } from "@/lib/offline/network-error";
 
 function NotFound() {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed px-4 py-6">
+    <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-6">
       <p className="font-medium">Transaksi tidak ditemukan</p>
       <p className="text-sm text-muted-foreground">Mungkin sudah dihapus.</p>
       <Link href="/transactions" className={cn(buttonVariants({ variant: "outline" }), "h-11 text-base")}>

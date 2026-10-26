@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { WalletIcon } from "lucide-react";
+import { SectionTitle } from "@/components/layout/section-title";
 import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
@@ -83,10 +85,10 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
 export function DashboardBudgetSummary({ period }: { period: DashboardPeriod }) {
   return (
-    <section aria-labelledby="budget-title" className="flex min-w-0 flex-col gap-3 rounded-lg border px-4 py-4">
-      <h2 id="budget-title" className="font-semibold">
+    <section aria-labelledby="budget-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+      <SectionTitle id="budget-title" icon={WalletIcon} tone="lilac">
         Budget
-      </h2>
+      </SectionTitle>
       {dashboardMode(period) === "month" ? (
         <MonthBudget period={period} />
       ) : (

@@ -85,7 +85,7 @@ export function TransactionForm({ type, transaction }: { type: SimpleTransaction
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="surface flex flex-col gap-4 px-5 py-5">
       {transaction && (
         <p className="text-sm text-muted-foreground">
           Jenis: <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span> (tidak bisa diubah)

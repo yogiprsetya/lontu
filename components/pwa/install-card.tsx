@@ -9,11 +9,11 @@ export function InstallCard() {
   if (state === "hidden") return null;
 
   return (
-    <section aria-labelledby="install-heading" className="flex flex-col gap-3 rounded-lg border px-4 py-4">
+    <section aria-labelledby="install-heading" className="flex flex-col gap-3 surface px-5 py-5">
       <div className="flex items-start gap-3">
         <SmartphoneIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
         <div className="flex flex-col gap-1">
-          <h2 id="install-heading" className="font-semibold">
+          <h2 id="install-heading" className="font-heading text-lg font-bold">
             Pasang Lontu di layar utama
           </h2>
           <p className="text-sm text-muted-foreground">

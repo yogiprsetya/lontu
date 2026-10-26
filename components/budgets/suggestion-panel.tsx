@@ -118,7 +118,7 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
   } else {
     body = (
       <div className="flex flex-col gap-4" aria-busy={pending}>
-        <dl className="divide-y rounded-lg border px-3">
+        <dl className="divide-y rounded-2xl bg-muted px-4">
           {[
             { label: "Needs 50%", amount: data.pools.needs },
             { label: "Wants 30%", amount: data.pools.wants },

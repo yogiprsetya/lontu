@@ -5,6 +5,7 @@ import { BalanceCard } from "@/components/dashboard/balance-card";
 import { DashboardBudgetSummary } from "@/components/dashboard/budget-summary";
 import { CategoryBreakdown } from "@/components/dashboard/category-breakdown";
 import { ExpenseActivity } from "@/components/dashboard/expense-activity";
+import { QuickAdd } from "@/components/dashboard/quick-add";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { InstallCard } from "@/components/pwa/install-card";
 import { PendingNotice } from "@/components/pwa/pending-notice";
@@ -32,8 +33,9 @@ export function DashboardView() {
         <PendingNotice />
         <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
       </div>
-      <div className="min-w-0 lg:col-start-2 lg:row-start-3">
+      <div className="flex min-w-0 flex-col gap-6 lg:col-start-2 lg:row-start-3">
         <BalanceCard period={period} />
+        <QuickAdd />
       </div>
       <div className="min-w-0 lg:col-span-2 lg:row-start-2">
         <SummaryCards period={period} />

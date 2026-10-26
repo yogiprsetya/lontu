@@ -30,7 +30,7 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <dl className="divide-y rounded-lg border">
+      <dl className="surface divide-y">
         {rows.map(([label, value]) => (
           <div key={label} className="flex min-h-11 items-center justify-between gap-4 px-4 py-2">
             <dt className="text-sm text-muted-foreground">{label}</dt>

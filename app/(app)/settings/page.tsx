@@ -6,13 +6,13 @@ import { ThemeToggle } from "@/components/settings/theme-toggle";
 
 export const metadata: Metadata = { title: "Settings" };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, framed, children }: { title: string; framed?: boolean; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={`settings-${title}`} className="flex flex-col gap-4">
-      <h2 id={`settings-${title}`} className="text-lg font-semibold">
+    <section aria-labelledby={`settings-${title}`} className="flex flex-col gap-3">
+      <h2 id={`settings-${title}`} className="font-heading text-xl font-bold">
         {title}
       </h2>
-      {children}
+      {framed ? <div className="surface px-5 py-5">{children}</div> : children}
     </section>
   );
 }
@@ -20,11 +20,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function SettingsPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-6 lg:px-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-      <Section title="Profil">
+      <h1 className="font-heading text-3xl font-extrabold tracking-tight">Settings</h1>
+      <Section title="Profil" framed>
         <ProfileSection />
       </Section>
-      <Section title="Keuangan">
+      <Section title="Keuangan" framed>
         <FinanceSection />
       </Section>
       <Section title="Tampilan">

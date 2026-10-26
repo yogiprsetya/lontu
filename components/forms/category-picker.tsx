@@ -41,7 +41,7 @@ export function CategoryPicker({ id, kind, keep, value, onChange, invalid, descr
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed px-4 py-4">
+      <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Belum ada kategori {KIND_LABELS[kind]}.</p>
         <Button
           type="button"

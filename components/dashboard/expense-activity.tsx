@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { ChartColumnIcon } from "lucide-react";
+import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,7 +26,7 @@ const ExpenseActivityChart = dynamic(() => import("@/components/dashboard/expens
 
 export function NoExpense({ period }: { period: DashboardPeriod }) {
   return (
-    <div className="flex h-56 flex-col items-center justify-center gap-4 rounded-lg border border-dashed px-6 text-center">
+    <div className="flex h-56 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 text-center">
       <p className="text-muted-foreground">Belum ada pengeluaran di {formatPeriodLabel(period)}.</p>
       <Link href="/add/expense" className={cn(buttonVariants(), "h-11 text-base")}>
         Catat expense
@@ -81,10 +83,10 @@ export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
   }
 
   return (
-    <section aria-labelledby="activity-title" className="flex min-w-0 flex-col gap-3 rounded-lg border px-4 py-4">
-      <h2 id="activity-title" className="font-semibold">
+    <section aria-labelledby="activity-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+      <SectionTitle id="activity-title" icon={ChartColumnIcon} tone="peach">
         Expense Activity
-      </h2>
+      </SectionTitle>
       {content}
     </section>
   );

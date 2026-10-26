@@ -12,14 +12,18 @@ export default function OfflinePage() {
     <main className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="flex w-full max-w-sm flex-col items-start gap-4">
         <WifiOffIcon className="size-8 text-muted-foreground" aria-hidden />
-        <h1 className="text-2xl font-semibold tracking-tight">Kamu sedang offline</h1>
-        <p className="text-muted-foreground">Halaman ini belum pernah dibuka di perangkat ini.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Kamu sedang offline
+        </h1>
+        <p className="text-muted-foreground">
+          Halaman ini belum pernah dibuka di perangkat ini.
+        </p>
         <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <Link href="/dashboard" className={cn(buttonVariants(), "h-11 text-base")}>
+          <Link
+            href="/dashboard"
+            className={cn(buttonVariants(), "h-11 text-base")}
+          >
             Ke Dashboard
-          </Link>
-          <Link href="/add/expense" className={cn(buttonVariants({ variant: "outline" }), "h-11 text-base")}>
-            Tambah Expense
           </Link>
         </div>
       </div>

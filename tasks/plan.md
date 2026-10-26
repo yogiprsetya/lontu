@@ -2,7 +2,7 @@
 
 Sumber: [SPEC.md](../SPEC.md) · 2026-10-20
 
-Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutnya (`pwa-offline`) direncanakan setelah `SPEC-pwa-offline.md` ditulis.
+Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` adalah modul terakhir.
 
 | Modul | Spec | Phase | Task | Status |
 |---|---|---|---|---|
@@ -11,6 +11,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. Modul berikutny
 | `transactions` | [SPEC-transactions.md](../SPEC-transactions.md) | 8–12 | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda |
 | `budgets` | [SPEC-budgets.md](../SPEC-budgets.md) | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda |
 | `dashboard` | [SPEC-dashboard.md](../SPEC-dashboard.md) | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran) |
+| `pwa-offline` | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) | 19–21 | T66–T76 | Kode selesai (T66–T76). Cek manual di perangkat (Android Chrome, iPhone Safari, DevTools) dan review Yogi di checkpoint R–T tertunda. JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 
 ---
 
@@ -349,4 +350,88 @@ Diukur dari chunk JS yang dirujuk HTML prerender (gzip), bukan output `pnpm buil
 | T65 (layout akhir) | 369,5 KB |
 
 Recharts ada di chunk lazy terpisah (±100 KB gzip) lewat `next/dynamic` dan tidak termasuk first load. Target 200 KB di SPEC.md sudah terlewati oleh app shell bersama (react-dom ±70 KB, zod ±48 KB, next-auth, sonner, dan lainnya) sebelum modul ini dimulai. Dashboard sendiri menambah ±5 KB. Perlu keputusan terpisah (Ask first): audit app shell atau revisi target.
+
+---
+
+# Modul `pwa-offline`
+
+Spec: [SPEC-pwa-offline.md](../SPEC-pwa-offline.md) · 2026-10-25
+
+## Overview
+
+Aplikasi terpasang tetap berguna tanpa sinyal: data terakhir dari cache service worker tampil saat offline, transaksi baru menunggu di outbox IndexedDB dan terkirim sendiri tanpa duplikat saat online, versi baru dimuat atas izin pengguna, dan pengguna diajak memasang aplikasi. Tidak ada perubahan skema. Satu perubahan kontrak: `POST /api/transactions` menerima `id` (dan `fee.id`) dari client, kompatibel mundur.
+
+## Kondisi repo saat ini
+
+- Manifest, ikon 192/512/maskable, dan shortcut "Tambah Expense" sudah ada (T8). Installability sudah dicek lewat `Page.getInstallabilityErrors`.
+- Belum ada service worker, `public/sw.js`, Serwist, atau `idb-keyval`. Commit lama `3cfc9fc` (SW tulisan tangan + SWR localStorage) tidak dipulihkan.
+- `proxy.ts` mengalihkan semua path selain `login`, `api/`, aset statis, `manifest.webmanifest`, dan `icons/`, jadi `/sw.js` saat ini ikut dialihkan.
+- `next build` memakai Turbopack. `@serwist/next` versi plugin hanya untuk webpack, jadi dipakai mode configurator (`@serwist/cli`, 9.5.13).
+- Siap dipakai: `fetcher`/`sendJSON` + `ApiError`, `invalidate` / `AFFECTS`, `useProfile` (id user), `useUIStore` (persist, `partialize`), `LoadError`, `TransactionList`, toast sonner top-center, `signOutToLogin`.
+- `transactions.id` sudah `uuid` primary key `defaultRandom()`, jadi insert dengan id dari client tidak butuh migrasi.
+- Vitest `environment: "node"`: outbox, replay, dan kelayakan install dibuat murni dengan dependensi diinjeksi. SW, Web Lock, dan event browser dicek manual dengan `pnpm build && pnpm start`.
+
+## Dependency graph
+
+```
+T66 Spike Serwist + baca offline ─┬─► T67 /~offline, banner, state offline
+                                  ├─► T68 Toast versi baru
+                                  ├─► T69 Hapus cache (idb-keyval) ─► T71 Outbox + replay murni ─┐
+                                  └─► T75 Kartu pasang                                           │
+T70 POST idempoten (API) ────────────────────────────────────────────────────────────────────────┴─► T72 Create mengantre + replay
+                                                                                                         └─► T73 Bagian tertunda ─► T74 Sign-out tertunda
+                                                                              T74 + T75 ─► T76 Verifikasi modul
+```
+
+T70 tidak bergantung pada SW dan boleh dikerjakan kapan saja (juga paralel dengan phase 19). T75 hanya butuh T66.
+
+## Phases
+
+| Phase | Plan | Todo | Task | Checkpoint |
+|---|---|---|---|---|
+| 19. Service worker dan baca offline | [plan-19.md](plan-19.md) | [todo-19.md](todo-19.md) | T66–T69 | R |
+| 20. Antrean transaksi offline | [plan-20.md](plan-20.md) | [todo-20.md](todo-20.md) | T70–T74 | S |
+| 21. Pasang dan penyelesaian | [plan-21.md](plan-21.md) | [todo-21.md](todo-21.md) | T75–T76 | T (modul selesai) |
+
+## Aturan lintas phase
+
+- Irisan vertikal: setiap phase berakhir dengan perilaku yang bisa dicoba di ponsel (baca offline → catat offline → pasang).
+- Risiko tinggi didahulukan: kompatibilitas Serwist configurator dengan Turbopack + `cacheComponents` (T66, spike yang boleh gagal), lalu kontrak idempoten (T70) sebelum client mengantre apa pun.
+- Perilaku SW hanya dicek dengan `pnpm build && pnpm start` atau preview Vercel, tidak di `next dev`.
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 dan 1024.
+
+## Keputusan perencanaan (2026-10-25)
+
+1. **Open questions #1 (cache SW saja) dan #2 (dependency + script build) memblokir T66.** SPEC.md diperbarui di T66 setelah disetujui, sebelum kode.
+2. **Open questions #3–#6 memakai default spec** (hanya create diantrekan, "Coba lagi"/"Buang", tanpa `experimental.useOffline`, tertunda tidak mengubah saldo). Ditanyakan lagi di checkpoint R sebelum phase 20.
+3. **Tanpa `fake-indexeddb`:** outbox menerima adapter penyimpanan, tes memakai `Map`.
+4. **`idb-keyval` dipasang di T69** (pemilik cache), lalu dipakai ulang outbox di T71.
+
+## Catatan ukuran pwa-offline (2026-10-25)
+
+Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9). Sebelum = `6d2030d` (spec modul, belum ada kode), sesudah = T75.
+
+| Halaman | Sebelum | Sesudah | Tambahan |
+|---|---|---|---|
+| `/dashboard` | 368,1 KB | 374,6 KB | +6,5 KB |
+| `/transactions` | 364,9 KB | 371,9 KB | +7,0 KB |
+| `/settings` | 360,7 KB | 366,6 KB | +5,9 KB |
+
+Di bawah target < 10 KB. Service worker (`public/sw.js`, 43 KB mentah) tidak termasuk first load. Precache: 47 URL, ±1,87 MB.
+
+## Temuan verifikasi T76 (2026-10-25)
+
+- Otomatis hijau: `pnpm lint && pnpm typecheck && pnpm test` (900 tes) dan `pnpm build` (menulis `public/sw.js`). `curl` tanpa cookie: `/sw.js` 200, `/~offline` 200, `/dashboard` 307 ke `/login`.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir Manual di spec, termasuk cold start offline `/dashboard` (inti spike T66), `Page.getInstallabilityErrors`, toast versi baru, dan pemasangan di Android/iPhone. Jika cold start offline gagal, ikuti mitigasi Risiko modul baris pertama.
+
+## Risiko modul
+
+| Risiko | Dampak | Mitigasi |
+|---|---|---|
+| Serwist configurator + Turbopack + `cacheComponents` tidak bisa menyajikan halaman offline | Tinggi | T66 spike lebih dulu. Gagal → stop, Ask first (`@serwist/turbopack` butuh `next.config.ts`) |
+| Transaksi ganda saat replay | Tinggi | T70 (replay 200, `POST` paralel), T72 (Web Lock, id tetap), cek manual throttle setelah Simpan |
+| Data user lain bocor lewat `id` atau cache bersama | Tinggi | T70 409 tanpa isi + tes A/B, T69/T74 pembersihan saat sign-out dan ganti pemilik |
+| Reload otomatis membuang isi form | Sedang | `skipWaiting: false`, `reloadOnOnline: false`, tombol "Muat ulang" (T66, T68) |
+| iOS menghapus storage, item tertunda hilang | Sedang | Replay setiap aplikasi dibuka online, `navigator.storage.persist()` (T72) |
+| JS tambahan di semua halaman | Rendah | Target < 10 KB gzip, diukur di T76 |
 

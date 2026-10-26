@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { failureMessage } from "@/lib/offline/network-error";
 
 type ShowArchivedSwitchProps = { id: string; checked: boolean; onCheckedChange: (checked: boolean) => void };
 
@@ -47,8 +48,8 @@ export function ArchiveButton({ label, name, description, archive, onArchived }:
       await archive();
       toast.success(`${name} diarsipkan`);
       onArchived();
-    } catch {
-      toast.error("Gagal mengarsipkan. Coba lagi.");
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal mengarsipkan. Coba lagi."));
       setPending(false);
     }
   }
@@ -89,8 +90,8 @@ export function RestoreButton({ name, restore }: { name: string; restore: () => 
     try {
       await restore();
       toast.success(`${name} dipulihkan`);
-    } catch {
-      toast.error("Gagal memulihkan. Coba lagi.");
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal memulihkan. Coba lagi."));
     } finally {
       setPending(false);
     }

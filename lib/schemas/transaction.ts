@@ -50,18 +50,28 @@ const base = { amount, date, accountId: z.uuid("Pilih akun"), description };
 
 const categoryId = z.uuid("Pilih kategori");
 
+// Create-only: generated once per submit so a retried request cannot insert twice.
+const clientId = z.uuid("Id transaksi tidak valid").optional();
+
 // Nested issues flatten onto `fields.fee`, which the transfer form shows on its fee block.
-const fee = z.strictObject({ amount, categoryId }, "Biaya admin tidak valid");
+const fee = z.strictObject({ id: clientId, amount, categoryId }, "Biaya admin tidak valid");
 
 export const SIMPLE_TRANSACTION_TYPES = ["income", "expense", "saving"] as const;
 
 export type SimpleTransactionType = (typeof SIMPLE_TRANSACTION_TYPES)[number];
 
-export const simpleCreateSchema = z.strictObject({ type: z.enum(SIMPLE_TRANSACTION_TYPES), ...base, categoryId });
+export const simpleCreateSchema = z.strictObject({ type: z.enum(SIMPLE_TRANSACTION_TYPES), id: clientId, ...base, categoryId });
 
 export const transferCreateSchema = z
-  .strictObject({ type: z.literal("transfer"), ...base, toAccountId: z.uuid("Pilih akun tujuan"), fee: fee.optional() })
-  .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" });
+  .strictObject({
+    type: z.literal("transfer"),
+    id: clientId,
+    ...base,
+    toAccountId: z.uuid("Pilih akun tujuan"),
+    fee: fee.optional(),
+  })
+  .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" })
+  .refine((v) => !v.id || v.fee?.id !== v.id, { path: ["fee"], error: "Id biaya admin harus berbeda dari id transfer" });
 
 export const transactionCreateSchema = z.discriminatedUnion(
   "type",

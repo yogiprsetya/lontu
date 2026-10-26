@@ -1,6 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createTransaction, isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
 import { isResourceKey } from "@/lib/cache-invalidation";
+import { ApiError } from "@/lib/fetcher";
+import { createOutbox } from "@/lib/offline/outbox";
+import type { KeyValueStore } from "@/lib/offline/storage";
 
 const isTransactionsKey = (key: unknown) => isResourceKey("transactions", key);
 
@@ -81,5 +84,85 @@ describe("isInfiniteTransactionsKey", () => {
     expect(isInfiniteTransactionsKey("/api/transactions/totals")).toBe(false);
     expect(isInfiniteTransactionsKey("$inf$/api/accounts")).toBe(false);
     expect(isInfiniteTransactionsKey(undefined)).toBe(false);
+  });
+});
+
+describe("createTransaction", () => {
+  const accountId = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
+  const input = { type: "expense", amount: 25_000, date: "2026-10-25", accountId, categoryId: accountId, description: null } as const;
+
+  function mapStore(): KeyValueStore {
+    const data = new Map<string, unknown>();
+    return {
+      get: async <T>(key: string) => data.get(key) as T | undefined,
+      set: async (key, value) => void data.set(key, value),
+      del: async (key) => void data.delete(key),
+      entries: async <T>() => [...data.entries()] as [string, T][],
+    };
+  }
+
+  function setup(onLine: boolean, fetchImpl: () => Promise<Response>) {
+    vi.stubGlobal("navigator", { onLine });
+    const fetchMock = vi.fn<typeof fetch>(() => fetchImpl());
+    vi.stubGlobal("fetch", fetchMock);
+    const outbox = createOutbox(mapStore());
+    const sentBody = () => JSON.parse(fetchMock.mock.calls[0][1]!.body as string);
+    return { fetchMock, outbox, sentBody };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("queues without fetching when the browser is offline", async () => {
+    const { fetchMock, outbox } = setup(false, () => Promise.resolve(new Response("{}", { status: 201 })));
+
+    const result = await createTransaction(input, { userId: "user-a", outbox });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.status).toBe("queued");
+    const [item] = await outbox.list("user-a");
+    expect(item.id).toBe(result.status === "queued" && result.id);
+    expect(item.body).toMatchObject({ ...input, id: item.id });
+  });
+
+  it("queues the same id it sent when fetch rejects", async () => {
+    const { outbox, sentBody } = setup(true, () => Promise.reject(new TypeError("Failed to fetch")));
+
+    const result = await createTransaction(input, { userId: "user-a", outbox });
+
+    expect(result).toEqual({ status: "queued", id: sentBody().id });
+    expect((await outbox.list("user-a"))[0].body).toEqual(sentBody());
+  });
+
+  it("gives a transfer fee its own id", async () => {
+    const { outbox } = setup(false, () => Promise.reject(new TypeError("Failed to fetch")));
+    const transfer = { type: "transfer", amount: 10_000, date: "2026-10-25", accountId, toAccountId: accountId, description: null, fee: { amount: 1_000, categoryId: accountId } } as const;
+
+    await createTransaction(transfer, { userId: "user-a", outbox });
+
+    const [{ body }] = await outbox.list("user-a");
+    expect(body.type === "transfer" && body.fee?.id).toEqual(expect.any(String));
+    expect(body.type === "transfer" && body.fee?.id).not.toBe(body.id);
+  });
+
+  it.each([400, 500])("throws an ApiError on %i and does not queue", async (status) => {
+    const { outbox } = setup(true, () =>
+      Promise.resolve(new Response(JSON.stringify({ error: { code: "X", message: "Gagal" } }), { status })),
+    );
+
+    await expect(createTransaction(input, { userId: "user-a", outbox })).rejects.toBeInstanceOf(ApiError);
+    expect(await outbox.list("user-a")).toEqual([]);
+  });
+
+  it("sends a client id when online and returns the created rows", async () => {
+    const created = { transaction: { id: "x" }, fee: null };
+    const { outbox, sentBody } = setup(true, () => Promise.resolve(new Response(JSON.stringify(created), { status: 201 })));
+
+    const result = await createTransaction(input, { userId: "user-a", outbox });
+
+    expect(sentBody().id).toEqual(expect.any(String));
+    expect(result).toEqual({ status: "sent", created });
+    expect(await outbox.list("user-a")).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { amountTone, formatDateHeading, formatSignedAmount, groupByDate } from "@/lib/transaction-format";
+import { amountTone, formatDateHeading, formatSignedAmount, groupByDate, titleOf } from "@/lib/transaction-format";
 
 describe("formatDateHeading", () => {
   it("labels today and yesterday", () => {
@@ -55,5 +55,23 @@ describe("groupByDate", () => {
 
   it("returns an empty list for no items", () => {
     expect(groupByDate([])).toEqual([]);
+  });
+});
+
+describe("titleOf", () => {
+  const accounts = new Map([["a1", "BCA"], ["a2", "Dompet"]]);
+  const categories = new Map([["c1", "Makan"]]);
+
+  it("names a transfer by its accounts", () => {
+    expect(titleOf({ type: "transfer", accountId: "a1", toAccountId: "a2", categoryId: null }, accounts, categories)).toBe(
+      "BCA → Dompet",
+    );
+  });
+
+  it("names other types by category, with a fallback", () => {
+    expect(titleOf({ type: "expense", accountId: "a1", toAccountId: null, categoryId: "c1" }, accounts, categories)).toBe("Makan");
+    expect(titleOf({ type: "expense", accountId: "a1", toAccountId: null, categoryId: "c9" }, accounts, categories)).toBe(
+      "Tanpa kategori",
+    );
   });
 });

@@ -31,10 +31,15 @@ export async function fetcher<T = unknown>(url: string): Promise<T> {
 }
 
 /** For mutations: sends `body` as JSON and throws ApiError on a non-2xx response. */
-export async function sendJSON<T = unknown>(url: string, method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown) {
+export async function sendJSON<T = unknown>(
+  url: string,
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  body?: unknown,
+  { signal }: { signal?: AbortSignal } = {},
+) {
   const init: RequestInit =
     body === undefined
-      ? { method }
-      : { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
+      ? { method, signal }
+      : { method, signal, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
   return parse<T>(await fetch(url, init));
 }

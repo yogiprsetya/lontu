@@ -4,6 +4,8 @@ import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
 import { invalidate, isResourceKey } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
+import { isNetworkError } from "@/lib/offline/network-error";
+import { outbox as defaultOutbox, type Outbox, type OutboxBody } from "@/lib/offline/outbox";
 import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
 import type { Transaction, TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
@@ -12,10 +14,52 @@ export function isInfiniteTransactionsKey(key: unknown) {
   return isResourceKey("transactions", key) && (key as string).startsWith("$inf$");
 }
 
-export async function createTransaction(input: TransactionCreateInput) {
-  const created = await sendJSON<TransactionCreated>("/api/transactions", "POST", input);
+export type CreateOutcome = { status: "sent"; created: TransactionCreated } | { status: "queued"; id: string };
+
+const SEND_TIMEOUT_MS = 10_000;
+
+let persistRequested = false;
+
+// One id per submit, sent online too: a request that reached the server but lost its response
+// is then safe to repeat.
+function withClientIds(input: TransactionCreateInput): OutboxBody {
+  const id = crypto.randomUUID();
+  if (input.type === "transfer" && input.fee) return { ...input, id, fee: { ...input.fee, id: crypto.randomUUID() } };
+  return { ...input, id };
+}
+
+/**
+ * Queues the create on the device when there is no connection or no response within 10 s.
+ * Any HTTP response, 5xx included, is not queued and throws as before.
+ */
+export async function createTransaction(
+  input: TransactionCreateInput,
+  { userId, outbox = defaultOutbox }: { userId: string | undefined; outbox?: Outbox },
+): Promise<CreateOutcome> {
+  const body = withClientIds(input);
+  const queue = async (cause: unknown): Promise<CreateOutcome> => {
+    if (!userId) throw cause;
+    await outbox.enqueue(userId, body);
+    if (!persistRequested) {
+      persistRequested = true;
+      // Asks the browser not to evict the outbox under storage pressure (iOS clears idle sites).
+      void navigator.storage?.persist?.().catch(() => {});
+    }
+    return { status: "queued", id: body.id };
+  };
+
+  if (!navigator.onLine) return queue(new TypeError("Offline"));
+  let created: TransactionCreated;
+  try {
+    created = await sendJSON<TransactionCreated>("/api/transactions", "POST", body, {
+      signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
+    });
+  } catch (err) {
+    if (isNetworkError(err)) return queue(err);
+    throw err;
+  }
   await invalidate("transactions");
-  return created;
+  return { status: "sent", created };
 }
 
 /** `getKey` for useSWRInfinite: null once the previous page has no next cursor. */

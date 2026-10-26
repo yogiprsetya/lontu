@@ -42,6 +42,8 @@ describe("proxy matcher", () => {
     "/favicon.ico",
     "/manifest.webmanifest",
     "/icons/icon-192.png",
+    "/sw.js",
+    "/~offline",
   ])("skips %s", (path) => {
     expect(pattern.test(path)).toBe(false);
   });

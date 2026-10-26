@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && serwist build serwist.config.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
@@ -17,10 +17,12 @@
   "dependencies": {
     "@base-ui/react": "^1.9.0",
     "@hookform/resolvers": "^6.0.0",
+    "@serwist/next": "^9.5.13",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.0",
     "dotenv": "^18.0.8",
     "drizzle-orm": "1.0.0-rc.4",
+    "idb-keyval": "^6.3.0",
     "lucide-react": "^1.59.0",
     "next": "16.4.2",
     "next-auth": "5.0.0-beta.32",
@@ -31,6 +33,7 @@
     "react-hook-form": "^7.90.0",
     "recharts": "3.8.0",
     "server-only": "^0.0.1",
+    "serwist": "^9.5.13",
     "shadcn": "^4.22.1",
     "sonner": "^2.0.8",
     "swr": "^2.5.1",
@@ -39,6 +42,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@serwist/cli": "^9.5.13",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

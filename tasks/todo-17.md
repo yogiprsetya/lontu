@@ -57,13 +57,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Bulan menampilkan batang per hari, tahun per bulan, tanpa horizontal scroll di 360 px. Tidak ada layout shift saat grafik muncul
-- [ ] Screen reader membaca ringkasan dan tabel. `hideAmounts` dipatuhi
-- [ ] JS first load `/dashboard` tetap < 200 KB gzip (dicatat di commit)
+- [x] Bulan menampilkan batang per hari, tahun per bulan, tanpa horizontal scroll di 360 px. Tidak ada layout shift saat grafik muncul
+- [x] Screen reader membaca ringkasan dan tabel. `hideAmounts` dipatuhi
+- [x] JS first load `/dashboard` tetap < 200 KB gzip (dicatat di commit)
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T59, T60
@@ -102,13 +102,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Persen di legenda menjumlah ≈ 100, nominal "Lainnya" sama dengan sisa. Tap legenda → total di `/transactions` sama dengan nominalnya
-- [ ] Kategori terarsip berlabel "(arsip)". `hideAmounts` menyamarkan nominal dan label tengah, persen tetap tampil
-- [ ] 360 px tanpa horizontal scroll, kontras teks ≥ 4.5:1, JS first load tetap < 200 KB gzip
+- [x] Persen di legenda menjumlah ≈ 100, nominal "Lainnya" sama dengan sisa. Tap legenda → total di `/transactions` sama dengan nominalnya
+- [x] Kategori terarsip berlabel "(arsip)". `hideAmounts` menyamarkan nominal dan label tengah, persen tetap tampil
+- [x] 360 px tanpa horizontal scroll, kontras teks ≥ 4.5:1, JS first load tetap < 200 KB gzip
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T59, T62
@@ -121,6 +121,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint P
 
-- [ ] Gerbang penuh hijau, JS first load `/dashboard` < 200 KB gzip
-- [ ] Manual 360×800 dan 1024: alur di plan-17
-- [ ] Review dengan Yogi (open question 4 di spec)
+- [x] Gerbang penuh hijau, JS first load `/dashboard` < 200 KB gzip
+- [x] Manual 360×800 dan 1024: alur di plan-17
+- [x] Review dengan Yogi (open question 4 di spec)

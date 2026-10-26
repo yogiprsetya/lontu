@@ -21,7 +21,7 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
 | `budgets` | CRUD budget per kategori/bulan, salin dari bulan lalu, query `budgetUsage`, ringkasan Needs/Wants | accounts-categories, transactions |
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary | transactions, budgets |
-| `pwa-offline` | Service worker Serwist, cache SWR di IndexedDB, antrean transaksi offline, banner install & update | transactions |
+| `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 
 **Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline
 
@@ -51,7 +51,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 | Validasi & form | `zod` v4, `react-hook-form`, `@hookform/resolvers` | ditambahkan di foundation |
 | Data client | `swr`, `zustand` | ditambahkan di foundation |
 | Grafik | shadcn chart (Recharts) | modul dashboard |
-| PWA | `@serwist/next`, `idb-keyval` | modul pwa-offline |
+| PWA | `@serwist/next`, `serwist`, `@serwist/cli` (dev), `idb-keyval` | modul pwa-offline |
 | Test | Vitest, Playwright | Vitest di foundation; Playwright ditunda ke phase setelah foundation |
 | Package manager | pnpm | 12.5.1 |
 

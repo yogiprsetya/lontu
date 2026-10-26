@@ -21,6 +21,7 @@ import {
   type AccountType,
   accountCreateSchema,
 } from "@/lib/schemas/account";
+import { failureMessage } from "@/lib/offline/network-error";
 
 type FormValues = z.input<typeof accountCreateSchema>;
 
@@ -64,7 +65,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
       }
       onDone();
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan akun. Coba lagi.");
+      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan akun. Coba lagi."));
     }
   });
 

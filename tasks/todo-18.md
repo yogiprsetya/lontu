@@ -13,13 +13,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [x] `budgetHighlights`: `over` sebelum `warning`, urut `percent` turun, `ok`/`none` tidak ikut, maksimal 3
-- [ ] Angka sama dengan `/budget` untuk bulan yang sama. Catat expense yang melewati 80% → kategori muncul tanpa reload
-- [ ] Status terbaca tanpa warna, baris ≥ 44 px, `hideAmounts` menyamarkan nominal
+- [x] Angka sama dengan `/budget` untuk bulan yang sama. Catat expense yang melewati 80% → kategori muncul tanpa reload
+- [x] Status terbaca tanpa warna, baris ≥ 44 px, `hideAmounts` menyamarkan nominal
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/dashboard-format.spec.ts` hijau
-- [ ] Manual 360×800 dan 1024, light dan dark. `pnpm build` hijau
+- [x] Manual 360×800 dan 1024, light dan dark. `pnpm build` hijau
 
 **Dependencies:** T58
 
@@ -35,13 +35,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] 360 px dan 1024 px sesuai urutan di atas, tanpa horizontal scroll. Mematikan jaringan untuk satu request menampilkan error di bagian itu saja
-- [ ] Lighthouse mobile `/dashboard`: Performance ≥ 90, Accessibility ≥ 95, CLS < 0,1. JS first load < 200 KB gzip
+- [x] 360 px dan 1024 px sesuai urutan di atas, tanpa horizontal scroll. Mematikan jaringan untuk satu request menampilkan error di bagian itu saja
+- [x] Lighthouse mobile `/dashboard`: Performance ≥ 90, Accessibility ≥ 95, CLS < 0,1. JS first load < 200 KB gzip
 - [x] Acceptance criteria API, unit, dan UI di SPEC-dashboard.md tercentang atau dicatat sebagai tertunda
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 
 **Dependencies:** T61, T63, T64
@@ -54,8 +54,8 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint Q (modul selesai)
 
-- [ ] Gerbang penuh hijau
-- [ ] Semua acceptance criteria di SPEC-dashboard.md tercentang
-- [ ] Manual 360×800 dan 1024, light dan dark: alur penuh
-- [ ] Lighthouse mobile memenuhi target
-- [ ] Review dengan Yogi, lalu tulis `SPEC-pwa-offline.md`
+- [x] Gerbang penuh hijau
+- [x] Semua acceptance criteria di SPEC-dashboard.md tercentang
+- [x] Manual 360×800 dan 1024, light dan dark: alur penuh
+- [x] Lighthouse mobile memenuhi target
+- [x] Review dengan Yogi, lalu tulis `SPEC-pwa-offline.md`

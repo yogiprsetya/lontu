@@ -13,6 +13,7 @@ import { updateProfile, useProfile } from "@/hooks/use-profile";
 import { applyServerErrors } from "@/lib/form-errors";
 import { type Profile, profileSchema } from "@/lib/schemas/profile";
 import { LoadError } from "./load-error";
+import { failureMessage } from "@/lib/offline/network-error";
 
 const formSchema = profileSchema.pick({ displayName: true, phone: true, location: true }).required();
 type FormValues = z.input<typeof formSchema>;
@@ -53,7 +54,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       await updateProfile({ displayName, phone: phone || null, location: location || null });
       toast.success("Profil disimpan");
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan profil. Coba lagi.");
+      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan profil. Coba lagi."));
     }
   });
 

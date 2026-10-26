@@ -1,5 +1,7 @@
+import { archiveLabel } from "@/lib/archived";
 import { formatIDR } from "@/lib/money";
-import type { ListTransactionType } from "@/lib/schemas/transaction";
+import type { ListTransactionType, Transaction } from "@/lib/schemas/transaction";
+import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 
 // Dates are plain YYYY-MM-DD strings; reading them as UTC keeps the calendar day fixed in any local zone.
 const headingFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -61,4 +63,21 @@ export function groupByDate<T extends { date: string }>(items: T[]) {
     else groups.push({ date: item.date, items: [item] });
   }
   return groups;
+}
+
+export type Names = Map<string, string>;
+
+export function nameMap(items: { id: string; name: string; archivedAt: string | null }[] | undefined): Names {
+  return new Map(items?.map((i) => [i.id, archiveLabel(i)]));
+}
+
+// Optional ids so an unsent create body (which has only its type's fields) works too.
+export function titleOf(
+  t: Pick<Transaction, "type" | "accountId"> & { toAccountId?: string | null; categoryId?: string | null },
+  accounts: Names,
+  categories: Names,
+) {
+  if (t.type === "transfer") return `${accounts.get(t.accountId) ?? "Akun"} → ${accounts.get(t.toAccountId!) ?? "Akun"}`;
+  if (t.type === "adjustment") return ADJUSTMENT_LABEL;
+  return (t.categoryId && categories.get(t.categoryId)) || "Tanpa kategori";
 }

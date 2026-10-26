@@ -13,6 +13,7 @@ import { StickySubmit } from "@/components/forms/sticky-submit";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
 import { useBackToList } from "@/hooks/use-back-to-list";
+import { useProfile } from "@/hooks/use-profile";
 import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
@@ -26,6 +27,7 @@ import {
 } from "@/lib/schemas/transaction";
 import { signedEffect } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
+import { failureMessage } from "@/lib/offline/network-error";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
@@ -35,6 +37,7 @@ type FormValues = z.input<typeof simpleCreateSchema>;
  */
 export function TransactionForm({ type, transaction }: { type: SimpleTransactionType; transaction?: Transaction }) {
   const router = useRouter();
+  const { data: profile } = useProfile();
   const backToList = useBackToList();
   const today = todayInJakarta();
   const {
@@ -71,12 +74,13 @@ export function TransactionForm({ type, transaction }: { type: SimpleTransaction
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
-        await createTransaction(input);
-        toast.success(`${TRANSACTION_TYPE_LABELS[type]} tersimpan`);
+        const outcome = await createTransaction(input, { userId: profile?.id });
+        if (outcome.status === "queued") toast("Disimpan di perangkat, dikirim saat online");
+        else toast.success(`${TRANSACTION_TYPE_LABELS[type]} tersimpan`);
         router.push("/transactions");
       }
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error("Gagal menyimpan transaksi. Coba lagi.");
+      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
     }
   });
 

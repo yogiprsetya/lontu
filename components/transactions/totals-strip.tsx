@@ -23,7 +23,7 @@ export function TotalsStrip({ filters }: { filters: ListFilters }) {
   return (
     <dl className="grid grid-cols-3 gap-2" aria-busy={!data}>
       {ITEMS.map(({ key, label }) => (
-        <div key={key} className={`min-w-0 rounded-2xl px-3 py-3 ${TYPE_STYLES[key].tile}`}>
+        <div key={key} className={`min-w-0 rounded-2xl px-3 py-3 shadow-soft ${TYPE_STYLES[key].tile}`}>
           <dt className="text-sm font-bold">{label}</dt>
           <dd className="truncate font-heading text-lg font-extrabold tabular-nums text-foreground">
             {!data ? (

@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { ChartPieIcon } from "lucide-react";
+import { SectionTitle } from "@/components/layout/section-title";
 import { NoExpense } from "@/components/dashboard/expense-activity";
 import { LoadError } from "@/components/settings/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -90,9 +92,9 @@ export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
 
   return (
     <section aria-labelledby="categories-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
-      <h2 id="categories-title" className="font-heading text-lg font-bold">
+      <SectionTitle id="categories-title" icon={ChartPieIcon} tone="mint">
         Pengeluaran per kategori
-      </h2>
+      </SectionTitle>
       {content}
     </section>
   );

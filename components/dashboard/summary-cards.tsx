@@ -26,7 +26,7 @@ const TONE_CLASS: Record<ChangeTone, string> = {
   neutral: "text-muted-foreground",
 };
 
-const CARD_CLASS = "flex min-h-36 min-w-0 flex-col gap-1 rounded-2xl px-3.5 py-4 sm:px-4";
+const CARD_CLASS = "flex min-h-36 min-w-0 flex-col gap-1 rounded-2xl px-3.5 py-4 shadow-soft sm:px-4";
 
 function ChangeLine({ tone, icon: Icon, text }: { tone: ChangeTone; icon: LucideIcon; text: string }) {
   return (
@@ -101,7 +101,7 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
               ) : (
                 <Link
                   href={`/transactions?${filtersToUrl({ period, type: key })}`}
-                  className={cn(CARD_CLASS, tile, "transition-[filter] hover:brightness-[0.97] dark:hover:brightness-110")}
+                  className={cn(CARD_CLASS, tile, "transition-[filter,transform] hover:brightness-[0.97] motion-safe:active:scale-[0.98] dark:hover:brightness-110")}
                 >
                   {body}
                 </Link>

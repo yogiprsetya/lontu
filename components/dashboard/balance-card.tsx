@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, PiggyBankIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,8 +15,20 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
 // Sunny stays bright in dark mode, so everything on it uses the sunny-* text tokens, never foreground.
-const HERO_CLASS = "flex flex-col gap-4 rounded-[1.75rem] bg-sunny bg-dots px-5 py-5 text-sunny-foreground shadow-soft [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-sunny-foreground";
+const HERO_CLASS = "relative mt-5 flex flex-col gap-4 rounded-[1.75rem] bg-sunny bg-dots px-5 py-5 text-sunny-foreground shadow-soft [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-sunny-foreground";
 const EYEBROW_CLASS = "text-xs font-bold uppercase tracking-[0.14em] text-sunny-muted-foreground";
+// Sits where the reference puts its mascot: half over the card's top edge, tilted like a sticker.
+function Sticker() {
+  return (
+    <span
+      aria-hidden
+      className="absolute -top-6 right-5 flex size-14 rotate-[8deg] items-center justify-center rounded-2xl bg-peach-pop text-white shadow-soft ring-4 ring-card"
+    >
+      <PiggyBankIcon className="size-7" strokeWidth={2.5} />
+    </span>
+  );
+}
+
 const HERO_BUTTON_CLASS = "h-11 rounded-full bg-sunny-foreground px-5 text-base font-bold text-sunny hover:bg-sunny-foreground/85 focus-visible:ring-sunny-foreground/40";
 
 /** Balances are always today's, whatever the period; the period only scopes the drill-down. */
@@ -28,11 +40,12 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const tone = (amount: number) => !hideAmounts && amount < 0 && "text-sunny-alert";
 
   if (error) return <LoadError message="Gagal memuat saldo." onRetry={() => void mutate()} />;
-  if (!data) return <Skeleton className="h-52 w-full rounded-[1.75rem]" aria-busy="true" />;
+  if (!data) return <Skeleton className="mt-5 h-52 w-full rounded-[1.75rem]" aria-busy="true" />;
 
   if (data.length === 0) {
     return (
       <section aria-labelledby="balance-title" className={cn(HERO_CLASS, "items-start")}>
+        <Sticker />
         <h2 id="balance-title" className={EYEBROW_CLASS}>
           Total saldo
         </h2>
@@ -48,6 +61,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
 
   return (
     <section aria-labelledby="balance-title" className={HERO_CLASS}>
+      <Sticker />
       <div className="min-w-0">
         <h2 id="balance-title" className={EYEBROW_CLASS}>
           Total saldo

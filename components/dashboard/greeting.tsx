@@ -1,6 +1,7 @@
 "use client";
 
 import { useProfile } from "@/hooks/use-profile";
+import { greetingInJakarta } from "@/lib/date";
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   timeZone: "Asia/Jakarta",
@@ -16,8 +17,12 @@ export function Greeting() {
 
   return (
     <div className="min-w-0">
-      <h1 className="truncate font-heading text-3xl font-extrabold tracking-tight">{firstName ? `Halo, ${firstName}` : "Halo!"}</h1>
-      <p className="truncate text-sm font-semibold text-muted-foreground">{dateFormatter.format(new Date())}</p>
+      <h1 className="truncate font-heading text-3xl font-extrabold tracking-tight">
+        {firstName ? `Halo, ${firstName}` : "Halo!"} <span aria-hidden>👋</span>
+      </h1>
+      <p className="truncate text-sm font-semibold text-muted-foreground">
+        {greetingInJakarta()} · {dateFormatter.format(new Date())}
+      </p>
     </div>
   );
 }

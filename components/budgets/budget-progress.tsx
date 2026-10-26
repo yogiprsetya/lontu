@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const FILL: Record<BudgetStatus, string> = {
   none: "bg-muted-foreground",
-  ok: "bg-primary",
+  ok: "bg-mint-pop",
   warning: "bg-budget",
   over: "bg-expense",
 };

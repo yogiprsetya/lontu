@@ -114,7 +114,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="surface flex flex-col gap-4 px-5 py-5">
       <Controller
         control={control}
         name="amount"
@@ -200,7 +200,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
           Biaya admin dicatat sebagai expense terpisah. Mengubah atau menghapus transfer ini tidak mengubahnya.
         </p>
       ) : (
-        <fieldset className="flex flex-col gap-4 surface px-5 py-3">
+        <fieldset className="flex flex-col gap-4 rounded-2xl bg-muted px-4 py-3">
           <label className="flex min-h-11 items-center gap-3 text-base md:text-sm">
             <Checkbox
               checked={hasFee}

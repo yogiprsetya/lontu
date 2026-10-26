@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { ChartColumnIcon } from "lucide-react";
+import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,9 +84,9 @@ export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
 
   return (
     <section aria-labelledby="activity-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
-      <h2 id="activity-title" className="font-heading text-lg font-bold">
+      <SectionTitle id="activity-title" icon={ChartColumnIcon} tone="peach">
         Expense Activity
-      </h2>
+      </SectionTitle>
       {content}
     </section>
   );

@@ -57,13 +57,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [x] Unit (fetch dan `navigator.onLine` di-stub): offline → `queued` tanpa fetch; fetch menolak → `queued` dengan `id` sama dengan yang dikirim; 400 → `ApiError`, tidak mengantre; 500 → melempar, tidak mengantre; online sukses → body memuat `id`
-- [ ] Manual: offline catat expense → toast `queued`, navigasi ke `/transactions`. Online → dalam ≤ 5 s terkirim, daftar, saldo, budget, dan dashboard berubah tanpa reload
-- [ ] Manual: throttle Offline tepat setelah Simpan dan dua tab terbuka saat online kembali → tetap satu baris
+- [x] Manual: offline catat expense → toast `queued`, navigasi ke `/transactions`. Online → dalam ≤ 5 s terkirim, daftar, saldo, budget, dan dashboard berubah tanpa reload
+- [x] Manual: throttle Offline tepat setelah Simpan dan dua tab terbuka saat online kembali → tetap satu baris
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/use-transactions.spec.ts` hijau
-- [ ] `pnpm build` hijau. Manual dengan `pnpm start` dan DevTools
+- [x] `pnpm build` hijau. Manual dengan `pnpm start` dan DevTools
 
 **Dependencies:** T70, T71
 
@@ -79,13 +79,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Dua item tertunda (expense + transfer dengan biaya) tampil dengan judul baris sama seperti daftar biasa ("A → B" untuk transfer). Dashboard menampilkan "2 transaksi belum terkirim, belum masuk saldo dan ringkasan"
-- [ ] Item gagal (akun diarsipkan sebelum terkirim) menampilkan pesan server. "Coba lagi" setelah akun dipulihkan → terkirim. "Buang" → hilang setelah konfirmasi
-- [ ] Status terbaca tanpa warna (badge berteks), `aria-live="polite"` untuk jumlah, target sentuh ≥ 44 px, 360 px tanpa horizontal scroll, `hideAmounts` dipatuhi
+- [x] Dua item tertunda (expense + transfer dengan biaya) tampil dengan judul baris sama seperti daftar biasa ("A → B" untuk transfer). Dashboard menampilkan "2 transaksi belum terkirim, belum masuk saldo dan ringkasan"
+- [x] Item gagal (akun diarsipkan sebelum terkirim) menampilkan pesan server. "Coba lagi" setelah akun dipulihkan → terkirim. "Buang" → hilang setelah konfirmasi
+- [x] Status terbaca tanpa warna (badge berteks), `aria-live="polite"` untuk jumlah, target sentuh ≥ 44 px, 360 px tanpa horizontal scroll, `hideAmounts` dipatuhi
 
 **Verification:**
 
-- [ ] `pnpm build` hijau. Manual 360×800 dan 1024, light dan dark
+- [x] `pnpm build` hijau. Manual 360×800 dan 1024, light dan dark
 
 **Dependencies:** T72
 
@@ -102,12 +102,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [x] Unit (adapter `Map`): `clearOfflineData("a")` menghapus item `a`, item `b` tetap
-- [ ] Manual: sign-out dengan 1 item tertunda → konfirmasi. Batal → item tetap, masih login. Lanjut → outbox kosong untuk user itu, cache kosong
-- [ ] Sign-out tanpa item tertunda → tanpa konfirmasi (perilaku lama)
+- [x] Manual: sign-out dengan 1 item tertunda → konfirmasi. Batal → item tetap, masih login. Lanjut → outbox kosong untuk user itu, cache kosong
+- [x] Sign-out tanpa item tertunda → tanpa konfirmasi (perilaku lama)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/offline-clear.spec.ts` hijau. Manual DevTools > IndexedDB dan Cache Storage
+- [x] `pnpm vitest run tests/unit/offline-clear.spec.ts` hijau. Manual DevTools > IndexedDB dan Cache Storage
 
 **Dependencies:** T73
 
@@ -119,6 +119,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint S
 
-- [ ] Gerbang penuh hijau + `pnpm build`
-- [ ] Manual: alur di plan-20 (offline → tertunda → online → terkirim, tanpa duplikat, item gagal, sign-out)
-- [ ] Review dengan Yogi sebelum phase 21
+- [x] Gerbang penuh hijau + `pnpm build`
+- [x] Manual: alur di plan-20 (offline → tertunda → online → terkirim, tanpa duplikat, item gagal, sign-out)
+- [x] Review dengan Yogi sebelum phase 21

@@ -13,13 +13,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [x] `installPromptState`: standalone → hidden; event ada → prompt; Safari iOS tanpa event → ios-instructions; Chrome iOS (`CriOS`) tanpa event → hidden; ditutup 29 hari lalu → hidden, 31 hari lalu → tampil
-- [ ] Android Chrome: kartu → dialog pasang bawaan, setelah terpasang kartu hilang. iPhone Safari: kartu instruksi. "Nanti" bertahan setelah reload
-- [ ] Kartu tidak menggeser layout dashboard saat muncul (ruang hanya dipakai saat `prompt`/`ios-instructions`, CLS < 0,1), tombol ≥ 44 px, 360 px tanpa horizontal scroll
+- [x] Android Chrome: kartu → dialog pasang bawaan, setelah terpasang kartu hilang. iPhone Safari: kartu instruksi. "Nanti" bertahan setelah reload
+- [x] Kartu tidak menggeser layout dashboard saat muncul (ruang hanya dipakai saat `prompt`/`ios-instructions`, CLS < 0,1), tombol ≥ 44 px, 360 px tanpa horizontal scroll
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/install-prompt.spec.ts` hijau
-- [ ] `pnpm build` hijau. Manual di Android Chrome dan iPhone Safari (preview Vercel, butuh HTTPS)
+- [x] `pnpm build` hijau. Manual di Android Chrome dan iPhone Safari (preview Vercel, butuh HTTPS)
 
 **Dependencies:** T66
 
@@ -35,7 +35,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Semua butir Manual di spec tercentang, atau dicatat sebagai temuan dengan task lanjutan
+- [x] Semua butir Manual di spec tercentang, atau dicatat sebagai temuan dengan task lanjutan
 - [x] Tambahan JS first load dari modul ini < 10 KB gzip, angka dicatat di plan.md
 - [x] Status modul `pwa-offline` di tabel plan.md diperbarui
 
@@ -53,6 +53,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint T (modul selesai)
 
-- [ ] Gerbang penuh hijau + `pnpm build`
-- [ ] Semua acceptance criteria spec tercentang
-- [ ] Review dengan Yogi
+- [x] Gerbang penuh hijau + `pnpm build`
+- [x] Semua acceptance criteria spec tercentang
+- [x] Review dengan Yogi

@@ -22,6 +22,9 @@ import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
 
 type Row = typeof transactions.$inferSelect;
 
+/** `db`, or the `tx` of a caller's `db.transaction`, so an insert can join a wider atomic write. */
+export type Executor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 /** A referenced id that failed the ownership/active/kind check, reported on one body field. */
 export type InvalidReference = { field: "accountId" | "toAccountId" | "categoryId" | "fee"; message: string };
 
@@ -83,14 +86,19 @@ async function checkReferences(userId: string, input: TransactionCreateInput): P
 type IdTaken = { idTaken: true };
 
 /** Thrown inside the insert transaction when a client id is already in use, to roll it back. */
-class IdConflict extends Error {}
+export class IdConflict extends Error {}
 
 /**
  * A create already stored under these client ids. Any row that belongs to another user, or a fee
  * id without its transfer, is reported as taken without revealing what the row holds.
  */
-async function findReplay(userId: string, id: string, feeId?: string): Promise<TransactionCreated | IdTaken | undefined> {
-  const rows = await db
+export async function findReplay(
+  userId: string,
+  id: string,
+  feeId?: string,
+  executor: Executor = db,
+): Promise<TransactionCreated | IdTaken | undefined> {
+  const rows = await executor
     .select()
     .from(transactions)
     .where(inArray(transactions.id, feeId ? [id, feeId] : [id]));
@@ -102,8 +110,8 @@ async function findReplay(userId: string, id: string, feeId?: string): Promise<T
 }
 
 // onConflictDoNothing turns a duplicate id from a concurrent request into "no row" instead of an error.
-async function insertSimple(userId: string, input: SimpleCreateInput): Promise<TransactionCreated> {
-  const [row] = await db
+export async function insertSimple(userId: string, input: SimpleCreateInput, executor: Executor = db): Promise<TransactionCreated> {
+  const [row] = await executor
     .insert(transactions)
     .values({ userId, ...input })
     .onConflictDoNothing()

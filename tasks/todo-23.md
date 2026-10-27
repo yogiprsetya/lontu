@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Seluruh `tests/api/transactions*.spec.ts` dan `tests/unit/transaction*.spec.ts` hijau **tanpa satu pun diedit** (termasuk idempotency dari modul pwa-offline)
-- [ ] `insertSimple(executor, …)` menulis lewat executor yang diberikan: dites dengan `db.transaction` yang di-rollback sehingga tidak ada baris tersisa
-- [ ] Diff hanya menyentuh tanda tangan fungsi, pemanggilnya, dan satu tes baru. Perilaku `IdConflict` dan `onConflictDoNothing` tidak berubah
+- [x] Seluruh `tests/api/transactions*.spec.ts` dan `tests/unit/transaction*.spec.ts` hijau **tanpa satu pun diedit** (termasuk idempotency dari modul pwa-offline)
+- [x] `insertSimple(executor, …)` menulis lewat executor yang diberikan: dites dengan `db.transaction` yang di-rollback sehingga tidak ada baris tersisa
+- [x] Diff hanya menyentuh tanda tangan fungsi, pemanggilnya, dan satu tes baru. Perilaku `IdConflict` dan `onConflictDoNothing` tidak berubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api tests/unit` hijau (seluruh suite, bukan hanya berkas baru)
+- [x] `pnpm vitest run tests/api tests/unit` hijau (seluruh suite, bukan hanya berkas baru)
 
 **Dependencies:** None (boleh dikerjakan paralel dengan phase 22)
 

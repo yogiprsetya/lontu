@@ -8,7 +8,7 @@ Nilai inti modul ini: dashboard menjawab "berapa yang boleh saya pakai sampai ga
 
 ## Task
 
-- [ ] T87: `paydayForecast` murni + saldo `spendable` + `forecast` di `GET` (M, risiko sedang)
+- [x] T87: `paydayForecast` murni + saldo `spendable` + `forecast` di `GET` (M, risiko sedang)
 - [ ] T88: Kartu gajian di dashboard (M)
 - [ ] T89: Penyelesaian modul: ukuran, NFR, verifikasi (S)
 

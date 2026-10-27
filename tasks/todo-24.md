@@ -12,15 +12,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario spec: `today = 2026-11-13`, gajian tanggal 25 (`2026-11-25`), Netflix tanggal 5 terlambat (`2026-11-05`), sewa tanggal 1 (`2026-12-01`), setoran tabungan tanggal 20, saldo debit 3.000.000 + e-wallet 200.000 + kartu kredit −500.000 + investasi 10.000.000 + debit terarsip 999 → `status "ok"`, `daysLeft 12`, `spendable 3200000`, `items` = Netflix + setoran (sewa tidak), `committed` = jumlahnya, `free = spendable − committed`
-- [ ] Gajian `nextDueDate <= today` → `payday_due` dengan `ruleId` dan `dueDate`. Tanpa aturan gajian aktif → `no_payday`. Aturan gajian terarsip tidak dihitung
-- [ ] Aturan yang jatuh tepat di hari gajian **tidak** ikut (`< payday`). Aturan tertinggal 3 bulan menyumbang 3 `ForecastItem` jika semuanya sebelum gajian. `free` negatif saat `committed > spendable`
-- [ ] Invarian: `spendable` = jumlah `balance` dari `GET /api/accounts` untuk akun yang memenuhi keputusan #4. Isolasi: saldo dan aturan user A tidak pernah masuk proyeksi B
-- [ ] `GET /api/recurring` mengembalikan `forecast` yang sama dengan `paydayForecast` untuk data yang sama. `rules` dan `due` tidak berubah dari T78
+- [x] Skenario spec: `today = 2026-11-13`, gajian tanggal 25 (`2026-11-25`), Netflix tanggal 5 terlambat (`2026-11-05`), sewa tanggal 1 (`2026-12-01`), setoran tabungan tanggal 20, saldo debit 3.000.000 + e-wallet 200.000 + kartu kredit −500.000 + investasi 10.000.000 + debit terarsip 999 → `status "ok"`, `daysLeft 12`, `spendable 3200000`, `items` = Netflix + setoran (sewa tidak), `committed` = jumlahnya, `free = spendable − committed`
+- [x] Gajian `nextDueDate <= today` → `payday_due` dengan `ruleId` dan `dueDate`. Tanpa aturan gajian aktif → `no_payday`. Aturan gajian terarsip tidak dihitung
+- [x] Aturan yang jatuh tepat di hari gajian **tidak** ikut (`< payday`). Aturan tertinggal 3 bulan menyumbang 3 `ForecastItem` jika semuanya sebelum gajian. `free` negatif saat `committed > spendable`
+- [x] Invarian: `spendable` = jumlah `balance` dari `GET /api/accounts` untuk akun yang memenuhi keputusan #4. Isolasi: saldo dan aturan user A tidak pernah masuk proyeksi B
+- [x] `GET /api/recurring` mengembalikan `forecast` yang sama dengan `paydayForecast` untuk data yang sama. `rules` dan `due` tidak berubah dari T78
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/payday-forecast.spec.ts tests/api/recurring-overview.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/payday-forecast.spec.ts tests/api/recurring-overview.spec.ts` hijau
 
 **Dependencies:** T78 (dan T86 selesai, supaya phase berurutan)
 

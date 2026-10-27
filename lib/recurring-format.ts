@@ -1,4 +1,5 @@
 import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { daysBetween } from "@/lib/recurring-schedule";
 import type { RecurringType } from "@/lib/schemas/recurring";
 
 export const RECURRING_GROUPS: { type: RecurringType; label: string }[] = [
@@ -25,13 +26,6 @@ export function formatDueLabel(nextDueDate: string, today: string) {
   if (nextDueDate === today) return { text: "Hari ini", overdue: false };
   const date = formatShortDate(nextDueDate, today);
   return nextDueDate < today ? { text: `Terlambat · ${date}`, overdue: true } : { text: date, overdue: false };
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Whole days from `from` to `to`, both YYYY-MM-DD, read as UTC so no zone or DST shifts the count. */
-export function daysBetween(from: string, to: string) {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
 }
 
 export function formatLateness(dueDate: string, today: string) {

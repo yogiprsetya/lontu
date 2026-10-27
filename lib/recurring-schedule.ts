@@ -27,3 +27,10 @@ export function firstDueOnOrAfter(dayOfMonth: number, today: string): string {
   const thisMonth = clampDay(y, m, dayOfMonth);
   return thisMonth >= today ? thisMonth : advanceDate(dayOfMonth, today);
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Whole days from `from` to `to`, both YYYY-MM-DD, read as UTC so no zone or DST shifts the count. */
+export function daysBetween(from: string, to: string) {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}

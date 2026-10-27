@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceDate, clampDay, firstDueOnOrAfter } from "@/lib/recurring-schedule";
+import { advanceDate, clampDay, daysBetween, firstDueOnOrAfter } from "@/lib/recurring-schedule";
 
 describe("clampDay", () => {
   it("keeps a day that exists in the month", () => {
@@ -47,5 +47,13 @@ describe("firstDueOnOrAfter", () => {
 
   it("rolls over the year end", () => {
     expect(firstDueOnOrAfter(1, "2026-12-02")).toBe("2027-01-01");
+  });
+});
+
+describe("daysBetween", () => {
+  it("counts calendar days across a month and a year end", () => {
+    expect(daysBetween("2026-10-25", "2026-10-27")).toBe(2);
+    expect(daysBetween("2026-12-31", "2027-01-01")).toBe(1);
+    expect(daysBetween("2026-11-13", "2026-11-25")).toBe(12);
   });
 });

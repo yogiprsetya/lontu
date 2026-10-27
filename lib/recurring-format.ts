@@ -26,3 +26,15 @@ export function formatDueLabel(nextDueDate: string, today: string) {
   const date = formatShortDate(nextDueDate, today);
   return nextDueDate < today ? { text: `Terlambat · ${date}`, overdue: true } : { text: date, overdue: false };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Whole days from `from` to `to`, both YYYY-MM-DD, read as UTC so no zone or DST shifts the count. */
+export function daysBetween(from: string, to: string) {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
+export function formatLateness(dueDate: string, today: string) {
+  const late = daysBetween(dueDate, today);
+  return late <= 0 ? "hari ini" : `terlambat ${late} hari`;
+}

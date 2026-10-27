@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { RecurringForm } from "@/components/forms/recurring-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
+import { RecordOccurrenceModal, skipOccurrence } from "@/components/recurring/occurrence-actions";
 import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,11 @@ function ViewSkeleton() {
   );
 }
 
-function RowMenu({ rule, online, onArchive }: { rule: RecurringRule; online: boolean; onArchive: () => void }) {
+type RowMenuProps = { rule: RecurringRule; online: boolean; onRecord: () => void; onArchive: () => void };
+
+// Catat and Lewati act on the next occurrence even before it is due (spec decision #10).
+function RowMenu({ rule, online, onRecord, onArchive }: RowMenuProps) {
+  const suffix = online ? "" : " · Butuh koneksi";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -43,8 +48,14 @@ function RowMenu({ rule, online, onArchive }: { rule: RecurringRule; online: boo
         <EllipsisVerticalIcon className="size-5" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44 rounded-2xl p-1.5">
+        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={onRecord}>
+          Catat{suffix}
+        </DropdownMenuItem>
+        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={() => void skipOccurrence(rule)}>
+          Lewati{suffix}
+        </DropdownMenuItem>
         <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={onArchive}>
-          {online ? "Arsipkan" : "Arsipkan · Butuh koneksi"}
+          Arsipkan{suffix}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -54,6 +65,7 @@ function RowMenu({ rule, online, onArchive }: { rule: RecurringRule; online: boo
 export function RecurringView() {
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
+  const [recordingId, setRecordingId] = useState<string | null>(null);
   // Archived rows vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
@@ -65,6 +77,7 @@ export function RecurringView() {
 
   const rules = recurring.data?.rules.filter((r) => !archiving.has(r.id));
   const editingRule = editing?.kind === "edit" ? recurring.data?.rules.find((r) => r.id === editing.id) : undefined;
+  const recording = recurring.data?.rules.find((r) => r.id === recordingId && !r.archivedAt);
   const currentPayday = recurring.data?.rules.find((r) => r.isPayday && !r.archivedAt);
   const close = () => setEditing(null);
 
@@ -150,7 +163,12 @@ export function RecurringView() {
                 {rule.archivedAt ? (
                   <RestoreButton name={rule.name} restore={() => restoreRule(rule.id)} />
                 ) : (
-                  <RowMenu rule={rule} online={online} onArchive={() => void archive(rule)} />
+                  <RowMenu
+                    rule={rule}
+                    online={online}
+                    onRecord={() => setRecordingId(rule.id)}
+                    onArchive={() => void archive(rule)}
+                  />
                 )}
               </RuleRow>
             ))}
@@ -201,6 +219,7 @@ export function RecurringView() {
           />
         )}
       </ResponsiveModal>
+      <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />
     </>
   );
 }

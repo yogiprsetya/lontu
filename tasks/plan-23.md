@@ -11,7 +11,7 @@ Aturan yang jatuh tempo muncul di kotak "Jatuh tempo" di dashboard. Satu tap **C
 - [x] T83: Executor opsional di jalur insert transaksi (S, risiko tinggi)
 - [x] T84: `POST /api/recurring/[id]/advance` (M, risiko tinggi)
 - [x] T85: `advanceRule` di hook + prop `recurring` di `TransactionForm` (M)
-- [ ] T86: Kotak Jatuh tempo di dashboard (M)
+- [x] T86: Kotak Jatuh tempo di dashboard (M)
 
 Urutan berantai: T83 → T84 → T85 → T86.
 

@@ -9,6 +9,7 @@ import { QuickAdd } from "@/components/dashboard/quick-add";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { InstallCard } from "@/components/pwa/install-card";
 import { PendingNotice } from "@/components/pwa/pending-notice";
+import { DueInbox } from "@/components/recurring/due-inbox";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
 import { dashboardPeriodFromParam } from "@/lib/dashboard-period";
 import { todayInJakarta } from "@/lib/date";
@@ -31,6 +32,7 @@ export function DashboardView() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
       <div className="flex flex-col gap-3 lg:col-span-2">
         <PendingNotice />
+        <DueInbox />
         <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
       </div>
       <div className="flex min-w-0 flex-col gap-6 lg:col-start-2 lg:row-start-3">

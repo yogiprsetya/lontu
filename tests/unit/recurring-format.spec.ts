@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDueLabel, formatSchedule } from "@/lib/recurring-format";
+import { daysBetween, formatDueLabel, formatLateness, formatSchedule } from "@/lib/recurring-format";
 
 describe("formatSchedule", () => {
   it("shows the amount and the anchor day", () => {
@@ -26,5 +26,23 @@ describe("formatDueLabel", () => {
 
   it("adds the year when it differs from this year", () => {
     expect(formatDueLabel("2027-01-05", "2026-12-20").text).toBe("5 Jan 2027");
+  });
+});
+
+describe("daysBetween", () => {
+  it("counts calendar days across a month and a year end", () => {
+    expect(daysBetween("2026-10-25", "2026-10-27")).toBe(2);
+    expect(daysBetween("2026-12-31", "2027-01-01")).toBe(1);
+    expect(daysBetween("2026-11-13", "2026-11-25")).toBe(12);
+  });
+});
+
+describe("formatLateness", () => {
+  it("says hari ini for an occurrence due today", () => {
+    expect(formatLateness("2026-10-27", "2026-10-27")).toBe("hari ini");
+  });
+
+  it("counts the days late in words", () => {
+    expect(formatLateness("2026-10-24", "2026-10-27")).toBe("terlambat 3 hari");
   });
 });

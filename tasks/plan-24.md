@@ -40,8 +40,9 @@ Metode sama dengan [plan.md](plan.md) § Catatan ukuran (chunk JS yang dirujuk H
 
 | Titik                        | `/dashboard` | `/recurring` |
 | ---------------------------- | ------------ | ------------ |
-| Sebelum modul                | —            | —            |
-| T86 (kotak Jatuh tempo)      | —            | —            |
+| Sebelum modul                | tidak diukur | —            |
+| T85 (sebelum T86)            | 377,1 KB     | 372,2 KB     |
+| T86 (kotak Jatuh tempo)      | 379,1 KB (+2,0; form di-lazy-load) | 372,7 KB |
 | T88 (kartu gajian)           | —            | —            |
 
 ## Checkpoint W (modul selesai)

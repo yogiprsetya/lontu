@@ -90,12 +90,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [ ] Tap Simpan dua kali cepat → satu transaksi (cek di `/transactions`)
 - [ ] `due` kosong → kotak tidak dirender dan tidak menyisakan ruang kosong. Mode pesawat → tombol nonaktif dengan teks "Butuh koneksi"
 - [ ] 360 px tanpa horizontal scroll, target ≥ 44 px, status terlambat terbaca tanpa warna, `hideAmounts` menyamarkan nominal
-- [ ] Tambahan JS first load `/dashboard` < 3 KB gzip, dicatat di plan-24 § Catatan ukuran
+- [x] Tambahan JS first load `/dashboard` < 3 KB gzip, dicatat di plan-24 § Catatan ukuran
 
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024, light dan dark, plus satu putaran dengan jaringan di-throttle
-- [ ] `pnpm build` hijau, ukuran dicatat
+- [x] `pnpm build` hijau, ukuran dicatat
 
 **Dependencies:** T85
 

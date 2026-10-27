@@ -84,14 +84,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `isResourceKey("recurring", …)` cocok dengan `/api/recurring` dan `/api/recurring?includeArchived=true`, tidak cocok dengan `/api/recurringx` atau `/api/transactions`
-- [ ] `invalidate("transactions")` dan `invalidate("accounts")` menyentuh key recurring; `invalidate("recurring")` menyentuh key transaksi (dites dengan mock `mutate`)
-- [ ] Tidak ada data aturan di Zustand. Mutasi memanggil `invalidate` setelah sukses
-- [ ] "Recurring" muncul di sidebar (≥ lg) dan menu More (< lg), 5 slot bottom nav tidak berubah
+- [x] `isResourceKey("recurring", …)` cocok dengan `/api/recurring` dan `/api/recurring?includeArchived=true`, tidak cocok dengan `/api/recurringx` atau `/api/transactions`
+- [x] `invalidate("transactions")` dan `invalidate("accounts")` menyentuh key recurring; `invalidate("recurring")` menyentuh key transaksi (dites dengan mock `mutate`)
+- [x] Tidak ada data aturan di Zustand. Mutasi memanggil `invalidate` setelah sukses
+- [x] "Recurring" muncul di sidebar (≥ lg) dan menu More (< lg), 5 slot bottom nav tidak berubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-recurring.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/use-recurring.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
 
 **Dependencies:** T78, T79
 

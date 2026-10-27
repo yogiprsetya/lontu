@@ -60,15 +60,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `PATCH { type }` → 400. `PATCH { dayOfMonth: 10 }` pada `today = 2026-10-27` → `nextDueDate "2026-11-10"`. `PATCH { amount }` tidak mengubah `nextDueDate`
-- [ ] `PATCH` pada aturan yang akunnya diarsipkan setelah dibuat, tanpa menyentuh `accountId` → 200. Mengubah `accountId` ke akun terarsip → 400
-- [ ] `DELETE` mengisi `archivedAt` dan `isPayday false`; `restore` mengosongkan `archivedAt`; keduanya idempoten dan aturan terarsip bisa dipulihkan walau ada gajian baru (tidak bentrok dengan index parsial)
-- [ ] `PATCH { isPayday: true }` memindahkan tanda dari aturan lama. `isPayday: true` pada aturan `expense` → 400 `fields.isPayday`
-- [ ] Isolasi: B mendapat 404 untuk `PATCH`/`DELETE`/`restore` aturan A. `PATCH` pada aturan terarsip → 404. Tanpa session → 401
+- [x] `PATCH { type }` → 400. `PATCH { dayOfMonth: 10 }` pada `today = 2026-10-27` → `nextDueDate "2026-11-10"`. `PATCH { amount }` tidak mengubah `nextDueDate`
+- [x] `PATCH` pada aturan yang akunnya diarsipkan setelah dibuat, tanpa menyentuh `accountId` → 200. Mengubah `accountId` ke akun terarsip → 400
+- [x] `DELETE` mengisi `archivedAt` dan `isPayday false`; `restore` mengosongkan `archivedAt`; keduanya idempoten dan aturan terarsip bisa dipulihkan walau ada gajian baru (tidak bentrok dengan index parsial)
+- [x] `PATCH { isPayday: true }` memindahkan tanda dari aturan lama. `isPayday: true` pada aturan `expense` → 400 `fields.isPayday`
+- [x] Isolasi: B mendapat 404 untuk `PATCH`/`DELETE`/`restore` aturan A. `PATCH` pada aturan terarsip → 404. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/recurring.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/recurring.spec.ts` hijau
 
 **Dependencies:** T77 (boleh paralel dengan T78; keduanya menyentuh `lib/server/recurring.ts`)
 

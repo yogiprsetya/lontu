@@ -9,6 +9,8 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
 const collection = await import("@/app/api/recurring/route");
+const item = await import("@/app/api/recurring/[id]/route");
+const restoreRoute = await import("@/app/api/recurring/[id]/restore/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const noParams = { params: Promise.resolve({}) };
@@ -26,6 +28,35 @@ function create(body: unknown) {
     }),
     noParams,
   );
+}
+
+function idParams(id: string) {
+  return { params: Promise.resolve({ id }) };
+}
+
+function patch(id: string, body: unknown) {
+  return item.PATCH(
+    new Request(`http://localhost/api/recurring/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    idParams(id),
+  );
+}
+
+function archive(id: string) {
+  return item.DELETE(new Request(`http://localhost/api/recurring/${id}`, { method: "DELETE" }), idParams(id));
+}
+
+function restore(id: string) {
+  return restoreRoute.POST(new Request(`http://localhost/api/recurring/${id}/restore`, { method: "POST" }), idParams(id));
+}
+
+async function created(body: Record<string, unknown>): Promise<RecurringRule> {
+  const res = await create(body);
+  expect(res.status).toBe(201);
+  return res.json();
 }
 
 async function overview(query = ""): Promise<RecurringOverview> {
@@ -216,10 +247,125 @@ describe("GET /api/recurring", () => {
   });
 });
 
+describe("PATCH /api/recurring/[id]", () => {
+  it("rejects type", async () => {
+    const rule = await created(netflix());
+    expect((await patch(rule.id, { type: "income" })).status).toBe(400);
+  });
+
+  it("recomputes the next due date when dayOfMonth changes", async () => {
+    const rule = await created(netflix());
+    const res = await patch(rule.id, { dayOfMonth: 10 });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as RecurringRule).nextDueDate).toBe("2026-11-10");
+  });
+
+  it("keeps the next due date when other fields change", async () => {
+    const rule = await created(netflix({ dayOfMonth: 27 }));
+    await db.update(recurringRules).set({ nextDueDate: "2026-08-27" }).where(eq(recurringRules.id, rule.id));
+    const updated = (await (await patch(rule.id, { amount: 200_000, name: "Netflix HD", dayOfMonth: 27 })).json()) as RecurringRule;
+    expect(updated).toMatchObject({ amount: 200_000, name: "Netflix HD", nextDueDate: "2026-08-27" });
+  });
+
+  it("allows an edit when an untouched account was archived after creation", async () => {
+    const [own] = await db
+      .insert(accounts)
+      .values({ userId: userA, name: `later-archived-${Date.now()}`, type: "transaction" })
+      .returning({ id: accounts.id });
+    const rule = await created(netflix({ accountId: own.id }));
+    await db.update(accounts).set({ archivedAt: new Date() }).where(eq(accounts.id, own.id));
+    expect((await patch(rule.id, { amount: 1 })).status).toBe(200);
+  });
+
+  it("rejects changing the account to an archived one", async () => {
+    const rule = await created(netflix());
+    const res = await patch(rule.id, { accountId: archivedAccount });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.fields.accountId).toBeDefined();
+  });
+
+  it("rejects a category of the wrong kind for the stored type", async () => {
+    const rule = await created(netflix());
+    const res = await patch(rule.id, { categoryId: cat.income });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.fields.categoryId).toBeDefined();
+  });
+
+  it("moves the payday flag from the old payday rule", async () => {
+    const old = await created(salary());
+    const bonus = await created(salary({ name: "Bonus", isPayday: false }));
+    const res = await patch(bonus.id, { isPayday: true });
+    expect(res.status).toBe(200);
+    expect(await activePaydays(userA)).toEqual([{ id: bonus.id }]);
+    expect((await overview()).rules.find((r) => r.id === old.id)?.isPayday).toBe(false);
+  });
+
+  it("rejects isPayday on an expense rule", async () => {
+    const rule = await created(netflix());
+    const res = await patch(rule.id, { isPayday: true });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.fields.isPayday).toBeDefined();
+  });
+
+  it("returns 404 for an archived rule", async () => {
+    const rule = await created(netflix());
+    await archive(rule.id);
+    const res = await patch(rule.id, { amount: 1 });
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe("RULE_NOT_FOUND");
+  });
+});
+
+describe("DELETE and restore", () => {
+  it("archives, clears the payday flag, and is idempotent", async () => {
+    const rule = await created(salary());
+    const first = (await (await archive(rule.id)).json()) as RecurringRule;
+    expect(first.archivedAt).not.toBeNull();
+    expect(first.isPayday).toBe(false);
+    const again = await archive(rule.id);
+    expect(again.status).toBe(200);
+    expect(((await again.json()) as RecurringRule).archivedAt).toBe(first.archivedAt);
+  });
+
+  it("restores idempotently even when a new payday exists", async () => {
+    const old = await created(salary());
+    await archive(old.id);
+    const current = await created(salary({ name: "Gaji baru" }));
+    const res = await restore(old.id);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as RecurringRule).archivedAt).toBeNull();
+    expect((await restore(old.id)).status).toBe(200);
+    expect(await activePaydays(userA)).toEqual([{ id: current.id }]);
+  });
+});
+
+describe("rule ids", () => {
+  it.each(["not-a-uuid", "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f"])("returns 404 RULE_NOT_FOUND for %s", async (id) => {
+    for (const res of [await patch(id, { amount: 1 }), await archive(id), await restore(id)]) {
+      expect(res.status).toBe(404);
+      expect((await res.json()).error.code).toBe("RULE_NOT_FOUND");
+    }
+  });
+
+  it("returns 404 to user B for user A's rule and leaves it untouched", async () => {
+    const rule = await created(netflix());
+    signInAs(userB);
+    expect((await patch(rule.id, { amount: 1 })).status).toBe(404);
+    expect((await archive(rule.id)).status).toBe(404);
+    expect((await restore(rule.id)).status).toBe(404);
+    signInAs(userA);
+    expect((await overview()).rules[0]).toMatchObject({ amount: 186_000, archivedAt: null });
+  });
+});
+
 describe("without a session", () => {
-  it("returns 401 for GET and POST", async () => {
+  it("returns 401 for every route", async () => {
     signInAs(null);
+    const id = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
     expect((await collection.GET(new Request("http://localhost/api/recurring"), noParams)).status).toBe(401);
     expect((await create(netflix())).status).toBe(401);
+    expect((await patch(id, { amount: 1 })).status).toBe(401);
+    expect((await archive(id)).status).toBe(401);
+    expect((await restore(id)).status).toBe(401);
   });
 });

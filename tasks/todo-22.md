@@ -107,15 +107,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Aturan dari `GET` tampil terkelompok dengan jatuh tempo dan lencana gajian yang benar. Status terlambat terbaca tanpa warna
-- [ ] "Lihat arsip" memuat `?includeArchived=true` dan menandai baris terarsip. Empty state tampil saat belum ada aturan
+- [x] Aturan dari `GET` tampil terkelompok dengan jatuh tempo dan lencana gajian yang benar. Status terlambat terbaca tanpa warna
+- [x] "Lihat arsip" memuat `?includeArchived=true` dan menandai baris terarsip. Empty state tampil saat belum ada aturan
 - [ ] 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, kontras ≥ 4.5:1, light dan dark
-- [ ] `pnpm build` hijau (Suspense + `cacheComponents`)
+- [x] `pnpm build` hijau (Suspense + `cacheComponents`)
 
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024, light dan dark
-- [ ] `pnpm build` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T80
 

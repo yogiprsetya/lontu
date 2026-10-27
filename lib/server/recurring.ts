@@ -3,10 +3,19 @@ import { z } from "zod";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { recurringRules, users } from "@/db/schema";
-import { firstDueOnOrAfter } from "@/lib/recurring-schedule";
+import { advanceDate, firstDueOnOrAfter } from "@/lib/recurring-schedule";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
-import type { RecurringCreateInput, RecurringRule, RecurringType, RecurringUpdateInput } from "@/lib/schemas/recurring";
+import type {
+  AdvanceResult,
+  RecurringAdvanceInput,
+  RecurringCreateInput,
+  RecurringRule,
+  RecurringType,
+  RecurringUpdateInput,
+} from "@/lib/schemas/recurring";
+import type { Transaction } from "@/lib/schemas/transaction";
 import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
+import { findReplay, IdConflict, insertSimple } from "@/lib/server/transactions";
 
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
@@ -140,4 +149,84 @@ export async function setRuleArchived(userId: string, id: string, archived: bool
     .where(ownedRule(userId, id))
     .returning();
   return row && toRule(row);
+}
+
+export type AdvanceOutcome =
+  | { result: AdvanceResult }
+  | { notFound: true }
+  | { stale: true }
+  | { idTaken: true }
+  | { invalid: InvalidField };
+
+/** Thrown inside the advance transaction when the rule has moved past the occurrence, to roll it back. */
+class Stale extends Error {}
+
+/**
+ * A post stored under this client id, as long as it is the record of this occurrence: the user's own
+ * simple transaction of the rule's type, with the rule already moved past the occurrence.
+ */
+async function findPostReplay(userId: string, rule: Row, input: Extract<RecurringAdvanceInput, { action: "post" }>) {
+  const replay = await findReplay(userId, input.id);
+  if (!replay) return undefined;
+  if ("idTaken" in replay) return replay;
+  const matches = !replay.fee && replay.transaction.type === rule.type && rule.nextDueDate > input.occurrenceDate;
+  return matches ? { result: { rule: toRule(rule), transaction: replay.transaction } } : { idTaken: true as const };
+}
+
+async function currentRule(userId: string, id: string) {
+  const [row] = await db
+    .select()
+    .from(recurringRules)
+    .where(and(ownedRule(userId, id), isNull(recurringRules.archivedAt)));
+  return row;
+}
+
+/**
+ * Catat (post) or Lewati (skip) one occurrence. The rule only moves when `occurrenceDate` is still
+ * its next due date, and for a post the move and the transaction insert commit together. As in
+ * createTransaction, the replay check runs before the reference checks, so a retry after the
+ * account was archived still replays.
+ */
+export async function advanceRule(userId: string, id: string, input: RecurringAdvanceInput): Promise<AdvanceOutcome> {
+  if (!isUuid(id)) return { notFound: true };
+  const rule = await currentRule(userId, id);
+  if (!rule) return { notFound: true };
+  const type = rule.type as RecurringType;
+
+  if (input.action === "post") {
+    const replay = await findPostReplay(userId, rule, input);
+    if (replay) return replay;
+    const invalid = await checkReferences(userId, type, input);
+    if (invalid) return { invalid };
+  }
+
+  try {
+    return await db.transaction(async (tx) => {
+      const [moved] = await tx
+        .update(recurringRules)
+        .set({ nextDueDate: advanceDate(rule.dayOfMonth, input.occurrenceDate), updatedAt: sql`now()` })
+        .where(
+          and(ownedRule(userId, id), isNull(recurringRules.archivedAt), eq(recurringRules.nextDueDate, input.occurrenceDate)),
+        )
+        .returning();
+      if (!moved) throw new Stale();
+
+      let transaction: Transaction | null = null;
+      if (input.action === "post") {
+        const { id: txId, amount, date, accountId, categoryId, description } = input;
+        ({ transaction } = await insertSimple(userId, { type, id: txId, amount, date, accountId, categoryId, description }, tx));
+      }
+      return { result: { rule: toRule(moved), transaction } };
+    });
+  } catch (err) {
+    if (err instanceof IdConflict) return { idTaken: true };
+    if (!(err instanceof Stale)) throw err;
+    // A concurrent retry of this same post may be what moved the rule.
+    if (input.action === "post") {
+      const latest = await currentRule(userId, id);
+      const replay = latest && (await findPostReplay(userId, latest, input));
+      if (replay && "result" in replay) return replay;
+    }
+    return { stale: true };
+  }
 }

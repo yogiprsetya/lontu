@@ -34,17 +34,17 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `{ action: "post", occurrenceDate: nextDueDate, id, amount, date, accountId, categoryId, description }` → 200 `{ rule, transaction }`, transaksi bertipe aturan, `nextDueDate` maju satu bulan, saldo akun berubah
-- [ ] Request yang sama diulang → 200 replay dengan transaksi yang sama, tanpa baris baru, `nextDueDate` tidak maju dua kali. Dua request paralel dengan `id` berbeda (`Promise.all`) → tepat satu 200, satu 409 `OCCURRENCE_STALE`, satu transaksi
-- [ ] `{ action: "skip", occurrenceDate }` → 200 `transaction: null`, tidak ada transaksi, `nextDueDate` maju
-- [ ] `occurrenceDate` ≠ `nextDueDate` (lebih awal atau lebih lambat) → 409, tidak ada perubahan. `occurrenceDate` di masa depan yang sama dengan `nextDueDate` → 200 (keputusan #10)
-- [ ] Kategori `kind` salah, akun terarsip, akun/kategori milik B, `date` masa depan, `amount` 0 → 400 dengan `fields`, dan **`nextDueDate` tidak berubah** serta tidak ada transaksi
-- [ ] `id` yang dipakai transaksi user B → 409 `TRANSACTION_ID_TAKEN` tanpa membocorkan isinya. Aturan terarsip → 404. Isolasi: B mendapat 404 untuk `advance` aturan A. Tanpa session → 401
-- [ ] Aturan tertinggal 3 bulan: `skip` pertama memajukan satu bulan dan aturan masih di `due`
+- [x] `{ action: "post", occurrenceDate: nextDueDate, id, amount, date, accountId, categoryId, description }` → 200 `{ rule, transaction }`, transaksi bertipe aturan, `nextDueDate` maju satu bulan, saldo akun berubah
+- [x] Request yang sama diulang → 200 replay dengan transaksi yang sama, tanpa baris baru, `nextDueDate` tidak maju dua kali. Dua request paralel dengan `id` berbeda (`Promise.all`) → tepat satu 200, satu 409 `OCCURRENCE_STALE`, satu transaksi
+- [x] `{ action: "skip", occurrenceDate }` → 200 `transaction: null`, tidak ada transaksi, `nextDueDate` maju
+- [x] `occurrenceDate` ≠ `nextDueDate` (lebih awal atau lebih lambat) → 409, tidak ada perubahan. `occurrenceDate` di masa depan yang sama dengan `nextDueDate` → 200 (keputusan #10)
+- [x] Kategori `kind` salah, akun terarsip, akun/kategori milik B, `date` masa depan, `amount` 0 → 400 dengan `fields`, dan **`nextDueDate` tidak berubah** serta tidak ada transaksi
+- [x] `id` yang dipakai transaksi user B → 409 `TRANSACTION_ID_TAKEN` tanpa membocorkan isinya. Aturan terarsip → 404. Isolasi: B mendapat 404 untuk `advance` aturan A. Tanpa session → 401
+- [x] Aturan tertinggal 3 bulan: `skip` pertama memajukan satu bulan dan aturan masih di `due`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/recurring-advance.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/recurring-advance.spec.ts` hijau
 - [ ] `pnpm vitest run tests/api` hijau (tidak ada regresi transaksi)
 
 **Dependencies:** T83, T79

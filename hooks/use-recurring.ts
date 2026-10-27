@@ -3,7 +3,14 @@
 import useSWR from "swr";
 import { invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
-import type { RecurringCreateInput, RecurringOverview, RecurringRule, RecurringUpdateInput } from "@/lib/schemas/recurring";
+import type {
+  AdvanceResult,
+  RecurringAdvanceInput,
+  RecurringCreateInput,
+  RecurringOverview,
+  RecurringRule,
+  RecurringUpdateInput,
+} from "@/lib/schemas/recurring";
 
 type Options = { includeArchived?: boolean };
 
@@ -41,4 +48,12 @@ export async function restoreRule(id: string) {
   const rule = await sendJSON<RecurringRule>(`/api/recurring/${id}/restore`, "POST");
   await invalidate("recurring");
   return rule;
+}
+
+/** Catat or Lewati. Throws ApiError, including 409 OCCURRENCE_STALE when the occurrence was already handled. */
+export async function advanceRule(id: string, input: RecurringAdvanceInput) {
+  const result = await sendJSON<AdvanceResult>(`/api/recurring/${id}/advance`, "POST", input);
+  // A post moves balances, budgets and the dashboard too, which "recurring" alone does not reach.
+  await invalidate(input.action === "post" ? "transactions" : "recurring");
+  return result;
 }

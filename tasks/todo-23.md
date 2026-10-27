@@ -61,15 +61,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tes unit: body `post` yang dikirim berisi `id` yang sama pada dua submit dari satu instance form, dan `date` = `occurrenceDate` untuk kejadian terlambat, hari ini untuk kejadian masa depan
-- [ ] `advanceRule` memanggil `invalidate("transactions")` untuk `post` dan `invalidate("recurring")` untuk `skip` (mock `mutate`)
+- [x] Tes unit: body `post` yang dikirim berisi `id` yang sama pada dua submit dari satu instance form, dan `date` = `occurrenceDate` untuk kejadian terlambat, hari ini untuk kejadian masa depan
+- [x] `advanceRule` memanggil `invalidate("transactions")` untuk `post` dan `invalidate("recurring")` untuk `skip` (mock `mutate`)
 - [ ] Semua tes `use-transactions` dan form yang ada tetap hijau; jalur create normal (online dan offline) tidak berubah
-- [ ] 409 `OCCURRENCE_STALE` ditangani sebagai toast + tutup, bukan galat field
+- [x] 409 `OCCURRENCE_STALE` ditangani sebagai toast + tutup, bukan galat field
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-recurring.spec.ts tests/unit/use-transactions.spec.ts` hijau
-- [ ] `pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/use-recurring.spec.ts tests/unit/use-transactions.spec.ts` hijau
+- [x] `pnpm build` hijau
 
 **Dependencies:** T84
 

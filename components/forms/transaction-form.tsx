@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -14,10 +15,14 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
 import { useBackToList } from "@/hooks/use-back-to-list";
 import { useProfile } from "@/hooks/use-profile";
+import { advanceRule, revalidateRecurring } from "@/hooks/use-recurring";
 import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
+import { ApiError } from "@/lib/fetcher";
 import { applyServerErrors } from "@/lib/form-errors";
+import { occurrenceDefaults, recurringPostBody } from "@/lib/recurring-form";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
+import type { RecurringRule } from "@/lib/schemas/recurring";
 import {
   MIN_TRANSACTION_DATE,
   type SimpleCreateInput,
@@ -31,15 +36,29 @@ import { failureMessage } from "@/lib/offline/network-error";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
+/** Catat for one occurrence of a recurring rule: saving advances the rule instead of a plain create. */
+export type RecurringOccurrence = { rule: RecurringRule; occurrenceDate: string; onDone: () => void };
+
 /**
  * Income, expense or saving. Waits for the server, then goes to the list.
  * With `transaction` it edits that row: the type is fixed and saving sends a PATCH.
+ * With `recurring` it records that occurrence: the type is the rule's and saving calls advance.
  */
-export function TransactionForm({ type, transaction }: { type: SimpleTransactionType; transaction?: Transaction }) {
+export function TransactionForm({
+  type,
+  transaction,
+  recurring,
+}: {
+  type: SimpleTransactionType;
+  transaction?: Transaction;
+  recurring?: RecurringOccurrence;
+}) {
   const router = useRouter();
   const { data: profile } = useProfile();
   const backToList = useBackToList();
   const today = todayInJakarta();
+  // Once per form, not per submit, so Simpan tapped again after a lost response replays.
+  const [recurringTxId] = useState(() => crypto.randomUUID());
   const {
     register,
     control,
@@ -48,7 +67,9 @@ export function TransactionForm({ type, transaction }: { type: SimpleTransaction
     formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, SimpleCreateInput>({
     resolver: zodResolver(simpleCreateSchema),
-    defaultValues: transaction
+    defaultValues: recurring
+      ? occurrenceDefaults(recurring.rule, recurring.occurrenceDate, today)
+      : transaction
       ? {
           type,
           amount: transaction.amount,
@@ -68,7 +89,12 @@ export function TransactionForm({ type, transaction }: { type: SimpleTransaction
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      if (transaction) {
+      if (recurring) {
+        const { rule, occurrenceDate, onDone } = recurring;
+        await advanceRule(rule.id, recurringPostBody(input, { id: recurringTxId, occurrenceDate }));
+        toast.success(`${rule.name} dicatat`);
+        onDone();
+      } else if (transaction) {
         const { amount, date, accountId, categoryId, description } = input;
         await updateTransaction(transaction.id, { amount, date, accountId, categoryId, description });
         toast.success("Perubahan tersimpan");
@@ -80,13 +106,19 @@ export function TransactionForm({ type, transaction }: { type: SimpleTransaction
         router.push("/transactions");
       }
     } catch (err) {
+      if (recurring && err instanceof ApiError && err.code === "OCCURRENCE_STALE") {
+        toast("Kejadian ini sudah ditangani");
+        recurring.onDone();
+        void revalidateRecurring();
+        return;
+      }
       if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
     }
   });
 
   return (
     <form onSubmit={onSubmit} noValidate className="surface flex flex-col gap-4 px-5 py-5">
-      {transaction && (
+      {(transaction || recurring) && (
         <p className="text-sm text-muted-foreground">
           Jenis: <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span> (tidak bisa diubah)
         </p>

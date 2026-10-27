@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { paydayHint, reschedulesMissed, ruleFormDefaults, toUpdateInput } from "@/lib/recurring-form";
+import { occurrenceDefaults, paydayHint, recurringPostBody, reschedulesMissed, ruleFormDefaults, toUpdateInput } from "@/lib/recurring-form";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 
 const rule: RecurringRule = {
@@ -75,5 +75,34 @@ describe("reschedulesMissed", () => {
     expect(reschedulesMissed(rule, 5, "2026-10-27")).toBe(false);
     expect(reschedulesMissed({ ...rule, nextDueDate: "2026-11-05" }, 10, "2026-10-27")).toBe(false);
     expect(reschedulesMissed(undefined, 10, "2026-10-27")).toBe(false);
+  });
+});
+
+describe("occurrenceDefaults", () => {
+  it("fills the form from the rule and dates a late occurrence on its own day", () => {
+    expect(occurrenceDefaults(rule, "2026-10-05", "2026-10-27")).toEqual({
+      type: "expense",
+      amount: 186_000,
+      date: "2026-10-05",
+      accountId: "a1",
+      categoryId: "c1",
+      description: "Netflix",
+    });
+  });
+
+  it("dates an early occurrence today, since transactions cannot be in the future", () => {
+    expect(occurrenceDefaults(rule, "2026-11-05", "2026-10-27").date).toBe("2026-10-27");
+  });
+});
+
+describe("recurringPostBody", () => {
+  const input = { type: "expense" as const, amount: 190_000, date: "2026-10-05", accountId: "a1", categoryId: "c1", description: "Netflix" };
+
+  it("sends the occurrence and the form's fixed transaction id, without type", () => {
+    const first = recurringPostBody(input, { id: "tx-1", occurrenceDate: "2026-10-05" });
+    const second = recurringPostBody({ ...input, amount: 200_000 }, { id: "tx-1", occurrenceDate: "2026-10-05" });
+    expect(first).toEqual({ action: "post", occurrenceDate: "2026-10-05", id: "tx-1", amount: 190_000, date: "2026-10-05", accountId: "a1", categoryId: "c1", description: "Netflix" });
+    expect(second.id).toBe(first.id);
+    expect(first).not.toHaveProperty("type");
   });
 });

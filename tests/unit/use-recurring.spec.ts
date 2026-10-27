@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
 
 const { mutate } = await import("swr");
-const { archiveRule, createRule, recurringKey, restoreRule, updateRule } = await import("@/hooks/use-recurring");
+const { advanceRule, archiveRule, createRule, recurringKey, restoreRule, updateRule } = await import("@/hooks/use-recurring");
 const { ApiError } = await import("@/lib/fetcher");
 
 const mockedMutate = vi.mocked(mutate);
@@ -49,5 +49,37 @@ describe("rule mutations", () => {
     fetchMock.mockResolvedValueOnce(Response.json({ error: { code: "RULE_NOT_FOUND", message: "x" } }, { status: 404 }));
     await expect(archiveRule(id)).rejects.toBeInstanceOf(ApiError);
     expect(mockedMutate).not.toHaveBeenCalled();
+  });
+});
+
+describe("advanceRule", () => {
+  const post = {
+    action: "post" as const,
+    occurrenceDate: "2026-10-05",
+    id,
+    amount: 1,
+    date: "2026-10-05",
+    accountId: id,
+    categoryId: id,
+    description: null,
+  };
+
+  it("refreshes transactions, balances, budgets and the dashboard after a post", async () => {
+    await advanceRule(id, post);
+    expect(fetchMock.mock.calls[0][0]).toBe(`/api/recurring/${id}/advance`);
+    for (const key of ["$inf$/api/transactions", "/api/accounts", "/api/budgets?period=2026-10", "/api/dashboard", "/api/recurring"]) {
+      expect(revalidated(key)).toBe(true);
+    }
+  });
+
+  it("refreshes only recurring and the transaction list after a skip", async () => {
+    await advanceRule(id, { action: "skip", occurrenceDate: "2026-10-05" });
+    expect(revalidated("/api/recurring")).toBe(true);
+    expect(revalidated("/api/accounts")).toBe(false);
+  });
+
+  it("throws ApiError with OCCURRENCE_STALE on a 409", async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ error: { code: "OCCURRENCE_STALE", message: "x" } }, { status: 409 }));
+    await expect(advanceRule(id, post)).rejects.toMatchObject({ status: 409, code: "OCCURRENCE_STALE" });
   });
 });

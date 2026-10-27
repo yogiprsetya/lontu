@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/db";
-import { accounts, budgets, categories, transactions } from "@/db/schema";
+import { accounts, budgets, categories, recurringRules, transactions } from "@/db/schema";
 import { createTestUsers, expectPgError } from "../setup/db";
 
 const CHECK_VIOLATION = "23514";
@@ -235,5 +235,62 @@ describe("budgets constraints", () => {
       UNIQUE_VIOLATION,
       "budgets_user_category_period_unique",
     );
+  });
+});
+
+describe("recurring_rules constraints", () => {
+  const rule = () => ({
+    userId,
+    type: "expense",
+    name: "Netflix",
+    amount: 186_000,
+    accountId: accountA,
+    categoryId: spending,
+    dayOfMonth: 5,
+    nextDueDate: "2026-11-05",
+  });
+
+  it("accepts a valid rule", async () => {
+    const rows = await db.insert(recurringRules).values(rule()).returning({ id: recurringRules.id });
+    expect(rows).toHaveLength(1);
+  });
+
+  it("rejects amount 0", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), amount: 0 }),
+      CHECK_VIOLATION,
+      "recurring_rules_amount_check",
+    );
+  });
+
+  it.each([0, 32])("rejects day_of_month %i", async (dayOfMonth) => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), dayOfMonth }),
+      CHECK_VIOLATION,
+      "recurring_rules_day_check",
+    );
+  });
+
+  it("rejects type transfer", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), type: "transfer" }),
+      CHECK_VIOLATION,
+      "recurring_rules_type_check",
+    );
+  });
+
+  it("rejects is_payday on an expense rule", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), isPayday: true }),
+      CHECK_VIOLATION,
+      "recurring_rules_payday_check",
+    );
+  });
+
+  it("allows one active payday rule per user, ignoring archived ones", async () => {
+    const payday = { ...rule(), type: "income", name: "Gaji", isPayday: true };
+    await db.insert(recurringRules).values({ ...payday, archivedAt: new Date() });
+    await db.insert(recurringRules).values(payday);
+    await expectPgError(db.insert(recurringRules).values(payday), UNIQUE_VIOLATION, "recurring_rules_one_payday");
   });
 });

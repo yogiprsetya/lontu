@@ -12,15 +12,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Migrasi hanya membuat objek `recurring_rules`. `db-constraints.spec.ts` tetap hijau, dan constraint baru menolak `amount 0`, `day_of_month 0`/`32`, `type "transfer"`, serta `is_payday` pada `type "expense"`
-- [ ] `advanceDate(31, "2026-01-31") = "2026-02-28"` lalu `"2026-03-31"`; `advanceDate(29, "2028-01-29") = "2028-02-29"`; `advanceDate(15, "2026-12-15") = "2027-01-15"`; `clampDay(2027, 2, 31) = "2027-02-28"`
-- [ ] `firstDueOnOrAfter(27, "2026-10-27") = "2026-10-27"` (hari yang sama ikut), `firstDueOnOrAfter(5, "2026-10-27") = "2026-11-05"`, `firstDueOnOrAfter(31, "2026-11-03") = "2026-11-30"`
-- [ ] Schema menolak `name` kosong/>60, `amount` 0/−1/1.5/`"100"`/>1e12, `dayOfMonth` 0/32/2.5, `type` tak dikenal, `isPayday: true` dengan `type != "income"` (`fields.isPayday`), field tak dikenal (`userId`, `nextDueDate`), dan `occurrenceDate`/`date` yang bukan tanggal valid
+- [x] Migrasi hanya membuat objek `recurring_rules`. `db-constraints.spec.ts` tetap hijau, dan constraint baru menolak `amount 0`, `day_of_month 0`/`32`, `type "transfer"`, serta `is_payday` pada `type "expense"`
+- [x] `advanceDate(31, "2026-01-31") = "2026-02-28"` lalu `"2026-03-31"`; `advanceDate(29, "2028-01-29") = "2028-02-29"`; `advanceDate(15, "2026-12-15") = "2027-01-15"`; `clampDay(2027, 2, 31) = "2027-02-28"`
+- [x] `firstDueOnOrAfter(27, "2026-10-27") = "2026-10-27"` (hari yang sama ikut), `firstDueOnOrAfter(5, "2026-10-27") = "2026-11-05"`, `firstDueOnOrAfter(31, "2026-11-03") = "2026-11-30"`
+- [x] Schema menolak `name` kosong/>60, `amount` 0/−1/1.5/`"100"`/>1e12, `dayOfMonth` 0/32/2.5, `type` tak dikenal, `isPayday: true` dengan `type != "income"` (`fields.isPayday`), field tak dikenal (`userId`, `nextDueDate`), dan `occurrenceDate`/`date` yang bukan tanggal valid
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/recurring-schedule.spec.ts tests/unit/recurring-schema.spec.ts tests/api/db-constraints.spec.ts` hijau
-- [ ] `migration.sql` dibaca sebelum `db:migrate`
+- [x] `pnpm vitest run tests/unit/recurring-schedule.spec.ts tests/unit/recurring-schema.spec.ts tests/api/db-constraints.spec.ts` hijau
+- [x] `migration.sql` dibaca sebelum `db:migrate`
 
 **Dependencies:** None
 

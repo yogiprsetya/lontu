@@ -8,7 +8,7 @@ Dari ponsel, pemilik membuka `/recurring`, mendaftarkan gaji dan tagihan tetap, 
 
 ## Task
 
-- [ ] T77: Migrasi `recurring_rules`, schema Zod, `lib/recurring-schedule.ts` (M, risiko tinggi)
+- [x] T77: Migrasi `recurring_rules`, schema Zod, `lib/recurring-schedule.ts` (M, risiko tinggi)
 - [ ] T78: `GET` + `POST /api/recurring` (M)
 - [ ] T79: `PATCH`, `DELETE`, `restore` + tukar gajian (M)
 - [ ] T80: `hooks/use-recurring.ts`, resource cache, nav item (S)

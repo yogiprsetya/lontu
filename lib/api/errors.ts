@@ -69,6 +69,10 @@ export function budgetNotFound() {
   return notFound("BUDGET_NOT_FOUND", "Budget tidak ditemukan");
 }
 
+export function ruleNotFound() {
+  return notFound("RULE_NOT_FOUND", "Aturan tidak ditemukan");
+}
+
 export function invalidCursor() {
   return error(400, "INVALID_CURSOR", "Cursor tidak valid");
 }

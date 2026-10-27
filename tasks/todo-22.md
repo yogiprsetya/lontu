@@ -36,15 +36,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `POST { type: "expense", name: "Netflix", amount: 186000, accountId, categoryId: <Langganan>, dayOfMonth: 5 }` pada `today = 2026-10-27` → 201 dengan `nextDueDate "2026-11-05"`. `dayOfMonth: 27` → `"2026-10-27"` dan ikut di `due`
-- [ ] Kategori `kind` salah, akun/kategori terarsip, milik user lain, atau tidak ada → 400 pada field yang bersangkutan, tanpa baris tertulis. Pesan sama untuk id asing dan tidak ada
-- [ ] `POST` kedua dengan `isPayday: true` → aturan baru gajian, yang lama `isPayday false`. Dua `POST` paralel `isPayday: true` (`Promise.all`) → tepat satu aturan gajian aktif
-- [ ] `GET` mengurutkan `rules` dan mengisi `due` hanya untuk `next_due_date <= today`. `?includeArchived=true` memuat yang terarsip di `rules` saja, tidak di `due`
-- [ ] Isolasi: `GET` B tidak memuat aturan A, B tidak bisa `POST` ke akun/kategori A. Tanpa session → 401. Body dengan `userId`/`nextDueDate` → 400
+- [x] `POST { type: "expense", name: "Netflix", amount: 186000, accountId, categoryId: <Langganan>, dayOfMonth: 5 }` pada `today = 2026-10-27` → 201 dengan `nextDueDate "2026-11-05"`. `dayOfMonth: 27` → `"2026-10-27"` dan ikut di `due`
+- [x] Kategori `kind` salah, akun/kategori terarsip, milik user lain, atau tidak ada → 400 pada field yang bersangkutan, tanpa baris tertulis. Pesan sama untuk id asing dan tidak ada
+- [x] `POST` kedua dengan `isPayday: true` → aturan baru gajian, yang lama `isPayday false`. Dua `POST` paralel `isPayday: true` (`Promise.all`) → tepat satu aturan gajian aktif
+- [x] `GET` mengurutkan `rules` dan mengisi `due` hanya untuk `next_due_date <= today`. `?includeArchived=true` memuat yang terarsip di `rules` saja, tidak di `due`
+- [x] Isolasi: `GET` B tidak memuat aturan A, B tidak bisa `POST` ke akun/kategori A. Tanpa session → 401. Body dengan `userId`/`nextDueDate` → 400
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/recurring.spec.ts tests/api/recurring-overview.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/recurring.spec.ts tests/api/recurring-overview.spec.ts` hijau
 
 **Dependencies:** T77
 

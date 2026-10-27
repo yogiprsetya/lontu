@@ -11,6 +11,7 @@ import { useRecurring } from "@/hooks/use-recurring";
 import { todayInJakarta } from "@/lib/date";
 import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { formatLateness } from "@/lib/recurring-format";
+import type { RecurringRule } from "@/lib/schemas/recurring";
 import { useUIStore } from "@/stores/ui";
 
 /** Rules due today or earlier, one occurrence each. Renders nothing when none is due. */
@@ -27,10 +28,8 @@ export function DueInbox() {
   const recording = due.find((r) => r.id === recordingId);
   if (due.length === 0) return null;
 
-  async function skip(id: string) {
-    const rule = due.find((r) => r.id === id);
-    if (!rule) return;
-    setSkipping(id);
+  async function skip(rule: RecurringRule) {
+    setSkipping(rule.id);
     await skipOccurrence(rule);
     setSkipping(null);
   }
@@ -63,7 +62,7 @@ export function DueInbox() {
                 variant="outline"
                 className="h-11 flex-1 text-base sm:flex-none"
                 disabled={!online || skipping === rule.id}
-                onClick={() => void skip(rule.id)}
+                onClick={() => void skip(rule)}
               >
                 Lewati
               </Button>

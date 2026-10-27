@@ -15,6 +15,9 @@ type Props = {
 
 export function RuleRow({ rule, accountName, today, hideAmounts, onEdit, children }: Props) {
   const due = formatDueLabel(rule.nextDueDate, today);
+  const status = rule.archivedAt
+    ? { text: "Diarsipkan", tone: "text-muted-foreground" }
+    : { text: `Berikutnya: ${due.text}`, tone: due.overdue ? "font-bold text-expense" : "text-foreground" };
   const body = (
     <>
       <TypeChip type={rule.type} />
@@ -28,9 +31,7 @@ export function RuleRow({ rule, accountName, today, hideAmounts, onEdit, childre
         <span className="truncate text-sm text-muted-foreground tabular-nums">
           {formatSchedule(rule.amount, rule.dayOfMonth, hideAmounts)} · {accountName}
         </span>
-        <span className={cn("text-sm", rule.archivedAt ? "text-muted-foreground" : due.overdue ? "font-bold text-expense" : "text-foreground")}>
-          {rule.archivedAt ? "Diarsipkan" : `Berikutnya: ${due.text}`}
-        </span>
+        <span className={cn("text-sm", status.tone)}>{status.text}</span>
       </span>
     </>
   );

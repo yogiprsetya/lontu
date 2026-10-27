@@ -210,7 +210,7 @@ export function RecurringView() {
       >
         {formOpen && (
           <RecurringForm
-            key={editingRule?.id ?? `create-${editing?.kind === "create" ? (editing.preset?.type ?? "") : ""}`}
+            key={editingRule?.id ?? "create"}
             rule={editingRule}
             preset={editing?.kind === "create" ? editing.preset : undefined}
             currentPayday={currentPayday}

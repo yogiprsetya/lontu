@@ -38,3 +38,14 @@ export function formatLateness(dueDate: string, today: string) {
   const late = daysBetween(dueDate, today);
   return late <= 0 ? "hari ini" : `terlambat ${late} hari`;
 }
+
+export function formatPaydayHeadline({ payday, daysLeft }: { payday: string; daysLeft: number }, today: string) {
+  const date = formatShortDate(payday, today);
+  return daysLeft === 1 ? `Besok gajian (${date})` : `${daysLeft} hari lagi gajian (${date})`;
+}
+
+/** A shortfall reads "Kurang", so it never depends on color or a minus sign alone. */
+export function formatFree(free: number, hideAmounts: boolean) {
+  const short = free < 0;
+  return { label: short ? "Kurang" : "Bebas", amount: hideAmounts ? HIDDEN_AMOUNT : formatIDR(Math.abs(free)), short };
+}

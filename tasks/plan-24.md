@@ -9,7 +9,7 @@ Nilai inti modul ini: dashboard menjawab "berapa yang boleh saya pakai sampai ga
 ## Task
 
 - [x] T87: `paydayForecast` murni + saldo `spendable` + `forecast` di `GET` (M, risiko sedang)
-- [ ] T88: Kartu gajian di dashboard (M)
+- [x] T88: Kartu gajian di dashboard (M)
 - [ ] T89: Penyelesaian modul: ukuran, NFR, verifikasi (S)
 
 Urutan berantai: T87 → T88 → T89.
@@ -43,7 +43,7 @@ Metode sama dengan [plan.md](plan.md) § Catatan ukuran (chunk JS yang dirujuk H
 | Sebelum modul                | tidak diukur | —            |
 | T85 (sebelum T86)            | 377,1 KB     | 372,2 KB     |
 | T86 (kotak Jatuh tempo)      | 379,1 KB (+2,0; form di-lazy-load) | 372,7 KB |
-| T88 (kartu gajian)           | —            | —            |
+| T88 (kartu gajian)           | 380,0 KB (+2,9 dari T85) | 372,8 KB |
 
 ## Checkpoint W (modul selesai)
 

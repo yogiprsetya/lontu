@@ -45,7 +45,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [ ] Manual 360×800 dan 1024, light dan dark
-- [ ] `pnpm build` hijau, ukuran dicatat di plan-24 § Catatan ukuran
+- [x] `pnpm build` hijau, ukuran dicatat di plan-24 § Catatan ukuran
 
 **Dependencies:** T87
 

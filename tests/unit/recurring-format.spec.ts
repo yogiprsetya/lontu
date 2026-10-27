@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysBetween, formatDueLabel, formatLateness, formatSchedule } from "@/lib/recurring-format";
+import { daysBetween, formatDueLabel, formatFree, formatLateness, formatPaydayHeadline, formatSchedule } from "@/lib/recurring-format";
 
 describe("formatSchedule", () => {
   it("shows the amount and the anchor day", () => {
@@ -44,5 +44,29 @@ describe("formatLateness", () => {
 
   it("counts the days late in words", () => {
     expect(formatLateness("2026-10-24", "2026-10-27")).toBe("terlambat 3 hari");
+  });
+});
+
+describe("formatPaydayHeadline", () => {
+  it("counts down to payday with its date", () => {
+    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 12 }, "2026-11-13")).toBe("12 hari lagi gajian (25 Nov)");
+  });
+
+  it("says besok the day before", () => {
+    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 1 }, "2026-11-24")).toBe("Besok gajian (25 Nov)");
+  });
+});
+
+describe("formatFree", () => {
+  it("shows a positive amount as is", () => {
+    expect(formatFree(2_014_000, false)).toEqual({ label: "Bebas", amount: "Rp2.014.000", short: false });
+  });
+
+  it("spells out a shortfall instead of a minus sign", () => {
+    expect(formatFree(-800_000, false)).toEqual({ label: "Kurang", amount: "Rp800.000", short: true });
+  });
+
+  it("hides the amount but keeps the label", () => {
+    expect(formatFree(-800_000, true)).toEqual({ label: "Kurang", amount: "Rp•••••", short: true });
   });
 });

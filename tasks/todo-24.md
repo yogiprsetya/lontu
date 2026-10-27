@@ -61,10 +61,10 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tabel Catatan ukuran terisi. Tambahan JS first load `/dashboard` < 5 KB gzip; jika lebih, catat penyebabnya dan ajukan keputusan (Ask first), jangan diamkan
+- [x] Tabel Catatan ukuran terisi. Tambahan JS first load `/dashboard` < 5 KB gzip; jika lebih, catat penyebabnya dan ajukan keputusan (Ask first), jangan diamkan
 - [ ] Lighthouse Performance mobile dan Aksesibilitas tidak turun dari baseline sebelum modul. Axe tanpa pelanggaran baru di `/dashboard` dan `/recurring`
-- [ ] Semua butir UI di spec § Acceptance criteria tercentang atau tercatat sebagai temuan dengan alasan
-- [ ] Status modul `recurring` di `plan.md` diperbarui
+- [x] Semua butir UI di spec § Acceptance criteria tercentang atau tercatat sebagai temuan dengan alasan
+- [x] Status modul `recurring` di `plan.md` diperbarui
 
 **Verification:**
 

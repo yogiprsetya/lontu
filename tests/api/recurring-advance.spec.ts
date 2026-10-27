@@ -213,6 +213,31 @@ describe("post", () => {
   });
 });
 
+describe("replay matching", () => {
+  async function ownTransaction(date: string) {
+    const [row] = await db
+      .insert(transactions)
+      .values({ userId: userA, type: "expense", amount: 190_000, date, accountId: account, categoryId: cat.spending, description: "Netflix" })
+      .returning({ id: transactions.id });
+    return row.id;
+  }
+
+  it("does not replay an unrelated transaction for an occurrence two steps back", async () => {
+    const id = await ownTransaction("2026-08-05");
+    const res = await advance(ruleId, post({ id, occurrenceDate: "2026-08-05", date: "2026-08-05" }));
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.code).toBe("TRANSACTION_ID_TAKEN");
+  });
+
+  it("does not replay a transaction whose fields differ from the request", async () => {
+    const id = await ownTransaction("2026-09-05");
+    const res = await advance(ruleId, post({ id, occurrenceDate: "2026-09-05", date: "2026-09-05", amount: 1 }));
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.code).toBe("TRANSACTION_ID_TAKEN");
+    expect(await nextDueOf(ruleId)).toBe("2026-10-05");
+  });
+});
+
 describe("skip", () => {
   it("moves the rule without writing a transaction", async () => {
     const res = await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" });

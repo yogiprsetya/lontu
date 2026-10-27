@@ -169,16 +169,28 @@ export type AdvanceOutcome =
 /** Thrown inside the advance transaction when the rule has moved past the occurrence, to roll it back. */
 class Stale extends Error {}
 
+type PostInput = Extract<RecurringAdvanceInput, { action: "post" }>;
+
 /**
- * A post stored under this client id, as long as it is the record of this occurrence: the user's own
- * simple transaction of the rule's type, with the rule already moved past the occurrence.
+ * A post stored under this client id, only when it is the record of this very request: transactions
+ * carry no rule id, so the stored row must equal the request and the rule must be exactly one step
+ * past the occurrence. Anything else is an id reused from elsewhere.
  */
-async function findPostReplay(userId: string, rule: Row, input: Extract<RecurringAdvanceInput, { action: "post" }>) {
+async function findPostReplay(userId: string, rule: Row, input: PostInput) {
   const replay = await findReplay(userId, input.id);
   if (!replay) return undefined;
   if ("idTaken" in replay) return replay;
-  const matches = !replay.fee && replay.transaction.type === rule.type && rule.nextDueDate > input.occurrenceDate;
-  return matches ? { result: { rule: toRule(rule), transaction: replay.transaction } } : { idTaken: true as const };
+  const t = replay.transaction;
+  const matches =
+    !replay.fee &&
+    t.type === rule.type &&
+    t.amount === input.amount &&
+    t.date === input.date &&
+    t.accountId === input.accountId &&
+    t.categoryId === input.categoryId &&
+    t.description === input.description &&
+    rule.nextDueDate === advanceDate(rule.dayOfMonth, input.occurrenceDate);
+  return matches ? { result: { rule: toRule(rule), transaction: t } } : { idTaken: true as const };
 }
 
 /**

@@ -1,17 +1,28 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ShowArchivedSwitch } from "@/components/modals/archive-controls";
+import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
+import { toast } from "sonner";
+import { RecurringForm } from "@/components/forms/recurring-form";
+import { ResponsiveModal } from "@/components/layout/responsive-modal";
+import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
-import { useRecurring } from "@/hooks/use-recurring";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { archiveRule, restoreRule, useRecurring } from "@/hooks/use-recurring";
 import { todayInJakarta } from "@/lib/date";
+import { failureMessage } from "@/lib/offline/network-error";
+import type { RulePreset } from "@/lib/recurring-form";
 import { RECURRING_GROUPS } from "@/lib/recurring-format";
+import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
 import { useUIStore } from "@/stores/ui";
+
+type Editing = { kind: "create"; preset?: RulePreset } | { kind: "edit"; id: string } | null;
 
 function ViewSkeleton() {
   return (
@@ -23,13 +34,65 @@ function ViewSkeleton() {
   );
 }
 
+function RowMenu({ rule, online, onArchive }: { rule: RecurringRule; online: boolean; onArchive: () => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-xl" aria-label={`Aksi untuk ${rule.name}`} />}
+      >
+        <EllipsisVerticalIcon className="size-5" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-44 rounded-2xl p-1.5">
+        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={onArchive}>
+          {online ? "Arsipkan" : "Arsipkan · Butuh koneksi"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function RecurringView() {
   const [showArchived, setShowArchived] = useState(false);
+  const [editing, setEditing] = useState<Editing>(null);
+  // Archived rows vanish at once; the id leaves this set when the request settles.
+  const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
+  const online = useOnlineStatus();
   const hideAmounts = useUIStore((s) => s.hideAmounts);
   const recurring = useRecurring({ includeArchived: showArchived });
   const accounts = useAccounts({ includeArchived: true });
   const accountNames = useMemo(() => nameMap(accounts.data), [accounts.data]);
   const today = todayInJakarta();
+
+  const rules = recurring.data?.rules.filter((r) => !archiving.has(r.id));
+  const editingRule = editing?.kind === "edit" ? recurring.data?.rules.find((r) => r.id === editing.id) : undefined;
+  const currentPayday = recurring.data?.rules.find((r) => r.isPayday && !r.archivedAt);
+  const close = () => setEditing(null);
+
+  function settle(id: string) {
+    setArchiving((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  async function archive(rule: RecurringRule) {
+    setArchiving((prev) => new Set(prev).add(rule.id));
+    try {
+      await archiveRule(rule.id);
+      toast("Aturan diarsipkan", {
+        duration: 6000,
+        action: {
+          label: "Urungkan",
+          onClick: () => void restoreRule(rule.id).catch((err) => toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi."))),
+        },
+      });
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal mengarsipkan aturan. Coba lagi."));
+    } finally {
+      settle(rule.id);
+    }
+  }
 
   const error = recurring.error ?? accounts.error;
   let content;
@@ -43,9 +106,9 @@ export function RecurringView() {
         }}
       />
     );
-  } else if (!recurring.data || !accounts.data) {
+  } else if (!rules || !accounts.data) {
     content = <ViewSkeleton />;
-  } else if (recurring.data.rules.length === 0) {
+  } else if (rules.length === 0) {
     content = (
       <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
         <p className="text-muted-foreground">
@@ -55,10 +118,10 @@ export function RecurringView() {
         </p>
         {!showArchived && (
           <div className="flex flex-wrap justify-center gap-2">
-            <Button className="h-11 text-base" disabled>
+            <Button className="h-11 text-base" onClick={() => setEditing({ kind: "create", preset: { type: "income", isPayday: true } })}>
               Tambah gaji
             </Button>
-            <Button variant="outline" className="h-11 text-base" disabled>
+            <Button variant="outline" className="h-11 text-base" onClick={() => setEditing({ kind: "create", preset: { type: "expense" } })}>
               Tambah tagihan
             </Button>
           </div>
@@ -66,7 +129,6 @@ export function RecurringView() {
       </div>
     );
   } else {
-    const rules = recurring.data.rules;
     content = RECURRING_GROUPS.map(({ type, label }) => {
       const rows = rules.filter((r) => r.type === type);
       if (rows.length === 0) return null;
@@ -83,7 +145,14 @@ export function RecurringView() {
                 accountName={accountNames.get(rule.accountId) ?? "Akun"}
                 today={today}
                 hideAmounts={hideAmounts}
-              />
+                onEdit={rule.archivedAt ? undefined : () => setEditing({ kind: "edit", id: rule.id })}
+              >
+                {rule.archivedAt ? (
+                  <RestoreButton name={rule.name} restore={() => restoreRule(rule.id)} />
+                ) : (
+                  <RowMenu rule={rule} online={online} onArchive={() => void archive(rule)} />
+                )}
+              </RuleRow>
             ))}
           </ul>
         </section>
@@ -91,10 +160,47 @@ export function RecurringView() {
     });
   }
 
+  const formOpen = editing?.kind === "create" || !!editingRule;
+
   return (
     <>
-      <ShowArchivedSwitch id="show-archived-rules" checked={showArchived} onCheckedChange={setShowArchived} />
+      <div className="flex flex-col gap-2">
+        <Button className="h-11 self-start text-base" onClick={() => setEditing({ kind: "create" })}>
+          <PlusIcon aria-hidden />
+          Tambah aturan
+        </Button>
+        <ShowArchivedSwitch id="show-archived-rules" checked={showArchived} onCheckedChange={setShowArchived} />
+      </div>
       {content}
+      <ResponsiveModal
+        open={formOpen}
+        onOpenChange={(open) => !open && close()}
+        title={editingRule ? "Ubah aturan" : "Tambah aturan"}
+        footer={
+          <div className="flex flex-col gap-2">
+            {!online && <p className="text-center text-sm text-muted-foreground">Butuh koneksi untuk menyimpan.</p>}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={close}>
+                Batal
+              </Button>
+              <Button type="submit" form="recurring-form" className="h-11 flex-1 text-base" disabled={!online}>
+                Simpan
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        {formOpen && (
+          <RecurringForm
+            key={editingRule?.id ?? `create-${editing?.kind === "create" ? (editing.preset?.type ?? "") : ""}`}
+            rule={editingRule}
+            preset={editing?.kind === "create" ? editing.preset : undefined}
+            currentPayday={currentPayday}
+            today={today}
+            onDone={close}
+          />
+        )}
+      </ResponsiveModal>
     </>
   );
 }

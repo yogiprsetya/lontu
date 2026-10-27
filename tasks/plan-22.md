@@ -13,7 +13,7 @@ Dari ponsel, pemilik membuka `/recurring`, mendaftarkan gaji dan tagihan tetap, 
 - [x] T79: `PATCH`, `DELETE`, `restore` + tukar gajian (M)
 - [x] T80: `hooks/use-recurring.ts`, resource cache, nav item (S)
 - [x] T81: Halaman `/recurring` (baca) (M)
-- [ ] T82: Form aturan + arsip dengan undo (M)
+- [x] T82: Form aturan + arsip dengan undo (M)
 
 Urutan: T77 dulu. T78 dan T79 boleh paralel setelah T77. T80 butuh T78 + T79. T81 butuh T80. T82 butuh T81.
 

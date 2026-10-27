@@ -96,6 +96,15 @@ function ownedRule(userId: string, id: string) {
   return and(eq(recurringRules.id, id), eq(recurringRules.userId, userId));
 }
 
+function liveRule(userId: string, id: string) {
+  return and(ownedRule(userId, id), isNull(recurringRules.archivedAt));
+}
+
+async function currentRule(userId: string, id: string) {
+  const [row] = await db.select().from(recurringRules).where(liveRule(userId, id));
+  return row;
+}
+
 export type UpdateRuleResult = { rule: RecurringRule } | { invalid: InvalidField } | { notFound: true };
 
 /**
@@ -109,8 +118,7 @@ export async function updateRule(
   today: string,
 ): Promise<UpdateRuleResult> {
   if (!isUuid(id)) return { notFound: true };
-  const live = and(ownedRule(userId, id), isNull(recurringRules.archivedAt));
-  const [row] = await db.select().from(recurringRules).where(live);
+  const row = await currentRule(userId, id);
   if (!row) return { notFound: true };
 
   const type = row.type as RecurringType;
@@ -132,7 +140,7 @@ export async function updateRule(
     const [r] = await tx
       .update(recurringRules)
       .set({ ...input, ...(nextDueDate && { nextDueDate }), updatedAt: sql`now()` })
-      .where(live)
+      .where(liveRule(userId, id))
       .returning();
     return r;
   });
@@ -173,14 +181,6 @@ async function findPostReplay(userId: string, rule: Row, input: Extract<Recurrin
   return matches ? { result: { rule: toRule(rule), transaction: replay.transaction } } : { idTaken: true as const };
 }
 
-async function currentRule(userId: string, id: string) {
-  const [row] = await db
-    .select()
-    .from(recurringRules)
-    .where(and(ownedRule(userId, id), isNull(recurringRules.archivedAt)));
-  return row;
-}
-
 /**
  * Catat (post) or Lewati (skip) one occurrence. The rule only moves when `occurrenceDate` is still
  * its next due date, and for a post the move and the transaction insert commit together. As in
@@ -205,9 +205,7 @@ export async function advanceRule(userId: string, id: string, input: RecurringAd
       const [moved] = await tx
         .update(recurringRules)
         .set({ nextDueDate: advanceDate(rule.dayOfMonth, input.occurrenceDate), updatedAt: sql`now()` })
-        .where(
-          and(ownedRule(userId, id), isNull(recurringRules.archivedAt), eq(recurringRules.nextDueDate, input.occurrenceDate)),
-        )
+        .where(and(liveRule(userId, id), eq(recurringRules.nextDueDate, input.occurrenceDate)))
         .returning();
       if (!moved) throw new Stale();
 

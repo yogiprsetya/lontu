@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2Icon } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ import { CategoryPicker } from "@/components/forms/category-picker";
 import { FormField } from "@/components/forms/form-field";
 import { StickySubmit } from "@/components/forms/sticky-submit";
 import { MoneyInput } from "@/components/forms/money-input";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBackToList } from "@/hooks/use-back-to-list";
 import { useProfile } from "@/hooks/use-profile";
@@ -58,7 +60,7 @@ export function TransactionForm({
   const backToList = useBackToList();
   const today = todayInJakarta();
   // Once per form, not per submit, so Simpan tapped again after a lost response replays.
-  const [recurringTxId] = useState(() => crypto.randomUUID());
+  const [recurringTxId, setRecurringTxId] = useState(() => crypto.randomUUID());
   const {
     register,
     control,
@@ -112,12 +114,19 @@ export function TransactionForm({
         void revalidateRecurring();
         return;
       }
+      // The server proved this id is not this request's, so the next Simpan needs a new one.
+      if (recurring && err instanceof ApiError && err.code === "TRANSACTION_ID_TAKEN") {
+        setRecurringTxId(crypto.randomUUID());
+        toast.error("Gagal menyimpan. Coba simpan lagi.");
+        return;
+      }
       if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
     }
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="surface flex flex-col gap-4 px-5 py-5">
+    // In a modal (recurring) the drawer is already the surface, and there is no bottom nav to clear.
+    <form onSubmit={onSubmit} noValidate className={recurring ? "flex flex-col gap-4" : "surface flex flex-col gap-4 px-5 py-5"}>
       {(transaction || recurring) && (
         <p className="text-sm text-muted-foreground">
           Jenis: <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span> (tidak bisa diubah)
@@ -201,7 +210,14 @@ export function TransactionForm({
         />
       </FormField>
 
-      <StickySubmit isSubmitting={isSubmitting} />
+      {recurring ? (
+        <Button type="submit" className="mt-2 h-11 w-full text-base" disabled={isSubmitting}>
+          {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
+          Simpan
+        </Button>
+      ) : (
+        <StickySubmit isSubmitting={isSubmitting} />
+      )}
     </form>
   );
 }

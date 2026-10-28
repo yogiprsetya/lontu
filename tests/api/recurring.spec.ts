@@ -300,6 +300,14 @@ describe("PATCH /api/recurring/[id]", () => {
     expect((await overview()).rules.find((r) => r.id === old.id)?.isPayday).toBe(false);
   });
 
+  it("keeps exactly one payday when the current payday is re-flagged while another rule takes it", async () => {
+    const old = await created(salary());
+    const bonus = await created(salary({ name: "Bonus", isPayday: false }));
+    const responses = await Promise.all([patch(old.id, { isPayday: true }), patch(bonus.id, { isPayday: true })]);
+    expect(responses.map((r) => r.status)).toEqual([200, 200]);
+    expect(await activePaydays(userA)).toHaveLength(1);
+  });
+
   it("rejects isPayday on an expense rule", async () => {
     const rule = await created(netflix());
     const res = await patch(rule.id, { isPayday: true });

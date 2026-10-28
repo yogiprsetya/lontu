@@ -134,7 +134,8 @@ export async function updateRule(
       ? firstDueOnOrAfter(input.dayOfMonth, today)
       : undefined;
   const updated = await db.transaction(async (tx) => {
-    if (input.isPayday && !row.isPayday) await clearPayday(tx, userId);
+    // Unconditional: `row` was read outside this transaction, so its flag may already be stale.
+    if (input.isPayday) await clearPayday(tx, userId);
     const [r] = await tx
       .update(recurringRules)
       .set({ ...input, ...(nextDueDate && { nextDueDate }), updatedAt: sql`now()` })

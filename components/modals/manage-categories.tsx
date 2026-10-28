@@ -102,11 +102,7 @@ export function ManageCategories({
         >
           <TabsList className="w-full group-data-horizontal/tabs:h-auto">
             {CATEGORY_KINDS.map((kind) => (
-              <TabsTrigger
-                key={kind}
-                value={kind}
-                className="h-11 text-base"
-              >
+              <TabsTrigger key={kind} value={kind} className="h-11 text-base">
                 {KIND_LABELS[kind]}
               </TabsTrigger>
             ))}
@@ -192,7 +188,7 @@ function CategoryList({ kind, includeArchived, onEdit }: CategoryListProps) {
 
   if (kind !== "spending") {
     return (
-      <ScrollArea className="w-full lg:h-56">
+      <ScrollArea className="w-full lg:h-60">
         <CategoryItems categories={data} onEdit={onEdit} />
       </ScrollArea>
     );
@@ -242,6 +238,7 @@ function CategoryItems({
                 <span className="truncate text-muted-foreground">
                   {category.name}
                 </span>
+
                 <span className="text-xs text-muted-foreground">
                   Diarsipkan
                 </span>
@@ -256,9 +253,10 @@ function CategoryItems({
             <button
               type="button"
               onClick={() => onEdit(category)}
-              className="flex min-h-11 w-full items-center gap-3 rounded-md px-2 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50"
+              className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50"
             >
               <span className="min-w-0 flex-1 truncate">{category.name}</span>
+
               <ChevronRightIcon
                 className="size-4 shrink-0 text-muted-foreground"
                 aria-hidden

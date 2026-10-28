@@ -1,6 +1,6 @@
 import { mutate } from "swr";
 
-export type Resource = "accounts" | "categories" | "transactions" | "budgets" | "dashboard";
+export type Resource = "accounts" | "categories" | "transactions" | "budgets" | "dashboard" | "recurring";
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
 const KEYS: Record<Resource, RegExp> = {
@@ -9,19 +9,23 @@ const KEYS: Record<Resource, RegExp> = {
   transactions: /^(\$inf\$)?\/api\/transactions($|[/?])/,
   budgets: /^\/api\/budgets($|[/?])/,
   dashboard: /^\/api\/dashboard($|[/?])/,
+  recurring: /^\/api\/recurring($|[/?])/,
 };
 
 /** What a change to each resource also makes stale on the server. Direct edges only. */
 const AFFECTS: Record<Resource, Resource[]> = {
-  // Balances, budget usage and the dashboard are sums over transactions.
-  transactions: ["accounts", "budgets", "dashboard"],
-  // An initial-balance edit records an adjustment transaction.
-  accounts: ["transactions"],
+  // Balances, budget usage, the dashboard and the payday forecast are sums over transactions.
+  transactions: ["accounts", "budgets", "dashboard", "recurring"],
+  // An initial-balance edit records an adjustment transaction and moves the forecast balance.
+  accounts: ["transactions", "recurring"],
   // Usage rows depend on whether a category is archived.
   categories: ["budgets"],
   budgets: [],
   // Read-only. Adjustments are not counted and names resolve on the client.
   dashboard: [],
+  // Recording an occurrence writes a transaction. Edges are one level deep, so that mutation
+  // also invalidates "transactions" itself to reach balances, budgets and the dashboard.
+  recurring: ["transactions"],
 };
 
 export function isResourceKey(resource: Resource, key: unknown) {

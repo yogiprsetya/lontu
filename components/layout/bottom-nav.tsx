@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddMenu } from "./add-menu";
-import { budgetItem, dashboardItem, expensesItem, isActivePath, type NavItem, settingsItem, transactionsItem } from "./nav-items";
+import { budgetItem, dashboardItem, isActivePath, moreItems, type NavItem, transactionsItem } from "./nav-items";
 import { useSignOut } from "./sign-out";
 
 const slotClass =
@@ -38,7 +38,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export function BottomNav() {
   const signOut = useSignOut();
   const pathname = usePathname();
-  const moreActive = [expensesItem, settingsItem].some((i) => isActivePath(pathname, i.href));
+  const moreActive = moreItems.some((i) => isActivePath(pathname, i.href));
 
   return (
     <nav
@@ -60,7 +60,7 @@ export function BottomNav() {
             More
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="end" sideOffset={8} className="min-w-52 rounded-2xl p-1.5">
-            {[expensesItem, settingsItem].map((item) => (
+            {moreItems.map((item) => (
               <DropdownMenuItem key={item.href} className="min-h-11 gap-3 rounded-xl text-base" render={<Link href={item.href} />}>
                 <item.icon className="size-5" aria-hidden />
                 {item.label}

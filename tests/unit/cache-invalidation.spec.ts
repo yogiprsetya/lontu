@@ -6,6 +6,7 @@ const { mutate } = await import("swr");
 const { affectedBy, invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { deleteTransaction } = await import("@/hooks/use-transactions");
 const { updateAccount } = await import("@/hooks/use-accounts");
+const { archiveRule } = await import("@/hooks/use-recurring");
 
 const mockedMutate = vi.mocked(mutate);
 const id = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -16,6 +17,7 @@ const keys = {
   transactions: "$inf$/api/transactions?type=expense",
   budgets: "/api/budgets?period=2026-10",
   dashboard: "/api/dashboard?period=2026-10",
+  recurring: "/api/recurring?includeArchived=true",
 } as const;
 
 /** True when some mutate call received a matcher that accepts `key`. */
@@ -41,6 +43,8 @@ describe("isResourceKey", () => {
     ["transactions", "$inf$/api/transactions"],
     ["budgets", "/api/budgets/suggestion?period=2026-10"],
     ["dashboard", "/api/dashboard?period=2026-10"],
+    ["recurring", "/api/recurring"],
+    ["recurring", "/api/recurring?includeArchived=true"],
   ] as const)("%s matches %s", (resource, key) => {
     expect(isResourceKey(resource, key)).toBe(true);
   });
@@ -50,6 +54,8 @@ describe("isResourceKey", () => {
     ["categories", "/api/accounts"],
     ["budgets", "$inf$/api/budgets"],
     ["dashboard", "/api/dashboards"],
+    ["recurring", "/api/recurringx"],
+    ["recurring", "/api/transactions"],
     ["transactions", undefined],
     ["transactions", ["/api/transactions"]],
   ] as const)("%s does not match %j", (resource, key) => {
@@ -59,11 +65,12 @@ describe("isResourceKey", () => {
 
 describe("affectedBy", () => {
   it.each([
-    ["transactions", ["transactions", "accounts", "budgets", "dashboard"]],
-    ["accounts", ["accounts", "transactions"]],
+    ["transactions", ["transactions", "accounts", "budgets", "dashboard", "recurring"]],
+    ["accounts", ["accounts", "transactions", "recurring"]],
     ["categories", ["categories", "budgets"]],
     ["budgets", ["budgets"]],
     ["dashboard", ["dashboard"]],
+    ["recurring", ["recurring", "transactions"]],
   ] as const)("a %s change refreshes %j", (resource, expected) => {
     expect(affectedBy(resource)).toEqual(expected);
   });
@@ -86,7 +93,29 @@ describe("invalidate", () => {
   });
 });
 
+describe("recurring edges", () => {
+  it("a transaction or account change refreshes the recurring overview", async () => {
+    await invalidate("transactions");
+    expect(revalidated(keys.recurring)).toBe(true);
+    mockedMutate.mockReset();
+    await invalidate("accounts");
+    expect(revalidated(keys.recurring)).toBe(true);
+  });
+
+  it("a recurring change refreshes the transaction list", async () => {
+    await invalidate("recurring");
+    expect(revalidated(keys.transactions)).toBe(true);
+    expect(revalidated(keys.recurring)).toBe(true);
+  });
+});
+
 describe("mutations refresh what they make stale", () => {
+  it("archiving a rule refreshes the recurring overview", async () => {
+    await archiveRule(id);
+    expect(revalidated(keys.recurring)).toBe(true);
+    expect(revalidated("/api/recurring")).toBe(true);
+  });
+
   it("deleting a transaction refreshes budget usage, balances and the dashboard", async () => {
     await deleteTransaction(id);
     expect(revalidated(keys.budgets)).toBe(true);

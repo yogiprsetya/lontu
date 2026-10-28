@@ -1,12 +1,14 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   check,
   date,
   index,
   integer,
   pgTable,
   pgView,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -129,6 +131,39 @@ export const budgets = pgTable.withRLS(
     check("budgets_month_check", sql`${t.month} between 1 and 12`),
     check("budgets_amount_check", sql`${t.amount} >= 0`),
     uniqueIndex("budgets_user_category_period_unique").on(t.userId, t.categoryId, t.year, t.month),
+  ],
+);
+
+export const recurringRules = pgTable.withRLS(
+  "recurring_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: userId(),
+    type: text("type").notNull(),
+    name: text("name").notNull(),
+    amount: money("amount").notNull(),
+    accountId: uuid("account_id")
+      .notNull()
+      .references(() => accounts.id),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id),
+    dayOfMonth: smallint("day_of_month").notNull(),
+    nextDueDate: date("next_due_date", { mode: "string" }).notNull(),
+    isPayday: boolean("is_payday").notNull().default(false),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("recurring_rules_type_check", sql`${t.type} in ('income', 'expense', 'saving')`),
+    check("recurring_rules_amount_check", sql`${t.amount} > 0`),
+    check("recurring_rules_day_check", sql`${t.dayOfMonth} between 1 and 31`),
+    check("recurring_rules_payday_check", sql`not ${t.isPayday} or ${t.type} = 'income'`),
+    uniqueIndex("recurring_rules_one_payday")
+      .on(t.userId)
+      .where(sql`${t.isPayday} and ${t.archivedAt} is null`),
+    index("recurring_rules_user_idx").on(t.userId, t.nextDueDate),
   ],
 );
 

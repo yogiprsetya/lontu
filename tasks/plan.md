@@ -7,11 +7,12 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | Modul                 | Spec                                                          | Phase | Task    | Status                                                                                                                                                                                            |
 | --------------------- | ------------------------------------------------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `foundation`          | [SPEC-foundation.md](../SPEC-foundation.md)                   | 1–4   | T1–T9   | Selesai (T9 ditunda)                                                                                                                                                                              |
-| `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7   | T10–T21 | Selesai (review Yogi tertunda)                                                                                                                                                                    |
-| `transactions`        | [SPEC-transactions.md](../SPEC-transactions.md)               | 8–12  | T22–T41 | Kode selesai (T22–T41). Cek manual 360×800/1024 dan review Yogi di checkpoint G–K tertunda                                                                                                        |
-| `budgets`             | [SPEC-budgets.md](../SPEC-budgets.md)                         | 13–15 | T42–T54 | Kode selesai (T42–T54). Cek manual 360×800/1024 dan review Yogi di checkpoint L–N tertunda                                                                                                        |
-| `dashboard`           | [SPEC-dashboard.md](../SPEC-dashboard.md)                     | 16–18 | T55–T65 | Kode selesai (T55–T65). Cek manual 360×800/1024, Lighthouse, dan review Yogi di checkpoint O–Q tertunda. JS first load di atas 200 KB (lihat Catatan ukuran)                                      |
-| `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Kode selesai (T66–T76). Cek manual di perangkat (Android Chrome, iPhone Safari, DevTools) dan review Yogi di checkpoint R–T tertunda. JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
+| `accounts-categories` | [SPEC-accounts-categories.md](../SPEC-accounts-categories.md) | 5–7   | T10–T21 | Selesai |
+| `transactions`        | [SPEC-transactions.md](../SPEC-transactions.md)               | 8–12  | T22–T41 | Selesai (T22–T41) |
+| `budgets`             | [SPEC-budgets.md](../SPEC-budgets.md)                         | 13–15 | T42–T54 | Selesai (T42–T54) |
+| `dashboard`           | [SPEC-dashboard.md](../SPEC-dashboard.md)                     | 16–18 | T55–T65 | Selesai (T55–T65). JS first load di atas 200 KB (lihat Catatan ukuran) |
+| `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Selesai (T66–T76). JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
+| `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 
 ---
 
@@ -434,3 +435,88 @@ Di bawah target < 10 KB. Service worker (`public/sw.js`, 43 KB mentah) tidak ter
 | Reload otomatis membuang isi form                                                          | Sedang | `skipWaiting: false`, `reloadOnOnline: false`, tombol "Muat ulang" (T66, T68)                  |
 | iOS menghapus storage, item tertunda hilang                                                | Sedang | Replay setiap aplikasi dibuka online, `navigator.storage.persist()` (T72)                      |
 | JS tambahan di semua halaman                                                               | Rendah | Target < 10 KB gzip, diukur di T76                                                             |
+
+---
+
+# Modul `recurring`
+
+Spec: [SPEC-recurring.md](../SPEC-recurring.md) · 2026-10-27
+
+## Overview
+
+Pemilik mendaftarkan aturan berulang bulanan (gaji, tagihan tetap, setoran tabungan), menanganinya dengan satu tap saat jatuh tempo (Catat atau Lewati), dan melihat di dashboard berapa uang yang bebas sampai gajian berikutnya. Tidak ada cron dan tidak ada transaksi yang ditulis tanpa tap pemilik. Satu tabel baru (`recurring_rules`, tabel ke-6, disetujui 2026-10-27) dan satu halaman baru (`/recurring`).
+
+## Kondisi repo saat ini
+
+- Enam modul MVP selesai dari sisi kode. Review manual checkpoint G–T masih tertunda, tapi tidak memblokir modul ini.
+- Siap dipakai: `withAuth`, `lib/api/errors.ts` (`fieldError`, `notFound`, `conflict`, `transactionIdTaken`), `findOwnedAccounts`/`findOwnedCategory`/`findOwnedCategories`, `CATEGORY_KIND_FOR`, `todayInJakarta`, view `account_balances`, `invalidate`/`affectedBy` (`lib/cache-invalidation.ts`), `useAccounts`/`useCategories`, `MoneyInput`, `AccountPicker`, `CategoryPicker`, `FormField`, `applyServerErrors`, `StickySubmit`, `ResponsiveModal`, `TypeChip`, `useOnlineStatus`, `hideAmounts`, pola toast undo di `transaction-editor.tsx`.
+- `insertSimple` di `lib/server/transactions.ts` masih memakai `db` langsung, jadi insert belum bisa ikut transaksi DB milik pemanggil (T83).
+- `nav-items.ts` punya 5 entri; bottom nav memakai 4 slot + FAB + menu More.
+- Vitest `environment: "node"`: logika UI dipisah menjadi fungsi murni. UI diverifikasi manual.
+- Belum ada: `recurring_rules`, `app/(app)/recurring/`, `components/recurring/`, `hooks/use-recurring.ts`, `lib/recurring-schedule.ts`, `lib/payday-forecast.ts`.
+
+## Dependency graph
+
+```
+T77 Migrasi + schema + recurring-schedule (murni)
+ ├─► T78 GET + POST ──────────┐
+ └─► T79 PATCH/DELETE/restore ┴─► T80 Hook + resource cache + nav ─► T81 Halaman (baca) ─► T82 Form + arsip
+                                                                                                │
+T83 Executor opsional (bebas, boleh paralel dengan phase 22)                                    │
+ └─► T84 POST advance (butuh T79) ─► T85 Hook advance + prop form ─► T86 Kotak Jatuh tempo ◄────┘
+                                                                          │
+                                           T87 paydayForecast + spendable + forecast di GET ◄───┘
+                                                 └─► T88 Kartu gajian ─► T89 Penyelesaian
+```
+
+T83 tidak bergantung pada apa pun di modul ini dan boleh didahulukan (risiko tinggi, menyentuh modul transactions).
+
+## Phases
+
+| Phase                  | Plan                     | Todo                     | Task    | Checkpoint        |
+| ---------------------- | ------------------------ | ------------------------ | ------- | ----------------- |
+| 22. Aturan berulang    | [plan-22.md](plan-22.md) | [todo-22.md](todo-22.md) | T77–T82 | U                 |
+| 23. Catat dan Lewati   | [plan-23.md](plan-23.md) | [todo-23.md](todo-23.md) | T83–T86 | V                 |
+| 24. Proyeksi gajian    | [plan-24.md](plan-24.md) | [todo-24.md](todo-24.md) | T87–T89 | W (modul selesai) |
+
+Phase dikerjakan berurutan. Pengecualian: T83 boleh dikerjakan kapan saja, termasuk sebelum phase 22.
+
+## Aturan lintas phase
+
+- **Irisan vertikal per kapabilitas.** Setiap phase berakhir dengan alur yang bisa dicoba dari ponsel (daftarkan aturan → tangani yang jatuh tempo → lihat proyeksi). Di dalam satu irisan, task API lebih dulu karena tes API terhadap Supabase mengunci kontrak, lalu task UI-nya.
+- **Risiko tinggi didahulukan:** aritmetika tanggal (T77), refactor executor transaksi (T83, boleh paling awal), atomisitas `advance` (T84), kebenaran angka "bebas" (T87).
+- **Respons `GET /api/recurring` tumbuh aditif:** `rules` + `due` (T78), `forecast` (T87), seperti `GET /api/dashboard` di modul dashboard.
+- **Modul transactions hanya disentuh dua kali:** executor di `insertSimple` (T83) dan prop `recurring` di `TransactionForm` (T85). Kontrak `POST /api/transactions` tidak berubah, dan semua tes transaksi yang ada wajib hijau tanpa diedit.
+- Satu task = satu commit conventional, dengan gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual di 360×800 dan 1024.
+- Tidak ada dependency npm baru dan tidak ada komponen shadcn baru. Jika sebuah komponen terasa perlu lewat CLI, berhenti dan tanya.
+
+## Keputusan perencanaan (2026-10-27)
+
+1. **Open questions #2–#5 di spec memakai default spec** (income non-gajian diabaikan, satu aksi Lewati, tanpa undo untuk Lewati, tanggal default = tanggal kejadian). Masing-masing terkunci di satu tempat (`paydayForecast`, `due-inbox.tsx`, `transaction-form.tsx`), jadi perubahan nanti menyentuh satu fungsi dan tesnya. Ditanyakan lagi di checkpoint U sebelum phase 23.
+2. **Catat memakai `ResponsiveModal`, bukan `/add/[type]?rule=`,** karena halaman itu statis lewat `generateStaticParams` dan `useSearchParams` di sana akan menyentuh modul transactions tanpa alasan.
+3. **Executor opsional (T83) dipisah menjadi task sendiri** dan boleh didahulukan, karena satu-satunya risiko tinggi di modul transactions yang sudah stabil.
+4. **`due` dihitung di server**, supaya "hari ini" selalu Jakarta dan tidak bergantung jam perangkat.
+5. **Tanggal 1–31 memakai `<select>` native**, bukan komponen kalender atau shadcn baru.
+
+## Risiko modul
+
+| Risiko                                                                 | Dampak | Mitigasi                                                                                                                       |
+| ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Refactor executor mengubah perilaku replay `POST /api/transactions`    | Tinggi | T83 lebih dulu dan terisolasi. Semua tes transaksi yang ada wajib hijau tanpa diedit                                           |
+| Transaksi ganda atau aturan maju dua kali                              | Tinggi | Satu transaksi DB dengan syarat `next_due_date = occurrenceDate` (409 `OCCURRENCE_STALE`), `id` transaksi tetap per form (T85) |
+| Validasi gagal tetapi aturan sudah maju                                | Tinggi | Semua langkah dalam satu transaksi DB. Tes eksplisit di T84                                                                    |
+| Angka "bebas" salah sehingga pemilik tidak mempercayainya              | Tinggi | Filter akun keputusan #4 dites dengan kelima jenis akun, plus invarian terhadap `/api/accounts` (T87)                          |
+| Tanggal bergeser sehari atau salah di akhir bulan/kabisat              | Tinggi | Semua aritmetika dari string `YYYY-MM-DD`, tes merah lebih dulu di T77                                                        |
+| Kotak Jatuh tempo diabaikan sehingga "terikat" membengkak              | Sedang | Diterima (keputusan #1, tanpa push). Diukur setelah dua siklus gajian di checkpoint W                                          |
+| Tagihan dicatat manual tanpa Lewati → "bebas" terlalu kecil            | Sedang | Teks bantuan Lewati menyebut kasus ini. Jika sering, pertimbangkan pencocokan otomatis (Ask first)                            |
+| Dua aturan gajian lolos karena race                                    | Sedang | Penukaran dalam satu transaksi DB + index unik parsial. Tes `POST` paralel (T78)                                               |
+| Tambahan bundle `/dashboard` yang sudah di atas target 200 KB          | Sedang | Target tambahan modul < 5 KB gzip, diukur di T86, T88, dirangkum di T89                                                        |
+| drizzle-kit RC menghasilkan migrasi yang menyentuh objek lain          | Sedang | Baca `migration.sql` sebelum `db:migrate`. `db-constraints.spec.ts` tetap hijau (T77)                                          |
+
+## Temuan verifikasi T89 (2026-10-27)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build`, dan semua tes unit. Tes API modul ini (`recurring*.spec.ts`, `transactions-executor.spec.ts`) hijau. Suite penuh hijau terakhir di T83 (1028 tes); setelahnya beberapa run gagal hanya karena timeout/DNS ke pooler Supabase (`EAI_AGAIN`, `CONNECT_TIMEOUT`, round trip 0,3–6 s) di berkas yang tidak disentuh, tanpa satu pun assertion yang gagal. Run terakhir (T89): 1080/1081, satu-satunya gagal adalah timeout 20 s di `recurring.spec.ts` "moves the payday flag from the old payday rule", yang lulus sendiri dalam 11 s (bukan lock wait). Tes tukar gajian butuh ±10–13 s per tes karena banyak round trip; jika jaringan tetap lambat, pertimbangkan memangkas round trip di tes itu, bukan menaikkan timeout.
+- `pnpm build` mencetak 4 pesan "During prerendering, `headers()` rejects" untuk route API lama (`/api/dashboard`, `/api/budgets/suggestion`, `/api/transactions/export`, `/api/transactions/totals`). Sudah ada sebelum modul ini (dicek di commit dasar), exit 0.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir UI di spec § Acceptance criteria dan butir Manual di todo-22..24, Lighthouse mobile dan axe untuk `/dashboard` dan `/recurring` (tidak ada browser di sesi build), mode pesawat, tap ganda Simpan, dan angka "bebas" terhadap hitungan tangan.
+- Keputusan saat build: Open questions #2–#5 memakai default spec (disetujui saat `/build auto`). "Lihat arsip" memakai `ShowArchivedSwitch` yang sudah ada ("Tampilkan arsip"), bukan tautan. Arsip memakai sembunyi lokal saat request berjalan, bukan optimistic update SWR. `hookTimeout` vitest dinaikkan ke 20 s (commit tersendiri).
+- Ditutup 2026-10-28: semua checklist yang tersisa di modul `transactions` sampai `recurring` (checkpoint G–W) ditutup oleh Yogi.

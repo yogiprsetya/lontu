@@ -56,7 +56,7 @@ Before every commit: `pnpm lint && pnpm typecheck && pnpm test`. Conventional co
 - Server-only modules start with `import "server-only"`; client components with `"use client"`.
 - TypeScript strict, alias `@/*`. Files kebab-case, components PascalCase, hooks `useX`.
 - Match the formatting of existing files (double quotes). Don't reformat untouched files.
-- Don't hand-edit `components/ui/`; add or update components via the shadcn CLI.
+- Don't hand-edit `components/ui/`; add or update components via the shadcn CLI. One exception: `button.tsx` sizes `default` and `lg` use `px-4` (registry `px-2.5`). Re-apply it after any `shadcn add button --overwrite`.
 - Comments only for reasons not visible in the code.
 - Mobile: layout must work at 360 px, touch targets ≥ 44×44 px, input font 16 px, text contrast ≥ 4.5:1.
 

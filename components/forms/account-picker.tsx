@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { archiveLabel, selectableItems } from "@/lib/archived";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useUIStore } from "@/stores/ui";
+import { selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 
 type AccountPickerProps = {
   id: string;
@@ -54,15 +55,15 @@ export function AccountPicker({ id, value, onChange, exclude, keep, invalid, des
     <Select items={items} value={value || null} onValueChange={(v) => v && onChange(v)}>
       <SelectTrigger
         id={id}
-        className="w-full text-base data-[size=default]:h-11 md:text-sm"
+        className={selectTriggerClass}
         aria-invalid={invalid}
         aria-describedby={describedBy}
       >
         <SelectValue placeholder="Pilih akun" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent alignItemWithTrigger={false}>
         {items.map((item) => (
-          <SelectItem key={item.value} value={item.value} className="min-h-11">
+          <SelectItem key={item.value} value={item.value} className={selectItemClass}>
             {item.label}
           </SelectItem>
         ))}

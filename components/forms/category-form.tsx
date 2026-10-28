@@ -17,6 +17,7 @@ import {
   categoryRenameSchema,
 } from "@/lib/schemas/category";
 import { failureMessage } from "@/lib/offline/network-error";
+import { inputClass } from "@/components/forms/field-styles";
 
 export const KIND_LABELS: Record<CategoryKind, string> = { income: "Income", saving: "Saving", spending: "Spending" };
 export const SPENDING_TYPE_LABELS: Record<SpendingType, string> = { needs: "Needs", wants: "Wants" };
@@ -71,7 +72,7 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
       <FormField id="category-name" label="Nama kategori" error={errors.name?.message}>
         <Input
           id="category-name"
-          className="h-11"
+          className={inputClass}
           autoComplete="off"
           aria-invalid={!!errors.name}
           aria-describedby="category-name-message"

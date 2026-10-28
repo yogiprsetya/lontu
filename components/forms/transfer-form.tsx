@@ -31,6 +31,7 @@ import {
 } from "@/lib/schemas/transaction";
 import { useUIStore } from "@/stores/ui";
 import { failureMessage } from "@/lib/offline/network-error";
+import { inputClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof transferCreateSchema>;
 
@@ -174,7 +175,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         <Input
           id="transfer-date"
           type="date"
-          className="h-11"
+          className={inputClass}
           min={MIN_TRANSACTION_DATE}
           max={today}
           aria-invalid={!!errors.date}
@@ -186,7 +187,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
       <FormField id="transfer-description" label="Deskripsi (opsional)" error={errors.description?.message}>
         <Input
           id="transfer-description"
-          className="h-11"
+          className={inputClass}
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}
@@ -201,7 +202,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         </p>
       ) : (
         <fieldset className="flex flex-col gap-4 rounded-2xl bg-muted px-4 py-3">
-          <label className="flex min-h-11 items-center gap-3 text-base md:text-sm">
+          <label className="flex min-h-11 items-center gap-3 text-base font-medium">
             <Checkbox
               checked={hasFee}
               onCheckedChange={(checked) => {

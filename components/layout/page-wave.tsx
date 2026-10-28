@@ -12,6 +12,7 @@ const WAVES: [prefix: string, color: string][] = [
   ["/add/transfer", "text-sky"],
   ["/budget", "text-lilac"],
   ["/settings", "text-mint"],
+  ["/recurring", "text-sky"],
 ];
 
 export function PageWave() {

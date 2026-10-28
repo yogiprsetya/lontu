@@ -81,7 +81,7 @@ export function ManageAccounts({
         )
       }
     >
-      <ScrollArea className="w-full lg:h-56">
+      <ScrollArea className="w-full lg:h-64 pr-2">
         {view.kind === "list" && (
           <AccountList
             showArchived={showArchived}
@@ -89,9 +89,7 @@ export function ManageAccounts({
             onEdit={(account) => setView({ kind: "edit", account })}
           />
         )}
-        {view.kind === "create" && (
-          <AccountForm onDone={toList} />
-        )}
+        {view.kind === "create" && <AccountForm onDone={toList} />}
         {view.kind === "edit" && (
           <AccountForm
             key={view.account.id}

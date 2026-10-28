@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
@@ -40,7 +41,6 @@ import {
 } from "@/lib/transaction-types";
 
 const ALL = "all";
-const triggerClass = "w-full text-base data-[size=default]:h-11 md:text-sm";
 
 const typeLabel = (type: ListTransactionType) =>
   type === "adjustment" ? ADJUSTMENT_LABEL : TRANSACTION_TYPE_LABELS[type];
@@ -56,7 +56,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-base font-semibold">{label}</Label>
       {children}
     </div>
   );
@@ -168,15 +168,15 @@ export function FilterPanel({
                   })
                 }
               >
-                <SelectTrigger id="filter-type" className={triggerClass}>
+                <SelectTrigger id="filter-type" className={selectTriggerClass}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false}>
                   {types.map((t) => (
                     <SelectItem
                       key={t.value}
                       value={t.value}
-                      className="min-h-11"
+                      className={selectItemClass}
                     >
                       {t.label}
                     </SelectItem>
@@ -193,15 +193,15 @@ export function FilterPanel({
                 v && set({ accountId: v === ALL ? undefined : v })
               }
             >
-              <SelectTrigger id="filter-account" className={triggerClass}>
+              <SelectTrigger id="filter-account" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent alignItemWithTrigger={false}>
                 {accountItems.map((a) => (
                   <SelectItem
                     key={a.value}
                     value={a.value}
-                    className="min-h-11"
+                    className={selectItemClass}
                   >
                     {a.label}
                   </SelectItem>
@@ -218,11 +218,11 @@ export function FilterPanel({
                   v && set({ categoryId: v === ALL ? undefined : v })
                 }
               >
-                <SelectTrigger id="filter-category" className={triggerClass}>
+                <SelectTrigger id="filter-category" className={selectTriggerClass}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL} className="min-h-11">
+                <SelectContent alignItemWithTrigger={false}>
+                  <SelectItem value={ALL} className={selectItemClass}>
                     Semua kategori
                   </SelectItem>
                   {CATEGORY_KINDS.filter(
@@ -256,7 +256,7 @@ function CategoryGroup({
     <SelectGroup>
       <SelectLabel>{label}</SelectLabel>
       {categories.map((c) => (
-        <SelectItem key={c.id} value={c.id} className="min-h-11">
+        <SelectItem key={c.id} value={c.id} className={selectItemClass}>
           {archiveLabel(c)}
         </SelectItem>
       ))}

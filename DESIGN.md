@@ -45,11 +45,12 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 
 - **Display: Baloo 2** (`font-heading`, weights 600 to 800). Use it for page titles, card titles, the hero amount and big numbers in tiles. Chunky, rounded, friendly.
 - **Body: Nunito** (`font-sans`). Use it for everything else. Nunito's rounded terminals match Baloo.
-- Page title: `font-heading text-3xl font-extrabold tracking-tight`.
+- Page title (h1): `PageTitle` from [components/layout/page-title.tsx](components/layout/page-title.tsx): `font-heading text-3xl font-extrabold tracking-tight`. Pass `className` for layout extras such as `truncate` or an inline chip.
 - Card title (h2): `SectionTitle` from [components/layout/section-title.tsx](components/layout/section-title.tsx): `font-heading text-lg font-bold` with a pastel icon chip in front. Pick a tone that isn't already dominant in that card.
 - Eyebrow label (above a hero value, a group heading): `text-xs font-bold uppercase tracking-[0.14em]`.
 - Hero amount: `font-heading text-4xl font-extrabold`. Tile amount: `font-heading text-xl font-extrabold`.
-- Money stays `tabular-nums` (already on `<body>`). Inputs keep 16 px.
+- Money stays `tabular-nums` (already on `<body>`).
+- Fields: use `inputClass`, `selectTriggerClass` and `selectItemClass` from [components/forms/field-styles.ts](components/forms/field-styles.ts). Values are 16 px semibold on every breakpoint (the primitives drop to 14 px at `md`, these undo that); placeholders stay normal weight so a filled field reads differently from an empty one. Labels are `text-base font-semibold`, hints `text-sm`, errors `text-sm font-semibold`. The amount in `MoneyInput` is `text-lg font-bold` because it is the field the form exists for.
 
 ## Surfaces and shape
 
@@ -71,7 +72,7 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 - **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`.
 - **Progress bar**: `h-2.5 rounded-full`, `muted` track, `mint-pop` fill when ok, `budget` for warning, `expense` for over.
 - **Segmented choices** (theme toggle, chips): `rounded-full` pills; the selected one is ink-filled (`bg-primary text-primary-foreground`).
-- shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts.
+- shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts. The one exception is `Button`: sizes `default` and `lg` pad `px-4` (registry `px-2.5`) so labels don't crowd the edge, and a re-add from the CLI must keep it.
 
 ## Mascot and illustration
 

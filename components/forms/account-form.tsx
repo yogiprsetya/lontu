@@ -22,6 +22,7 @@ import {
   accountCreateSchema,
 } from "@/lib/schemas/account";
 import { failureMessage } from "@/lib/offline/network-error";
+import { inputClass, selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof accountCreateSchema>;
 
@@ -74,7 +75,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
       <FormField id="account-name" label="Nama akun" error={errors.name?.message}>
         <Input
           id="account-name"
-          className="h-11"
+          className={inputClass}
           autoComplete="off"
           placeholder="mis. BCA, GoPay"
           aria-invalid={!!errors.name}
@@ -114,12 +115,12 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
         render={({ field }) => (
           <FormField id="account-subtype" label="Subjenis (opsional)" error={errors.subtype?.message}>
             <Select items={subtypeItems} value={field.value ?? null} onValueChange={(v) => field.onChange(v)}>
-              <SelectTrigger id="account-subtype" className="w-full text-base data-[size=default]:h-11 md:text-sm">
+              <SelectTrigger id="account-subtype" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent alignItemWithTrigger={false}>
                 {subtypeItems.map((item) => (
-                  <SelectItem key={item.value ?? "none"} value={item.value} className="min-h-11">
+                  <SelectItem key={item.value ?? "none"} value={item.value} className={selectItemClass}>
                     {item.label}
                   </SelectItem>
                 ))}

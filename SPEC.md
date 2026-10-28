@@ -20,10 +20,11 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `accounts-categories` | CRUD akun & kategori, modal Manage Accounts / Manage Categories, seed kategori default, saldo dari view `account_balances`, halaman Settings | foundation |
 | `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
 | `budgets` | CRUD budget per kategori/bulan, salin dari bulan lalu, query `budgetUsage`, ringkasan Needs/Wants | accounts-categories, transactions |
-| `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary | transactions, budgets |
+| `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
+| `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
 
-**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline
+**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya)
 
 Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET /api/accounts` ditulis di `SPEC-accounts-categories.md`.
 
@@ -38,7 +39,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 5. **Transfer digabung ke modul `transactions`:** tabel, daftar, dan cache SWR-nya sama.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
-8. **5 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`). Angka "6 tabel" di roadmap sumber dianggap typo.
+8. **6 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27.
 
 ## Tech stack
 
@@ -86,6 +87,7 @@ app/
   (app)/expenses/page.tsx
   (app)/budget/page.tsx
   (app)/add/[type]/page.tsx        # income | expense | saving | transfer
+  (app)/recurring/page.tsx         # aturan berulang (Fase 2)
   (app)/settings/page.tsx
   api/**/route.ts
   manifest.ts
@@ -214,7 +216,7 @@ Kriteria fungsional per fitur ada di setiap `SPEC-<module>.md`. Target non-fungs
 
 ## Di luar MVP (Fase 2)
 
-Scan struk (OCR) dan upload receipt, transaksi berulang, multi-currency, pendaftaran terbuka (tanpa allowlist).
+Scan struk (OCR) dan upload receipt, multi-currency, pendaftaran terbuka (tanpa allowlist). Transaksi berulang sedang dikerjakan sebagai modul `recurring` ([SPEC-recurring.md](SPEC-recurring.md)).
 
 ## Open questions
 

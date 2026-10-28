@@ -9,6 +9,8 @@ import { QuickAdd } from "@/components/dashboard/quick-add";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { InstallCard } from "@/components/pwa/install-card";
 import { PendingNotice } from "@/components/pwa/pending-notice";
+import { DueInbox } from "@/components/recurring/due-inbox";
+import { PaydayCard } from "@/components/recurring/payday-card";
 import { PeriodStepper } from "@/components/transactions/period-stepper";
 import { dashboardPeriodFromParam } from "@/lib/dashboard-period";
 import { todayInJakarta } from "@/lib/date";
@@ -35,6 +37,9 @@ export function DashboardView() {
       </div>
       <div className="flex min-w-0 flex-col gap-6 lg:col-start-2 lg:row-start-3">
         <BalanceCard period={period} />
+        <PaydayCard />
+        {/* Below the numbers: it appears once data loads and must not push them down. */}
+        <DueInbox />
         <QuickAdd />
       </div>
       <div className="min-w-0 lg:col-span-2 lg:row-start-2">

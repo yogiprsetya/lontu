@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isActivePath } from "@/components/layout/nav-items";
+import { isActivePath, moreItems, recurringItem, sidebarItems } from "@/components/layout/nav-items";
 
 describe("isActivePath", () => {
   it("matches the exact path", () => {
@@ -16,5 +16,13 @@ describe("isActivePath", () => {
 
   it("does not match another section", () => {
     expect(isActivePath("/settings", "/dashboard")).toBe(false);
+  });
+});
+
+describe("recurring nav item", () => {
+  it("is in the sidebar and the bottom nav More menu", () => {
+    expect(sidebarItems).toContain(recurringItem);
+    expect(moreItems).toContain(recurringItem);
+    expect(recurringItem).toMatchObject({ href: "/recurring", label: "Recurring" });
   });
 });

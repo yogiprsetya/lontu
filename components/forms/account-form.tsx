@@ -118,7 +118,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
               <SelectTrigger id="account-subtype" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent alignItemWithTrigger={false}>
                 {subtypeItems.map((item) => (
                   <SelectItem key={item.value ?? "none"} value={item.value} className={selectItemClass}>
                     {item.label}

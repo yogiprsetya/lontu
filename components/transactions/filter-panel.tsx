@@ -171,7 +171,7 @@ export function FilterPanel({
                 <SelectTrigger id="filter-type" className={selectTriggerClass}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false}>
                   {types.map((t) => (
                     <SelectItem
                       key={t.value}
@@ -196,7 +196,7 @@ export function FilterPanel({
               <SelectTrigger id="filter-account" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent alignItemWithTrigger={false}>
                 {accountItems.map((a) => (
                   <SelectItem
                     key={a.value}
@@ -221,7 +221,7 @@ export function FilterPanel({
                 <SelectTrigger id="filter-category" className={selectTriggerClass}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent alignItemWithTrigger={false}>
                   <SelectItem value={ALL} className={selectItemClass}>
                     Semua kategori
                   </SelectItem>

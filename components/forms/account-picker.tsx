@@ -61,7 +61,7 @@ export function AccountPicker({ id, value, onChange, exclude, keep, invalid, des
       >
         <SelectValue placeholder="Pilih akun" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent alignItemWithTrigger={false}>
         {items.map((item) => (
           <SelectItem key={item.value} value={item.value} className={selectItemClass}>
             {item.label}

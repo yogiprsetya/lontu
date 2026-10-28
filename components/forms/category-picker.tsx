@@ -73,7 +73,7 @@ export function CategoryPicker({ id, kind, keep, value, onChange, invalid, descr
       >
         <SelectValue placeholder="Pilih kategori" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent alignItemWithTrigger={false}>
         {kind === "spending"
           ? SPENDING_TYPES.map(
               (type) =>

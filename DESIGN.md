@@ -72,7 +72,7 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 - **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`.
 - **Progress bar**: `h-2.5 rounded-full`, `muted` track, `mint-pop` fill when ok, `budget` for warning, `expense` for over.
 - **Segmented choices** (theme toggle, chips): `rounded-full` pills; the selected one is ink-filled (`bg-primary text-primary-foreground`).
-- shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts.
+- shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts. The one exception is `Button`: sizes `default` and `lg` pad `px-4` (registry `px-2.5`) so labels don't crowd the edge, and a re-add from the CLI must keep it.
 
 ## Mascot and illustration
 

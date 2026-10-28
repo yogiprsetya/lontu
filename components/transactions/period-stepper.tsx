@@ -83,12 +83,12 @@ export function PeriodStepper({
         }
       >
         <SelectTrigger
-          className="w-36 rounded-2xl border-0 bg-card text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
+          className="w-36 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
           aria-label="Rentang periode"
         >
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent alignItemWithTrigger={false}>
           {items.map((m) => (
             <SelectItem
               key={m.value}

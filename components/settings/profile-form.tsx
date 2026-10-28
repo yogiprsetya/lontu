@@ -14,6 +14,7 @@ import { applyServerErrors } from "@/lib/form-errors";
 import { type Profile, profileSchema } from "@/lib/schemas/profile";
 import { LoadError } from "./load-error";
 import { failureMessage } from "@/lib/offline/network-error";
+import { inputClass } from "@/components/forms/field-styles";
 
 const formSchema = profileSchema.pick({ displayName: true, phone: true, location: true }).required();
 type FormValues = z.input<typeof formSchema>;
@@ -73,7 +74,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           <FormField key={name} id={id} label={label} error={errors[name]?.message}>
             <Input
               id={id}
-              className="h-11"
+              className={inputClass}
               aria-invalid={!!errors[name]}
               aria-describedby={`${id}-message`}
               {...inputProps}

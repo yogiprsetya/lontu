@@ -35,6 +35,7 @@ import {
 import { signedEffect } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 import { failureMessage } from "@/lib/offline/network-error";
+import { inputClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 
@@ -189,7 +190,7 @@ export function TransactionForm({
         <Input
           id="transaction-date"
           type="date"
-          className="h-11"
+          className={inputClass}
           min={MIN_TRANSACTION_DATE}
           max={today}
           aria-invalid={!!errors.date}
@@ -201,7 +202,7 @@ export function TransactionForm({
       <FormField id="transaction-description" label="Deskripsi (opsional)" error={errors.description?.message}>
         <Input
           id="transaction-description"
-          className="h-11"
+          className={inputClass}
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}

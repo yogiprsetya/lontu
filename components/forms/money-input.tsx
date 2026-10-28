@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { inputClass } from "@/components/forms/field-styles";
 import { moneyFromInput, moneyToInput } from "@/lib/money-input";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,7 @@ export function MoneyInput({ id, value, onChange, onBlur, allowNegative = false,
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-y-0 left-3 flex items-center text-base md:text-sm",
+            "pointer-events-none absolute inset-y-0 left-4 flex items-center text-base font-semibold",
             negative ? "text-destructive" : "text-muted-foreground",
           )}
         >
@@ -57,7 +58,7 @@ export function MoneyInput({ id, value, onChange, onBlur, allowNegative = false,
           inputMode="numeric"
           autoComplete="off"
           placeholder="0"
-          className={cn("h-11 pl-12", negative && "text-destructive")}
+          className={cn(inputClass, "pl-14 text-lg font-bold md:text-lg", negative && "text-destructive")}
           value={moneyToInput(value)}
           onChange={(e) => onChange(moneyFromInput(e.target.value, negative))}
           onBlur={onBlur}

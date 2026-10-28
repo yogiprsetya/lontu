@@ -105,7 +105,7 @@ export function ManageCategories({
               <TabsTrigger
                 key={kind}
                 value={kind}
-                className="h-11 text-base md:text-sm"
+                className="h-11 text-base"
               >
                 {KIND_LABELS[kind]}
               </TabsTrigger>

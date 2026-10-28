@@ -45,7 +45,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [x] `pnpm vitest run tests/api/recurring-advance.spec.ts` hijau
-- [ ] `pnpm vitest run tests/api` hijau (tidak ada regresi transaksi)
+- [x] `pnpm vitest run tests/api` hijau (tidak ada regresi transaksi)
 
 **Dependencies:** T83, T79
 
@@ -63,7 +63,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 - [x] Tes unit: body `post` yang dikirim berisi `id` yang sama pada dua submit dari satu instance form, dan `date` = `occurrenceDate` untuk kejadian terlambat, hari ini untuk kejadian masa depan
 - [x] `advanceRule` memanggil `invalidate("transactions")` untuk `post` dan `invalidate("recurring")` untuk `skip` (mock `mutate`)
-- [ ] Semua tes `use-transactions` dan form yang ada tetap hijau; jalur create normal (online dan offline) tidak berubah
+- [x] Semua tes `use-transactions` dan form yang ada tetap hijau; jalur create normal (online dan offline) tidak berubah
 - [x] 409 `OCCURRENCE_STALE` ditangani sebagai toast + tutup, bukan galat field
 
 **Verification:**
@@ -85,16 +85,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tagihan jatuh tempo muncul di dashboard. Catat → form terisi → Simpan → transaksi ada di `/transactions`, saldo dan daftar berubah tanpa reload, baris hilang
-- [ ] Lewati → baris hilang, tidak ada transaksi, toast muncul
-- [ ] Tap Simpan dua kali cepat → satu transaksi (cek di `/transactions`)
-- [ ] `due` kosong → kotak tidak dirender dan tidak menyisakan ruang kosong. Mode pesawat → tombol nonaktif dengan teks "Butuh koneksi"
-- [ ] 360 px tanpa horizontal scroll, target ≥ 44 px, status terlambat terbaca tanpa warna, `hideAmounts` menyamarkan nominal
+- [x] Tagihan jatuh tempo muncul di dashboard. Catat → form terisi → Simpan → transaksi ada di `/transactions`, saldo dan daftar berubah tanpa reload, baris hilang
+- [x] Lewati → baris hilang, tidak ada transaksi, toast muncul
+- [x] Tap Simpan dua kali cepat → satu transaksi (cek di `/transactions`)
+- [x] `due` kosong → kotak tidak dirender dan tidak menyisakan ruang kosong. Mode pesawat → tombol nonaktif dengan teks "Butuh koneksi"
+- [x] 360 px tanpa horizontal scroll, target ≥ 44 px, status terlambat terbaca tanpa warna, `hideAmounts` menyamarkan nominal
 - [x] Tambahan JS first load `/dashboard` < 3 KB gzip, dicatat di plan-24 § Catatan ukuran
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark, plus satu putaran dengan jaringan di-throttle
+- [x] Manual 360×800 dan 1024, light dan dark, plus satu putaran dengan jaringan di-throttle
 - [x] `pnpm build` hijau, ukuran dicatat
 
 **Dependencies:** T85
@@ -107,7 +107,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint V
 
-- [ ] Gerbang penuh hijau, termasuk seluruh `tests/api/transactions*.spec.ts` tanpa diedit
-- [ ] Alur jatuh tempo → Catat → transaksi + saldo berubah, dan Lewati, sudah dicek di 360×800 dan 1024
-- [ ] Tap ganda, mode pesawat, dan aturan tertinggal 3 bulan sudah dicek manual
-- [ ] Review dengan Yogi
+- [x] Gerbang penuh hijau, termasuk seluruh `tests/api/transactions*.spec.ts` tanpa diedit
+- [x] Alur jatuh tempo → Catat → transaksi + saldo berubah, dan Lewati, sudah dicek di 360×800 dan 1024
+- [x] Tap ganda, mode pesawat, dan aturan tertinggal 3 bulan sudah dicek manual
+- [x] Review dengan Yogi

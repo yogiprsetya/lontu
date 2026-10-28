@@ -8,8 +8,8 @@ Pemilik yang membuka Lontu di browser diajak memasangnya ke layar utama (dialog 
 
 ## Task
 
-- [x] T75: Kartu "Pasang Lontu" (M) (cek manual di perangkat tertunda)
-- [x] T76: Verifikasi modul di perangkat + ukuran bundle (S) (ukuran dicatat; cek di perangkat tertunda)
+- [x] T75: Kartu "Pasang Lontu" (M)
+- [x] T76: Verifikasi modul di perangkat + ukuran bundle (S)
 
 Urutan: T75 → T76.
 

@@ -235,29 +235,29 @@ Urutan di server, dalam **satu transaksi DB**:
 
 **API**
 
-- [ ] `POST { type: "expense", name: "Netflix", amount: 186000, accountId, categoryId: <Langganan>, dayOfMonth: 5 }` pada 2026-10-27 → 201, `nextDueDate = "2026-11-05"`. Dengan `dayOfMonth: 27` → `"2026-10-27"`. Dengan `dayOfMonth: 31` pada 2026-11-03 → `"2026-11-30"`.
-- [ ] `advanceDate(31, "2026-01-31") = "2026-02-28"`, lalu `"2026-03-31"`. `advanceDate(29, "2028-01-29") = "2028-02-29"` (kabisat). `advanceDate(15, "2026-12-15") = "2027-01-15"`.
-- [ ] `advance { action: "post", occurrenceDate: nextDueDate, id, … }` → 200, transaksi tertulis dengan `type` dari aturan, `nextDueDate` maju satu bulan, saldo akun berubah. Request yang sama diulang → 200 replay dengan transaksi yang sama, tanpa baris baru, `nextDueDate` tidak maju dua kali. Dua request paralel (`Promise.all`) dengan `id` berbeda → tepat satu 200, satu 409 `OCCURRENCE_STALE`, satu transaksi.
-- [ ] `advance { action: "skip" }` → 200 `transaction: null`, tidak ada transaksi, `nextDueDate` maju. `occurrenceDate` ≠ `nextDueDate` → 409, tidak ada perubahan.
-- [ ] `post` dengan kategori `kind` salah, akun terarsip, akun/kategori milik user lain, `date` masa depan, atau `amount` 0 → 400 dengan `fields`, dan **aturan tidak maju**.
-- [ ] Aturan tertinggal 3 bulan: `due` memuatnya dengan kejadian tertua, setelah satu `skip` `nextDueDate` = bulan berikutnya dan masih di `due`.
-- [ ] `POST`/`PATCH` dengan `isPayday: true` pada aturan B saat A gajian aktif → B gajian, A tidak. `isPayday: true` dengan `type: "expense"` → 400 `fields.isPayday`. `DELETE` aturan gajian → `isPayday = false`, restore tidak bentrok.
-- [ ] `PATCH { type }` → 400. `PATCH { dayOfMonth: 10 }` pada 2026-10-27 → `nextDueDate = "2026-11-10"`. `PATCH` field lain tidak mengubah `nextDueDate`.
-- [ ] **Proyeksi** dengan hari ini 2026-11-13, gajian tanggal 25 (`nextDueDate 2026-11-25`), Netflix tanggal 5 terlambat (`2026-11-05`), sewa tanggal 1 (`2026-12-01`), setoran tabungan tanggal 20, saldo akun debit 3.000.000, e-wallet 200.000, kartu kredit −500.000, investasi 10.000.000, debit terarsip 999 → `status "ok"`, `daysLeft 12`, `spendable 3200000`, `committed` = Netflix + setoran (sewa tidak), `free = spendable − committed`. Gajian `nextDueDate ≤ hari ini` → `payday_due`. Tanpa gajian → `no_payday`.
-- [ ] Invarian `spendable` terhadap `GET /api/accounts`.
-- [ ] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore`/`advance` aturan A, `GET` B tidak pernah memuat aturan atau saldo A, dan B tidak bisa membuat aturan atau Catat ke akun/kategori A.
-- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`. Body dengan `userId` atau `nextDueDate` → 400.
-- [ ] Semua tes `tests/api/transactions*.spec.ts` yang ada tetap hijau tanpa diubah.
+- [x] `POST { type: "expense", name: "Netflix", amount: 186000, accountId, categoryId: <Langganan>, dayOfMonth: 5 }` pada 2026-10-27 → 201, `nextDueDate = "2026-11-05"`. Dengan `dayOfMonth: 27` → `"2026-10-27"`. Dengan `dayOfMonth: 31` pada 2026-11-03 → `"2026-11-30"`.
+- [x] `advanceDate(31, "2026-01-31") = "2026-02-28"`, lalu `"2026-03-31"`. `advanceDate(29, "2028-01-29") = "2028-02-29"` (kabisat). `advanceDate(15, "2026-12-15") = "2027-01-15"`.
+- [x] `advance { action: "post", occurrenceDate: nextDueDate, id, … }` → 200, transaksi tertulis dengan `type` dari aturan, `nextDueDate` maju satu bulan, saldo akun berubah. Request yang sama diulang → 200 replay dengan transaksi yang sama, tanpa baris baru, `nextDueDate` tidak maju dua kali. Dua request paralel (`Promise.all`) dengan `id` berbeda → tepat satu 200, satu 409 `OCCURRENCE_STALE`, satu transaksi.
+- [x] `advance { action: "skip" }` → 200 `transaction: null`, tidak ada transaksi, `nextDueDate` maju. `occurrenceDate` ≠ `nextDueDate` → 409, tidak ada perubahan.
+- [x] `post` dengan kategori `kind` salah, akun terarsip, akun/kategori milik user lain, `date` masa depan, atau `amount` 0 → 400 dengan `fields`, dan **aturan tidak maju**.
+- [x] Aturan tertinggal 3 bulan: `due` memuatnya dengan kejadian tertua, setelah satu `skip` `nextDueDate` = bulan berikutnya dan masih di `due`.
+- [x] `POST`/`PATCH` dengan `isPayday: true` pada aturan B saat A gajian aktif → B gajian, A tidak. `isPayday: true` dengan `type: "expense"` → 400 `fields.isPayday`. `DELETE` aturan gajian → `isPayday = false`, restore tidak bentrok.
+- [x] `PATCH { type }` → 400. `PATCH { dayOfMonth: 10 }` pada 2026-10-27 → `nextDueDate = "2026-11-10"`. `PATCH` field lain tidak mengubah `nextDueDate`.
+- [x] **Proyeksi** dengan hari ini 2026-11-13, gajian tanggal 25 (`nextDueDate 2026-11-25`), Netflix tanggal 5 terlambat (`2026-11-05`), sewa tanggal 1 (`2026-12-01`), setoran tabungan tanggal 20, saldo akun debit 3.000.000, e-wallet 200.000, kartu kredit −500.000, investasi 10.000.000, debit terarsip 999 → `status "ok"`, `daysLeft 12`, `spendable 3200000`, `committed` = Netflix + setoran (sewa tidak), `free = spendable − committed`. Gajian `nextDueDate ≤ hari ini` → `payday_due`. Tanpa gajian → `no_payday`.
+- [x] Invarian `spendable` terhadap `GET /api/accounts`.
+- [x] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore`/`advance` aturan A, `GET` B tidak pernah memuat aturan atau saldo A, dan B tidak bisa membuat aturan atau Catat ke akun/kategori A.
+- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`. Body dengan `userId` atau `nextDueDate` → 400.
+- [x] Semua tes `tests/api/transactions*.spec.ts` yang ada tetap hijau tanpa diubah.
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Tambah gaji (tanggal 25, gajian) dan dua tagihan dari `/recurring` → kartu gajian di dashboard menampilkan hari tersisa, terikat, dan bebas tanpa reload.
-- [ ] Tagihan jatuh tempo muncul di Jatuh tempo. Catat → form terisi, ubah nominal, Simpan → transaksi ada di `/transactions`, saldo dan "bebas" berubah, baris hilang dari Jatuh tempo. Lewati → baris hilang, tidak ada transaksi.
-- [ ] Tap Simpan dua kali cepat di form Catat → satu transaksi.
-- [ ] Gaji jatuh tempo dan belum dicatat → kartu "Gaji belum dicatat", Catat dari kartu memulihkan proyeksi ke siklus berikutnya.
-- [ ] Mode pesawat: dashboard dan `/recurring` tampil dari cache, tombol aksi nonaktif dengan teks "Butuh koneksi".
-- [ ] "Recurring" ada di sidebar (≥ lg) dan menu More (< lg). Status terlambat terbaca tanpa warna. `hideAmounts` menyamarkan nominal di kedua kartu.
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [x] Tambah gaji (tanggal 25, gajian) dan dua tagihan dari `/recurring` → kartu gajian di dashboard menampilkan hari tersisa, terikat, dan bebas tanpa reload.
+- [x] Tagihan jatuh tempo muncul di Jatuh tempo. Catat → form terisi, ubah nominal, Simpan → transaksi ada di `/transactions`, saldo dan "bebas" berubah, baris hilang dari Jatuh tempo. Lewati → baris hilang, tidak ada transaksi.
+- [x] Tap Simpan dua kali cepat di form Catat → satu transaksi.
+- [x] Gaji jatuh tempo dan belum dicatat → kartu "Gaji belum dicatat", Catat dari kartu memulihkan proyeksi ke siklus berikutnya.
+- [x] Mode pesawat: dashboard dan `/recurring` tampil dari cache, tombol aksi nonaktif dengan teks "Butuh koneksi".
+- [x] "Recurring" ada di sidebar (≥ lg) dan menu More (< lg). Status terlambat terbaca tanpa warna. `hideAmounts` menyamarkan nominal di kedua kartu.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

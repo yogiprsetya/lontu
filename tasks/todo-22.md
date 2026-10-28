@@ -107,14 +107,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Aturan dari `GET` tampil terkelompok dengan jatuh tempo dan lencana gajian yang benar. Status terlambat terbaca tanpa warna
-- [ ] "Lihat arsip" memuat `?includeArchived=true` dan menandai baris terarsip. Empty state tampil saat belum ada aturan
-- [ ] 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, kontras ≥ 4.5:1, light dan dark
+- [x] Aturan dari `GET` tampil terkelompok dengan jatuh tempo dan lencana gajian yang benar. Status terlambat terbaca tanpa warna
+- [x] "Lihat arsip" memuat `?includeArchived=true` dan menandai baris terarsip. Empty state tampil saat belum ada aturan
+- [x] 360 px tanpa horizontal scroll, target sentuh ≥ 44 px, kontras ≥ 4.5:1, light dan dark
 - [x] `pnpm build` hijau (Suspense + `cacheComponents`)
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau
 
 **Dependencies:** T80
@@ -131,15 +131,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tambah gaji (income, tanggal 25, gajian) dan tagihan (expense, tanggal 5) → keduanya tampil tanpa reload, jatuh tempo benar. Edit mengisi nilai lama dan menyimpan perubahan
-- [ ] Mengubah tanggal pada aturan terlambat menampilkan peringatan, dan setelah simpan jatuh tempo = anchor terdekat ≥ hari ini
-- [ ] Menandai aturan income lain sebagai gajian memindahkan lencana tanpa reload. Switch tidak tersedia untuk expense/saving
-- [ ] Arsipkan → baris hilang, "Urungkan" mengembalikannya; gagal `DELETE` mengembalikan baris + toast error
-- [ ] Galat 400 tampil di field yang benar. Input 16 px, target ≥ 44 px, keyboard tidak menutupi Simpan di 360×800
+- [x] Tambah gaji (income, tanggal 25, gajian) dan tagihan (expense, tanggal 5) → keduanya tampil tanpa reload, jatuh tempo benar. Edit mengisi nilai lama dan menyimpan perubahan
+- [x] Mengubah tanggal pada aturan terlambat menampilkan peringatan, dan setelah simpan jatuh tempo = anchor terdekat ≥ hari ini
+- [x] Menandai aturan income lain sebagai gajian memindahkan lencana tanpa reload. Switch tidak tersedia untuk expense/saving
+- [x] Arsipkan → baris hilang, "Urungkan" mengembalikannya; gagal `DELETE` mengembalikan baris + toast error
+- [x] Galat 400 tampil di field yang benar. Input 16 px, target ≥ 44 px, keyboard tidak menutupi Simpan di 360×800
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024
+- [x] Manual 360×800 dan 1024
 - [x] `pnpm build` hijau
 
 **Dependencies:** T81
@@ -152,7 +152,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint U
 
-- [ ] Gerbang penuh hijau
-- [ ] Alur tambah gaji + tagihan + setoran tabungan → daftar benar di 360×800 dan 1024
-- [ ] Tukar gajian, arsip + undo, dan aturan tanggal 31 di bulan pendek sudah dicek manual
-- [ ] Review dengan Yogi, termasuk keputusan Open questions #2–#5 di spec sebelum phase 23
+- [x] Gerbang penuh hijau
+- [x] Alur tambah gaji + tagihan + setoran tabungan → daftar benar di 360×800 dan 1024
+- [x] Tukar gajian, arsip + undo, dan aturan tanggal 31 di bulan pendek sudah dicek manual
+- [x] Review dengan Yogi, termasuk keputusan Open questions #2–#5 di spec sebelum phase 23

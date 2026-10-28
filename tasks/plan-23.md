@@ -38,10 +38,10 @@ Urutan berantai: T83 → T84 → T85 → T86.
 
 ## Checkpoint V
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau, termasuk seluruh `tests/api/transactions*.spec.ts` tanpa diedit
-- [ ] Manual 360×800 dan 1024: tagihan jatuh tempo muncul di Jatuh tempo → Catat → form terisi → ubah nominal → Simpan → transaksi ada di `/transactions`, saldo berubah, baris hilang dari Jatuh tempo
-- [ ] Lewati menghilangkan baris tanpa membuat transaksi
-- [ ] Tap Simpan dua kali cepat → satu transaksi
-- [ ] Mode pesawat: tombol Catat dan Lewati nonaktif dengan teks "Butuh koneksi"
-- [ ] Aturan tertinggal 3 bulan: kejadian muncul satu per satu
-- [ ] Review dengan Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau, termasuk seluruh `tests/api/transactions*.spec.ts` tanpa diedit
+- [x] Manual 360×800 dan 1024: tagihan jatuh tempo muncul di Jatuh tempo → Catat → form terisi → ubah nominal → Simpan → transaksi ada di `/transactions`, saldo berubah, baris hilang dari Jatuh tempo
+- [x] Lewati menghilangkan baris tanpa membuat transaksi
+- [x] Tap Simpan dua kali cepat → satu transaksi
+- [x] Mode pesawat: tombol Catat dan Lewati nonaktif dengan teks "Butuh koneksi"
+- [x] Aturan tertinggal 3 bulan: kejadian muncul satu per satu
+- [x] Review dengan Yogi

@@ -36,15 +36,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Data uji T87 → kartu menampilkan hari tersisa, terikat, dan bebas yang sama dengan respons API. Rincian bisa dibuka dan menampilkan setiap kejadian
-- [ ] Gaji jatuh tempo → "Gaji belum dicatat"; Catat dari kartu menulis transaksi dan kartu beralih ke proyeksi siklus berikutnya tanpa reload
-- [ ] Tanpa aturan gaji → ajakan menandai; tanpa aturan sama sekali → ajakan ke `/recurring`. Tidak ada kartu kosong tanpa teks
-- [ ] `free` negatif tampil sebagai "Kurang Rp…" dan terbaca tanpa warna. `hideAmounts` menyamarkan semua nominal
-- [ ] 360 px tanpa horizontal scroll, target ≥ 44 px, kontras ≥ 4.5:1, light dan dark, tanpa CLS saat memuat
+- [x] Data uji T87 → kartu menampilkan hari tersisa, terikat, dan bebas yang sama dengan respons API. Rincian bisa dibuka dan menampilkan setiap kejadian
+- [x] Gaji jatuh tempo → "Gaji belum dicatat"; Catat dari kartu menulis transaksi dan kartu beralih ke proyeksi siklus berikutnya tanpa reload
+- [x] Tanpa aturan gaji → ajakan menandai; tanpa aturan sama sekali → ajakan ke `/recurring`. Tidak ada kartu kosong tanpa teks
+- [x] `free` negatif tampil sebagai "Kurang Rp…" dan terbaca tanpa warna. `hideAmounts` menyamarkan semua nominal
+- [x] 360 px tanpa horizontal scroll, target ≥ 44 px, kontras ≥ 4.5:1, light dan dark, tanpa CLS saat memuat
 
 **Verification:**
 
-- [ ] Manual 360×800 dan 1024, light dan dark
+- [x] Manual 360×800 dan 1024, light dan dark
 - [x] `pnpm build` hijau, ukuran dicatat di plan-24 § Catatan ukuran
 
 **Dependencies:** T87
@@ -62,14 +62,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Acceptance criteria:**
 
 - [x] Tabel Catatan ukuran terisi. Tambahan JS first load `/dashboard` < 5 KB gzip; jika lebih, catat penyebabnya dan ajukan keputusan (Ask first), jangan diamkan
-- [ ] Lighthouse Performance mobile dan Aksesibilitas tidak turun dari baseline sebelum modul. Axe tanpa pelanggaran baru di `/dashboard` dan `/recurring`
+- [x] Lighthouse Performance mobile dan Aksesibilitas tidak turun dari baseline sebelum modul. Axe tanpa pelanggaran baru di `/dashboard` dan `/recurring`
 - [x] Semua butir UI di spec § Acceptance criteria tercentang atau tercatat sebagai temuan dengan alasan
 - [x] Status modul `recurring` di `plan.md` diperbarui
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Lighthouse + axe dijalankan dan hasilnya dicatat
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Lighthouse + axe dijalankan dan hasilnya dicatat
 
 **Dependencies:** T88
 
@@ -81,8 +81,8 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### Checkpoint W (modul selesai)
 
-- [ ] Gerbang penuh hijau
-- [ ] Angka "bebas" cocok dengan hitungan tangan Yogi (selisih ≤ 10%)
-- [ ] Ketiga status kartu sudah dicek manual di 360×800 dan 1024
-- [ ] Ukuran dan NFR tercatat
-- [ ] Review dengan Yogi. Setelah dua siklus gajian, ukur asumsi "kotak Jatuh tempo cukup tanpa push" dan "nominal tetap benar-benar tetap"
+- [x] Gerbang penuh hijau
+- [x] Angka "bebas" cocok dengan hitungan tangan Yogi (selisih ≤ 10%)
+- [x] Ketiga status kartu sudah dicek manual di 360×800 dan 1024
+- [x] Ukuran dan NFR tercatat
+- [x] Review dengan Yogi. Setelah dua siklus gajian, ukur asumsi "kotak Jatuh tempo cukup tanpa push" dan "nominal tetap benar-benar tetap"

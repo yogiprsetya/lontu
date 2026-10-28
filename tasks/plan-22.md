@@ -38,9 +38,9 @@ Urutan: T77 dulu. T78 dan T79 boleh paralel setelah T77. T80 butuh T78 + T79. T8
 
 ## Checkpoint U
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800 dan 1024: tambah gaji tanggal 25 (tercentang gajian), Netflix tanggal 5, setoran tabungan tanggal 20 → ketiganya tampil terkelompok dengan jatuh tempo berikutnya yang benar
-- [ ] Tandai aturan income lain sebagai gajian → lencana pindah, tidak ada dua gajian
-- [ ] Arsipkan satu aturan → "Urungkan" mengembalikannya. "Lihat arsip" menampilkan yang terarsip
-- [ ] Aturan tanggal 31 dibuat saat Februari → jatuh tempo berikutnya 28/29 Feb, dan bulan berikutnya kembali 31
-- [ ] Review dengan Yogi (termasuk Open questions #2–#5 di spec sebelum phase 23)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual 360×800 dan 1024: tambah gaji tanggal 25 (tercentang gajian), Netflix tanggal 5, setoran tabungan tanggal 20 → ketiganya tampil terkelompok dengan jatuh tempo berikutnya yang benar
+- [x] Tandai aturan income lain sebagai gajian → lencana pindah, tidak ada dua gajian
+- [x] Arsipkan satu aturan → "Urungkan" mengembalikannya. "Lihat arsip" menampilkan yang terarsip
+- [x] Aturan tanggal 31 dibuat saat Februari → jatuh tempo berikutnya 28/29 Feb, dan bulan berikutnya kembali 31
+- [x] Review dengan Yogi (termasuk Open questions #2–#5 di spec sebelum phase 23)

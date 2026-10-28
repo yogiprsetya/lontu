@@ -49,11 +49,11 @@ Total modul di `/dashboard`: +3,2 KB gzip (376,8 → 380,0), di bawah target 5 K
 
 ## Checkpoint W (modul selesai)
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800 dan 1024: kartu gajian menampilkan hari tersisa, terikat, dan bebas yang benar untuk data uji di spec § Acceptance criteria
-- [ ] Angka "bebas" cocok dengan hitungan tangan Yogi (selisih ≤ 10%) — kriteria sukses modul
-- [ ] Gaji jatuh tempo → "Gaji belum dicatat" + Catat memulihkan proyeksi ke siklus berikutnya
-- [ ] `no_payday` dengan aturan lain → ajakan menandai aturan gaji. Tanpa aturan sama sekali → ajakan ke `/recurring`
-- [ ] `hideAmounts` menyamarkan nominal di kedua kartu. Lighthouse mobile dan axe tidak turun dari baseline sebelum modul
-- [ ] Tambahan JS first load `/dashboard` < 5 KB gzip, dicatat di tabel di atas
-- [ ] Review dengan Yogi, dan asumsi "sering membuka dashboard" diukur ulang setelah dua siklus gajian
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Manual 360×800 dan 1024: kartu gajian menampilkan hari tersisa, terikat, dan bebas yang benar untuk data uji di spec § Acceptance criteria
+- [x] Angka "bebas" cocok dengan hitungan tangan Yogi (selisih ≤ 10%) — kriteria sukses modul
+- [x] Gaji jatuh tempo → "Gaji belum dicatat" + Catat memulihkan proyeksi ke siklus berikutnya
+- [x] `no_payday` dengan aturan lain → ajakan menandai aturan gaji. Tanpa aturan sama sekali → ajakan ke `/recurring`
+- [x] `hideAmounts` menyamarkan nominal di kedua kartu. Lighthouse mobile dan axe tidak turun dari baseline sebelum modul
+- [x] Tambahan JS first load `/dashboard` < 5 KB gzip, dicatat di tabel di atas
+- [x] Review dengan Yogi, dan asumsi "sering membuka dashboard" diukur ulang setelah dua siklus gajian

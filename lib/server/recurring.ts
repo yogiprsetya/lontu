@@ -14,15 +14,21 @@ import type {
   RecurringUpdateInput,
 } from "@/lib/schemas/recurring";
 import type { Transaction } from "@/lib/schemas/transaction";
-import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
-import { findReplay, IdConflict, insertSimple } from "@/lib/server/transactions";
+import {
+  checkAccounts,
+  checkCategory,
+  findReplay,
+  IdConflict,
+  insertSimple,
+  type InvalidReference,
+} from "@/lib/server/transactions";
 
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 type Row = typeof recurringRules.$inferSelect;
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export type InvalidField = { field: "accountId" | "categoryId" | "isPayday"; message: string };
+export type InvalidField = InvalidReference | { field: "isPayday"; message: string };
 
 export function toRule(row: Row): RecurringRule {
   return {
@@ -40,25 +46,17 @@ export function toRule(row: Row): RecurringRule {
   };
 }
 
-// Same messages as transactions: foreign and unknown ids are indistinguishable.
+/** The transactions checks, so a rule and the transaction it records are validated alike. Omitted refs are skipped. */
 export async function checkReferences(
   userId: string,
   type: RecurringType,
   refs: { accountId?: string; categoryId?: string },
-): Promise<InvalidField | undefined> {
-  const [owned, category] = await Promise.all([
-    refs.accountId ? findOwnedAccounts(userId, [refs.accountId]) : undefined,
-    refs.categoryId ? findOwnedCategory(userId, refs.categoryId) : undefined,
+): Promise<InvalidReference | undefined> {
+  const [account, category] = await Promise.all([
+    refs.accountId ? checkAccounts(userId, { accountId: refs.accountId }) : undefined,
+    refs.categoryId ? checkCategory(userId, refs.categoryId, CATEGORY_KIND_FOR[type], "categoryId") : undefined,
   ]);
-  if (owned) {
-    if (!owned[0]) return { field: "accountId", message: "Akun tidak ditemukan" };
-    if (owned[0].archivedAt) return { field: "accountId", message: "Akun sudah diarsipkan" };
-  }
-  if (refs.categoryId) {
-    if (!category) return { field: "categoryId", message: "Kategori tidak ditemukan" };
-    if (category.archivedAt) return { field: "categoryId", message: "Kategori sudah diarsipkan" };
-    if (category.kind !== CATEGORY_KIND_FOR[type]) return { field: "categoryId", message: "Kategori tidak sesuai dengan jenis aturan" };
-  }
+  return account ?? category;
 }
 
 /**

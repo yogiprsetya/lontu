@@ -47,7 +47,7 @@ function toTransaction(row: Row): Transaction {
 }
 
 // Foreign and unknown ids share one message so a response never reveals another user's data.
-async function checkAccounts(userId: string, fields: Partial<Record<"accountId" | "toAccountId", string>>) {
+export async function checkAccounts(userId: string, fields: Partial<Record<"accountId" | "toAccountId", string>>) {
   const owned = await findOwnedAccounts(userId, Object.values(fields));
   for (const [field, id] of Object.entries(fields) as ["accountId" | "toAccountId", string][]) {
     const account = owned.find((a) => a.id === id);
@@ -56,7 +56,7 @@ async function checkAccounts(userId: string, fields: Partial<Record<"accountId" 
   }
 }
 
-async function checkCategory(
+export async function checkCategory(
   userId: string,
   id: string,
   kind: CategoryKind,

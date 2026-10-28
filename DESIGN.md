@@ -45,7 +45,7 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 
 - **Display: Baloo 2** (`font-heading`, weights 600 to 800). Use it for page titles, card titles, the hero amount and big numbers in tiles. Chunky, rounded, friendly.
 - **Body: Nunito** (`font-sans`). Use it for everything else. Nunito's rounded terminals match Baloo.
-- Page title: `font-heading text-3xl font-extrabold tracking-tight`.
+- Page title (h1): `PageTitle` from [components/layout/page-title.tsx](components/layout/page-title.tsx): `font-heading text-3xl font-extrabold tracking-tight`. Pass `className` for layout extras such as `truncate` or an inline chip.
 - Card title (h2): `SectionTitle` from [components/layout/section-title.tsx](components/layout/section-title.tsx): `font-heading text-lg font-bold` with a pastel icon chip in front. Pick a tone that isn't already dominant in that card.
 - Eyebrow label (above a hero value, a group heading): `text-xs font-bold uppercase tracking-[0.14em]`.
 - Hero amount: `font-heading text-4xl font-extrabold`. Tile amount: `font-heading text-xl font-extrabold`.

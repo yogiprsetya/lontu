@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TransactionForm } from "@/components/forms/transaction-form";
 import { TransferForm } from "@/components/forms/transfer-form";
+import { PageTitle } from "@/components/layout/page-title";
 import { TypeChip } from "@/components/transactions/type-chip";
 import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, isTransactionType } from "@/lib/transaction-types";
 
@@ -20,10 +21,10 @@ export default async function AddTransactionPage({ params }: PageProps<"/add/[ty
 
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 py-6 lg:px-8">
-      <h1 className="flex items-center gap-3 font-heading text-3xl font-extrabold tracking-tight">
+      <PageTitle className="flex items-center gap-3">
         <TypeChip type={type} />
         Tambah {TRANSACTION_TYPE_LABELS[type]}
-      </h1>
+      </PageTitle>
       {type === "transfer" ? <TransferForm /> : <TransactionForm type={type} />}
     </main>
   );

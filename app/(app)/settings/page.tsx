@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageTitle } from "@/components/layout/page-title";
 import { FinanceSection } from "@/components/settings/finance-section";
 import { LogoutButton } from "@/components/settings/logout-button";
 import { ProfileSection } from "@/components/settings/profile-form";
@@ -20,7 +21,7 @@ function Section({ title, framed, children }: { title: string; framed?: boolean;
 export default function SettingsPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-6 lg:px-8">
-      <h1 className="font-heading text-3xl font-extrabold tracking-tight">Settings</h1>
+      <PageTitle>Settings</PageTitle>
       <Section title="Profil" framed>
         <ProfileSection />
       </Section>

@@ -221,7 +221,7 @@ Urutan di server, dalam **satu transaksi DB**:
 ### 3. UI
 
 - **`app/(app)/recurring/page.tsx`**, isi di `components/recurring/recurring-view.tsx`.
-  - Daftar aturan dikelompokkan Income / Expense / Saving. Baris: nama, "Rp… · tiap tanggal 25", jatuh tempo berikutnya ("25 Nov", atau "Terlambat · 25 Okt" dengan teks, bukan hanya warna), lencana "Gajian" untuk `isPayday`. Tap → form aturan. Menu baris: Catat, Lewati, Arsipkan.
+  - Daftar aturan dikelompokkan Income / Expense / Saving. Baris: nama, "Rp… · tiap tanggal 25", jatuh tempo berikutnya ("25 Nov", atau "Terlambat · 25 Okt" dengan teks, bukan hanya warna), lencana "Gajian" untuk `isPayday`. Tap → form aturan. Tombol **Catat** selalu terlihat di setiap baris aktif (≥ 44 px, warna utama jika sudah jatuh tempo), tidak disembunyikan di menu; menu baris: Lewati, Arsipkan. Di layar sempit tombol turun ke baris kedua, rata kanan.
   - Tombol "Tambah aturan" → `components/forms/recurring-form.tsx` di `ResponsiveModal`: tipe (hanya saat create), nama, `MoneyInput`, `AccountPicker`, `CategoryPicker` (kind dari tipe), tanggal 1–31 (`<select>` native, font 16 px, teks bantuan "Bulan yang lebih pendek memakai hari terakhirnya"), switch "Ini gaji saya" (hanya income; teks bantuan saat akan mengganti gajian lama). Edit `dayOfMonth` pada aturan yang terlambat menampilkan peringatan keputusan #14.
   - Arsipkan → toast "Aturan diarsipkan · Urungkan" (6 detik). Tautan "Lihat arsip" menampilkan aturan terarsip dengan tombol Pulihkan.
   - Empty state: penjelasan satu kalimat + "Tambah gaji" (form dengan income + gajian tercentang) dan "Tambah tagihan".

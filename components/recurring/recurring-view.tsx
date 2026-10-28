@@ -5,12 +5,23 @@ import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { RecurringForm } from "@/components/forms/recurring-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
-import { RecordOccurrenceModal, skipOccurrence } from "@/components/recurring/occurrence-actions";
+import {
+  RestoreButton,
+  ShowArchivedSwitch,
+} from "@/components/modals/archive-controls";
+import {
+  RecordOccurrenceModal,
+  skipOccurrence,
+} from "@/components/recurring/occurrence-actions";
 import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useOnlineStatus } from "@/hooks/use-online-status";
@@ -23,11 +34,18 @@ import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
 import { useUIStore } from "@/stores/ui";
 
-type Editing = { kind: "create"; preset?: RulePreset } | { kind: "edit"; id: string } | null;
+type Editing =
+  | { kind: "create"; preset?: RulePreset }
+  | { kind: "edit"; id: string }
+  | null;
 
 function ViewSkeleton() {
   return (
-    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat aturan">
+    <div
+      className="flex flex-col gap-3"
+      aria-busy="true"
+      aria-label="Memuat aturan"
+    >
       {Array.from({ length: 4 }, (_, i) => (
         <Skeleton key={i} className="h-20 w-full rounded-2xl" />
       ))}
@@ -35,26 +53,42 @@ function ViewSkeleton() {
   );
 }
 
-type RowMenuProps = { rule: RecurringRule; online: boolean; onRecord: () => void; onArchive: () => void };
+type RowMenuProps = {
+  rule: RecurringRule;
+  online: boolean;
+  onArchive: () => void;
+};
 
-// Catat and Lewati act on the next occurrence even before it is due (spec decision #10).
-function RowMenu({ rule, online, onRecord, onArchive }: RowMenuProps) {
+// Lewati acts on the next occurrence even before it is due (spec decision #10).
+function RowMenu({ rule, online, onArchive }: RowMenuProps) {
   const suffix = online ? "" : " · Butuh koneksi";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-xl" aria-label={`Aksi untuk ${rule.name}`} />}
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-11 shrink-0 rounded-xl"
+            aria-label={`Aksi untuk ${rule.name}`}
+          />
+        }
       >
         <EllipsisVerticalIcon className="size-5" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-44 rounded-2xl p-1.5">
-        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={onRecord}>
-          Catat{suffix}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={() => void skipOccurrence(rule)}>
+        <DropdownMenuItem
+          className="min-h-11 rounded-xl text-base"
+          disabled={!online}
+          onClick={() => void skipOccurrence(rule)}
+        >
           Lewati{suffix}
         </DropdownMenuItem>
-        <DropdownMenuItem className="min-h-11 rounded-xl text-base" disabled={!online} onClick={onArchive}>
+        <DropdownMenuItem
+          className="min-h-11 rounded-xl text-base"
+          disabled={!online}
+          onClick={onArchive}
+        >
           Arsipkan{suffix}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -76,9 +110,16 @@ export function RecurringView() {
   const today = todayInJakarta();
 
   const rules = recurring.data?.rules.filter((r) => !archiving.has(r.id));
-  const editingRule = editing?.kind === "edit" ? recurring.data?.rules.find((r) => r.id === editing.id) : undefined;
-  const recording = recurring.data?.rules.find((r) => r.id === recordingId && !r.archivedAt);
-  const currentPayday = recurring.data?.rules.find((r) => r.isPayday && !r.archivedAt);
+  const editingRule =
+    editing?.kind === "edit"
+      ? recurring.data?.rules.find((r) => r.id === editing.id)
+      : undefined;
+  const recording = recurring.data?.rules.find(
+    (r) => r.id === recordingId && !r.archivedAt,
+  );
+  const currentPayday = recurring.data?.rules.find(
+    (r) => r.isPayday && !r.archivedAt,
+  );
   const close = () => setEditing(null);
 
   function settle(id: string) {
@@ -97,7 +138,12 @@ export function RecurringView() {
         duration: 6000,
         action: {
           label: "Urungkan",
-          onClick: () => void restoreRule(rule.id).catch((err) => toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi."))),
+          onClick: () =>
+            void restoreRule(rule.id).catch((err) =>
+              toast.error(
+                failureMessage(err, "Gagal mengurungkan. Coba lagi."),
+              ),
+            ),
         },
       });
     } catch (err) {
@@ -131,10 +177,25 @@ export function RecurringView() {
         </p>
         {!showArchived && (
           <div className="flex flex-wrap justify-center gap-2">
-            <Button className="h-11 text-base" onClick={() => setEditing({ kind: "create", preset: { type: "income", isPayday: true } })}>
+            <Button
+              className="h-11 text-base"
+              onClick={() =>
+                setEditing({
+                  kind: "create",
+                  preset: { type: "income", isPayday: true },
+                })
+              }
+            >
               Tambah gaji
             </Button>
-            <Button variant="outline" className="h-11 text-base" onClick={() => setEditing({ kind: "create", preset: { type: "expense" } })}>
+
+            <Button
+              variant="outline"
+              className="h-11 text-base"
+              onClick={() =>
+                setEditing({ kind: "create", preset: { type: "expense" } })
+              }
+            >
               Tambah tagihan
             </Button>
           </div>
@@ -147,7 +208,10 @@ export function RecurringView() {
       if (rows.length === 0) return null;
       return (
         <section key={type} aria-labelledby={`recurring-${type}`}>
-          <h2 id={`recurring-${type}`} className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
+          <h2
+            id={`recurring-${type}`}
+            className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+          >
             {label}
           </h2>
           <ul className="surface divide-y px-4">
@@ -158,17 +222,34 @@ export function RecurringView() {
                 accountName={accountNames.get(rule.accountId) ?? "Akun"}
                 today={today}
                 hideAmounts={hideAmounts}
-                onEdit={rule.archivedAt ? undefined : () => setEditing({ kind: "edit", id: rule.id })}
+                onEdit={
+                  rule.archivedAt
+                    ? undefined
+                    : () => setEditing({ kind: "edit", id: rule.id })
+                }
               >
                 {rule.archivedAt ? (
-                  <RestoreButton name={rule.name} restore={() => restoreRule(rule.id)} />
-                ) : (
-                  <RowMenu
-                    rule={rule}
-                    online={online}
-                    onRecord={() => setRecordingId(rule.id)}
-                    onArchive={() => void archive(rule)}
+                  <RestoreButton
+                    name={rule.name}
+                    restore={() => restoreRule(rule.id)}
                   />
+                ) : (
+                  <>
+                    {/* Always visible, not in the menu; filled once the occurrence is due. */}
+                    <Button
+                      variant={rule.nextDueDate <= today ? "default" : "outline"}
+                      className="h-11 px-4 text-base"
+                      disabled={!online}
+                      onClick={() => setRecordingId(rule.id)}
+                    >
+                      Catat
+                    </Button>
+                    <RowMenu
+                      rule={rule}
+                      online={online}
+                      onArchive={() => void archive(rule)}
+                    />
+                  </>
                 )}
               </RuleRow>
             ))}
@@ -183,11 +264,23 @@ export function RecurringView() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <Button className="h-11 self-start text-base" onClick={() => setEditing({ kind: "create" })}>
+        <Button
+          className="h-11 self-start text-base"
+          onClick={() => setEditing({ kind: "create" })}
+        >
           <PlusIcon aria-hidden />
           Tambah aturan
         </Button>
-        <ShowArchivedSwitch id="show-archived-rules" checked={showArchived} onCheckedChange={setShowArchived} />
+        <ShowArchivedSwitch
+          id="show-archived-rules"
+          checked={showArchived}
+          onCheckedChange={setShowArchived}
+        />
+        {!online && (
+          <p className="text-sm text-muted-foreground">
+            Butuh koneksi untuk mencatat, melewati, atau mengarsipkan.
+          </p>
+        )}
       </div>
       {content}
       <ResponsiveModal
@@ -196,12 +289,26 @@ export function RecurringView() {
         title={editingRule ? "Ubah aturan" : "Tambah aturan"}
         footer={
           <div className="flex flex-col gap-2">
-            {!online && <p className="text-center text-sm text-muted-foreground">Butuh koneksi untuk menyimpan.</p>}
+            {!online && (
+              <p className="text-center text-sm text-muted-foreground">
+                Butuh koneksi untuk menyimpan.
+              </p>
+            )}
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={close}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 flex-1 text-base"
+                onClick={close}
+              >
                 Batal
               </Button>
-              <Button type="submit" form="recurring-form" className="h-11 flex-1 text-base" disabled={!online}>
+              <Button
+                type="submit"
+                form="recurring-form"
+                className="h-11 flex-1 text-base"
+                disabled={!online}
+              >
                 Simpan
               </Button>
             </div>
@@ -219,7 +326,10 @@ export function RecurringView() {
           />
         )}
       </ResponsiveModal>
-      <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />
+      <RecordOccurrenceModal
+        rule={recording}
+        onClose={() => setRecordingId(null)}
+      />
     </>
   );
 }

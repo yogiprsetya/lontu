@@ -37,19 +37,20 @@ export function RuleRow({ rule, accountName, today, hideAmounts, onEdit, childre
   );
 
   return (
-    <li className="flex min-h-16 items-center gap-2 py-3">
+    // The 12rem basis wraps the actions onto their own line on narrow screens instead of crushing the text.
+    <li className="flex min-h-16 flex-wrap items-center gap-2 py-3">
       {onEdit ? (
         <button
           type="button"
           onClick={onEdit}
-          className="-mx-2 flex min-w-0 flex-1 items-center gap-3 rounded-xl px-2 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="-mx-2 flex min-w-0 flex-1 basis-48 items-center gap-3 rounded-xl px-2 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           {body}
         </button>
       ) : (
-        <div className={cn("flex min-w-0 flex-1 items-center gap-3", rule.archivedAt && "opacity-80")}>{body}</div>
+        <div className={cn("flex min-w-0 flex-1 basis-48 items-center gap-3", rule.archivedAt && "opacity-80")}>{body}</div>
       )}
-      {children}
+      {children && <div className="ms-auto flex shrink-0 items-center gap-2">{children}</div>}
     </li>
   );
 }

@@ -24,7 +24,6 @@ import {
 const MODES: { value: PeriodMode; label: string }[] = [
   { value: "month", label: "Bulan" },
   { value: "year", label: "Tahun" },
-  { value: "all", label: "Semua" },
 ];
 
 type Props = {
@@ -74,6 +73,7 @@ export function PeriodStepper({
           <ChevronRightIcon aria-hidden />
         </Button>
       </div>
+
       <Select
         items={items}
         value={mode}
@@ -83,11 +83,12 @@ export function PeriodStepper({
         }
       >
         <SelectTrigger
-          className="w-36 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
+          className="w-40 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
           aria-label="Rentang periode"
         >
           <SelectValue />
         </SelectTrigger>
+
         <SelectContent alignItemWithTrigger={false}>
           {items.map((m) => (
             <SelectItem

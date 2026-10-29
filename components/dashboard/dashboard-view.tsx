@@ -21,7 +21,10 @@ export function DashboardView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const period = dashboardPeriodFromParam(searchParams.get("period"), todayInJakarta());
+  const period = dashboardPeriodFromParam(
+    searchParams.get("period"),
+    todayInJakarta(),
+  );
 
   // replace, not push: stepping through months must not fill the back stack.
   function setPeriod(next: DashboardPeriod) {
@@ -33,8 +36,13 @@ export function DashboardView() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
       <div className="flex flex-col gap-3 lg:col-span-2">
         <PendingNotice />
-        <PeriodStepper period={period} onChange={setPeriod} modes={["month", "year"]} />
+        <PeriodStepper
+          period={period}
+          onChange={setPeriod}
+          modes={["month", "year"]}
+        />
       </div>
+
       <div className="flex min-w-0 flex-col gap-6 lg:col-start-2 lg:row-start-3">
         <BalanceCard period={period} />
         <PaydayCard />
@@ -42,18 +50,23 @@ export function DashboardView() {
         <DueInbox />
         <QuickAdd />
       </div>
+
       <div className="min-w-0 lg:col-span-2 lg:row-start-2">
         <SummaryCards period={period} />
       </div>
+
       <div className="min-w-0 lg:col-start-2 lg:row-start-4">
         <DashboardBudgetSummary period={period} />
       </div>
+
       <div className="min-w-0 lg:col-start-1 lg:row-start-3">
         <ExpenseActivity period={period} />
       </div>
+
       <div className="min-w-0 lg:col-start-1 lg:row-start-4">
         <CategoryBreakdown period={period} />
       </div>
+
       {/* Last, so appearing after hydration never pushes the numbers down. */}
       <div className="min-w-0 empty:hidden lg:col-span-2 lg:row-start-5">
         <InstallCard />

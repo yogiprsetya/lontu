@@ -9,10 +9,18 @@ import { TotalsStrip } from "@/components/transactions/totals-strip";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { todayInJakarta } from "@/lib/date";
 import type { ListTransactionType } from "@/lib/schemas/transaction";
-import { filtersToUrl, parseFilters, type ListFilters } from "@/lib/transaction-filters";
+import {
+  filtersToUrl,
+  parseFilters,
+  type ListFilters,
+} from "@/lib/transaction-filters";
 
 /** Filters live in the URL so a refresh, back and a pasted link all show the same list. */
-export function TransactionsView({ lockedType }: { lockedType?: ListTransactionType }) {
+export function TransactionsView({
+  lockedType,
+}: {
+  lockedType?: ListTransactionType;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -31,11 +39,20 @@ export function TransactionsView({ lockedType }: { lockedType?: ListTransactionT
 
   return (
     <>
-      <PeriodStepper period={filters.period} onChange={(period) => setFilters({ ...filters, period })} />
+      <PeriodStepper
+        period={filters.period}
+        onChange={(period) => setFilters({ ...filters, period })}
+      />
+
       <div className="flex flex-wrap gap-2">
-        <FilterPanel filters={filters} onChange={setFilters} lockedType={lockedType} />
+        <FilterPanel
+          filters={filters}
+          onChange={setFilters}
+          lockedType={lockedType}
+        />
         <ExportLink filters={filters} />
       </div>
+
       <TotalsStrip filters={filters} />
       <TransactionList filters={filters} />
     </>

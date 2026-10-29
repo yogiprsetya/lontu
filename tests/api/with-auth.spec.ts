@@ -55,4 +55,16 @@ describe("withAuth", () => {
     expect(body.error.code).toBe("INTERNAL");
     expect(JSON.stringify(body)).not.toContain("relation");
   });
+
+  it("rethrows the prerender abort from headers() instead of logging a 500", async () => {
+    // Shape of the error `next build` rejects headers() with when it stops prerendering a GET handler.
+    const abort = Object.assign(new Error("During prerendering, `headers()` rejects"), {
+      digest: "HANGING_PROMISE_REJECTION",
+    });
+    mockedAuth.mockRejectedValue(abort);
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(withAuth(vi.fn())(new Request("http://localhost/api/x"), routeContext)).rejects.toBe(abort);
+    expect(consoleError).not.toHaveBeenCalled();
+  });
 });

@@ -1,8 +1,8 @@
 "use client";
 
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { removeBudgetFromUsage } from "@/lib/budget-cache";
-import { apiKey, invalidate } from "@/lib/cache-invalidation";
+import { apiKey, invalidate, removeOptimistically } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Budget, BudgetPeriod, BudgetSetInput, BudgetSuggestion, BudgetUsage } from "@/lib/schemas/budget";
 
@@ -30,18 +30,13 @@ export async function setBudgets(input: BudgetSetInput) {
 }
 
 /** Clears the budget in the month's cache at once; if the server refuses, a revalidation brings it back. */
-export async function deleteBudget(period: BudgetPeriod, id: string) {
-  void mutate(budgetsKey(period), (usage?: BudgetUsage) => usage && removeBudgetFromUsage(usage, id), {
-    revalidate: false,
+export function deleteBudget(period: BudgetPeriod, id: string) {
+  return removeOptimistically({
+    match: budgetsKey(period),
+    update: (usage?: BudgetUsage) => usage && removeBudgetFromUsage(usage, id),
+    send: () => sendJSON<Budget>(`/api/budgets/${id}`, "DELETE"),
+    resource: "budgets",
   });
-  try {
-    const deleted = await sendJSON<Budget>(`/api/budgets/${id}`, "DELETE");
-    await invalidate("budgets");
-    return deleted;
-  } catch (err) {
-    await invalidate("budgets");
-    throw err;
-  }
 }
 
 export async function restoreBudget(id: string) {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
 
 const { mutate } = await import("swr");
-const { affectedBy, apiKey, invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
+const { affectedBy, apiKey, invalidate, isResourceKey, removeOptimistically } = await import("@/lib/cache-invalidation");
 const { deleteTransaction, transactionKey, transactionsPageKey, transactionsTotalsKey } = await import("@/hooks/use-transactions");
 const { accountsKey, updateAccount } = await import("@/hooks/use-accounts");
 const { categoriesKey } = await import("@/hooks/use-categories");
@@ -191,5 +191,48 @@ describe("every key a hook builds matches its resource and no other", () => {
 
   it.each(built)("%s: %s", (resource, key) => {
     for (const other of resources) expect(isResourceKey(other, key)).toBe(other === resource);
+  });
+});
+
+describe("removeOptimistically", () => {
+  const detail = `/api/transactions/${id}`;
+  const update = (rows?: string[]) => rows?.filter((row) => row !== id);
+
+  it("updates the cache without revalidating, then sends, then invalidates all but `except`", async () => {
+    const order: string[] = [];
+    mockedMutate.mockImplementation(async (...args: unknown[]) => {
+      order.push(args.length === 3 ? "update" : "invalidate");
+    });
+    const result = await removeOptimistically({
+      match: keys.budgets,
+      update,
+      send: async () => {
+        order.push("send");
+        return "deleted";
+      },
+      resource: "transactions",
+      except: detail,
+    });
+    expect(result).toBe("deleted");
+    expect(order).toEqual(["update", "send", "invalidate"]);
+    expect(mockedMutate.mock.calls[0]).toEqual([keys.budgets, update, { revalidate: false }]);
+    expect(revalidated(keys.transactions)).toBe(true);
+    expect(revalidated(detail)).toBe(false);
+  });
+
+  it("revalidates everything, `except` included, and rethrows when the send fails", async () => {
+    const failure = new Error("refused");
+    await expect(
+      removeOptimistically({
+        match: keys.budgets,
+        update,
+        send: () => Promise.reject(failure),
+        resource: "transactions",
+        except: detail,
+      }),
+    ).rejects.toBe(failure);
+    expect(mockedMutate).toHaveBeenCalledTimes(2);
+    expect(revalidated(keys.transactions)).toBe(true);
+    expect(revalidated(detail)).toBe(true);
   });
 });

@@ -72,3 +72,33 @@ export function invalidate(changed: Resource, { except }: { except?: string } = 
   const resources = affectedBy(changed);
   return mutate((key) => key !== except && resources.some((resource) => isResourceKey(resource, key)));
 }
+
+/**
+ * Takes something out of the cache at once, then sends the request. On success `resource` is
+ * invalidated except `except`; if the server refuses, a full revalidation brings the real data
+ * back and the error is rethrown.
+ */
+export async function removeOptimistically<Data, Result>({
+  match,
+  update,
+  send,
+  resource,
+  except,
+}: {
+  match: string | ((key: unknown) => boolean);
+  update: (current?: Data) => Data | undefined;
+  send: () => Promise<Result>;
+  resource: Resource;
+  except?: string;
+}): Promise<Result> {
+  // SWR's overloads take a key or a matcher, not the union of both.
+  void mutate(match as string, update, { revalidate: false });
+  try {
+    const result = await send();
+    await invalidate(resource, { except });
+    return result;
+  } catch (err) {
+    await invalidate(resource);
+    throw err;
+  }
+}

@@ -10,7 +10,7 @@ Index: [plan.md](plan.md) § Refactor arsitektur · Todo: [todo-27.md](todo-27.m
 
 - [x] T97: `AFFECTS` lengkap, tanpa sisi `recurring → transactions` (S, butuh jawaban Open question #2)
 - [x] T98: Key dibangun dari tabel yang sama dengan pencocoknya (M)
-- [ ] T99: Satu alur hapus optimistic dengan rollback (S)
+- [x] T99: Satu alur hapus optimistic dengan rollback (S)
 - [ ] T100: Satu toast undo (S)
 
 Urutan: T97 → T98 → T99; T100 bebas.

@@ -1,8 +1,8 @@
 "use client";
 
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
-import { apiKey, invalidate, isResourceKey } from "@/lib/cache-invalidation";
+import { apiKey, invalidate, isResourceKey, removeOptimistically } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import { isNetworkError } from "@/lib/offline/network-error";
 import { outbox as defaultOutbox, type Outbox, type OutboxBody } from "@/lib/offline/outbox";
@@ -110,21 +110,15 @@ export async function updateTransaction(id: string, input: Partial<TransactionUp
  * a revalidation brings the real rows back. The detail entry is left alone: refetching a
  * deleted row would 404 under the page that is closing.
  */
-export async function deleteTransaction(id: string) {
+export function deleteTransaction(id: string) {
   const detailKey = transactionKey(id);
-  void mutate(
-    isInfiniteTransactionsKey,
-    (pages?: TransactionPage[]) => pages && removeFromPages(pages, id),
-    { revalidate: false },
-  );
-  try {
-    const deleted = await sendJSON<Transaction>(detailKey, "DELETE");
-    await invalidate("transactions", { except: detailKey });
-    return deleted;
-  } catch (err) {
-    await invalidate("transactions");
-    throw err;
-  }
+  return removeOptimistically({
+    match: isInfiniteTransactionsKey,
+    update: (pages?: TransactionPage[]) => pages && removeFromPages(pages, id),
+    send: () => sendJSON<Transaction>(detailKey, "DELETE"),
+    resource: "transactions",
+    except: detailKey,
+  });
 }
 
 export async function restoreTransaction(id: string) {

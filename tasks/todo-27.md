@@ -60,12 +60,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `deleteTransaction` dan `deleteBudget` masing-masing ≤ 10 baris dan tidak memanggil `mutate` langsung
-- [ ] Tes hapus yang ada di `use-transactions.spec.ts` dan `use-budgets.spec.ts` hijau tanpa diubah
+- [x] `deleteTransaction` dan `deleteBudget` masing-masing ≤ 10 baris dan tidak memanggil `mutate` langsung
+- [x] Tes hapus yang ada di `use-transactions.spec.ts` dan `use-budgets.spec.ts` hijau tanpa diubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-transactions.spec.ts tests/unit/use-budgets.spec.ts tests/unit/transaction-cache.spec.ts tests/unit/budget-cache.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-transactions.spec.ts tests/unit/use-budgets.spec.ts tests/unit/transaction-cache.spec.ts tests/unit/budget-cache.spec.ts` hijau
 
 **Dependencies:** T98
 

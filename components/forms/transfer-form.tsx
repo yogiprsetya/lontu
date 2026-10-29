@@ -19,8 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useBackToList } from "@/hooks/use-back-to-list";
-import { useProfile } from "@/hooks/use-profile";
-import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
+import { updateTransaction, useSubmitTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
 import {
@@ -59,7 +58,7 @@ export function TransferForm({ transaction }: { transaction?: Transaction }) {
 
 function TransferFields({ transaction }: { transaction?: Transaction }) {
   const router = useRouter();
-  const { data: profile } = useProfile();
+  const submit = useSubmitTransaction();
   const backToList = useBackToList();
   const today = todayInJakarta();
   const [hasFee, setHasFee] = useState(false);
@@ -104,9 +103,7 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
-        const outcome = await createTransaction(input, { userId: profile?.id });
-        if (outcome.status === "queued") toast("Disimpan di perangkat, dikirim saat online");
-        else toast.success(input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan");
+        await submit(input, { sentMessage: input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan" });
         router.push("/transactions");
       }
     } catch (err) {

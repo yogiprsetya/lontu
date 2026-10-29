@@ -1,7 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@/lib/fetcher";
-import { SEND_TIMEOUT_MS, sendCreate } from "@/lib/offline/submission";
+
+vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { success: vi.fn() }) }));
+
+const { toast } = await import("sonner");
+const { ApiError } = await import("@/lib/fetcher");
+const { createOutbox } = await import("@/lib/offline/outbox");
+const { discardQueued, retryQueued, SEND_TIMEOUT_MS, sendCreate, submitTransaction } = await import("@/lib/offline/submission");
 import type { OutboxBody } from "@/lib/offline/outbox";
+import type { KeyValueStore } from "@/lib/offline/storage";
+
+function mapStore(): KeyValueStore {
+  const data = new Map<string, unknown>();
+  return {
+    get: async <T>(key: string) => data.get(key) as T | undefined,
+    set: async (key, value) => void data.set(key, value),
+    del: async (key) => void data.delete(key),
+    entries: async <T>() => [...data.entries()] as [string, T][],
+  };
+}
 
 const body: OutboxBody = {
   type: "expense",
@@ -16,6 +32,8 @@ const body: OutboxBody = {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.mocked(toast).mockReset();
+  vi.mocked(toast.success).mockReset();
 });
 
 describe("sendCreate", () => {
@@ -56,5 +74,74 @@ describe("sendCreate", () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(failure)));
 
     await expect(sendCreate(body)).rejects.toBe(failure);
+  });
+});
+
+describe("submitTransaction", () => {
+  const input = {
+    type: "expense",
+    amount: 25_000,
+    date: "2026-10-25",
+    accountId: body.accountId,
+    categoryId: "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b",
+    description: null,
+  } as const;
+
+  it("queues offline, says so, and asks the browser to keep the outbox", async () => {
+    const persist = vi.fn(async () => true);
+    vi.stubGlobal("navigator", { onLine: false, storage: { persist } });
+    const outbox = createOutbox(mapStore());
+
+    const outcome = await submitTransaction(input, { userId: "user-a", outbox, sentMessage: "Expense tersimpan" });
+
+    expect(outcome.status).toBe("queued");
+    expect(await outbox.list("user-a")).toHaveLength(1);
+    expect(toast).toHaveBeenCalledWith("Disimpan di perangkat, dikirim saat online");
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(persist).toHaveBeenCalled();
+  });
+
+  it("shows the caller's message once the server has it", async () => {
+    vi.stubGlobal("navigator", { onLine: true });
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ transaction: { id: "x" }, fee: null }, { status: 201 })));
+
+    const outcome = await submitTransaction(input, { userId: "user-a", sentMessage: "Transfer dan biaya admin tersimpan" });
+
+    expect(outcome.status).toBe("sent");
+    expect(toast.success).toHaveBeenCalledWith("Transfer dan biaya admin tersimpan");
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("throws the network error offline when there is no user to queue for", async () => {
+    vi.stubGlobal("navigator", { onLine: false });
+
+    await expect(submitTransaction(input, { userId: undefined, sentMessage: "x" })).rejects.toBeInstanceOf(TypeError);
+    expect(toast).not.toHaveBeenCalled();
+  });
+});
+
+describe("retryQueued / discardQueued", () => {
+  it("puts a failed item back to pending and starts a replay pass", async () => {
+    const outbox = createOutbox(mapStore());
+    await outbox.enqueue("user-a", body);
+    await outbox.markFailed(body.id, { message: "Akun sudah diarsipkan" });
+    const target = new EventTarget();
+    const onReplay = vi.fn();
+    target.addEventListener("lontu:replay", onReplay);
+    vi.stubGlobal("window", target);
+
+    await retryQueued(body.id, outbox);
+
+    expect((await outbox.list("user-a"))[0]).toMatchObject({ status: "pending", error: undefined });
+    expect(onReplay).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes the item from the device", async () => {
+    const outbox = createOutbox(mapStore());
+    await outbox.enqueue("user-a", body);
+
+    await discardQueued(body.id, outbox);
+
+    expect(await outbox.list("user-a")).toEqual([]);
   });
 });

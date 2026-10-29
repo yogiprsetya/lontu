@@ -19,7 +19,8 @@ import { useCategories } from "@/hooks/use-categories";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOutbox } from "@/hooks/use-outbox";
 import { requestReplay } from "@/lib/offline/replay";
-import { outbox, type OutboxItem } from "@/lib/offline/outbox";
+import { discardQueued, retryQueued } from "@/lib/offline/submission";
+import type { OutboxItem } from "@/lib/offline/outbox";
 import { formatSignedAmount, nameMap, titleOf, type Names } from "@/lib/transaction-format";
 
 function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts: Names; categories: Names }) {
@@ -53,7 +54,7 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
           <Button
             variant="outline"
             className="h-11 text-base"
-            onClick={() => void outbox.retry(item.id).then(requestReplay)}
+            onClick={() => void retryQueued(item.id)}
           >
             Coba lagi
           </Button>
@@ -67,7 +68,7 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" className="h-11 text-base" onClick={() => void outbox.remove(item.id)}>
+              <AlertDialogAction variant="destructive" className="h-11 text-base" onClick={() => void discardQueued(item.id)}>
                 Buang
               </AlertDialogAction>
             </AlertDialogFooter>

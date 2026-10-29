@@ -10,7 +10,7 @@ Satu modul memiliki seluruh hidup sebuah create transaksi di client: id dari cli
 
 - [x] T101: Satu jalur kirim dan satu parser error untuk online dan replay (M, risiko tinggi)
 - [x] T102: `startReplay` yang bisa dites, hook tinggal pemasang (M)
-- [ ] T103: Form dan daftar tertunda tanpa `userId`, `outbox`, atau toast antre sendiri (M)
+- [x] T103: Form dan daftar tertunda tanpa `userId`, `outbox`, atau toast antre sendiri (M)
 
 Urutan berantai: T101 → T102 → T103.
 
@@ -32,7 +32,7 @@ Urutan berantai: T101 → T102 → T103.
 
 ## Checkpoint AA
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] `fetch(` tidak muncul di `hooks/`; `outbox.` tidak muncul di `components/`
-- [ ] Dengan `pnpm build && pnpm start`: mode pesawat → catat expense dan transfer berbiaya → "Disimpan di perangkat" → online → keduanya terkirim sekali, daftar dan saldo terbarui; item yang ditolak server (akun diarsipkan) tampil gagal dengan pesan field, Coba lagi dan Buang berfungsi; sesi habis → toast "Masuk lagi"
-- [ ] Review dengan Yogi sebelum phase 29
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (1295 tes)
+- [x] `fetch(` tidak muncul di `hooks/`; `outbox.` di `components/` hanya `outbox.list` (baca) di `components/layout/sign-out.ts` untuk konfirmasi keluar
+- [ ] Dengan `pnpm build && pnpm start`: mode pesawat → catat expense dan transfer berbiaya → "Disimpan di perangkat" → online → keduanya terkirim sekali, daftar dan saldo terbarui; item yang ditolak server (akun diarsipkan) tampil gagal dengan pesan field, Coba lagi dan Buang berfungsi; sesi habis → toast "Masuk lagi" (tertunda: sesi tanpa browser; tabel status dan loop pemicu tercakup `replay.spec.ts`, `submission.spec.ts`, `transactions-idempotency.spec.ts`)
+- [x] Review dengan Yogi sebelum phase 29: Yogi memilih jalan terus sampai T104 (2026-10-29)

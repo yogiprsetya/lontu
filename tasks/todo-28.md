@@ -61,14 +61,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Literal "Disimpan di perangkat, dikirim saat online" hanya di `lib/offline/submission.ts`
-- [ ] `components/` tidak mengimpor `lib/offline/outbox` untuk mutasi; form create tidak menyebut `userId`
-- [ ] Kasus offline di `use-transactions.spec.ts` hijau tanpa diubah; kasus baru `submitTransaction` (antre → toast antre, terkirim → `sentMessage`, tanpa `userId` + offline → lempar)
+- [x] Literal "Disimpan di perangkat, dikirim saat online" hanya di `lib/offline/submission.ts`
+- [x] `components/` tidak mengimpor `lib/offline/outbox` untuk mutasi; form create tidak menyebut `userId`
+- [x] Kasus offline di `use-transactions.spec.ts` hijau tanpa diubah; kasus baru `submitTransaction` (antre → toast antre, terkirim → `sentMessage`, tanpa `userId` + offline → lempar)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-transactions.spec.ts tests/unit/submission.spec.ts tests/unit/outbox-store.spec.ts` hijau
-- [ ] Manual: catat online (toast terkirim per jenis, termasuk "Transfer dan biaya admin tersimpan"), catat offline (toast antre), Coba lagi dan Buang di daftar tertunda
+- [x] `pnpm vitest run tests/unit/use-transactions.spec.ts tests/unit/submission.spec.ts tests/unit/outbox-store.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): catat online (toast terkirim per jenis, termasuk "Transfer dan biaya admin tersimpan"), catat offline (toast antre), Coba lagi dan Buang di daftar tertunda
+
+**Catatan (2026-10-29):** `createTransaction` pindah dari `hooks/use-transactions.ts` ke `lib/offline/submission.ts`, sehingga hook tidak lagi memuat logika outbox; di `use-transactions.spec.ts` hanya path import yang berubah (aturan lintas phase). `useSubmitTransaction()` mengembalikan `submit(input, { sentMessage })`. `components/layout/sign-out.ts` masih membaca `outbox.list` untuk menghitung item sebelum keluar (bukan mutasi).
 
 **Dependencies:** T102
 

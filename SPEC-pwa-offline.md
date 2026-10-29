@@ -136,7 +136,8 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 - `lib/offline/clear.ts`: `clearOfflineData(userId)` (cache SW + item outbox user itu), `ensureCacheOwner(userId)`.
 - `lib/offline/install.ts` (murni): `installPromptState({ standalone, isIOSSafari, hasPromptEvent, dismissedAt, now })` → `"hidden" | "prompt" | "ios-instructions"`.
 - `hooks/use-online-status.ts`, `hooks/use-outbox.ts` (`useSyncExternalStore`), `hooks/use-install-prompt.ts`.
-- `hooks/use-transactions.ts`: `createTransaction` membuat `id`, mengirim dengan timeout 10 s, mengantre sesuai keputusan #8.
+- `lib/offline/submission.ts`: `createTransaction` membuat `id`, mengirim lewat `sendCreate`, mengantre sesuai keputusan #8. `submitTransaction(input, { userId, sentMessage })` membungkusnya dengan toast antre/terkirim dan `navigator.storage.persist()`; `retryQueued(id)` (retry + `requestReplay`) dan `discardQueued(id)` untuk daftar tertunda.
+- `hooks/use-transactions.ts`: `useSubmitTransaction()` mengikat `userId` dari `useProfile`, jadi form create tidak menyebut `userId` atau outbox.
 - `components/layout/sign-out.ts`: konfirmasi + `clearOfflineData` sebelum `signOut`.
 - `stores/ui.ts`: `installDismissedAt` (ikut `partialize`).
 

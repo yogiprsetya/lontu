@@ -81,13 +81,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Literal `"Urungkan"` hanya ada di `lib/undo-toast.ts`
-- [ ] Tes: aksi memanggil `restore`; `restore` gagal → `toast.error` dengan pesan server bila ada, selain itu `failure`
+- [x] Literal `"Urungkan"` hanya ada di `lib/undo-toast.ts`
+- [x] Tes: aksi memanggil `restore`; `restore` gagal → `toast.error(failureMessage(err, failure))`: pesan offline untuk error jaringan, selain itu `failure` (perilaku tiga salinan lama; tidak ada yang menampilkan pesan server)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/undo-toast.spec.ts` hijau
-- [ ] Manual: hapus transaksi, hapus budget, arsip aturan → Urungkan berfungsi; Urungkan saat offline → toast gagal
+- [x] `pnpm vitest run tests/unit/undo-toast.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): hapus transaksi, hapus budget, arsip aturan → Urungkan berfungsi; Urungkan saat offline → toast gagal
+
+**Catatan (2026-10-29):** `failure` opsional, default "Gagal mengurungkan. Coba lagi.", karena ketiga pemanggil memakai pesan yang sama.
 
 **Dependencies:** None (setelah Checkpoint Y)
 

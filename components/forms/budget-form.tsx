@@ -18,6 +18,7 @@ import {
 } from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
 import { failureMessage } from "@/lib/offline/network-error";
+import { undoToast } from "@/lib/undo-toast";
 
 const formSchema = z.object({ amount: budgetAmount });
 
@@ -28,8 +29,6 @@ type BudgetFormProps = {
   item: BudgetUsageItem;
   onDone: () => void;
 };
-
-const UNDO_MS = 6000;
 
 export function BudgetForm({
   period,
@@ -71,16 +70,7 @@ export function BudgetForm({
     onDone();
     try {
       await deleteBudget(period, id);
-      toast("Budget dihapus", {
-        duration: UNDO_MS,
-        action: {
-          label: "Urungkan",
-          onClick: () =>
-            void restoreBudget(id).catch((err) =>
-              toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi.")),
-            ),
-        },
-      });
+      undoToast({ message: "Budget dihapus", restore: () => restoreBudget(id) });
     } catch (err) {
       toast.error(failureMessage(err, "Gagal menghapus budget. Coba lagi."));
     }

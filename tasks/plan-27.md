@@ -11,7 +11,7 @@ Index: [plan.md](plan.md) § Refactor arsitektur · Todo: [todo-27.md](todo-27.m
 - [x] T97: `AFFECTS` lengkap, tanpa sisi `recurring → transactions` (S, butuh jawaban Open question #2)
 - [x] T98: Key dibangun dari tabel yang sama dengan pencocoknya (M)
 - [x] T99: Satu alur hapus optimistic dengan rollback (S)
-- [ ] T100: Satu toast undo (S)
+- [x] T100: Satu toast undo (S)
 
 Urutan: T97 → T98 → T99; T100 bebas.
 
@@ -33,7 +33,7 @@ Urutan: T97 → T98 → T99; T100 bebas.
 
 ## Checkpoint Z
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Tidak ada string `"/api/` di `hooks/` selain argumen URL `sendJSON`
-- [ ] Manual: hapus transaksi → hilang seketika → Urungkan mengembalikannya, saldo dan dashboard ikut; hapus budget → sama; Catat dari kotak Jatuh tempo → saldo, budget, dashboard, kartu gajian terbarui tanpa reload
-- [ ] Review dengan Yogi sebelum phase 28
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (1273 tes)
+- [ ] Tidak ada string `"/api/` di `hooks/` selain argumen URL `sendJSON`: tersisa `KEY = "/api/me"` (`use-profile.ts`, bukan `Resource`) dan `fetch("/api/transactions")` di `use-outbox-replay.ts` yang dipindah di T101
+- [ ] Manual: hapus transaksi → hilang seketika → Urungkan mengembalikannya, saldo dan dashboard ikut; hapus budget → sama; Catat dari kotak Jatuh tempo → saldo, budget, dashboard, kartu gajian terbarui tanpa reload (tertunda: sesi tanpa browser; alurnya tercakup `cache-invalidation.spec.ts`, `use-recurring.spec.ts`, `undo-toast.spec.ts`)
+- [x] Review dengan Yogi sebelum phase 28: Yogi memilih jalan terus (2026-10-29)

@@ -10,7 +10,7 @@ Satu modul `lib/period.ts` memiliki konsep Period (`YYYY-MM`, `YYYY`, `all`) dan
 
 - [x] T90: Pindahkan fungsi periode ke `lib/period.ts` (M, banyak berkas tapi hanya import)
 - [x] T91: Satu parse `?period=` untuk tiga halaman (S)
-- [ ] T92: Satu aturan batas 2000 dan satu tipe Period (M)
+- [x] T92: Satu aturan batas 2000 dan satu tipe Period (M)
 - [ ] T93: Aritmetika hari kalender masuk modul Period (S)
 
 Urutan: T90 → (T91, T92, T93 boleh urutan apa pun).

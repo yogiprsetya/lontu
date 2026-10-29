@@ -3,6 +3,12 @@ export type Period = string;
 
 export type PeriodMode = "month" | "year" | "all";
 
+/** `YYYY-MM`. */
+export type MonthPeriod = Period;
+
+/** `YYYY-MM` or `YYYY`. */
+export type MonthOrYearPeriod = Period;
+
 const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
 const YEAR = /^\d{4}$/;
 
@@ -14,12 +20,12 @@ export function periodMode(period: Period): PeriodMode {
 }
 
 // Matches MIN_TRANSACTION_DATE: nothing can be recorded earlier, and a shorter year would parse as another mode.
-const MIN_YEAR = 2000;
+export const MIN_PERIOD_YEAR = 2000;
 
 export function isPeriod(value: string | null): value is Period {
   if (value === null) return false;
   if (value === "all") return true;
-  return (YEAR.test(value) || MONTH.test(value)) && Number(value.slice(0, 4)) >= MIN_YEAR;
+  return (YEAR.test(value) || MONTH.test(value)) && Number(value.slice(0, 4)) >= MIN_PERIOD_YEAR;
 }
 
 // Same-length strings compare correctly as text, so a month is checked against `latest`'s month and a year against its year.
@@ -53,16 +59,28 @@ export function periodToRange(period: Period): { from?: string; to?: string } {
   return { from: `${period}-01`, to: `${period}-${String(lastDay).padStart(2, "0")}` };
 }
 
+function step(period: MonthOrYearPeriod, delta: 1 | -1): MonthOrYearPeriod {
+  if (YEAR.test(period)) return String(Number(period) + delta);
+  const index = Number(period.slice(0, 4)) * 12 + (Number(period.slice(5, 7)) - 1) + delta;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+/**
+ * One month or year forward or back, stopping at MIN_PERIOD_YEAR (returns `period` itself).
+ * For steppers and anything that must name a period a transaction can be dated in.
+ */
 export function shiftPeriod(period: Period, delta: 1 | -1): Period {
   if (period === "all") return period;
-  if (YEAR.test(period)) {
-    const year = Number(period) + delta;
-    return year < MIN_YEAR ? period : String(year);
-  }
-  const [, year, month] = MONTH.exec(period) ?? [];
-  const index = Number(year) * 12 + (Number(month) - 1) + delta;
-  if (Math.floor(index / 12) < MIN_YEAR) return period;
-  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+  const shifted = step(period, delta);
+  return Number(shifted.slice(0, 4)) < MIN_PERIOD_YEAR ? period : shifted;
+}
+
+/**
+ * The period before, with no floor: January 2000 still needs December 1999 to compare
+ * against on the dashboard. No transaction can be dated there, so its totals are simply 0.
+ */
+export function previousPeriod(period: MonthOrYearPeriod): MonthOrYearPeriod {
+  return step(period, -1);
 }
 
 export function switchPeriodMode(period: Period, mode: PeriodMode, today: string): Period {

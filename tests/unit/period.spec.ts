@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   formatPeriodLabel,
   isPastOrCurrentPeriod,
+  MIN_PERIOD_YEAR,
   monthRange,
   parsePeriod,
   periodMode,
   periodToRange,
   periodToYearMonth,
+  previousPeriod,
   shiftPeriod,
   switchPeriodMode,
   yearMonthToPeriod,
@@ -153,5 +155,30 @@ describe("isPastOrCurrentPeriod", () => {
     ["1999", false],
   ])("%s → %s", (period, expected) => {
     expect(isPastOrCurrentPeriod(period, "2026-10-23")).toBe(expected);
+  });
+});
+
+describe("previousPeriod (no lower bound)", () => {
+  it.each([
+    ["2026-10", "2026-09"],
+    ["2026-01", "2025-12"],
+    ["2000-01", "1999-12"],
+    ["2026", "2025"],
+    ["2000", "1999"],
+  ])("%s → %s", (period, previous) => {
+    expect(previousPeriod(period)).toBe(previous);
+  });
+
+  it("agrees with shiftPeriod above the floor", () => {
+    for (const period of ["2026-10", "2026-01", "2000-02", "2026", "2001"]) {
+      expect(previousPeriod(period)).toBe(shiftPeriod(period, -1));
+    }
+  });
+});
+
+describe("MIN_PERIOD_YEAR", () => {
+  it("is the first year a period can name, matching the earliest transaction date", () => {
+    expect(MIN_PERIOD_YEAR).toBe(2000);
+    expect(shiftPeriod(`${MIN_PERIOD_YEAR}-01`, -1)).toBe(`${MIN_PERIOD_YEAR}-01`);
   });
 });

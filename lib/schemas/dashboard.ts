@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
-import { isPastOrCurrentPeriod } from "@/lib/period";
+import { isPastOrCurrentPeriod, type MonthOrYearPeriod } from "@/lib/period";
 import type { SpendingType } from "@/lib/schemas/category";
 import type { TransactionTotals } from "@/lib/schemas/transaction";
 
-/** `YYYY-MM` or `YYYY`. */
-export type DashboardPeriod = string;
+export type DashboardPeriod = MonthOrYearPeriod;
 
 export type DashboardMode = "month" | "year";
 

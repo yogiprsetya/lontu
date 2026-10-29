@@ -62,13 +62,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Hanya satu implementasi aritmetika indeks bulan di repo (`grep -rn "\* 12" lib` hanya di `lib/period.ts`)
-- [ ] Hanya satu sumber nilai 2000: `MIN_PERIOD_YEAR`, dipakai schema budget, schema dashboard, dan `isPeriod`
-- [ ] Tes batas yang ada hijau tanpa diubah: Januari 2000 tetap punya pembanding Desember 1999 di dashboard, `shiftPeriod("2000-01", -1)` tetap `"2000-01"`, `historyWindow("2000-01")` tetap `null`, salin budget ke 2000-01 tetap `copied: 0`
+- [x] Hanya satu implementasi aritmetika indeks bulan di repo (`grep -rn "\* 12" lib` hanya di `lib/period.ts`)
+- [x] Hanya satu sumber nilai 2000: `MIN_PERIOD_YEAR`, dipakai schema budget, schema dashboard, dan `isPeriod`
+- [x] Tes batas yang ada hijau tanpa diubah: Januari 2000 tetap punya pembanding Desember 1999 di dashboard, `shiftPeriod("2000-01", -1)` tetap `"2000-01"`, `historyWindow("2000-01")` tetap `null`, salin budget ke 2000-01 tetap `copied: 0`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/period.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/budget-schema.spec.ts tests/unit/dashboard-schema.spec.ts tests/api/budget-copy.spec.ts tests/api/budget-suggestion.spec.ts tests/api/dashboard.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/period.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/budget-schema.spec.ts tests/unit/dashboard-schema.spec.ts tests/api/budget-copy.spec.ts tests/api/budget-suggestion.spec.ts tests/api/dashboard.spec.ts` hijau
+
+**Catatan (2026-10-29):** `MonthPeriod` dan `MonthOrYearPeriod` tetap alias `string` (tanpa template literal type) supaya tidak ada pemanggil yang perlu cast. Pesan validasi "Januari 2000" / "tahun 2000" tetap literal karena itu teks UI.
 
 **Dependencies:** T90
 

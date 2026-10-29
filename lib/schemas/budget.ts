@@ -2,10 +2,10 @@ import { z } from "zod";
 import type { BudgetStatus } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
 import type { SpendingType } from "@/lib/schemas/category";
-import { shiftPeriod } from "@/lib/period";
+import { MIN_PERIOD_YEAR, shiftPeriod, type MonthPeriod } from "@/lib/period";
 
-/** `YYYY-MM`. Stored as `year` + `month` columns. */
-export type BudgetPeriod = string;
+/** Stored as `year` + `month` columns. */
+export type BudgetPeriod = MonthPeriod;
 
 export type Budget = {
   id: string;
@@ -44,8 +44,6 @@ export type BudgetSuggestion = {
   items: { categoryId: string; spendingType: SpendingType; amount: number; current: number | null }[];
 };
 
-export const MIN_BUDGET_PERIOD = "2000-01";
-
 export const BUDGET_PERIOD_FORMAT = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /** Next month: budgets can be prepared before the month starts. */
@@ -58,7 +56,7 @@ export function maxBudgetPeriod(today: string): BudgetPeriod {
 export const budgetPeriodSchema = z
   .string("Periode tidak valid")
   .regex(BUDGET_PERIOD_FORMAT, "Periode tidak valid")
-  .refine((p) => p >= MIN_BUDGET_PERIOD, "Periode minimal Januari 2000")
+  .refine((p) => Number(p.slice(0, 4)) >= MIN_PERIOD_YEAR, "Periode minimal Januari 2000")
   .refine((p) => p <= maxBudgetPeriod(todayInJakarta()), "Periode maksimal bulan depan");
 
 export const budgetAmount = z

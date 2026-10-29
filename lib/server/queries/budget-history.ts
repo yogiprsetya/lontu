@@ -7,8 +7,8 @@ import type { BudgetPeriod } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
 
 /**
- * The three full months before `period`. shiftPeriod stops at 2000-01, so near that floor the
- * window shrinks, and it is empty when there is no earlier month at all.
+ * The three full months before `period`. Built with `shiftPeriod`, so near its floor the window
+ * shrinks, and it is empty when there is no earlier month at all.
  */
 export function historyWindow(period: BudgetPeriod) {
   const last = shiftPeriod(period, -1);

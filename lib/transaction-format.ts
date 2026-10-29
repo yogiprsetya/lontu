@@ -1,5 +1,6 @@
 import { archiveLabel } from "@/lib/archived";
 import { formatIDR } from "@/lib/money";
+import { addDays } from "@/lib/period";
 import type { ListTransactionType, Transaction } from "@/lib/schemas/transaction";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 
@@ -12,15 +13,9 @@ const headingFormatter = new Intl.DateTimeFormat("id-ID", {
   year: "numeric",
 });
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function dayBefore(date: string) {
-  return new Date(Date.parse(`${date}T00:00:00Z`) - DAY_MS).toISOString().slice(0, 10);
-}
-
 export function formatDateHeading(date: string, today: string) {
   if (date === today) return "Hari ini";
-  if (date === dayBefore(today)) return "Kemarin";
+  if (date === addDays(today, -1)) return "Kemarin";
   return headingFormatter.format(new Date(`${date}T00:00:00Z`));
 }
 

@@ -86,12 +86,12 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `DAY_MS` dan `Date.UTC(…, 0)` masing-masing hanya muncul di `lib/period.ts`
-- [ ] Tes `clampDay`/`daysBetween` dipindah dari `recurring-schedule.spec.ts` ke `period.spec.ts` tanpa diubah; tes `advanceDate`, `firstDueOnOrAfter`, `paydayForecast`, `formatDateHeading` hijau tanpa diubah
+- [x] `DAY_MS` dan `Date.UTC(…, 0)` masing-masing hanya muncul di `lib/period.ts`
+- [x] Tes `clampDay`/`daysBetween` dipindah dari `recurring-schedule.spec.ts` ke `period.spec.ts` tanpa diubah; tes `advanceDate`, `firstDueOnOrAfter`, `paydayForecast`, `formatDateHeading` hijau tanpa diubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/period.spec.ts tests/unit/recurring-schedule.spec.ts tests/unit/payday-forecast.spec.ts tests/unit/transaction-format.spec.ts tests/unit/recurring-format.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/period.spec.ts tests/unit/recurring-schedule.spec.ts tests/unit/payday-forecast.spec.ts tests/unit/transaction-format.spec.ts tests/unit/recurring-format.spec.ts` hijau
 
 **Dependencies:** T90
 

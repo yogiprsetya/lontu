@@ -1,5 +1,5 @@
 import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
-import { daysBetween } from "@/lib/recurring-schedule";
+import { daysBetween } from "@/lib/period";
 import type { RecurringType } from "@/lib/schemas/recurring";
 
 export const RECURRING_GROUPS: { type: RecurringType; label: string }[] = [

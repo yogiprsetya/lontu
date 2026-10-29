@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
+  clampDay,
+  daysBetween,
   formatPeriodLabel,
   isPastOrCurrentPeriod,
+  lastDayOfMonth,
   MIN_PERIOD_YEAR,
   monthRange,
   parsePeriod,
@@ -180,5 +184,55 @@ describe("MIN_PERIOD_YEAR", () => {
   it("is the first year a period can name, matching the earliest transaction date", () => {
     expect(MIN_PERIOD_YEAR).toBe(2000);
     expect(shiftPeriod(`${MIN_PERIOD_YEAR}-01`, -1)).toBe(`${MIN_PERIOD_YEAR}-01`);
+  });
+});
+
+describe("clampDay", () => {
+  it("keeps a day that exists in the month", () => {
+    expect(clampDay(2026, 10, 5)).toBe("2026-10-05");
+  });
+
+  it("clamps to the last day of a short month", () => {
+    expect(clampDay(2027, 2, 31)).toBe("2027-02-28");
+    expect(clampDay(2026, 11, 31)).toBe("2026-11-30");
+  });
+
+  it("allows 29 February in a leap year", () => {
+    expect(clampDay(2028, 2, 31)).toBe("2028-02-29");
+  });
+});
+
+describe("daysBetween", () => {
+  it("counts calendar days across a month and a year end", () => {
+    expect(daysBetween("2026-10-25", "2026-10-27")).toBe(2);
+    expect(daysBetween("2026-12-31", "2027-01-01")).toBe(1);
+    expect(daysBetween("2026-11-13", "2026-11-25")).toBe(12);
+  });
+});
+
+describe("lastDayOfMonth", () => {
+  it.each([
+    [2026, 1, 31],
+    [2026, 2, 28],
+    [2028, 2, 29],
+    [2100, 2, 28],
+    [2000, 2, 29],
+    [2026, 4, 30],
+    [2026, 12, 31],
+  ])("%i-%i → %i", (year, month, day) => {
+    expect(lastDayOfMonth(year, month)).toBe(day);
+  });
+});
+
+describe("addDays", () => {
+  it.each([
+    ["2026-10-23", -1, "2026-10-22"],
+    ["2026-10-01", -1, "2026-09-30"],
+    ["2026-01-01", -1, "2025-12-31"],
+    ["2028-03-01", -1, "2028-02-29"],
+    ["2026-12-31", 1, "2027-01-01"],
+    ["2026-10-23", 10, "2026-11-02"],
+  ])("%s %+i → %s", (date, days, expected) => {
+    expect(addDays(date, days)).toBe(expected);
   });
 });

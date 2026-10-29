@@ -1,4 +1,5 @@
-import { advanceDate, daysBetween } from "@/lib/recurring-schedule";
+import { daysBetween } from "@/lib/period";
+import { advanceDate } from "@/lib/recurring-schedule";
 import type { ForecastItem, PaydayForecast, RecurringRule } from "@/lib/schemas/recurring";
 
 /**

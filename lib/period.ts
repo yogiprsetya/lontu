@@ -54,9 +54,7 @@ export function periodToRange(period: Period): { from?: string; to?: string } {
   if (YEAR.test(period)) return { from: `${period}-01-01`, to: `${period}-12-31` };
   const [, year, month] = MONTH.exec(period) ?? [];
   if (!year) return {};
-  // Day 0 of the next month is the last day of this one, leap years included.
-  const lastDay = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
-  return { from: `${period}-01`, to: `${period}-${String(lastDay).padStart(2, "0")}` };
+  return { from: `${period}-01`, to: `${period}-${pad(lastDayOfMonth(Number(year), Number(month)))}` };
 }
 
 function step(period: MonthOrYearPeriod, delta: 1 | -1): MonthOrYearPeriod {
@@ -110,4 +108,35 @@ export function yearMonthToPeriod(year: number, month: number): Period {
 export function monthRange(period: Period) {
   const { from, to } = periodToRange(period);
   return { from: from!, to: to! };
+}
+
+// Calendar days below work on YYYY-MM-DD strings read as UTC, so no local zone or DST can shift a date by a day.
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function utcMidnight(date: string) {
+  return Date.parse(`${date}T00:00:00Z`);
+}
+
+/** `month` is 1–12. Day 0 of the next month is the last day of this one, leap years included. */
+export function lastDayOfMonth(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/** `day` in the given month, capped at that month's last day. */
+export function clampDay(year: number, month: number, day: number): string {
+  return `${year}-${pad(month)}-${pad(Math.min(day, lastDayOfMonth(year, month)))}`;
+}
+
+export function addDays(date: string, days: number) {
+  return new Date(utcMidnight(date) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** Whole days from `from` to `to`. */
+export function daysBetween(from: string, to: string) {
+  return Math.round((utcMidnight(to) - utcMidnight(from)) / DAY_MS);
 }

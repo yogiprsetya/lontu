@@ -176,8 +176,10 @@ Urutan di server, dalam **satu transaksi DB**:
 
 ### Fungsi murni
 
-- `lib/recurring-schedule.ts`:
+- `lib/period.ts` (aritmetika kalender bersama, lihat SPEC-transactions):
   - `clampDay(year, month, day)` → `YYYY-MM-DD` di hari `min(day, hari terakhir bulan)`.
+  - `daysBetween(from, to)`, `lastDayOfMonth(year, month)`, `addDays(date, n)`.
+- `lib/recurring-schedule.ts` (aturan jadwal, memakai `lib/period.ts`):
   - `advanceDate(dayOfMonth, from)` → anchor di bulan setelah `from`.
   - `firstDueOnOrAfter(dayOfMonth, today)` → anchor bulan ini jika ≥ `today`, selain itu bulan depan.
   - Semua aritmetika dari string `YYYY-MM-DD`, tanpa `Date` lokal.
@@ -262,7 +264,8 @@ Urutan di server, dalam **satu transaksi DB**:
 ## Tes
 
 - **Unit (`tests/unit/`):**
-  - `recurring-schedule.spec.ts`: `clampDay`, `advanceDate` (31 → Feb → Mar, kabisat, Desember → Januari), `firstDueOnOrAfter` (hari yang sama, sudah lewat, anchor > hari terakhir bulan ini).
+  - `recurring-schedule.spec.ts`: `advanceDate` (31 → Feb → Mar, kabisat, Desember → Januari), `firstDueOnOrAfter` (hari yang sama, sudah lewat, anchor > hari terakhir bulan ini).
+  - `period.spec.ts`: `clampDay`, `daysBetween`, `lastDayOfMonth`, `addDays`.
   - `payday-forecast.spec.ts`: tiga status, kejadian tertinggal, banyak kejadian sebelum gajian, income non-gajian diabaikan, aturan di hari gajian tidak ikut (`< payday`), `free` negatif.
   - `recurring-schema.spec.ts`: batas field, `strictObject`, refine `isPayday`, union `advance`.
   - `cache-invalidation.spec.ts` (yang ada): edge `recurring` baru.

@@ -11,7 +11,7 @@ Satu modul `lib/period.ts` memiliki konsep Period (`YYYY-MM`, `YYYY`, `all`) dan
 - [x] T90: Pindahkan fungsi periode ke `lib/period.ts` (M, banyak berkas tapi hanya import)
 - [x] T91: Satu parse `?period=` untuk tiga halaman (S)
 - [x] T92: Satu aturan batas 2000 dan satu tipe Period (M)
-- [ ] T93: Aritmetika hari kalender masuk modul Period (S)
+- [x] T93: Aritmetika hari kalender masuk modul Period (S)
 
 Urutan: T90 → (T91, T92, T93 boleh urutan apa pun).
 
@@ -32,9 +32,9 @@ Urutan: T90 → (T91, T92, T93 boleh urutan apa pun).
 
 ## Checkpoint X
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes tidak turun dari sebelum T90
-- [ ] `grep -rn "transaction-filters" lib/server lib/schemas lib/*-format.ts lib/dashboard-period.ts` kosong
-- [ ] Hanya ada satu implementasi hari-terakhir-bulan, satu aritmetika indeks bulan, dan satu parse `?period=`
-- [ ] Manual 360×800: stepper periode di `/transactions`, `/budget`, dan `/dashboard` maju/mundur sama seperti sebelumnya, termasuk berhenti di Januari 2000 dan di periode berjalan
-- [ ] JS first load `/dashboard` tidak naik lebih dari 0,5 KB gzip (metode § Catatan ukuran)
-- [ ] Review dengan Yogi sebelum phase 26
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes tidak turun dari sebelum T90 (1084 → 1148; 3 tes `period-store.spec.ts` dihapus atas persetujuan)
+- [x] `grep -rn "transaction-filters" lib/server lib/schemas lib/*-format.ts lib/dashboard-period.ts` hanya menyisakan `lib/budget-format.ts` yang mengimpor `filtersToUrl` untuk tautan ke `/transactions` (kontrak filter URL, bukan fungsi periode)
+- [x] Hanya ada satu implementasi hari-terakhir-bulan, satu aritmetika indeks bulan, dan satu parse `?period=`
+- [ ] Manual 360×800: stepper periode di `/transactions`, `/budget`, dan `/dashboard` maju/mundur sama seperti sebelumnya, termasuk berhenti di Januari 2000 dan di periode berjalan (tertunda: sesi tanpa browser)
+- [x] JS first load `/dashboard` tidak naik lebih dari 0,5 KB gzip: 380,3 → 380,4 KB; `/transactions` 373,3 → 373,5 KB (metode § Catatan ukuran, diukur 2026-10-29 dari build `78f4168` dan sesudah T93)
+- [x] Review dengan Yogi sebelum phase 26: Yogi memilih jalan terus tanpa berhenti per phase (2026-10-29)

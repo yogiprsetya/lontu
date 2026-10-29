@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/fetcher";
 import { createOutbox } from "@/lib/offline/outbox";
-import { replayOutbox } from "@/lib/offline/replay";
+import { REPLAY_INTERVAL_MS, replayOutbox, requestReplay, startReplay, type ReplayResult } from "@/lib/offline/replay";
 import type { KeyValueStore } from "@/lib/offline/storage";
 import type { TransactionCreateInput } from "@/lib/schemas/transaction";
 
@@ -122,5 +122,130 @@ describe("replayOutbox", () => {
     expect(send.mock.calls.map(([b]) => b.id)).toEqual(["t3"]);
     expect(result).toEqual({ sent: 1, failed: 0, stopped: null });
     expect((await outbox.list("user-b")).map((i) => i.id)).toEqual(["t2"]);
+  });
+});
+
+describe("startReplay", () => {
+  type Page = EventTarget & { visibilityState: DocumentVisibilityState };
+  let target: EventTarget;
+  let page: Page;
+  let online: boolean;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    target = new EventTarget();
+    page = Object.assign(new EventTarget(), { visibilityState: "visible" as DocumentVisibilityState });
+    online = true;
+    // requestReplay dispatches on window; here the window is the test target.
+    vi.stubGlobal("window", target);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  const noLock = (run: () => Promise<ReplayResult>) => run();
+
+  async function start(overrides: Partial<Parameters<typeof startReplay>[0]> = {}) {
+    const outbox = await outboxWith(["user-a", "t1"]);
+    const send = vi.fn().mockImplementation(sentOk);
+    const onSent = vi.fn(async () => {});
+    const onAuthLost = vi.fn();
+    const stop = startReplay({ userId: "user-a", outbox, send, target, page, isOnline: () => online, lock: noLock, onSent, onAuthLost, ...overrides });
+    await vi.advanceTimersByTimeAsync(0);
+    return { outbox, send, onSent, onAuthLost, stop };
+  }
+
+  // Each pass reads the outbox; counting list calls counts passes, even when nothing is pending.
+  async function passes(outbox: Awaited<ReturnType<typeof outboxWith>>, act: () => unknown) {
+    const list = vi.spyOn(outbox, "list");
+    await act();
+    await vi.advanceTimersByTimeAsync(0);
+    return list.mock.calls.length;
+  }
+
+  it("runs one pass at start and calls onSent when it sent something", async () => {
+    const { send, onSent, stop } = await start();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(onSent).toHaveBeenCalledTimes(1);
+    stop();
+  });
+
+  it("does not call onSent after a pass that sent nothing", async () => {
+    const outbox = await outboxWith();
+    const onSent = vi.fn(async () => {});
+    const stop = startReplay({ userId: "user-a", outbox, send: vi.fn(), target, page, isOnline: () => online, lock: noLock, onSent, onAuthLost: vi.fn() });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onSent).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it.each([
+    ["online", () => target.dispatchEvent(new Event("online"))],
+    ["requestReplay", () => requestReplay()],
+    ["the page becoming visible", () => page.dispatchEvent(new Event("visibilitychange"))],
+    ["the interval", () => vi.advanceTimersByTimeAsync(REPLAY_INTERVAL_MS)],
+  ])("runs another pass on %s", async (_, trigger) => {
+    const { outbox, stop } = await start();
+    expect(await passes(outbox, trigger)).toBe(1);
+    stop();
+  });
+
+  it("skips the pass when the page turns hidden", async () => {
+    const { outbox, stop } = await start();
+    page.visibilityState = "hidden";
+    expect(await passes(outbox, () => void page.dispatchEvent(new Event("visibilitychange")))).toBe(0);
+    stop();
+  });
+
+  it("does not run while offline", async () => {
+    online = false;
+    const { send, outbox, stop } = await start();
+    expect(send).not.toHaveBeenCalled();
+    expect(await passes(outbox, () => vi.advanceTimersByTimeAsync(REPLAY_INTERVAL_MS))).toBe(0);
+    stop();
+  });
+
+  it("stop removes every listener and the interval", async () => {
+    const { outbox, stop } = await start();
+    stop();
+    const count = await passes(outbox, async () => {
+      target.dispatchEvent(new Event("online"));
+      requestReplay();
+      page.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(REPLAY_INTERVAL_MS * 2);
+    });
+    expect(count).toBe(0);
+  });
+
+  it("calls onAuthLost when the session has expired", async () => {
+    const { onAuthLost, onSent, stop } = await start({ send: vi.fn(() => httpError(401, "UNAUTHORIZED")) });
+    expect(onAuthLost).toHaveBeenCalledTimes(1);
+    expect(onSent).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it("sends once when two passes overlap under the lock", async () => {
+    let held = false;
+    // Same contract as navigator.locks with ifAvailable: a second caller gets null instead of waiting.
+    const lock = async (run: () => Promise<ReplayResult>) => {
+      if (held) return null;
+      held = true;
+      try {
+        return await run();
+      } finally {
+        held = false;
+      }
+    };
+    let release!: () => void;
+    const send = vi.fn(() => new Promise<void>((resolve) => (release = resolve)));
+    const { stop } = await start({ send, lock });
+    requestReplay();
+    await vi.advanceTimersByTimeAsync(0);
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(send).toHaveBeenCalledTimes(1);
+    stop();
   });
 });

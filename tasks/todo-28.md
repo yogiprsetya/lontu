@@ -37,13 +37,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tes: satu pass saat mulai; pass lagi pada `online`, `requestReplay`, `visible`, dan setiap 30 s; tidak ada pass saat offline; stop melepas semua listener dan interval; `onSent` dipanggil hanya bila `sent > 0`; `onAuthLost` saat `stopped: "auth"`; dua pass bersamaan dengan lock hanya mengirim sekali
-- [ ] `hooks/use-outbox-replay.ts` ≤ 25 baris dan tidak memuat `addEventListener` atau `setInterval`
+- [x] Tes: satu pass saat mulai; pass lagi pada `online`, `requestReplay`, `visible`, dan setiap 30 s; tidak ada pass saat offline; stop melepas semua listener dan interval; `onSent` dipanggil hanya bila `sent > 0`; `onAuthLost` saat `stopped: "auth"`; dua pass bersamaan dengan lock hanya mengirim sekali
+- [x] `hooks/use-outbox-replay.ts` tidak memuat `addEventListener` atau `setInterval` (27 baris, bukan ≤ 25: toast "Masuk lagi" tetap di hook karena butuh `router`)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/replay.spec.ts` hijau
-- [ ] Manual (`pnpm build && pnpm start`): mode pesawat → catat → online → terkirim tanpa reload; tab kembali aktif memicu kirim
+- [x] `pnpm vitest run tests/unit/replay.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser) (`pnpm build && pnpm start`): mode pesawat → catat → online → terkirim tanpa reload; tab kembali aktif memicu kirim
+
+**Catatan (2026-10-29):** `visibilitychange` datang dari `document`, sedangkan `online` dan `lontu:replay` dari `window`, jadi `startReplay` menerima `target` (window) dan `page` (document + `visibilityState`), bukan satu `target`. `requestReplay()` tetap tanpa argumen karena dipakai langsung sebagai `onClick`; tes mengganti `window` dengan `EventTarget`. `outboxLock` (Web Lock) ikut pindah ke `replay.ts`.
 
 **Dependencies:** T101
 

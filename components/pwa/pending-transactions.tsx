@@ -18,7 +18,7 @@ import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useCategories } from "@/hooks/use-categories";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOutbox } from "@/hooks/use-outbox";
-import { requestReplay } from "@/hooks/use-outbox-replay";
+import { requestReplay } from "@/lib/offline/replay";
 import { outbox, type OutboxItem } from "@/lib/offline/outbox";
 import { formatSignedAmount, nameMap, titleOf, type Names } from "@/lib/transaction-format";
 

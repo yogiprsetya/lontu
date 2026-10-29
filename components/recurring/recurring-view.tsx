@@ -28,11 +28,11 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 import { archiveRule, restoreRule, useRecurring } from "@/hooks/use-recurring";
 import { todayInJakarta } from "@/lib/date";
 import { failureMessage } from "@/lib/offline/network-error";
+import { undoToast } from "@/lib/undo-toast";
 import type { RulePreset } from "@/lib/recurring-form";
 import { RECURRING_GROUPS } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
-import { useUIStore } from "@/stores/ui";
 
 type Editing =
   | { kind: "create"; preset?: RulePreset }
@@ -103,7 +103,6 @@ export function RecurringView() {
   // Archived rows vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
   const recurring = useRecurring({ includeArchived: showArchived });
   const accounts = useAccounts({ includeArchived: true });
   const accountNames = useMemo(() => nameMap(accounts.data), [accounts.data]);
@@ -134,18 +133,7 @@ export function RecurringView() {
     setArchiving((prev) => new Set(prev).add(rule.id));
     try {
       await archiveRule(rule.id);
-      toast("Aturan diarsipkan", {
-        duration: 6000,
-        action: {
-          label: "Urungkan",
-          onClick: () =>
-            void restoreRule(rule.id).catch((err) =>
-              toast.error(
-                failureMessage(err, "Gagal mengurungkan. Coba lagi."),
-              ),
-            ),
-        },
-      });
+      undoToast({ message: "Aturan diarsipkan", restore: () => restoreRule(rule.id) });
     } catch (err) {
       toast.error(failureMessage(err, "Gagal mengarsipkan aturan. Coba lagi."));
     } finally {
@@ -221,7 +209,6 @@ export function RecurringView() {
                 rule={rule}
                 accountName={accountNames.get(rule.accountId) ?? "Akun"}
                 today={today}
-                hideAmounts={hideAmounts}
                 onEdit={
                   rule.archivedAt
                     ? undefined

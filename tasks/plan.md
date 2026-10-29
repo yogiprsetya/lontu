@@ -13,6 +13,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `dashboard`           | [SPEC-dashboard.md](../SPEC-dashboard.md)                     | 16–18 | T55–T65 | Selesai (T55–T65). JS first load di atas 200 KB (lihat Catatan ukuran) |
 | `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Selesai (T66–T76). JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
+| Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 
 ---
 
@@ -520,3 +521,90 @@ Phase dikerjakan berurutan. Pengecualian: T83 boleh dikerjakan kapan saja, terma
 - Belum dicek (butuh login Google di browser sungguhan): semua butir UI di spec § Acceptance criteria dan butir Manual di todo-22..24, Lighthouse mobile dan axe untuk `/dashboard` dan `/recurring` (tidak ada browser di sesi build), mode pesawat, tap ganda Simpan, dan angka "bebas" terhadap hitungan tangan.
 - Keputusan saat build: Open questions #2–#5 memakai default spec (disetujui saat `/build auto`). "Lihat arsip" memakai `ShowArchivedSwitch` yang sudah ada ("Tampilkan arsip"), bukan tautan. Arsip memakai sembunyi lokal saat request berjalan, bukan optimistic update SWR. `hookTimeout` vitest dinaikkan ke 20 s (commit tersendiri).
 - Ditutup 2026-10-28: semua checklist yang tersisa di modul `transactions` sampai `recurring` (checkpoint G–W) ditutup oleh Yogi.
+
+---
+
+# Refactor arsitektur
+
+Sumber: architecture review 2026-10-28 (`/tmp/architecture-review-20261028-220636.html`, di luar repo) · 2026-10-28
+
+## Overview
+
+Tidak ada kapabilitas baru. Review menemukan lima titik di mana satu konsep tersebar ke banyak modul dangkal. Hasilnya bug muncul di salinan yang berbeda-beda, dan sebagian logika tidak bisa dites lewat interface-nya. Refactor ini memusatkan tiap konsep ke satu modul dalam: Period, tampilan nominal (hideAmounts), key cache SWR, pengiriman transaksi (online + outbox), dan pencatatan transaksi di server. Kontrak API, skema DB, dan perilaku yang terlihat pemilik tidak berubah, kecuali yang disebut eksplisit di Keputusan.
+
+## Kondisi repo saat ini
+
+- Semua modul selesai (T1–T89), checkpoint G–W sudah ditutup. Tidak ada task terbuka.
+- Matematika periode tersebar di `lib/transaction-filters.ts` (dipakai 24 berkas, termasuk server), `lib/dashboard-period.ts` (`previousPeriod` menyalin `shiftPeriod` tanpa batas 2000), `lib/recurring-schedule.ts` (`clampDay`, `daysBetween`), `lib/schemas/budget.ts` (`periodToYearMonth`, `monthRange`), `lib/schemas/dashboard.ts`, `lib/budget-format.ts`, dan `lib/transaction-format.ts` (`DAY_MS`).
+- `hideAmounts ? HIDDEN_AMOUNT : formatIDR(x)` ditulis ulang di ±20 komponen, plus `formatBudgetAmount` dan dua fungsi di `recurring-format.ts` yang menerima flag `hideAmounts`.
+- Key SWR dibangun manual per hook, sedangkan pencocokannya di tabel regex `KEYS` (`lib/cache-invalidation.ts`). `AFFECTS` hanya satu tingkat, jadi `use-recurring.ts:56` memilih resource sendiri. Optimistic delete + rollback ditulis 2×, toast undo 3×.
+- "Kirim satu create" ditulis 2×: `createTransaction` (`hooks/use-transactions.ts`) dan `fetch` mentah di `hooks/use-outbox-replay.ts:18`, dengan timeout dan parser error masing-masing. `useOutboxReplay` belum dites. Form mengambil profil hanya untuk `userId`.
+- `advanceRule` (`lib/server/recurring.ts`) merakit ulang urutan idempoten dari enam ekspor `lib/server/transactions.ts`.
+- Vitest `environment: "node"`, tanpa tes komponen. Playwright masih ditunda.
+
+## Dependency graph
+
+```
+Phase 25 Period
+T90 Pindahkan ke lib/period.ts ─┬─► T91 Satu parse param periode
+                                ├─► T92 Satu aturan batas 2000
+                                └─► T93 Aritmetika hari
+Phase 26 Amount (bebas dari 25, tapi dikerjakan sesudahnya supaya diff tidak bentrok)
+T94 useAmountFormat + dashboard ─► T95 budgets + recurring ─► T96 sisanya + tes penjaga
+Phase 27 Cache
+T97 AFFECTS lengkap ─► T98 Key dibangun dari satu tabel ─► T99 Optimistic remove ─► T100 Toast undo
+Phase 28 Pengiriman transaksi (butuh T97: invalidate dipanggil dari modul baru)
+T101 Satu jalur kirim + satu parser error ─► T102 startReplay teruji ─► T103 Form tanpa userId
+Phase 29 Pencatatan di server (bebas, server saja)
+T104 Desain interface record (keputusan Yogi) ─► T105 Implementasi + migrasi createTransaction & advanceRule
+                                                  └─► T106 Penyelesaian refactor
+```
+
+## Phases
+
+| Phase                            | Plan                     | Todo                     | Task      | Checkpoint |
+| -------------------------------- | ------------------------ | ------------------------ | --------- | ---------- |
+| 25. Modul Period                 | [plan-25.md](plan-25.md) | [todo-25.md](todo-25.md) | T90–T93   | X          |
+| 26. Tampilan nominal             | [plan-26.md](plan-26.md) | [todo-26.md](todo-26.md) | T94–T96   | Y          |
+| 27. Key cache dan invalidasi     | [plan-27.md](plan-27.md) | [todo-27.md](todo-27.md) | T97–T100  | Z          |
+| 28. Pengiriman transaksi         | [plan-28.md](plan-28.md) | [todo-28.md](todo-28.md) | T101–T103 | AA         |
+| 29. Pencatatan transaksi server  | [plan-29.md](plan-29.md) | [todo-29.md](todo-29.md) | T104–T106 | AB (selesai) |
+
+Phase berurutan. Phase 29 boleh dikerjakan paralel dengan 26–28 karena hanya menyentuh `lib/server/`.
+
+## Aturan lintas phase
+
+- **Spec dulu.** Bila sebuah task memindahkan berkas atau fungsi yang disebut spec (`SPEC-transactions.md` § `lib/transaction-filters.ts`, `SPEC-dashboard.md` § `lib/dashboard-period.ts`, `SPEC-pwa-offline.md` § `replay.ts`, `SPEC-foundation.md` § `stores/`), spec diperbarui di commit yang sama, sebelum kode.
+- **Tanpa shim.** Tidak ada re-export dari lokasi lama. Setiap pemindahan mengubah semua importer di commit yang sama, jadi setiap task meninggalkan repo hijau dan tanpa jalur ganda.
+- **Tes dipindah, tidak dihapus.** Assertion yang ikut pindah modul dipindah apa adanya. Jumlah tes (`pnpm test` summary) tidak boleh turun di task mana pun. Tes yang harapannya berubah hanya di task yang keputusannya disetujui (T97).
+- **Tes lama tetap hijau tanpa diedit** kecuali import path: semua `tests/api/**`, `transactions-idempotency.spec.ts`, `recurring-advance.spec.ts`, `replay.spec.ts` (kecuali stub `send` di T101).
+- **Kontrak API tidak berubah.** Termasuk `?include=archived` vs `?includeArchived=true`, yang tetap beda karena menyamakannya mengubah kontrak.
+- Satu task = satu commit conventional (`refactor(<scope>): …`), gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task yang menyentuh komponen juga `pnpm build` dan cek manual di 360×800 dan 1024.
+- Tidak ada dependency baru dan tidak ada komponen shadcn baru.
+
+## Keputusan perencanaan (2026-10-28)
+
+1. **Urutan mengikuti rekomendasi review.** Period dulu (jangkauan terluas, semuanya fungsi murni, salinannya sudah tidak sepakat soal batas 2000). Amount dan cache berikutnya karena kecil dan menyiapkan Phase 28. Phase 29 terakhir karena bentuk interface-nya belum pasti.
+2. **Kandidat 06 (gabung modal Kelola akun/kategori) ditunda.** UI saja, stabil, dan belum ada harness tes komponen untuk membuktikan penggabungan aman. Dibuka lagi bila Playwright sudah dipasang.
+3. **Dua fungsi mundur, satu modul.** `shiftPeriod` tetap berhenti di 2000-01 (stepper, salin budget, jendela riwayat). `previousPeriod` tanpa batas, hanya untuk pembanding dashboard. Keduanya hidup di `lib/period.ts` dengan nama dan dokumentasi yang menjelaskan kapan memakai yang mana.
+4. **Hook, bukan komponen, untuk nominal.** `useAmountFormat()` mengembalikan fungsi format, karena nominal juga muncul di tooltip, `aria-label`, dan sumbu grafik yang butuh string.
+5. **Updater optimistic murni tetap ada** (`removeFromPages`, `removeBudgetFromUsage`), karena tetap dites. Yang dipusatkan adalah alur hapus → kirim → rollback.
+6. **Phase 29 diawali task desain (T104) yang berhenti untuk persetujuan Yogi.** Pencocokan replay Catat bergantung pada state aturan (`recurring.ts:191`), jadi interface yang salah bisa mengubah perilaku idempoten.
+
+## Risiko
+
+| Risiko                                                                               | Dampak | Mitigasi                                                                                                              |
+| ------------------------------------------------------------------------------------ | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| Pemindahan massal import bentrok dengan kerja lain                                   | Sedang | Tidak ada task terbuka. Satu task pemindahan (T90) dikerjakan sekali jalan, sisanya per konsep                        |
+| Batas 2000 berubah diam-diam di salah satu pemanggil                                 | Tinggi | Tes batas yang ada (`dashboard-period.spec.ts`, `transaction-filters.spec.ts`, `budget-copy.spec.ts`) dipindah tanpa diubah |
+| Satu layar lupa `hideAmounts` setelah migrasi                                        | Sedang | Tes penjaga T96: tidak ada berkas di `components/` yang memakai `HIDDEN_AMOUNT` atau membaca `hideAmounts` selain hook dan toggle |
+| Menghapus sisi `recurring → transactions` membuat layar basi                          | Rendah | Catat tetap `invalidate("transactions")`. Tes `use-recurring.spec.ts` + cek manual di T97. Lihat Open questions #2   |
+| Replay offline rusak (duplikat atau item hilang)                                     | Tinggi | `replay.spec.ts` dan `transactions-idempotency.spec.ts` tetap hijau. Uji mode pesawat dengan `pnpm build && pnpm start` di checkpoint AA |
+| Refactor `advanceRule` mengubah perilaku replay Catat                                | Tinggi | T104 desain dulu dan butuh persetujuan. `recurring-advance.spec.ts` dan `transactions-idempotency.spec.ts` hijau tanpa diedit |
+| JS first load `/dashboard` (sudah di atas 200 KB) naik                                 | Rendah | Kode hanya dipindah. Diukur di checkpoint X dan Y dengan metode § Catatan ukuran, target ≤ +0,5 KB gzip                |
+
+## Open questions
+
+1. `stores/period.ts` (`usePeriodStore`) tidak dipakai di mana pun kecuali `period-store.spec.ts`, dan disebut di `SPEC-foundation.md` dan SPEC.md § Project structure. Hapus berkas, tesnya, dan rujukan spec-nya di T90? (Default: tidak dihapus sampai disetujui.) **Dijawab 2026-10-29: hapus di T90.**
+2. Review mengusulkan `AFFECTS` transitif. Saat direncanakan ternyata akarnya sisi `recurring → transactions`: edit nama aturan sekarang me-refetch semua daftar transaksi, dan closure akan memperluasnya. T97 menghapus sisi itu (Catat tetap perubahan `transactions`) dan menulis aturan "setiap entri lengkap, tanpa closure". Setuju? **Dijawab 2026-10-29: setuju.**
+3. Setelah desain T104: lanjut ke T105, atau Phase 29 dibatalkan bila interface-nya tidak lebih sederhana dari enam ekspor sekarang?

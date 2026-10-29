@@ -1,19 +1,18 @@
 "use client";
 
 import { useAccounts } from "@/hooks/use-accounts";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
-import { HIDDEN_AMOUNT } from "@/lib/money";
 import type { Transaction } from "@/lib/schemas/transaction";
 import { AMOUNT_TONE_CLASS, amountTone, formatDateHeading, formatSignedAmount } from "@/lib/transaction-format";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 /** Adjustments come from changing an account's opening balance, so they are shown but not edited. */
 export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
   const { data: accounts } = useAccounts({ includeArchived: true });
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const account = accounts?.find((a) => a.id === transaction.accountId);
   const rows: [string, React.ReactNode][] = [
     ["Jenis", ADJUSTMENT_LABEL],
@@ -22,7 +21,7 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
     [
       "Jumlah",
       <span key="amount" className={cn("font-medium tabular-nums", AMOUNT_TONE_CLASS[amountTone("adjustment", transaction.amount)])}>
-        {hideAmounts ? HIDDEN_AMOUNT : formatSignedAmount("adjustment", transaction.amount)}
+        {money(transaction.amount, (amount) => formatSignedAmount("adjustment", amount))}
       </span>,
     ],
     ...(transaction.description ? ([["Deskripsi", transaction.description]] as [string, React.ReactNode][]) : []),

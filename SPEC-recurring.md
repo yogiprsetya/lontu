@@ -176,8 +176,10 @@ Urutan di server, dalam **satu transaksi DB**:
 
 ### Fungsi murni
 
-- `lib/recurring-schedule.ts`:
+- `lib/period.ts` (aritmetika kalender bersama, lihat SPEC-transactions):
   - `clampDay(year, month, day)` → `YYYY-MM-DD` di hari `min(day, hari terakhir bulan)`.
+  - `daysBetween(from, to)`, `lastDayOfMonth(year, month)`, `addDays(date, n)`.
+- `lib/recurring-schedule.ts` (aturan jadwal, memakai `lib/period.ts`):
   - `advanceDate(dayOfMonth, from)` → anchor di bulan setelah `from`.
   - `firstDueOnOrAfter(dayOfMonth, today)` → anchor bulan ini jika ≥ `today`, selain itu bulan depan.
   - Semua aritmetika dari string `YYYY-MM-DD`, tanpa `Date` lokal.
@@ -195,7 +197,7 @@ Urutan di server, dalam **satu transaksi DB**:
 ### Kontrak untuk modul lain
 
 - **`dashboard`:** memasang `<DueInbox />` dan `<PaydayCard />` dari `components/recurring/` di `dashboard-view.tsx`. Keduanya memakai `useRecurring()` (key `"/api/recurring"`). Dashboard tidak memanggil query modul ini secara langsung. Jika `rules` kosong, kartu gajian menampilkan ajakan "Atur gajian & tagihan tetap" ke `/recurring`. Jika `due` kosong, kotak Jatuh tempo tidak dirender.
-- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"recurring"`, key `/^\/api\/recurring($|[/?])/`. `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat `"recurring"` (saldo mengubah proyeksi). `AFFECTS.recurring = ["transactions"]`, jadi Catat menyegarkan daftar transaksi, dan karena `AFFECTS` hanya satu tingkat, mutasi `post` juga memanggil `invalidate("transactions")` supaya saldo, budget, dan dashboard ikut segar.
+- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"recurring"`, key `/^\/api\/recurring($|[/?])/`. `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat `"recurring"` (saldo mengubah proyeksi). `AFFECTS.recurring = []`: mengubah, mengarsip, memulihkan aturan, dan Lewati tidak membuat transaksi basi. Catat menulis transaksi, jadi mutasi `post` memanggil `invalidate("transactions")`, yang menjangkau saldo, budget, dashboard, dan `recurring` (aturan `AFFECTS` lengkap, lihat SPEC-dashboard § Kontrak untuk modul lain). Diubah di T97 (2026-10-29).
 - **`pwa-offline`:** tidak berubah. Outbox tetap hanya untuk create transaksi.
 
 ## Deliverables
@@ -262,7 +264,8 @@ Urutan di server, dalam **satu transaksi DB**:
 ## Tes
 
 - **Unit (`tests/unit/`):**
-  - `recurring-schedule.spec.ts`: `clampDay`, `advanceDate` (31 → Feb → Mar, kabisat, Desember → Januari), `firstDueOnOrAfter` (hari yang sama, sudah lewat, anchor > hari terakhir bulan ini).
+  - `recurring-schedule.spec.ts`: `advanceDate` (31 → Feb → Mar, kabisat, Desember → Januari), `firstDueOnOrAfter` (hari yang sama, sudah lewat, anchor > hari terakhir bulan ini).
+  - `period.spec.ts`: `clampDay`, `daysBetween`, `lastDayOfMonth`, `addDays`.
   - `payday-forecast.spec.ts`: tiga status, kejadian tertinggal, banyak kejadian sebelum gajian, income non-gajian diabaikan, aturan di hari gajian tidak ikut (`< payday`), `free` negatif.
   - `recurring-schema.spec.ts`: batas field, `strictObject`, refine `isPayday`, union `advance`.
   - `cache-invalidation.spec.ts` (yang ada): edge `recurring` baru.

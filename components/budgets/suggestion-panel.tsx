@@ -10,17 +10,16 @@ import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { setBudgets, useBudgetSuggestion } from "@/hooks/use-budgets";
 import {
   BUDGET_GROUPS,
   defaultSuggestionSelection,
-  formatBudgetAmount,
   selectedSuggestionItems,
 } from "@/lib/budget-format";
 import { ApiError } from "@/lib/fetcher";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
-import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
-import { useUIStore } from "@/stores/ui";
+import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 import { failureMessage } from "@/lib/offline/network-error";
 
 const INCOME_DEBOUNCE_MS = 400;
@@ -46,8 +45,7 @@ export function SuggestionPanel(props: Props) {
 
 function SuggestionContent({ period, open, onOpenChange, names }: Props) {
   const onClose = () => onOpenChange(false);
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
-  const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
+  const money = useAmountFormat();
   // `typed` follows the field; `income` follows it after a pause and drives the request.
   const [typed, setTyped] = useState<number | null>(null);
   const [income, setIncome] = useState<number | undefined>(undefined);

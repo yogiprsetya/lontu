@@ -43,6 +43,7 @@ describe("rule mutations", () => {
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe(method);
     expect(revalidated("/api/recurring")).toBe(true);
     expect(revalidated("/api/recurring?includeArchived=true")).toBe(true);
+    expect(revalidated("$inf$/api/transactions")).toBe(false);
   });
 
   it("throws ApiError and does not invalidate on failure", async () => {
@@ -72,10 +73,11 @@ describe("advanceRule", () => {
     }
   });
 
-  it("refreshes only recurring and the transaction list after a skip", async () => {
+  it("refreshes only recurring after a skip", async () => {
     await advanceRule(id, { action: "skip", occurrenceDate: "2026-10-05" });
     expect(revalidated("/api/recurring")).toBe(true);
     expect(revalidated("/api/accounts")).toBe(false);
+    expect(revalidated("$inf$/api/transactions")).toBe(false);
   });
 
   it("throws ApiError with OCCURRENCE_STALE on a 409", async () => {

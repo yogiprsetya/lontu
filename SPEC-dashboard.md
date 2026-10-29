@@ -70,7 +70,7 @@ Hanya membaca. Param lain diabaikan.
 ### Validasi (Zod, `lib/schemas/dashboard.ts`)
 
 - `period`: regex bulan (`^\d{4}-(0[1-9]|1[0-2])$`) atau tahun (`^\d{4}$`), lalu cek rentang keputusan #2 dengan `todayInJakarta()` saat parse.
-- Rentang dan pembanding dihitung oleh fungsi murni `dashboardRanges(period, today)` di `lib/dashboard-period.ts`, dari string (bukan `Date` lokal), memakai `periodToRange` dan `shiftPeriod` yang sudah ada di `lib/transaction-filters.ts`.
+- Rentang dan pembanding dihitung oleh fungsi murni `dashboardRanges(period, today)` di `lib/dashboard-period.ts`, dari string (bukan `Date` lokal), memakai `periodToRange` dan `shiftPeriod` dari `lib/period.ts`.
 
 ### Query `dashboardSummary`
 
@@ -85,6 +85,8 @@ Hanya membaca. Param lain diabaikan.
 
 ### Kontrak untuk modul lain
 
+- **Aturan `AFFECTS`:** setiap entri mendaftar **semua** resource yang basi di server saat resource itu berubah, lengkap dan tidak transitif. `invalidate(x)` hanya menyegarkan `x` dan entri `AFFECTS[x]`, jadi pemanggil tidak perlu tahu kedalaman graf. Mutasi yang sebenarnya mengubah resource lain menyebut resource itu (Catat = perubahan `transactions`).
+- **Key SWR dibangun di satu tempat:** `apiKey(resource, { path?, query? })` di `lib/cache-invalidation.ts`, dari tabel base path per resource yang juga menurunkan regex pencocok `KEYS`. Hook tidak menulis string key sendiri; nama param query tetap kontrak API.
 - **SWR key:** `"/api/dashboard?period=<period>"`. Resource `dashboard` ditambahkan ke `lib/cache-invalidation.ts` (`KEYS.dashboard = /^\/api\/dashboard($|[/?])/`) dan ke `AFFECTS.transactions`. Mutasi akun dan kategori tidak memengaruhi angka dashboard (adjustment tidak dihitung, nama di-resolve di client), jadi tidak ditambahkan di sana.
 - **Server component** yang butuh data langsung boleh memanggil `dashboardSummary(userId, period, today)`.
 - **`pwa-offline`:** endpoint hanya membaca, jadi cukup di-cache. Respons terakhir per periode yang ditampilkan saat offline adalah urusan modul itu.
@@ -115,7 +117,7 @@ Hanya membaca. Param lain diabaikan.
   - **Pengeluaran per kategori:** donut + legenda (keputusan #8). Warna kategori dari token `--chart-1..5` + abu-abu untuk "Lainnya". Total expense di tengah donut.
   - **Budget Summary:** keputusan #9, progress bar dengan `role="progressbar"` seperti halaman Budget, teks status ("Hampir habis", "Melebihi budget").
   - Urutan mobile: Account Balance, kartu, Budget Summary, Expense Activity, donut. Di `lg`: dua kolom (grafik di kiri, saldo + budget di kanan).
-  - `hideAmounts`: semua nominal (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y) diganti `HIDDEN_AMOUNT` atau disembunyikan. Persen dan bentuk grafik tetap tampil.
+  - `hideAmounts`: semua nominal (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y) diganti `HIDDEN_AMOUNT` atau disembunyikan, lewat `useAmountFormat` / `useAmountsHidden` (SPEC-foundation § Util client). Persen dan bentuk grafik tetap tampil.
   - **State:** skeleton dengan tinggi sama dengan konten akhir (CLS < 0,1), error SWR per bagian dengan "Coba lagi" (bagian lain tetap tampil), periode tanpa expense → grafik diganti teks "Belum ada pengeluaran di {periode}" + tombol "Catat expense" (`/add/expense`).
 - **Aksesibilitas grafik:** setiap grafik punya judul teks dan alternatif yang terbaca screen reader (legenda donut sudah berupa daftar teks, aktivitas punya ringkasan "Total Rp…, tertinggi Rp… pada {tanggal}" dan tabel `sr-only`). Warna tidak menjadi satu-satunya pembeda.
 - **Performa:** grafik dimuat dengan `next/dynamic` di belakang skeleton supaya Recharts tidak memperberat JS awal. JS first load `/dashboard` < 200 KB gzip (SPEC.md), diukur dengan `@next/bundle-analyzer` atau output `pnpm build`.
@@ -202,5 +204,5 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md). Menjalankan 
 2. **Kartu keempat = Sisa** (`income − expense − saving`, keputusan #3): setuju, atau cukup tiga kartu?
 3. **Mode tahun di dashboard** (keputusan #1): perlu, atau dashboard cukup per bulan saja (lebih sederhana: Budget Summary selalu tampil, aktivitas selalu per hari)?
 4. **Donut per kategori, top 5 + Lainnya** (keputusan #8): setuju, atau per grup Needs / Wants?
-5. **`stores/period.ts` (`usePeriodStore`) tidak dipakai modul mana pun** setelah keputusan #1. Hapus di modul ini (dan perbarui Project structure di SPEC.md), atau biarkan?
+5. ~~**`stores/period.ts` (`usePeriodStore`) tidak dipakai modul mana pun** setelah keputusan #1. Hapus di modul ini (dan perbarui Project structure di SPEC.md), atau biarkan?~~ Dihapus di T90 (2026-10-29).
 6. **Transaksi terakhir di dashboard** (di luar cakupan): perlu 5 transaksi terakhir dengan tautan "Lihat semua"?

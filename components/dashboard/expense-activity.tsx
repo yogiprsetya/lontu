@@ -7,14 +7,13 @@ import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { dashboardMode } from "@/lib/dashboard-period";
 import { activityPeak, formatBucket } from "@/lib/dashboard-format";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/transaction-filters";
+import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 // Same height as the chart so nothing shifts when Recharts arrives.
 const chartSkeleton = () => <Skeleton className="h-56 w-full" />;
@@ -36,9 +35,8 @@ export function NoExpense({ period }: { period: DashboardPeriod }) {
 }
 
 export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const { data, error, mutate } = useDashboard(period);
-  const money = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount));
   const unit = dashboardMode(period) === "year" ? "Bulan" : "Tanggal";
 
   let content;
@@ -60,7 +58,7 @@ export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
         <p className="h-5 truncate text-sm text-muted-foreground">
           Total {money(data.totals.expense)}, tertinggi {money(peak.expense)} pada {formatBucket(peak.bucket, "full")}
         </p>
-        <ExpenseActivityChart activity={data.activity} hideAmounts={hideAmounts} />
+        <ExpenseActivityChart activity={data.activity} />
         <table className="sr-only">
           <caption>Expense per {unit.toLowerCase()}</caption>
           <thead>

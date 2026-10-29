@@ -19,7 +19,8 @@ import {
   restoreAccount,
   useAccounts,
 } from "@/hooks/use-accounts";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { useAmountFormat } from "@/hooks/use-amount-format";
+import { formatIDR } from "@/lib/money";
 import {
   ACCOUNT_SUBTYPE_LABELS,
   ACCOUNT_TYPE_LABELS,
@@ -27,7 +28,6 @@ import {
   type Account,
 } from "@/lib/schemas/account";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 type View =
   | { kind: "list" }
@@ -200,7 +200,7 @@ function AccountList({
 }
 
 function AccountSummary({ account }: { account: Account }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const meta = [
     account.subtype && ACCOUNT_SUBTYPE_LABELS[account.subtype],
     account.archivedAt && "Diarsipkan",
@@ -221,7 +221,7 @@ function AccountSummary({ account }: { account: Account }) {
           account.balance < 0 && "text-destructive",
         )}
       >
-        {hideAmounts ? HIDDEN_AMOUNT : formatIDR(account.balance)}
+        {money(account.balance)}
       </span>
     </div>
   );

@@ -1,19 +1,11 @@
 import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
-import {
-  BUDGET_PERIOD_FORMAT,
-  MIN_BUDGET_PERIOD,
-  maxBudgetPeriod,
-  type BudgetGroup,
-  type BudgetPeriod,
-  type BudgetSuggestion,
-} from "@/lib/schemas/budget";
+import { maxBudgetPeriod, type BudgetGroup, type BudgetPeriod, type BudgetSuggestion } from "@/lib/schemas/budget";
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */
 export function budgetPeriodFromParam(value: string | null, today: string): BudgetPeriod {
-  const valid = value && BUDGET_PERIOD_FORMAT.test(value) && value >= MIN_BUDGET_PERIOD && value <= maxBudgetPeriod(today);
-  return valid ? value : today.slice(0, 7);
+  return parsePeriod(value, { modes: ["month"], today, max: maxBudgetPeriod(today) });
 }
 
 /** Spending types that take a budget, in display order. */
@@ -37,10 +29,6 @@ export function statusLabel(status: BudgetStatus) {
 export function groupStatus(group: BudgetGroup) {
   const budgetedSpent = group.spent - group.unbudgetedSpent;
   return { budgetedSpent, ...budgetStatus(group.budget > 0 ? group.budget : null, budgetedSpent) };
-}
-
-export function formatBudgetAmount(amount: number, hideAmounts: boolean) {
-  return hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount);
 }
 
 /** Same URL dashboard's Budget Summary links to. */

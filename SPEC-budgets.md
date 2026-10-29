@@ -157,7 +157,7 @@ Data dari DB (`lib/server/queries/budget-history.ts`), pembagian di fungsi murni
 ### 1. Server
 
 - Migrasi `budgets.deleted_at` di `db/schema.ts` dan `drizzle/` (`pnpm db:generate`).
-- `lib/schemas/budget.ts`: tipe, `budgetPeriodSchema`, `budgetSetSchema`, `budgetCopySchema`, `budgetSuggestionQuerySchema`, `periodToYearMonth` / `yearMonthToPeriod`.
+- `lib/schemas/budget.ts`: tipe, `budgetPeriodSchema`, `budgetSetSchema`, `budgetCopySchema`, `budgetSuggestionQuerySchema`. `periodToYearMonth` / `yearMonthToPeriod` / `monthRange` ada di `lib/period.ts`.
 - `lib/budget-status.ts` (murni): `budgetStatus(budget, spent)` → `{ remaining, percent, status }`.
 - `lib/budget-suggestion.ts` (murni): `suggestBudgets({ basis, categories, history, current })`.
 - `lib/server/budgets.ts`: `setBudgets`, `softDeleteBudget`, `restoreBudget`, `copyBudgets`.

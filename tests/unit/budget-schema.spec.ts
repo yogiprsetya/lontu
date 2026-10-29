@@ -3,9 +3,6 @@ import { z } from "zod";
 import {
   budgetPeriodSchema,
   budgetSetSchema,
-  monthRange,
-  periodToYearMonth,
-  yearMonthToPeriod,
 } from "@/lib/schemas/budget";
 
 const makan = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -43,23 +40,6 @@ describe("budgetPeriodSchema", () => {
     vi.setSystemTime(new Date("2026-12-15T05:00:00Z"));
     expect(budgetPeriodSchema.safeParse("2027-01").success).toBe(true);
     expect(budgetPeriodSchema.safeParse("2027-02").success).toBe(false);
-  });
-});
-
-describe("period helpers", () => {
-  it("converts between period and year/month", () => {
-    expect(periodToYearMonth("2026-03")).toEqual({ year: 2026, month: 3 });
-    expect(yearMonthToPeriod(2026, 3)).toBe("2026-03");
-    expect(yearMonthToPeriod(2026, 12)).toBe("2026-12");
-  });
-
-  it.each([
-    ["2028-02", "2028-02-01", "2028-02-29"],
-    ["2026-02", "2026-02-01", "2026-02-28"],
-    ["2026-10", "2026-10-01", "2026-10-31"],
-    ["2026-11", "2026-11-01", "2026-11-30"],
-  ])("monthRange(%s) is %s..%s", (period, from, to) => {
-    expect(monthRange(period)).toEqual({ from, to });
   });
 });
 

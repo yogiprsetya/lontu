@@ -1,14 +1,14 @@
 "use client";
 
 import useSWR from "swr";
-import { invalidate } from "@/lib/cache-invalidation";
+import { apiKey, invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Account, AccountCreateInput, AccountUpdateInput } from "@/lib/schemas/account";
 
 type Options = { includeArchived?: boolean };
 
 export function accountsKey({ includeArchived = false }: Options = {}) {
-  return includeArchived ? "/api/accounts?include=archived" : "/api/accounts";
+  return apiKey("accounts", { query: { include: includeArchived ? "archived" : undefined } });
 }
 
 export function useAccounts(options: Options = {}) {

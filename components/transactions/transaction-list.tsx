@@ -8,10 +8,10 @@ import { TypeChip } from "@/components/transactions/type-chip";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
-import { HIDDEN_AMOUNT } from "@/lib/money";
 import type { Transaction } from "@/lib/schemas/transaction";
 import {
   AMOUNT_TONE_CLASS,
@@ -25,9 +25,9 @@ import {
 } from "@/lib/transaction-format";
 import type { ListFilters } from "@/lib/transaction-filters";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
-function Row({ t, accounts, categories, hideAmounts }: { t: Transaction; accounts: Names; categories: Names; hideAmounts: boolean }) {
+function Row({ t, accounts, categories }: { t: Transaction; accounts: Names; categories: Names }) {
+  const money = useAmountFormat();
   return (
     <li>
       <Link href={`/transactions/${t.id}`} className="flex min-h-16 items-center gap-3 py-3">
@@ -40,7 +40,7 @@ function Row({ t, accounts, categories, hideAmounts }: { t: Transaction; account
           </p>
         </div>
         <p className={cn("shrink-0 font-bold tabular-nums", AMOUNT_TONE_CLASS[amountTone(t.type, t.amount)])}>
-          {hideAmounts ? HIDDEN_AMOUNT : formatSignedAmount(t.type, t.amount)}
+          {money(t.amount, (amount) => formatSignedAmount(t.type, amount))}
         </p>
       </Link>
     </li>
@@ -68,7 +68,6 @@ export function TransactionList({ filters }: { filters: ListFilters }) {
 }
 
 function SavedTransactions({ filters }: { filters: ListFilters }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
   const tx = useTransactions(filters);
   const accounts = useAccounts({ includeArchived: true });
   const categories = useCategories({ includeArchived: true });
@@ -110,7 +109,7 @@ function SavedTransactions({ filters }: { filters: ListFilters }) {
           </h2>
           <ul className="surface divide-y px-4">
             {group.items.map((t) => (
-              <Row key={t.id} t={t} accounts={accountNames} categories={categoryNames} hideAmounts={hideAmounts} />
+              <Row key={t.id} t={t} accounts={accountNames} categories={categoryNames} />
             ))}
           </ul>
         </section>

@@ -1,10 +1,10 @@
 import { badRequest } from "@/lib/api/errors";
 import { withAuth } from "@/lib/api/with-auth";
 import { suggestBudgets } from "@/lib/budget-suggestion";
-import { budgetSuggestionQuerySchema, monthRange, type BudgetSuggestion } from "@/lib/schemas/budget";
+import { budgetSuggestionQuerySchema, type BudgetSuggestion } from "@/lib/schemas/budget";
 import { budgetHistory } from "@/lib/server/queries/budget-history";
 import { transactionTotals } from "@/lib/server/queries/transaction-totals";
-import { shiftPeriod } from "@/lib/transaction-filters";
+import { monthRange, shiftPeriod } from "@/lib/period";
 
 /** Read-only: applying a suggestion goes through PUT /api/budgets. */
 export const GET = withAuth(async (req, { userId }) => {

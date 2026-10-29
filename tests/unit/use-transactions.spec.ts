@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTransaction, isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import { createTransaction } from "@/lib/offline/submission";
 import { isResourceKey } from "@/lib/cache-invalidation";
 import { ApiError } from "@/lib/fetcher";
 import { createOutbox } from "@/lib/offline/outbox";

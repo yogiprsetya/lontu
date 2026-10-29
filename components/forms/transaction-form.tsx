@@ -16,9 +16,8 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBackToList } from "@/hooks/use-back-to-list";
-import { useProfile } from "@/hooks/use-profile";
 import { advanceRule, revalidateRecurring } from "@/hooks/use-recurring";
-import { createTransaction, updateTransaction } from "@/hooks/use-transactions";
+import { updateTransaction, useSubmitTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { ApiError } from "@/lib/fetcher";
 import { applyServerErrors } from "@/lib/form-errors";
@@ -57,7 +56,7 @@ export function TransactionForm({
   recurring?: RecurringOccurrence;
 }) {
   const router = useRouter();
-  const { data: profile } = useProfile();
+  const submit = useSubmitTransaction();
   const backToList = useBackToList();
   const today = todayInJakarta();
   // Once per form, not per submit, so Simpan tapped again after a lost response replays.
@@ -103,9 +102,7 @@ export function TransactionForm({
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
-        const outcome = await createTransaction(input, { userId: profile?.id });
-        if (outcome.status === "queued") toast("Disimpan di perangkat, dikirim saat online");
-        else toast.success(`${TRANSACTION_TYPE_LABELS[type]} tersimpan`);
+        await submit(input, { sentMessage: `${TRANSACTION_TYPE_LABELS[type]} tersimpan` });
         router.push("/transactions");
       }
     } catch (err) {

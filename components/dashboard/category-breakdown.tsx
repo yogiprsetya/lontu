@@ -8,14 +8,13 @@ import { SectionTitle } from "@/components/layout/section-title";
 import { NoExpense } from "@/components/dashboard/expense-activity";
 import { LoadError } from "@/components/settings/load-error";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useCategories } from "@/hooks/use-categories";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { archiveLabel } from "@/lib/archived";
 import { topCategories } from "@/lib/dashboard-format";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { filtersToUrl } from "@/lib/transaction-filters";
-import { useUIStore } from "@/stores/ui";
 
 const donutSkeleton = () => <Skeleton className="mx-auto size-48 rounded-full" />;
 
@@ -32,11 +31,10 @@ const sliceColor = (index: number) => (index < CHART_COLORS ? `var(--chart-${ind
 const ROW_CLASS = "flex min-h-11 items-center gap-3 py-2";
 
 export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const { data, error, mutate } = useDashboard(period);
   const categories = useCategories({ includeArchived: true });
   const names = useMemo(() => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])), [categories.data]);
-  const money = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount));
 
   let content;
   if (error) {

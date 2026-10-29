@@ -1,13 +1,14 @@
 import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { Button } from "@/components/ui/button";
-import { formatBudgetAmount, statusLabel } from "@/lib/budget-format";
+import { useAmountFormat } from "@/hooks/use-amount-format";
+import { statusLabel } from "@/lib/budget-format";
 import type { BudgetUsageItem } from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
 
-type Props = { item: BudgetUsageItem; name: string; hideAmounts: boolean; onEdit?: () => void };
+type Props = { item: BudgetUsageItem; name: string; onEdit?: () => void };
 
-export function BudgetRow({ item, name, hideAmounts, onEdit }: Props) {
-  const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
+export function BudgetRow({ item, name, onEdit }: Props) {
+  const money = useAmountFormat();
   const text = statusLabel(item.status);
 
   if (item.budget === null) {

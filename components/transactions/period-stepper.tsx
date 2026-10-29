@@ -13,17 +13,17 @@ import { selectItemClass } from "@/components/forms/field-styles";
 import { todayInJakarta } from "@/lib/date";
 import {
   formatPeriodLabel,
+  isPastOrCurrentPeriod,
   periodMode,
   shiftPeriod,
   switchPeriodMode,
   type Period,
   type PeriodMode,
-} from "@/lib/transaction-filters";
+} from "@/lib/period";
 
 const MODES: { value: PeriodMode; label: string }[] = [
   { value: "month", label: "Bulan" },
   { value: "year", label: "Tahun" },
-  { value: "all", label: "Semua" },
 ];
 
 type Props = {
@@ -43,8 +43,7 @@ export function PeriodStepper({
   const mode = periodMode(period);
   // Nothing can be recorded after today, so stepping past the current period only shows an empty list.
   const next = shiftPeriod(period, 1);
-  const canGoNext =
-    mode !== "all" && next <= today.slice(0, mode === "month" ? 7 : 4);
+  const canGoNext = isPastOrCurrentPeriod(next, today);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -74,6 +73,7 @@ export function PeriodStepper({
           <ChevronRightIcon aria-hidden />
         </Button>
       </div>
+
       <Select
         items={items}
         value={mode}
@@ -83,11 +83,12 @@ export function PeriodStepper({
         }
       >
         <SelectTrigger
-          className="w-36 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
+          className="w-40 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
           aria-label="Rentang periode"
         >
           <SelectValue />
         </SelectTrigger>
+
         <SelectContent alignItemWithTrigger={false}>
           {items.map((m) => (
             <SelectItem

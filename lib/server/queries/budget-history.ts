@@ -2,13 +2,13 @@ import "server-only";
 import { and, asc, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { budgets, categories, transactions } from "@/db/schema";
-import { monthRange, periodToYearMonth, type BudgetPeriod } from "@/lib/schemas/budget";
+import { monthRange, periodToYearMonth, shiftPeriod } from "@/lib/period";
+import type { BudgetPeriod } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
-import { shiftPeriod } from "@/lib/transaction-filters";
 
 /**
- * The three full months before `period`. shiftPeriod stops at 2000-01, so near that floor the
- * window shrinks, and it is empty when there is no earlier month at all.
+ * The three full months before `period`. Built with `shiftPeriod`, so near its floor the window
+ * shrinks, and it is empty when there is no earlier month at all.
  */
 export function historyWindow(period: BudgetPeriod) {
   const last = shiftPeriod(period, -1);

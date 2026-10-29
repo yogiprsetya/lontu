@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_rethrow } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { serverError, unauthorized } from "@/lib/api/errors";
 
@@ -18,6 +19,8 @@ export function withAuth<P extends Params = Params>(
       if (!userId) return unauthorized();
       return await handler(req, { userId, params: await params });
     } catch (err) {
+      // Cache Components prerenders GET handlers at build time; Next aborts that by rejecting headers().
+      unstable_rethrow(err);
       return serverError(err);
     }
   };

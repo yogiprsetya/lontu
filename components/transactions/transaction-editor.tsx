@@ -15,6 +15,7 @@ import { deleteTransaction, restoreTransaction, useTransaction } from "@/hooks/u
 import { ApiError } from "@/lib/fetcher";
 import { cn } from "@/lib/utils";
 import { failureMessage } from "@/lib/offline/network-error";
+import { undoToast } from "@/lib/undo-toast";
 
 function NotFound() {
   return (
@@ -28,8 +29,6 @@ function NotFound() {
   );
 }
 
-const UNDO_MS = 6000;
-
 function DeleteButton({ id }: { id: string }) {
   const backToList = useBackToList();
   const [deleting, setDeleting] = useState(false);
@@ -41,13 +40,7 @@ function DeleteButton({ id }: { id: string }) {
     try {
       await deleteTransaction(id);
       backToList();
-      toast("Transaksi dihapus", {
-        duration: UNDO_MS,
-        action: {
-          label: "Urungkan",
-          onClick: () => void restoreTransaction(id).catch((err) => toast.error(failureMessage(err, "Gagal mengurungkan. Coba lagi."))),
-        },
-      });
+      undoToast({ message: "Transaksi dihapus", restore: () => restoreTransaction(id) });
     } catch (err) {
       toast.error(failureMessage(err, "Gagal menghapus transaksi. Coba lagi."));
       setDeleting(false);

@@ -1,5 +1,6 @@
 import { BudgetProgress } from "@/components/budgets/budget-progress";
-import { formatBudgetAmount, groupStatus, statusLabel } from "@/lib/budget-format";
+import { useAmountFormat } from "@/hooks/use-amount-format";
+import { groupStatus, statusLabel } from "@/lib/budget-format";
 import type { BudgetUsage } from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
 
@@ -9,8 +10,8 @@ const GROUPS = [
   { key: "wants", label: "Wants" },
 ] as const;
 
-export function BudgetSummary({ summary, hideAmounts }: { summary: BudgetUsage["summary"]; hideAmounts: boolean }) {
-  const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
+export function BudgetSummary({ summary }: { summary: BudgetUsage["summary"] }) {
+  const money = useAmountFormat();
 
   return (
     <section aria-label="Ringkasan budget" className="grid gap-3 sm:grid-cols-3">

@@ -39,7 +39,6 @@ export function BudgetView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const period = budgetPeriodFromParam(searchParams.get("period"), todayInJakarta());
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
   const openModal = useUIStore((s) => s.open);
   const usage = useBudgets(period);
   const categories = useCategories({ includeArchived: true });
@@ -101,7 +100,7 @@ export function BudgetView() {
             </div>
           </div>
         )}
-        <BudgetSummary summary={usage.data.summary} hideAmounts={hideAmounts} />
+        <BudgetSummary summary={usage.data.summary} />
         {BUDGET_GROUPS.map(({ key, label }) => {
           const rows = rowsOf(key);
           if (rows.length === 0) return null;
@@ -116,7 +115,6 @@ export function BudgetView() {
                     key={item.categoryId}
                     item={item}
                     name={names.get(item.categoryId) ?? "Kategori"}
-                    hideAmounts={hideAmounts}
                     onEdit={archived.has(item.categoryId) ? undefined : () => setEditingId(item.categoryId)}
                   />
                 ))}

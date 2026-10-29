@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { abbreviateIDR, displayAmount } from "@/lib/money";
 import { formatDueLabel, formatFree, formatLateness, formatPaydayHeadline, formatSchedule } from "@/lib/recurring-format";
+
+const hidden = (amount: number) => displayAmount(amount, true);
 
 describe("formatSchedule", () => {
   it("shows the amount and the anchor day", () => {
-    expect(formatSchedule(186_000, 25, false)).toBe("Rp186.000 · tiap tanggal 25");
+    expect(formatSchedule(186_000, 25)).toBe("Rp186.000 · tiap tanggal 25");
   });
 
   it("hides the amount when asked", () => {
-    expect(formatSchedule(186_000, 25, true)).toBe("Rp••••• · tiap tanggal 25");
+    expect(formatSchedule(186_000, 25, hidden)).toBe("Rp••••• · tiap tanggal 25");
+  });
+
+  it("formats the amount with the given formatter", () => {
+    expect(formatSchedule(186_000, 25, abbreviateIDR)).toBe("186 rb · tiap tanggal 25");
   });
 });
 
@@ -51,14 +58,14 @@ describe("formatPaydayHeadline", () => {
 
 describe("formatFree", () => {
   it("shows a positive amount as is", () => {
-    expect(formatFree(2_014_000, false)).toEqual({ label: "Bebas", amount: "Rp2.014.000", short: false });
+    expect(formatFree(2_014_000)).toEqual({ label: "Bebas", amount: "Rp2.014.000", short: false });
   });
 
   it("spells out a shortfall instead of a minus sign", () => {
-    expect(formatFree(-800_000, false)).toEqual({ label: "Kurang", amount: "Rp800.000", short: true });
+    expect(formatFree(-800_000)).toEqual({ label: "Kurang", amount: "Rp800.000", short: true });
   });
 
   it("hides the amount but keeps the label", () => {
-    expect(formatFree(-800_000, true)).toEqual({ label: "Kurang", amount: "Rp•••••", short: true });
+    expect(formatFree(-800_000, hidden)).toEqual({ label: "Kurang", amount: "Rp•••••", short: true });
   });
 });

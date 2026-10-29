@@ -9,7 +9,7 @@ Aturan "Sembunyikan nominal" hidup di satu modul. Komponen memberi angka dan men
 ## Task
 
 - [x] T94: `useAmountFormat` + migrasi dashboard (M)
-- [ ] T95: Migrasi budgets dan recurring, buang flag `hideAmounts` dari helper format (M)
+- [x] T95: Migrasi budgets dan recurring, buang flag `hideAmounts` dari helper format (M)
 - [ ] T96: Migrasi sisanya + tes penjaga (M)
 
 Urutan berantai: T94 → T95 → T96.

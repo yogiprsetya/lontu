@@ -1,4 +1,4 @@
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { formatIDR } from "@/lib/money";
 import { daysBetween } from "@/lib/period";
 import type { RecurringType } from "@/lib/schemas/recurring";
 
@@ -17,8 +17,9 @@ export function formatShortDate(date: string, today: string) {
   return formatter.format(new Date(`${date}T00:00:00Z`));
 }
 
-export function formatSchedule(amount: number, dayOfMonth: number, hideAmounts: boolean) {
-  return `${hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount)} · tiap tanggal ${dayOfMonth}`;
+/** `money` is the screen's amount formatter (`useAmountFormat`), so hidden amounts stay hidden. */
+export function formatSchedule(amount: number, dayOfMonth: number, money: (amount: number) => string = formatIDR) {
+  return `${money(amount)} · tiap tanggal ${dayOfMonth}`;
 }
 
 /** Late is spelled out in the text so it never depends on color alone. */
@@ -39,7 +40,7 @@ export function formatPaydayHeadline({ payday, daysLeft }: { payday: string; day
 }
 
 /** A shortfall reads "Kurang", so it never depends on color or a minus sign alone. */
-export function formatFree(free: number, hideAmounts: boolean) {
+export function formatFree(free: number, money: (amount: number) => string = formatIDR) {
   const short = free < 0;
-  return { label: short ? "Kurang" : "Bebas", amount: hideAmounts ? HIDDEN_AMOUNT : formatIDR(Math.abs(free)), short };
+  return { label: short ? "Kurang" : "Bebas", amount: money(Math.abs(free)), short };
 }

@@ -1,4 +1,5 @@
 import { TypeChip } from "@/components/transactions/type-chip";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { formatDueLabel, formatSchedule } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 import { cn } from "@/lib/utils";
@@ -7,13 +8,13 @@ type Props = {
   rule: RecurringRule;
   accountName: string;
   today: string;
-  hideAmounts: boolean;
   onEdit?: () => void;
   /** Trailing controls, such as the row menu or Pulihkan. */
   children?: React.ReactNode;
 };
 
-export function RuleRow({ rule, accountName, today, hideAmounts, onEdit, children }: Props) {
+export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
+  const money = useAmountFormat();
   const due = formatDueLabel(rule.nextDueDate, today);
   const status = rule.archivedAt
     ? { text: "Diarsipkan", tone: "text-muted-foreground" }
@@ -29,7 +30,7 @@ export function RuleRow({ rule, accountName, today, hideAmounts, onEdit, childre
           )}
         </span>
         <span className="truncate text-sm text-muted-foreground tabular-nums">
-          {formatSchedule(rule.amount, rule.dayOfMonth, hideAmounts)} · {accountName}
+          {formatSchedule(rule.amount, rule.dayOfMonth, money)} · {accountName}
         </span>
         <span className={cn("text-sm", status.tone)}>{status.text}</span>
       </span>

@@ -8,13 +8,12 @@ import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useRecurring } from "@/hooks/use-recurring";
 import { todayInJakarta } from "@/lib/date";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { formatFree, formatPaydayHeadline, formatShortDate } from "@/lib/recurring-format";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 const LINK_CLASS = "inline-flex min-h-11 items-center self-start font-bold underline underline-offset-4";
 
@@ -33,7 +32,7 @@ function Card({ children }: { children: React.ReactNode }) {
 export function PaydayCard() {
   const { data, error, mutate } = useRecurring();
   const online = useOnlineStatus();
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const [recording, setRecording] = useState(false);
   const today = todayInJakarta();
 
@@ -41,7 +40,6 @@ export function PaydayCard() {
   if (!data) return <Skeleton className="h-44 w-full rounded-2xl" aria-busy="true" />;
 
   const { forecast, rules } = data;
-  const money = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount));
 
   if (rules.length === 0) {
     return (
@@ -82,7 +80,7 @@ export function PaydayCard() {
     );
   }
 
-  const free = formatFree(forecast.free, hideAmounts);
+  const free = formatFree(forecast.free, money);
   const names = new Map(rules.map((r) => [r.id, r.name]));
 
   return (

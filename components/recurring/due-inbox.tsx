@@ -6,19 +6,18 @@ import { SectionTitle } from "@/components/layout/section-title";
 import { RecordOccurrenceModal, SKIP_HINT, skipOccurrence } from "@/components/recurring/occurrence-actions";
 import { TypeChip } from "@/components/transactions/type-chip";
 import { Button } from "@/components/ui/button";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useRecurring } from "@/hooks/use-recurring";
 import { todayInJakarta } from "@/lib/date";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { formatLateness } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
-import { useUIStore } from "@/stores/ui";
 
 /** Rules due today or earlier, one occurrence each. Renders nothing when none is due. */
 export function DueInbox() {
   const { data } = useRecurring();
   const online = useOnlineStatus();
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const [skipping, setSkipping] = useState<string | null>(null);
   const today = todayInJakarta();
@@ -47,7 +46,7 @@ export function DueInbox() {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold">{rule.name}</p>
                 <p className="truncate text-sm text-muted-foreground tabular-nums">
-                  {hideAmounts ? HIDDEN_AMOUNT : formatIDR(rule.amount)} ·{" "}
+                  {money(rule.amount)} ·{" "}
                   <span className={rule.nextDueDate < today ? "font-bold text-expense" : undefined}>
                     {formatLateness(rule.nextDueDate, today)}
                   </span>

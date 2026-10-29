@@ -37,14 +37,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] `lib/budget-format.ts` dan `lib/recurring-format.ts` tidak menyebut `hideAmounts` atau `HIDDEN_AMOUNT`
-- [ ] Tidak ada berkas di `components/budgets/` dan `components/recurring/` yang menyebut keduanya
-- [ ] Kasus tersembunyi di `budget-format.spec.ts` dan `recurring-format.spec.ts` tetap ada, dipindah ke `money.spec.ts` bila fungsinya hilang
+- [x] `lib/budget-format.ts` dan `lib/recurring-format.ts` tidak menyebut `hideAmounts` atau `HIDDEN_AMOUNT`
+- [x] Tidak ada berkas di `components/budgets/` dan `components/recurring/` yang menyebut keduanya
+- [x] Kasus tersembunyi di `budget-format.spec.ts` dan `recurring-format.spec.ts` tetap ada, dipindah ke `money.spec.ts` bila fungsinya hilang
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/recurring-format.spec.ts tests/unit/money.spec.ts` hijau
-- [ ] Manual: `/budget` (ringkasan, baris, panel saran), `/recurring` (baris aturan, kotak Jatuh tempo), kartu gajian
+- [x] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/recurring-format.spec.ts tests/unit/money.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): `/budget` (ringkasan, baris, panel saran), `/recurring` (baris aturan, kotak Jatuh tempo), kartu gajian
+
+**Catatan (2026-10-29):** `formatSchedule` dan `formatFree` menerima formatter (default `formatIDR`); komponen memberi fungsi dari `useAmountFormat`. `formatBudgetAmount` tidak punya tes sendiri, jadi tidak ada kasus yang perlu dipindah. Prop `hideAmounts` di `BudgetRow`, `BudgetSummary`, dan `RuleRow` dihapus.
 
 **Dependencies:** T94
 

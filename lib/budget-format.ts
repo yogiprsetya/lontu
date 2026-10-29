@@ -1,5 +1,4 @@
 import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
 import { maxBudgetPeriod, type BudgetGroup, type BudgetPeriod, type BudgetSuggestion } from "@/lib/schemas/budget";
@@ -30,10 +29,6 @@ export function statusLabel(status: BudgetStatus) {
 export function groupStatus(group: BudgetGroup) {
   const budgetedSpent = group.spent - group.unbudgetedSpent;
   return { budgetedSpent, ...budgetStatus(group.budget > 0 ? group.budget : null, budgetedSpent) };
-}
-
-export function formatBudgetAmount(amount: number, hideAmounts: boolean) {
-  return hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount);
 }
 
 /** Same URL dashboard's Budget Summary links to. */

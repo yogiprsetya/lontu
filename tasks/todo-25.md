@@ -12,14 +12,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `lib/period.ts` tidak mengimpor apa pun dari `lib/transaction-filters.ts`, `lib/schemas/*`, atau `lib/server/*`
-- [ ] Tidak ada berkas di `lib/server/`, `lib/schemas/`, `app/api/`, `components/budgets/`, `components/dashboard/` yang mengimpor `lib/transaction-filters.ts` untuk fungsi periode. Tidak ada re-export dari lokasi lama
-- [ ] Jumlah tes sama dengan sebelum task; assertion yang dipindah identik (diff hanya import dan nama berkas)
+- [x] `lib/period.ts` tidak mengimpor apa pun dari `lib/transaction-filters.ts`, `lib/schemas/*`, atau `lib/server/*`
+- [x] Tidak ada berkas di `lib/server/`, `lib/schemas/`, `app/api/`, `components/budgets/`, `components/dashboard/` yang mengimpor `lib/transaction-filters.ts` untuk fungsi periode. Tidak ada re-export dari lokasi lama
+- [x] Jumlah tes sama dengan sebelum task; assertion yang dipindah identik (diff hanya import dan nama berkas)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/period.spec.ts tests/unit/transaction-filters.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/budget-schema.spec.ts` hijau
-- [ ] `pnpm typecheck && pnpm build` hijau
+- [x] `pnpm vitest run tests/unit/period.spec.ts tests/unit/transaction-filters.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/budget-schema.spec.ts` hijau
+- [x] `pnpm typecheck && pnpm build` hijau
+
+**Catatan (2026-10-29):** `stores/period.ts` dan `period-store.spec.ts` dihapus atas persetujuan Yogi (Open question #1), jadi jumlah tes turun 3 (1084 → 1081); tes yang dipindah tetap utuh. `isPeriod` kini diekspor karena `parseFilters` memakainya dari modul lain.
 
 **Dependencies:** None
 

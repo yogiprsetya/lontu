@@ -4,7 +4,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { todayInJakarta } from "@/lib/date";
 import { maxBudgetPeriod, type BudgetPeriod } from "@/lib/schemas/budget";
-import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
+import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 
 export function MonthStepper({ period, onChange }: { period: BudgetPeriod; onChange: (period: BudgetPeriod) => void }) {
   const previous = shiftPeriod(period, -1);

@@ -1,7 +1,7 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
 import type { BudgetUsageItem } from "@/lib/schemas/budget";
 import type { DashboardPeriod, DashboardSummary, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/transaction-filters";
+import { formatPeriodLabel } from "@/lib/period";
 
 export type ChangeTone = "good" | "bad" | "neutral";
 

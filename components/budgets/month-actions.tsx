@@ -7,7 +7,7 @@ import { budgetsKey, copyBudgets } from "@/hooks/use-budgets";
 import { copyResultMessage } from "@/lib/budget-format";
 import { fetcher } from "@/lib/fetcher";
 import type { BudgetPeriod, BudgetUsage } from "@/lib/schemas/budget";
-import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
+import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 import { failureMessage } from "@/lib/offline/network-error";
 
 export function previousMonthLabel(period: BudgetPeriod) {

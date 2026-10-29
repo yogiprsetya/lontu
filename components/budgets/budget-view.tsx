@@ -18,7 +18,7 @@ import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
 import { BUDGET_GROUPS, budgetPeriodFromParam } from "@/lib/budget-format";
 import { todayInJakarta } from "@/lib/date";
-import { formatPeriodLabel } from "@/lib/transaction-filters";
+import { formatPeriodLabel } from "@/lib/period";
 import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
 

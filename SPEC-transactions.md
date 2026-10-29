@@ -173,7 +173,8 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 
 - `lib/schemas/transaction.ts`: tipe, schema create/update/filter, `LIST_TRANSACTION_TYPES` (= `TRANSACTION_TYPES` + `adjustment`).
 - `lib/transaction-types.ts`: tambah label "Penyesuaian". `TRANSACTION_TYPES` tidak berubah (adjustment tidak boleh dibuat dari UI).
-- `lib/transaction-filters.ts` (murni, dipakai client & server): `parseFilters(searchParams)`, `filtersToSearchParams`, `periodToRange(period, today)`, `normalizeFilters` (membersihkan kombinasi tak berarti: `type = transfer/adjustment` menghapus `categoryId`, `categoryId` yang `kind`-nya tidak cocok dengan `type` dihapus).
+- `lib/period.ts` (murni, dipakai client & server): konsep Period (`YYYY-MM`, `YYYY`, `all`): `periodMode`, `isPeriod`, `periodToRange(period)`, `shiftPeriod`, `switchPeriodMode`, `formatPeriodLabel`, `monthRange`, `periodToYearMonth` / `yearMonthToPeriod`. Modul budgets, dashboard, recurring, dan server mengimpor periode dari sini, bukan dari filter transaksi.
+- `lib/transaction-filters.ts` (murni, dipakai client & server): `parseFilters(searchParams)`, `filtersToSearchParams`, `normalizeFilters` (membersihkan kombinasi tak berarti: `type = transfer/adjustment` menghapus `categoryId`, `categoryId` yang `kind`-nya tidak cocok dengan `type` dihapus).
 - `lib/server/transaction-cursor.ts`: `encodeCursor` / `decodeCursor`.
 - `lib/server/transactions.ts`: `transactionWhere(userId, filters)` (satu-satunya pembangun `where`, dipakai list, totals, dan export), `listTransactions`, `getTransaction`, `createTransaction` (termasuk fee dalam satu `db.transaction`), `updateTransaction`, `softDeleteTransaction`, `restoreTransaction`.
 - `lib/server/queries/transaction-totals.ts`: `transactionTotals(userId, filters)`, satu query `sum(amount) filter (where type = …)` untuk tiga tipe.
@@ -240,7 +241,8 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 
 - **Unit (`tests/unit/`):**
   - `transaction-schema.spec.ts`: batas nominal, union per tipe, `strictObject`, `fee`, batas tanggal (hari ini diinjeksi lewat fake timer), deskripsi kosong → `null`.
-  - `transaction-filters.spec.ts`: URL ↔ filter bolak-balik, key yang stabil, `periodToRange` (bulan, tahun, `all`, Februari kabisat), `normalizeFilters`.
+  - `transaction-filters.spec.ts`: URL ↔ filter bolak-balik, key yang stabil, `normalizeFilters`.
+  - `period.spec.ts`: `periodToRange` (bulan, tahun, `all`, Februari kabisat), maju/mundur, batas 2000, label.
   - `transaction-cursor.spec.ts`: round trip, cursor rusak.
   - `csv.spec.ts`: escape, penjaga formula hanya di kolom teks, BOM.
   - `transaction-balance.spec.ts`: transfer + biaya, `credit_card`, mode edit.
@@ -261,7 +263,7 @@ app/(app)/expenses/page.tsx              # preset filter
 components/forms/{transaction-form.tsx, transfer-form.tsx}
 components/transactions/                 # transaction-list, transaction-row, filter panel, period stepper, totals strip
 hooks/use-transactions.ts
-lib/schemas/transaction.ts, lib/transaction-filters.ts, lib/transaction-balance.ts, lib/csv.ts
+lib/schemas/transaction.ts, lib/period.ts, lib/transaction-filters.ts, lib/transaction-balance.ts, lib/csv.ts
 lib/server/{transactions.ts, transaction-cursor.ts, transaction-export.ts, queries/transaction-totals.ts}
 tests/unit/*.spec.ts, tests/api/*.spec.ts
 ```

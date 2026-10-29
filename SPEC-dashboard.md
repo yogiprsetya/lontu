@@ -70,7 +70,7 @@ Hanya membaca. Param lain diabaikan.
 ### Validasi (Zod, `lib/schemas/dashboard.ts`)
 
 - `period`: regex bulan (`^\d{4}-(0[1-9]|1[0-2])$`) atau tahun (`^\d{4}$`), lalu cek rentang keputusan #2 dengan `todayInJakarta()` saat parse.
-- Rentang dan pembanding dihitung oleh fungsi murni `dashboardRanges(period, today)` di `lib/dashboard-period.ts`, dari string (bukan `Date` lokal), memakai `periodToRange` dan `shiftPeriod` yang sudah ada di `lib/transaction-filters.ts`.
+- Rentang dan pembanding dihitung oleh fungsi murni `dashboardRanges(period, today)` di `lib/dashboard-period.ts`, dari string (bukan `Date` lokal), memakai `periodToRange` dan `shiftPeriod` dari `lib/period.ts`.
 
 ### Query `dashboardSummary`
 
@@ -202,5 +202,5 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md). Menjalankan 
 2. **Kartu keempat = Sisa** (`income − expense − saving`, keputusan #3): setuju, atau cukup tiga kartu?
 3. **Mode tahun di dashboard** (keputusan #1): perlu, atau dashboard cukup per bulan saja (lebih sederhana: Budget Summary selalu tampil, aktivitas selalu per hari)?
 4. **Donut per kategori, top 5 + Lainnya** (keputusan #8): setuju, atau per grup Needs / Wants?
-5. **`stores/period.ts` (`usePeriodStore`) tidak dipakai modul mana pun** setelah keputusan #1. Hapus di modul ini (dan perbarui Project structure di SPEC.md), atau biarkan?
+5. ~~**`stores/period.ts` (`usePeriodStore`) tidak dipakai modul mana pun** setelah keputusan #1. Hapus di modul ini (dan perbarui Project structure di SPEC.md), atau biarkan?~~ Dihapus di T90 (2026-10-29).
 6. **Transaksi terakhir di dashboard** (di luar cakupan): perlu 5 transaksi terakhir dengan tautan "Lihat semua"?

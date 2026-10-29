@@ -5,15 +5,11 @@ import {
   exportFilename,
   exportHref,
   filtersToUrl,
-  formatPeriodLabel,
   normalizeFilters,
   parseFilters,
-  periodMode,
   resetFilters,
-  periodToRange,
-  shiftPeriod,
-  switchPeriodMode,
 } from "@/lib/transaction-filters";
+import { periodToRange } from "@/lib/period";
 
 const TODAY = "2026-10-22";
 const ACCOUNT = "0b0e5f7e-4f0a-4c53-9a4e-2f6d1c9f8a11";
@@ -78,20 +74,6 @@ describe("filtersToUrl and round trip", () => {
   });
 });
 
-describe("periodToRange", () => {
-  it.each([
-    ["2026-10", { from: "2026-10-01", to: "2026-10-31" }],
-    ["2026-12", { from: "2026-12-01", to: "2026-12-31" }],
-    ["2028-02", { from: "2028-02-01", to: "2028-02-29" }],
-    ["2026-02", { from: "2026-02-01", to: "2026-02-28" }],
-    ["2026-04", { from: "2026-04-01", to: "2026-04-30" }],
-    ["2026", { from: "2026-01-01", to: "2026-12-31" }],
-    ["all", {}],
-  ])("%s", (period, range) => {
-    expect(periodToRange(period)).toEqual(range);
-  });
-});
-
 describe("normalizeFilters", () => {
   const kindOf = (id: string) => (id === CATEGORY ? ("income" as const) : undefined);
 
@@ -116,38 +98,6 @@ describe("normalizeFilters", () => {
   it("keeps a category it cannot look up", () => {
     const f = { period: "all", type: "expense", categoryId: "unknown" } as const;
     expect(normalizeFilters(f, kindOf)).toEqual(f);
-  });
-});
-
-describe("period navigation", () => {
-  it("shifts months across year boundaries", () => {
-    expect(shiftPeriod("2026-12", 1)).toBe("2027-01");
-    expect(shiftPeriod("2026-01", -1)).toBe("2025-12");
-    expect(shiftPeriod("2026-10", -1)).toBe("2026-09");
-  });
-
-  it("shifts years and leaves all-time alone", () => {
-    expect(shiftPeriod("2026", -1)).toBe("2025");
-    expect(shiftPeriod("all", 1)).toBe("all");
-  });
-
-  it("reports the mode", () => {
-    expect([periodMode("2026-10"), periodMode("2026"), periodMode("all")]).toEqual(["month", "year", "all"]);
-  });
-
-  it("switches mode keeping the year when possible", () => {
-    expect(switchPeriodMode("2025-03", "year", TODAY)).toBe("2025");
-    expect(switchPeriodMode("2025", "month", TODAY)).toBe("2025-01");
-    expect(switchPeriodMode("2026", "month", TODAY)).toBe("2026-10");
-    expect(switchPeriodMode("all", "month", TODAY)).toBe("2026-10");
-    expect(switchPeriodMode("all", "year", TODAY)).toBe("2026");
-    expect(switchPeriodMode("2025-03", "all", TODAY)).toBe("all");
-  });
-
-  it("labels periods in Indonesian", () => {
-    expect(formatPeriodLabel("2026-10")).toBe("Oktober 2026");
-    expect(formatPeriodLabel("2026")).toBe("2026");
-    expect(formatPeriodLabel("all")).toBe("Semua");
   });
 });
 
@@ -223,17 +173,6 @@ describe("exportHref", () => {
 });
 
 describe("period lower bound", () => {
-  it("does not step before January 2000", () => {
-    expect(shiftPeriod("2000-01", -1)).toBe("2000-01");
-    expect(shiftPeriod("2000", -1)).toBe("2000");
-    expect(shiftPeriod("2000-02", -1)).toBe("2000-01");
-  });
-
-  it("always yields a four-digit year", () => {
-    expect(shiftPeriod("2001", -1)).toBe("2000");
-    expect(periodMode(shiftPeriod("2000-01", -1))).toBe("month");
-  });
-
   it.each(["1999", "0001", "1999-12"])("ignores a URL period before 2000: %s", (period) => {
     expect(parse(`period=${period}`).period).toBe("2026-10");
   });

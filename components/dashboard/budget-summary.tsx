@@ -15,7 +15,7 @@ import { budgetTransactionsHref, formatBudgetAmount, groupStatus, statusLabel } 
 import { budgetHighlights } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/transaction-filters";
+import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 

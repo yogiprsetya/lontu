@@ -110,7 +110,7 @@ lib/
   money.ts                         # format & parse IDR
   utils.ts
 hooks/                             # useAccounts, useTransactions, ... (SWR)
-stores/                            # Zustand: period.ts, ui.ts
+stores/                            # Zustand: ui.ts
 proxy.ts                           # redirect optimistik ke /login
 tests/unit/                        # Vitest: schema, util, query builder
 tests/api/                         # Vitest: route handler terhadap DB test

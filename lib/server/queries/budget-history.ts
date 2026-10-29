@@ -2,9 +2,9 @@ import "server-only";
 import { and, asc, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { budgets, categories, transactions } from "@/db/schema";
-import { monthRange, periodToYearMonth, type BudgetPeriod } from "@/lib/schemas/budget";
+import { monthRange, periodToYearMonth, shiftPeriod } from "@/lib/period";
+import type { BudgetPeriod } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
-import { shiftPeriod } from "@/lib/transaction-filters";
 
 /**
  * The three full months before `period`. shiftPeriod stops at 2000-01, so near that floor the

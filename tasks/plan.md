@@ -605,6 +605,6 @@ Phase berurutan. Phase 29 boleh dikerjakan paralel dengan 26–28 karena hanya m
 
 ## Open questions
 
-1. `stores/period.ts` (`usePeriodStore`) tidak dipakai di mana pun kecuali `period-store.spec.ts`, dan disebut di `SPEC-foundation.md` dan SPEC.md § Project structure. Hapus berkas, tesnya, dan rujukan spec-nya di T90? (Default: tidak dihapus sampai disetujui.)
-2. Review mengusulkan `AFFECTS` transitif. Saat direncanakan ternyata akarnya sisi `recurring → transactions`: edit nama aturan sekarang me-refetch semua daftar transaksi, dan closure akan memperluasnya. T97 menghapus sisi itu (Catat tetap perubahan `transactions`) dan menulis aturan "setiap entri lengkap, tanpa closure". Setuju?
+1. `stores/period.ts` (`usePeriodStore`) tidak dipakai di mana pun kecuali `period-store.spec.ts`, dan disebut di `SPEC-foundation.md` dan SPEC.md § Project structure. Hapus berkas, tesnya, dan rujukan spec-nya di T90? (Default: tidak dihapus sampai disetujui.) **Dijawab 2026-10-29: hapus di T90.**
+2. Review mengusulkan `AFFECTS` transitif. Saat direncanakan ternyata akarnya sisi `recurring → transactions`: edit nama aturan sekarang me-refetch semua daftar transaksi, dan closure akan memperluasnya. T97 menghapus sisi itu (Catat tetap perubahan `transactions`) dan menulis aturan "setiap entri lengkap, tanpa closure". Setuju? **Dijawab 2026-10-29: setuju.**
 3. Setelah desain T104: lanjut ke T105, atau Phase 29 dibatalkan bila interface-nya tidak lebih sederhana dari enam ekspor sekarang?

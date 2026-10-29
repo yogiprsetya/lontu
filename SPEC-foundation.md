@@ -75,7 +75,6 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 
 - `lib/money.ts`: `formatIDR(n)` → `Rp10.000` (`Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })`), `parseIDR("10.000") → 10000`, `formatThousands` untuk input, `abbreviateIDR(1_200_000) → "1,2 jt"` (rb, jt, M, T).
 - `lib/fetcher.ts`: `fetcher` dan `ApiError { status, code, message, fields }`. `SWRConfig` global di `app/providers.tsx` bersama `ThemeProvider` (next-themes, default `system`) dan `Toaster`.
-- `stores/period.ts`: `usePeriodStore { year, month | null, setPeriod }`, default bulan berjalan (Asia/Jakarta).
 - `stores/ui.ts`: `useUIStore { modal: 'manageAccounts' | 'manageCategories' | null, modalProps, open, close, hideAmounts, toggleHideAmounts }`. Hanya `hideAmounts` yang di-`persist`.
 
 ### 6. App shell

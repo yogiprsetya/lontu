@@ -3,9 +3,9 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { budgets } from "@/db/schema";
-import { periodToYearMonth, yearMonthToPeriod, type Budget, type BudgetPeriod, type BudgetSetInput } from "@/lib/schemas/budget";
+import { periodToYearMonth, shiftPeriod, yearMonthToPeriod } from "@/lib/period";
+import type { Budget, BudgetPeriod, BudgetSetInput } from "@/lib/schemas/budget";
 import { findOwnedCategories } from "@/lib/server/ownership";
-import { shiftPeriod } from "@/lib/transaction-filters";
 
 type Row = typeof budgets.$inferSelect;
 

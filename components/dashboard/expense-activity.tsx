@@ -12,7 +12,7 @@ import { dashboardMode } from "@/lib/dashboard-period";
 import { activityPeak, formatBucket } from "@/lib/dashboard-format";
 import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/transaction-filters";
+import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 

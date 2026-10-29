@@ -5,7 +5,7 @@ import {
   type DashboardPeriod,
   type DateRange,
 } from "@/lib/schemas/dashboard";
-import { periodToRange } from "@/lib/transaction-filters";
+import { periodToRange } from "@/lib/period";
 
 export function dashboardMode(period: DashboardPeriod): DashboardMode {
   return period.length === 4 ? "year" : "month";

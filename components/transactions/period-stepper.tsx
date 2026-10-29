@@ -18,7 +18,7 @@ import {
   switchPeriodMode,
   type Period,
   type PeriodMode,
-} from "@/lib/transaction-filters";
+} from "@/lib/period";
 
 const MODES: { value: PeriodMode; label: string }[] = [
   { value: "month", label: "Bulan" },

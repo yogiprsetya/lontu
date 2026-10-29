@@ -19,7 +19,7 @@ import {
 } from "@/lib/budget-format";
 import { ApiError } from "@/lib/fetcher";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
-import { formatPeriodLabel, shiftPeriod } from "@/lib/transaction-filters";
+import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 import { useUIStore } from "@/stores/ui";
 import { failureMessage } from "@/lib/offline/network-error";
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { BudgetStatus } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
 import type { SpendingType } from "@/lib/schemas/category";
-import { periodToRange, shiftPeriod } from "@/lib/transaction-filters";
+import { shiftPeriod } from "@/lib/period";
 
 /** `YYYY-MM`. Stored as `year` + `month` columns. */
 export type BudgetPeriod = string;
@@ -91,17 +91,3 @@ export const budgetSuggestionQuerySchema = z.object({
     .max(1e12, "Maksimal 1 triliun")
     .optional(),
 });
-
-export function periodToYearMonth(period: BudgetPeriod) {
-  return { year: Number(period.slice(0, 4)), month: Number(period.slice(5, 7)) };
-}
-
-export function yearMonthToPeriod(year: number, month: number): BudgetPeriod {
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
-
-/** First and last day of the month as `YYYY-MM-DD`. */
-export function monthRange(period: BudgetPeriod) {
-  const { from, to } = periodToRange(period);
-  return { from: from!, to: to! };
-}

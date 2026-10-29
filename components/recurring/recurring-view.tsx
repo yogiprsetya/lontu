@@ -9,10 +9,8 @@ import {
   RestoreButton,
   ShowArchivedSwitch,
 } from "@/components/modals/archive-controls";
-import {
-  RecordOccurrenceModal,
-  skipOccurrence,
-} from "@/components/recurring/occurrence-actions";
+import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
+import { skipOccurrence } from "@/components/recurring/skip-occurrence";
 import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
@@ -96,6 +94,98 @@ function RowMenu({ rule, online, onArchive }: RowMenuProps) {
   );
 }
 
+function EmptyRules({ showArchived, onCreate }: { showArchived: boolean; onCreate: (preset: RulePreset) => void }) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
+      <p className="text-muted-foreground">
+        {showArchived
+          ? "Belum ada aturan, termasuk arsip."
+          : "Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian."}
+      </p>
+      {!showArchived && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button
+            className="h-11 text-base"
+            onClick={() => onCreate({ type: "income", isPayday: true })}
+          >
+            Tambah gaji
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-11 text-base"
+            onClick={() => onCreate({ type: "expense" })}
+          >
+            Tambah tagihan
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type RuleGroupsProps = {
+  rules: RecurringRule[];
+  accountNames: Map<string, string>;
+  today: string;
+  online: boolean;
+  onEdit: (id: string) => void;
+  onRecord: (id: string) => void;
+  onArchive: (rule: RecurringRule) => void;
+};
+
+function RuleGroups({ rules, accountNames, today, online, onEdit, onRecord, onArchive }: RuleGroupsProps) {
+  return RECURRING_GROUPS.map(({ type, label }) => {
+    const rows = rules.filter((r) => r.type === type);
+    if (rows.length === 0) return null;
+    return (
+      <section key={type} aria-labelledby={`recurring-${type}`}>
+        <h2
+          id={`recurring-${type}`}
+          className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+        >
+          {label}
+        </h2>
+        <ul className="surface divide-y px-4">
+          {rows.map((rule) => (
+            <RuleRow
+              key={rule.id}
+              rule={rule}
+              accountName={accountNames.get(rule.accountId) ?? "Akun"}
+              today={today}
+              onEdit={rule.archivedAt ? undefined : () => onEdit(rule.id)}
+            >
+              {rule.archivedAt ? (
+                <RestoreButton
+                  name={rule.name}
+                  restore={() => restoreRule(rule.id)}
+                />
+              ) : (
+                <>
+                  {/* Always visible, not in the menu; filled once the occurrence is due. */}
+                  <Button
+                    variant={rule.nextDueDate <= today ? "default" : "outline"}
+                    className="h-11 px-4 text-base"
+                    disabled={!online}
+                    onClick={() => onRecord(rule.id)}
+                  >
+                    Catat
+                  </Button>
+                  <RowMenu
+                    rule={rule}
+                    online={online}
+                    onArchive={() => onArchive(rule)}
+                  />
+                </>
+              )}
+            </RuleRow>
+          ))}
+        </ul>
+      </section>
+    );
+  });
+}
+
 export function RecurringView() {
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
@@ -156,94 +246,19 @@ export function RecurringView() {
   } else if (!rules || !accounts.data) {
     content = <ViewSkeleton />;
   } else if (rules.length === 0) {
-    content = (
-      <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
-        <p className="text-muted-foreground">
-          {showArchived
-            ? "Belum ada aturan, termasuk arsip."
-            : "Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian."}
-        </p>
-        {!showArchived && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button
-              className="h-11 text-base"
-              onClick={() =>
-                setEditing({
-                  kind: "create",
-                  preset: { type: "income", isPayday: true },
-                })
-              }
-            >
-              Tambah gaji
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-11 text-base"
-              onClick={() =>
-                setEditing({ kind: "create", preset: { type: "expense" } })
-              }
-            >
-              Tambah tagihan
-            </Button>
-          </div>
-        )}
-      </div>
-    );
+    content = <EmptyRules showArchived={showArchived} onCreate={(preset) => setEditing({ kind: "create", preset })} />;
   } else {
-    content = RECURRING_GROUPS.map(({ type, label }) => {
-      const rows = rules.filter((r) => r.type === type);
-      if (rows.length === 0) return null;
-      return (
-        <section key={type} aria-labelledby={`recurring-${type}`}>
-          <h2
-            id={`recurring-${type}`}
-            className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
-          >
-            {label}
-          </h2>
-          <ul className="surface divide-y px-4">
-            {rows.map((rule) => (
-              <RuleRow
-                key={rule.id}
-                rule={rule}
-                accountName={accountNames.get(rule.accountId) ?? "Akun"}
-                today={today}
-                onEdit={
-                  rule.archivedAt
-                    ? undefined
-                    : () => setEditing({ kind: "edit", id: rule.id })
-                }
-              >
-                {rule.archivedAt ? (
-                  <RestoreButton
-                    name={rule.name}
-                    restore={() => restoreRule(rule.id)}
-                  />
-                ) : (
-                  <>
-                    {/* Always visible, not in the menu; filled once the occurrence is due. */}
-                    <Button
-                      variant={rule.nextDueDate <= today ? "default" : "outline"}
-                      className="h-11 px-4 text-base"
-                      disabled={!online}
-                      onClick={() => setRecordingId(rule.id)}
-                    >
-                      Catat
-                    </Button>
-                    <RowMenu
-                      rule={rule}
-                      online={online}
-                      onArchive={() => void archive(rule)}
-                    />
-                  </>
-                )}
-              </RuleRow>
-            ))}
-          </ul>
-        </section>
-      );
-    });
+    content = (
+      <RuleGroups
+        rules={rules}
+        accountNames={accountNames}
+        today={today}
+        online={online}
+        onEdit={(id) => setEditing({ kind: "edit", id })}
+        onRecord={setRecordingId}
+        onArchive={(rule) => void archive(rule)}
+      />
+    );
   }
 
   const formOpen = editing?.kind === "create" || !!editingRule;

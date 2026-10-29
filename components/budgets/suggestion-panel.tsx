@@ -18,7 +18,7 @@ import {
   selectedSuggestionItems,
 } from "@/lib/budget-format";
 import { ApiError } from "@/lib/fetcher";
-import type { BudgetPeriod } from "@/lib/schemas/budget";
+import type { BudgetPeriod, BudgetSuggestion } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 import { failureMessage } from "@/lib/offline/network-error";
 
@@ -45,7 +45,6 @@ export function SuggestionPanel(props: Props) {
 
 function SuggestionContent({ period, open, onOpenChange, names }: Props) {
   const onClose = () => onOpenChange(false);
-  const money = useAmountFormat();
   // `typed` follows the field; `income` follows it after a pause and drives the request.
   const [typed, setTyped] = useState<number | null>(null);
   const [income, setIncome] = useState<number | undefined>(undefined);
@@ -94,97 +93,6 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
     }
   }
 
-  let body;
-  if (error) {
-    body = (
-      <LoadError message="Gagal memuat saran." onRetry={() => void mutate()} />
-    );
-  } else if (!data) {
-    body = (
-      <div className="flex flex-col gap-3" aria-busy="true">
-        {Array.from({ length: 5 }, (_, i) => (
-          <Skeleton key={i} className="h-11 w-full" />
-        ))}
-      </div>
-    );
-  } else if (data.basis === 0) {
-    body = (
-      <p className="text-muted-foreground">
-        Belum ada income bulan lalu. Isi income untuk melihat saran.
-      </p>
-    );
-  } else {
-    body = (
-      <div className="flex flex-col gap-4" aria-busy={pending}>
-        <dl className="divide-y rounded-2xl bg-muted px-4">
-          {[
-            { label: "Needs 50%", amount: data.pools.needs },
-            { label: "Wants 30%", amount: data.pools.wants },
-            {
-              label: "Saving 20%",
-              amount: data.pools.saving,
-              hint: "acuan, tidak jadi budget",
-            },
-          ].map(({ label, amount, hint }) => (
-            <div
-              key={label}
-              className="flex min-h-11 items-center justify-between gap-3 py-2"
-            >
-              <dt className="min-w-0">
-                {label}
-                {hint && (
-                  <span className="block text-sm text-muted-foreground">
-                    {hint}
-                  </span>
-                )}
-              </dt>
-              <dd className="shrink-0 font-medium tabular-nums">
-                {money(amount)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        {BUDGET_GROUPS.map(({ key, label }) => {
-          const rows = data.items.filter((i) => i.spendingType === key);
-          if (rows.length === 0) return null;
-          return (
-            <fieldset key={key} className="flex flex-col">
-              <legend className="text-sm font-semibold text-muted-foreground">
-                {label}
-              </legend>
-              <div className="divide-y">
-                {rows.map((item) => (
-                  <label
-                    key={item.categoryId}
-                    className="flex min-h-11 items-center gap-3 py-2"
-                  >
-                    <Checkbox
-                      checked={checked.has(item.categoryId)}
-                      onCheckedChange={(on) => toggle(item.categoryId, on)}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">
-                        {names.get(item.categoryId) ?? "Kategori"}
-                      </span>
-                      {item.current !== null && (
-                        <span className="block text-sm text-muted-foreground tabular-nums">
-                          Ganti {money(item.current)}
-                        </span>
-                      )}
-                    </span>
-                    <span className="shrink-0 font-medium tabular-nums">
-                      {money(item.amount)}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
     <ResponsiveModal
       open={open}
@@ -226,8 +134,128 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
           />
         </FormField>
 
-        {body}
+        <SuggestionBody
+          data={data}
+          error={error}
+          pending={pending}
+          checked={checked}
+          names={names}
+          onToggle={toggle}
+          onRetry={() => void mutate()}
+        />
       </div>
     </ResponsiveModal>
+  );
+}
+
+type BodyProps = {
+  data: BudgetSuggestion | undefined;
+  error: unknown;
+  pending: boolean;
+  checked: Set<string>;
+  names: Map<string, string>;
+  onToggle: (categoryId: string, on: boolean) => void;
+  onRetry: () => void;
+};
+
+function SuggestionBody({ data, error, onRetry, ...listProps }: BodyProps) {
+  if (error) {
+    return <LoadError message="Gagal memuat saran." onRetry={onRetry} />;
+  }
+  if (!data) {
+    return (
+      <div className="flex flex-col gap-3" aria-busy="true">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Skeleton key={i} className="h-11 w-full" />
+        ))}
+      </div>
+    );
+  }
+  if (data.basis === 0) {
+    return (
+      <p className="text-muted-foreground">
+        Belum ada income bulan lalu. Isi income untuk melihat saran.
+      </p>
+    );
+  }
+  return <SuggestionList data={data} {...listProps} />;
+}
+
+function SuggestionList({
+  data,
+  pending,
+  checked,
+  names,
+  onToggle,
+}: Omit<BodyProps, "data" | "error" | "onRetry"> & { data: BudgetSuggestion }) {
+  const money = useAmountFormat();
+  return (
+    <div className="flex flex-col gap-4" aria-busy={pending}>
+      <dl className="divide-y rounded-2xl bg-muted px-4">
+        {[
+          { label: "Needs 50%", amount: data.pools.needs },
+          { label: "Wants 30%", amount: data.pools.wants },
+          {
+            label: "Saving 20%",
+            amount: data.pools.saving,
+            hint: "acuan, tidak jadi budget",
+          },
+        ].map(({ label, amount, hint }) => (
+          <div
+            key={label}
+            className="flex min-h-11 items-center justify-between gap-3 py-2"
+          >
+            <dt className="min-w-0">
+              {label}
+              {hint && (
+                <span className="block text-sm text-muted-foreground">
+                  {hint}
+                </span>
+              )}
+            </dt>
+            <dd className="shrink-0 font-medium tabular-nums">
+              {money(amount)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {BUDGET_GROUPS.map(({ key, label }) => {
+        const rows = data.items.filter((i) => i.spendingType === key);
+        if (rows.length === 0) return null;
+        return (
+          <fieldset key={key} className="flex flex-col">
+            <legend className="text-sm font-semibold text-muted-foreground">
+              {label}
+            </legend>
+            <div className="divide-y">
+              {rows.map((item) => (
+                <label
+                  key={item.categoryId}
+                  className="flex min-h-11 items-center gap-3 py-2"
+                >
+                  <Checkbox
+                    checked={checked.has(item.categoryId)}
+                    onCheckedChange={(on) => onToggle(item.categoryId, on)}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">
+                      {names.get(item.categoryId) ?? "Kategori"}
+                    </span>
+                    {item.current !== null && (
+                      <span className="block text-sm text-muted-foreground tabular-nums">
+                        Ganti {money(item.current)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 font-medium tabular-nums">
+                    {money(item.amount)}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        );
+      })}
+    </div>
   );
 }

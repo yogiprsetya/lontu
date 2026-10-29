@@ -13,6 +13,7 @@ import { selectItemClass } from "@/components/forms/field-styles";
 import { todayInJakarta } from "@/lib/date";
 import {
   formatPeriodLabel,
+  isPastOrCurrentPeriod,
   periodMode,
   shiftPeriod,
   switchPeriodMode,
@@ -43,8 +44,7 @@ export function PeriodStepper({
   const mode = periodMode(period);
   // Nothing can be recorded after today, so stepping past the current period only shows an empty list.
   const next = shiftPeriod(period, 1);
-  const canGoNext =
-    mode !== "all" && next <= today.slice(0, mode === "month" ? 7 : 4);
+  const canGoNext = isPastOrCurrentPeriod(next, today);
 
   return (
     <div className="flex flex-wrap items-center gap-2">

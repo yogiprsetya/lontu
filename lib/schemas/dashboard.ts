@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
+import { isPastOrCurrentPeriod } from "@/lib/period";
 import type { SpendingType } from "@/lib/schemas/category";
 import type { TransactionTotals } from "@/lib/schemas/transaction";
 
@@ -28,11 +29,6 @@ export type DashboardSummary = {
 };
 
 export const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;
-
-// Same-length strings compare correctly as text.
-export function isPastOrCurrentPeriod(period: DashboardPeriod, today: string) {
-  return period.slice(0, 4) >= "2000" && period <= today.slice(0, period.length);
-}
 
 // Today is read at parse time, so a long-lived schema never goes stale across a month boundary.
 export const dashboardPeriodSchema = z

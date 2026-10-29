@@ -1,11 +1,5 @@
-import {
-  DASHBOARD_PERIOD_FORMAT,
-  isPastOrCurrentPeriod,
-  type DashboardMode,
-  type DashboardPeriod,
-  type DateRange,
-} from "@/lib/schemas/dashboard";
-import { periodToRange } from "@/lib/period";
+import { parsePeriod, periodToRange } from "@/lib/period";
+import type { DashboardMode, DashboardPeriod, DateRange } from "@/lib/schemas/dashboard";
 
 export function dashboardMode(period: DashboardPeriod): DashboardMode {
   return period.length === 4 ? "year" : "month";
@@ -13,8 +7,7 @@ export function dashboardMode(period: DashboardPeriod): DashboardMode {
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */
 export function dashboardPeriodFromParam(value: string | null, today: string): DashboardPeriod {
-  const valid = value && DASHBOARD_PERIOD_FORMAT.test(value) && isPastOrCurrentPeriod(value, today);
-  return valid ? value : today.slice(0, 7);
+  return parsePeriod(value, { modes: ["month", "year"], today, max: today });
 }
 
 // Not `shiftPeriod`: that one stops at 2000, while January 2000 still needs December 1999

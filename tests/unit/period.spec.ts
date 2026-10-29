@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   formatPeriodLabel,
+  isPastOrCurrentPeriod,
   monthRange,
+  parsePeriod,
   periodMode,
   periodToRange,
   periodToYearMonth,
@@ -85,5 +87,71 @@ describe("period helpers", () => {
     ["2026-11", "2026-11-01", "2026-11-30"],
   ])("monthRange(%s) is %s..%s", (period, from, to) => {
     expect(monthRange(period)).toEqual({ from, to });
+  });
+});
+
+describe("parsePeriod", () => {
+  const today = "2026-10-23";
+
+  describe("transactions: month, year or all, no upper bound", () => {
+    const parse = (value: string | null) => parsePeriod(value, { modes: ["month", "year", "all"], today });
+
+    it.each(["2026-10", "2026", "all", "2000", "2000-01", "2027-03"])("keeps %s", (value) => {
+      expect(parse(value)).toBe(value);
+    });
+
+    it.each([null, "", "1999", "0001", "1999-12", "2026-13", "2026-00", "2026-1", "26", "abc", "2026-10-01"])(
+      "falls back to the current month for %j",
+      (value) => {
+        expect(parse(value)).toBe("2026-10");
+      },
+    );
+  });
+
+  describe("budgets: month only, up to next month", () => {
+    const parse = (value: string | null, now = today) =>
+      parsePeriod(value, { modes: ["month"], today: now, max: shiftPeriod(now.slice(0, 7), 1) });
+
+    it.each(["2026-10", "2026-11", "2000-01"])("keeps %s", (value) => {
+      expect(parse(value)).toBe(value);
+    });
+
+    it.each([null, "2026-12", "1999-12", "2026-13", "2026", "all"])("falls back to the current month for %j", (value) => {
+      expect(parse(value)).toBe("2026-10");
+    });
+
+    it("allows January next year in December", () => {
+      expect(parse("2027-01", "2026-12-31")).toBe("2027-01");
+    });
+  });
+
+  describe("dashboard: month or year, not after today", () => {
+    const parse = (value: string | null) => parsePeriod(value, { modes: ["month", "year"], today, max: today });
+
+    it.each(["2026-10", "2026", "2000", "2000-01"])("keeps %s", (value) => {
+      expect(parse(value)).toBe(value);
+    });
+
+    it.each([null, "all", "2026-11", "2027", "2099", "1999", "1999-12", "2026-13"])(
+      "falls back to the current month for %j",
+      (value) => {
+        expect(parse(value)).toBe("2026-10");
+      },
+    );
+  });
+});
+
+describe("isPastOrCurrentPeriod", () => {
+  it.each([
+    ["2026-10", true],
+    ["2026-09", true],
+    ["2026", true],
+    ["2000-01", true],
+    ["2026-11", false],
+    ["2027", false],
+    ["1999-12", false],
+    ["1999", false],
+  ])("%s → %s", (period, expected) => {
+    expect(isPastOrCurrentPeriod(period, "2026-10-23")).toBe(expected);
   });
 });

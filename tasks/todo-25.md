@@ -37,14 +37,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Ketiga fungsi lama hilang atau hanya memanggil `parsePeriod` satu baris; tes lama untuk ketiganya tetap hijau tanpa diubah selain import
-- [ ] `parsePeriod` menolak `1999`, `1999-12`, `2026-13`, bulan depan untuk dashboard, dan bulan setelah `maxBudgetPeriod` untuk budget, semuanya jatuh ke `today.slice(0, 7)`
-- [ ] Cek inline "tidak lewat hari ini" di `components/transactions/period-stepper.tsx:46-47` memakai `isPastOrCurrentPeriod`
+- [x] Ketiga fungsi lama hilang atau hanya memanggil `parsePeriod` satu baris; tes lama untuk ketiganya tetap hijau tanpa diubah selain import
+- [x] `parsePeriod` menolak `1999`, `1999-12`, `2026-13`, bulan depan untuk dashboard, dan bulan setelah `maxBudgetPeriod` untuk budget, semuanya jatuh ke `today.slice(0, 7)`
+- [x] Cek inline "tidak lewat hari ini" di `components/transactions/period-stepper.tsx:46-47` memakai `isPastOrCurrentPeriod`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/period.spec.ts tests/unit/budget-format.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/transaction-filters.spec.ts` hijau
-- [ ] Manual: `/budget?period=1999-01`, `/dashboard?period=2099`, `/transactions?period=abc` jatuh ke bulan berjalan
+- [x] `pnpm vitest run tests/unit/period.spec.ts tests/unit/budget-format.spec.ts tests/unit/dashboard-period.spec.ts tests/unit/transaction-filters.spec.ts` hijau
+- [ ] Manual (tertunda, sesi tanpa browser; kasusnya tercakup `period.spec.ts`): `/budget?period=1999-01`, `/dashboard?period=2099`, `/transactions?period=abc` jatuh ke bulan berjalan
+
+**Catatan (2026-10-29):** `budgetPeriodFromParam` dan `dashboardPeriodFromParam` tetap ada sebagai pembungkus satu baris supaya aturan tiap halaman punya nama. `isPastOrCurrentPeriod` pindah dari `lib/schemas/dashboard.ts` ke `lib/period.ts` dan kini juga memeriksa format.
 
 **Dependencies:** T90
 

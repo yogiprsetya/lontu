@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isPeriod, periodToRange, type Period } from "@/lib/period";
+import { parsePeriod, periodToRange, type Period } from "@/lib/period";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
 import { LIST_TRANSACTION_TYPES, type ListTransactionType } from "@/lib/schemas/transaction";
 
@@ -15,9 +15,8 @@ function validUuid(value: string | null) {
 }
 
 export function parseFilters(params: Pick<URLSearchParams, "get">, today: string): ListFilters {
-  const period = params.get("period");
   const type = params.get("type");
-  const filters: ListFilters = { period: isPeriod(period) ? period : today.slice(0, 7) };
+  const filters: ListFilters = { period: parsePeriod(params.get("period"), { modes: ["month", "year", "all"], today }) };
   if (type && (LIST_TRANSACTION_TYPES as readonly string[]).includes(type)) filters.type = type as ListTransactionType;
   const accountId = validUuid(params.get("accountId"));
   if (accountId) filters.accountId = accountId;

@@ -22,6 +22,27 @@ export function isPeriod(value: string | null): value is Period {
   return (YEAR.test(value) || MONTH.test(value)) && Number(value.slice(0, 4)) >= MIN_YEAR;
 }
 
+// Same-length strings compare correctly as text, so a month is checked against `latest`'s month and a year against its year.
+function notAfter(period: Period, latest: string) {
+  return period <= latest.slice(0, period.length);
+}
+
+export function isPastOrCurrentPeriod(period: Period, today: string) {
+  return isPeriod(period) && period !== "all" && notAfter(period, today);
+}
+
+/**
+ * `?period=` from a page URL. Anything outside `modes`, before 2000, or after `max`
+ * (a `YYYY-MM` or `YYYY-MM-DD`) falls back to the current month.
+ */
+export function parsePeriod(
+  value: string | null,
+  { modes, today, max }: { modes: readonly PeriodMode[]; today: string; max?: string },
+): Period {
+  const valid = isPeriod(value) && modes.includes(periodMode(value)) && (max === undefined || notAfter(value, max));
+  return valid ? value : today.slice(0, 7);
+}
+
 export function periodToRange(period: Period): { from?: string; to?: string } {
   if (period === "all") return {};
   if (YEAR.test(period)) return { from: `${period}-01-01`, to: `${period}-12-31` };

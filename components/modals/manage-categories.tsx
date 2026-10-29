@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import { ChevronRightIcon, PlusIcon } from "lucide-react";
-import {
-  CategoryForm,
-  KIND_LABELS,
-  SPENDING_TYPE_LABELS,
-} from "@/components/forms/category-form";
+import { CategoryForm } from "@/components/forms/category-form";
+import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import {

@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-form";
+import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import {

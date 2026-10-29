@@ -9,7 +9,7 @@ import { AccountPicker } from "@/components/forms/account-picker";
 import { CategoryPicker } from "@/components/forms/category-picker";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
-import { TYPE_STYLES } from "@/components/transactions/type-chip";
+import { TYPE_STYLES } from "@/components/transactions/type-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {

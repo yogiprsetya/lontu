@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createCategory, renameCategory } from "@/hooks/use-categories";
 import { applyServerErrors } from "@/lib/form-errors";
+import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import {
   type Category,
   type CategoryKind,
@@ -18,9 +19,6 @@ import {
 } from "@/lib/schemas/category";
 import { failureMessage } from "@/lib/offline/network-error";
 import { inputClass } from "@/components/forms/field-styles";
-
-export const KIND_LABELS: Record<CategoryKind, string> = { income: "Income", saving: "Saving", spending: "Spending" };
-export const SPENDING_TYPE_LABELS: Record<SpendingType, string> = { needs: "Needs", wants: "Wants" };
 
 // The kind comes from the active tab, so the form only edits name and, for spending, needs/wants.
 const formSchema = z.object({ name: categoryRenameSchema.shape.name, spendingType: z.enum(SPENDING_TYPES) });

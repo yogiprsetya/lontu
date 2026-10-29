@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SlidersHorizontalIcon } from "lucide-react";
-import { KIND_LABELS } from "@/components/forms/category-form";
+import { KIND_LABELS } from "@/components/forms/category-labels";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

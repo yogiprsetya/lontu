@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CalendarClockIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
-import { RecordOccurrenceModal, SKIP_HINT, skipOccurrence } from "@/components/recurring/occurrence-actions";
+import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
+import { SKIP_HINT, skipOccurrence } from "@/components/recurring/skip-occurrence";
 import { TypeChip } from "@/components/transactions/type-chip";
 import { Button } from "@/components/ui/button";
 import { useAmountFormat } from "@/hooks/use-amount-format";

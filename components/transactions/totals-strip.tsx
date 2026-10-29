@@ -1,7 +1,7 @@
 "use client";
 
 import { LoadError } from "@/components/settings/load-error";
-import { TYPE_STYLES } from "@/components/transactions/type-chip";
+import { TYPE_STYLES } from "@/components/transactions/type-styles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { useTransactionTotals } from "@/hooks/use-transactions";

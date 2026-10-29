@@ -12,7 +12,10 @@ const KEYS: Record<Resource, RegExp> = {
   recurring: /^\/api\/recurring($|[/?])/,
 };
 
-/** What a change to each resource also makes stale on the server. Direct edges only. */
+/**
+ * Everything a change to each resource makes stale on the server. Each entry is complete:
+ * `invalidate` never follows edges, so a mutation that changes another resource names that one.
+ */
 const AFFECTS: Record<Resource, Resource[]> = {
   // Balances, budget usage, the dashboard and the payday forecast are sums over transactions.
   transactions: ["accounts", "budgets", "dashboard", "recurring"],
@@ -23,9 +26,8 @@ const AFFECTS: Record<Resource, Resource[]> = {
   budgets: [],
   // Read-only. Adjustments are not counted and names resolve on the client.
   dashboard: [],
-  // Recording an occurrence writes a transaction. Edges are one level deep, so that mutation
-  // also invalidates "transactions" itself to reach balances, budgets and the dashboard.
-  recurring: ["transactions"],
+  // Rules are not summed anywhere. Recording an occurrence is a "transactions" change.
+  recurring: [],
 };
 
 export function isResourceKey(resource: Resource, key: unknown) {

@@ -12,14 +12,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `affectedBy("recurring")` = `["recurring"]`; `affectedBy("transactions")`, `affectedBy("accounts")`, `affectedBy("categories")` tidak berubah
-- [ ] `advanceRule` dengan `action: "post"` tetap me-revalidate `transactions`, `accounts`, `budgets`, `dashboard`, `recurring`; `skip` dan CRUD aturan hanya `recurring` (kasus `use-recurring.spec.ts`)
-- [ ] Hanya harapan `affectedBy("recurring")` yang berubah di tes lama, sesuai keputusan
+- [x] `affectedBy("recurring")` = `["recurring"]`; `affectedBy("transactions")`, `affectedBy("accounts")`, `affectedBy("categories")` tidak berubah
+- [x] `advanceRule` dengan `action: "post"` tetap me-revalidate `transactions`, `accounts`, `budgets`, `dashboard`, `recurring`; `skip` dan CRUD aturan hanya `recurring` (kasus `use-recurring.spec.ts`)
+- [x] Hanya harapan `affectedBy("recurring")` yang berubah di tes lama, sesuai keputusan
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-recurring.spec.ts` hijau
-- [ ] Manual: Catat dari kotak Jatuh tempo → saldo, budget, dashboard terbarui; ubah nama aturan → daftar `/transactions` tidak refetch (tab Network)
+- [x] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-recurring.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): Catat dari kotak Jatuh tempo → saldo, budget, dashboard terbarui; ubah nama aturan → daftar `/transactions` tidak refetch (tab Network)
+
+**Catatan (2026-10-29):** Selain `affectedBy("recurring")`, dua tes lama ikut berubah karena keputusan yang sama: "a recurring change refreshes the transaction list" (kini kebalikannya) dan judul tes skip. Tes CRUD aturan dan skip mendapat assertion baru bahwa daftar transaksi tidak di-refetch. Akibat samping: penanganan `OCCURRENCE_STALE` (`transaction-form.tsx`, `occurrence-actions.tsx`) memanggil `revalidateRecurring()` dan tidak lagi me-refetch daftar transaksi; kejadian itu ditangani di tab/perangkat lain, jadi daftar di sini segar lewat revalidate-on-focus SWR.
 
 **Dependencies:** Checkpoint Y, Open question #2
 

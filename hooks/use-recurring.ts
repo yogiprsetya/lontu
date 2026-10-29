@@ -53,7 +53,7 @@ export async function restoreRule(id: string) {
 /** Catat or Lewati. Throws ApiError, including 409 OCCURRENCE_STALE when the occurrence was already handled. */
 export async function advanceRule(id: string, input: RecurringAdvanceInput) {
   const result = await sendJSON<AdvanceResult>(`/api/recurring/${id}/advance`, "POST", input);
-  // A post moves balances, budgets and the dashboard too, which "recurring" alone does not reach.
+  // A post writes a transaction, which also reaches balances, budgets, the dashboard and recurring.
   await invalidate(input.action === "post" ? "transactions" : "recurring");
   return result;
 }

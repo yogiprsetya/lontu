@@ -70,7 +70,7 @@ describe("affectedBy", () => {
     ["categories", ["categories", "budgets"]],
     ["budgets", ["budgets"]],
     ["dashboard", ["dashboard"]],
-    ["recurring", ["recurring", "transactions"]],
+    ["recurring", ["recurring"]],
   ] as const)("a %s change refreshes %j", (resource, expected) => {
     expect(affectedBy(resource)).toEqual(expected);
   });
@@ -102,10 +102,11 @@ describe("recurring edges", () => {
     expect(revalidated(keys.recurring)).toBe(true);
   });
 
-  it("a recurring change refreshes the transaction list", async () => {
+  it("a rule change refreshes the recurring overview only, never the transaction list", async () => {
     await invalidate("recurring");
-    expect(revalidated(keys.transactions)).toBe(true);
     expect(revalidated(keys.recurring)).toBe(true);
+    expect(revalidated(keys.transactions)).toBe(false);
+    expect(revalidated(keys.accounts)).toBe(false);
   });
 });
 

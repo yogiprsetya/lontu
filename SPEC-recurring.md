@@ -197,7 +197,7 @@ Urutan di server, dalam **satu transaksi DB**:
 ### Kontrak untuk modul lain
 
 - **`dashboard`:** memasang `<DueInbox />` dan `<PaydayCard />` dari `components/recurring/` di `dashboard-view.tsx`. Keduanya memakai `useRecurring()` (key `"/api/recurring"`). Dashboard tidak memanggil query modul ini secara langsung. Jika `rules` kosong, kartu gajian menampilkan ajakan "Atur gajian & tagihan tetap" ke `/recurring`. Jika `due` kosong, kotak Jatuh tempo tidak dirender.
-- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"recurring"`, key `/^\/api\/recurring($|[/?])/`. `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat `"recurring"` (saldo mengubah proyeksi). `AFFECTS.recurring = ["transactions"]`, jadi Catat menyegarkan daftar transaksi, dan karena `AFFECTS` hanya satu tingkat, mutasi `post` juga memanggil `invalidate("transactions")` supaya saldo, budget, dan dashboard ikut segar.
+- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"recurring"`, key `/^\/api\/recurring($|[/?])/`. `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat `"recurring"` (saldo mengubah proyeksi). `AFFECTS.recurring = []`: mengubah, mengarsip, memulihkan aturan, dan Lewati tidak membuat transaksi basi. Catat menulis transaksi, jadi mutasi `post` memanggil `invalidate("transactions")`, yang menjangkau saldo, budget, dashboard, dan `recurring` (aturan `AFFECTS` lengkap, lihat SPEC-dashboard § Kontrak untuk modul lain). Diubah di T97 (2026-10-29).
 - **`pwa-offline`:** tidak berubah. Outbox tetap hanya untuk create transaksi.
 
 ## Deliverables

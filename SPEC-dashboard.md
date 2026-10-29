@@ -85,6 +85,7 @@ Hanya membaca. Param lain diabaikan.
 
 ### Kontrak untuk modul lain
 
+- **Aturan `AFFECTS`:** setiap entri mendaftar **semua** resource yang basi di server saat resource itu berubah, lengkap dan tidak transitif. `invalidate(x)` hanya menyegarkan `x` dan entri `AFFECTS[x]`, jadi pemanggil tidak perlu tahu kedalaman graf. Mutasi yang sebenarnya mengubah resource lain menyebut resource itu (Catat = perubahan `transactions`).
 - **SWR key:** `"/api/dashboard?period=<period>"`. Resource `dashboard` ditambahkan ke `lib/cache-invalidation.ts` (`KEYS.dashboard = /^\/api\/dashboard($|[/?])/`) dan ke `AFFECTS.transactions`. Mutasi akun dan kategori tidak memengaruhi angka dashboard (adjustment tidak dihitung, nama di-resolve di client), jadi tidak ditambahkan di sana.
 - **Server component** yang butuh data langsung boleh memanggil `dashboardSummary(userId, period, today)`.
 - **`pwa-offline`:** endpoint hanya membaca, jadi cukup di-cache. Respons terakhir per periode yang ditampilkan saat offline adalah urusan modul itu.

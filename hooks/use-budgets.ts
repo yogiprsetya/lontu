@@ -2,16 +2,16 @@
 
 import useSWR, { mutate } from "swr";
 import { removeBudgetFromUsage } from "@/lib/budget-cache";
-import { invalidate } from "@/lib/cache-invalidation";
+import { apiKey, invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Budget, BudgetPeriod, BudgetSetInput, BudgetSuggestion, BudgetUsage } from "@/lib/schemas/budget";
 
 export function budgetsKey(period: BudgetPeriod) {
-  return `/api/budgets?period=${period}`;
+  return apiKey("budgets", { query: { period } });
 }
 
 export function budgetSuggestionKey(period: BudgetPeriod, income?: number) {
-  return `/api/budgets/suggestion?period=${period}${income === undefined ? "" : `&income=${income}`}`;
+  return apiKey("budgets", { path: "suggestion", query: { period, income } });
 }
 
 export function useBudgets(period: BudgetPeriod) {

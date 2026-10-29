@@ -2,7 +2,7 @@
 
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
-import { invalidate, isResourceKey } from "@/lib/cache-invalidation";
+import { apiKey, invalidate, isResourceKey } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import { isNetworkError } from "@/lib/offline/network-error";
 import { outbox as defaultOutbox, type Outbox, type OutboxBody } from "@/lib/offline/outbox";
@@ -69,8 +69,7 @@ export function transactionsPageKey(pageIndex: number, previous: TransactionPage
     if (!previous.nextCursor) return null;
     params.set("cursor", previous.nextCursor);
   }
-  const query = params.toString();
-  return query ? `/api/transactions?${query}` : "/api/transactions";
+  return apiKey("transactions", { query: params });
 }
 
 export function useTransactions(filters: ListFilters) {
@@ -85,16 +84,19 @@ export function useTransactions(filters: ListFilters) {
 }
 
 export function transactionsTotalsKey(filters: ListFilters) {
-  const query = filtersToSearchParams(filters).toString();
-  return query ? `/api/transactions/totals?${query}` : "/api/transactions/totals";
+  return apiKey("transactions", { path: "totals", query: filtersToSearchParams(filters) });
 }
 
 export function useTransactionTotals(filters: ListFilters) {
   return useSWR<TransactionTotals>(transactionsTotalsKey(filters));
 }
 
+export function transactionKey(id: string) {
+  return apiKey("transactions", { path: id });
+}
+
 export function useTransaction(id: string) {
-  return useSWR<Transaction>(`/api/transactions/${id}`);
+  return useSWR<Transaction>(transactionKey(id));
 }
 
 export async function updateTransaction(id: string, input: Partial<TransactionUpdateInput>) {
@@ -109,7 +111,7 @@ export async function updateTransaction(id: string, input: Partial<TransactionUp
  * deleted row would 404 under the page that is closing.
  */
 export async function deleteTransaction(id: string) {
-  const detailKey = `/api/transactions/${id}`;
+  const detailKey = transactionKey(id);
   void mutate(
     isInfiniteTransactionsKey,
     (pages?: TransactionPage[]) => pages && removeFromPages(pages, id),

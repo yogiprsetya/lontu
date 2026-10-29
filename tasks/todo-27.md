@@ -37,12 +37,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tes tabel: untuk setiap resource dan setiap kombinasi param yang dipakai hook, key cocok dengan `isResourceKey(resource)` dan tidak cocok dengan resource lain, termasuk varian `$inf$`
-- [ ] Key yang dihasilkan identik byte-per-byte dengan sekarang (tes lama di `use-accounts.spec.ts`, `use-categories.spec.ts`, `use-transactions.spec.ts`, `use-budgets.spec.ts` hijau tanpa diubah)
+- [x] Tes tabel: untuk setiap resource dan setiap kombinasi param yang dipakai hook, key cocok dengan `isResourceKey(resource)` dan tidak cocok dengan resource lain, termasuk varian `$inf$`
+- [x] Key yang dihasilkan identik byte-per-byte dengan sekarang (tes lama di `use-accounts.spec.ts`, `use-categories.spec.ts`, `use-transactions.spec.ts`, `use-budgets.spec.ts` hijau tanpa diubah)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-*.spec.ts` hijau
+- [x] `pnpm vitest run tests/unit/cache-invalidation.spec.ts tests/unit/use-*.spec.ts` hijau
+
+**Catatan (2026-10-29):** Tabelnya `{ base, infinite? }`; parameter per resource ditulis di hook sebagai `query` (`include`, `includeArchived`, `period`, `income`), karena itu kontrak API. `accountsKey`, `budgetsKey`, dan lainnya tetap ada sebagai pembungkus satu baris supaya tes lama tidak berubah. `transactionKey(id)` baru untuk detail. Tersisa di luar tabel: `/api/me` (`use-profile.ts`, bukan `Resource`) dan `fetch` di `use-outbox-replay.ts` (dipindah di T101).
 
 **Dependencies:** T97
 

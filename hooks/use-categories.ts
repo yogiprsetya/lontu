@@ -1,14 +1,14 @@
 "use client";
 
 import useSWR from "swr";
-import { invalidate } from "@/lib/cache-invalidation";
+import { apiKey, invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type { Category, CategoryCreateInput, CategoryKind } from "@/lib/schemas/category";
 
 type Options = { kind?: CategoryKind; includeArchived?: boolean };
 
 export function categoriesKey({ includeArchived = false }: Options = {}) {
-  return includeArchived ? "/api/categories?include=archived" : "/api/categories";
+  return apiKey("categories", { query: { include: includeArchived ? "archived" : undefined } });
 }
 
 export function filterByKind(categories: Category[], kind?: CategoryKind) {

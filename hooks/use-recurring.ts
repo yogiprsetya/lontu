@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { invalidate } from "@/lib/cache-invalidation";
+import { apiKey, invalidate } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
 import type {
   AdvanceResult,
@@ -15,7 +15,7 @@ import type {
 type Options = { includeArchived?: boolean };
 
 export function recurringKey({ includeArchived = false }: Options = {}) {
-  return includeArchived ? "/api/recurring?includeArchived=true" : "/api/recurring";
+  return apiKey("recurring", { query: { includeArchived: includeArchived ? "true" : undefined } });
 }
 
 export function useRecurring(options: Options = {}) {

@@ -2,15 +2,41 @@ import { mutate } from "swr";
 
 export type Resource = "accounts" | "categories" | "transactions" | "budgets" | "dashboard" | "recurring";
 
-// `$inf$` is useSWRInfinite's prefix for its aggregate entry.
-const KEYS: Record<Resource, RegExp> = {
-  accounts: /^\/api\/accounts($|[/?])/,
-  categories: /^\/api\/categories($|[/?])/,
-  transactions: /^(\$inf\$)?\/api\/transactions($|[/?])/,
-  budgets: /^\/api\/budgets($|[/?])/,
-  dashboard: /^\/api\/dashboard($|[/?])/,
-  recurring: /^\/api\/recurring($|[/?])/,
+/** Every SWR key of a resource starts with its base path. `infinite`: it also has useSWRInfinite lists. */
+const RESOURCES: Record<Resource, { base: string; infinite?: boolean }> = {
+  accounts: { base: "/api/accounts" },
+  categories: { base: "/api/categories" },
+  transactions: { base: "/api/transactions", infinite: true },
+  budgets: { base: "/api/budgets" },
+  dashboard: { base: "/api/dashboard" },
+  recurring: { base: "/api/recurring" },
 };
+
+// `$inf$` is useSWRInfinite's prefix for its aggregate entry.
+const KEYS = Object.fromEntries(
+  Object.entries(RESOURCES).map(([resource, { base, infinite }]) => [
+    resource,
+    new RegExp(`^${infinite ? "(\\$inf\\$)?" : ""}${base}($|[/?])`),
+  ]),
+) as Record<Resource, RegExp>;
+
+type Query = URLSearchParams | Record<string, string | number | undefined>;
+
+/**
+ * The SWR key (and fetch URL) for `resource`: base path, optional sub-path, then the query in the
+ * given order. Undefined values are dropped, so equal options give equal keys.
+ */
+export function apiKey(resource: Resource, { path, query }: { path?: string; query?: Query } = {}) {
+  const url = path ? `${RESOURCES[resource].base}/${path}` : RESOURCES[resource].base;
+  const params =
+    query instanceof URLSearchParams
+      ? query
+      : new URLSearchParams(
+          Object.entries(query ?? {}).flatMap(([name, value]) => (value === undefined ? [] : [[name, String(value)]])),
+        );
+  const search = params.toString();
+  return search ? `${url}?${search}` : url;
+}
 
 /**
  * Everything a change to each resource makes stale on the server. Each entry is complete:

@@ -10,7 +10,7 @@ Aturan "Sembunyikan nominal" hidup di satu modul. Komponen memberi angka dan men
 
 - [x] T94: `useAmountFormat` + migrasi dashboard (M)
 - [x] T95: Migrasi budgets dan recurring, buang flag `hideAmounts` dari helper format (M)
-- [ ] T96: Migrasi sisanya + tes penjaga (M)
+- [x] T96: Migrasi sisanya + tes penjaga (M)
 
 Urutan berantai: T94 → T95 → T96.
 
@@ -30,7 +30,7 @@ Urutan berantai: T94 → T95 → T96.
 
 ## Checkpoint Y
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; `amount-guard.spec.ts` hijau
-- [ ] Manual 360×800 dan 1024, light dan dark, `hideAmounts` aktif: dashboard (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y), `/budget`, `/recurring`, kartu gajian, `/transactions` (daftar, strip total, kartu penyesuaian), Kelola akun, transaksi tertunda, peringatan saldo di form. Tidak ada nominal yang terbaca
-- [ ] JS first load `/dashboard` tidak naik lebih dari 0,5 KB gzip
-- [ ] Review dengan Yogi sebelum phase 27
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; `amount-guard.spec.ts` hijau (1245 tes)
+- [ ] Manual 360×800 dan 1024, light dan dark, `hideAmounts` aktif: dashboard (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y), `/budget`, `/recurring`, kartu gajian, `/transactions` (daftar, strip total, kartu penyesuaian), Kelola akun, transaksi tertunda, peringatan saldo di form. Tidak ada nominal yang terbaca (tertunda: sesi tanpa browser; temuan statis: konfirmasi arsip akun, lihat catatan T96)
+- [x] JS first load `/dashboard` tidak naik lebih dari 0,5 KB gzip: 380,3 → 380,4 KB
+- [x] Review dengan Yogi sebelum phase 27: Yogi memilih jalan terus (2026-10-29)

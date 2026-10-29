@@ -14,17 +14,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAccounts } from "@/hooks/use-accounts";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useCategories } from "@/hooks/use-categories";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useOutbox } from "@/hooks/use-outbox";
 import { requestReplay } from "@/hooks/use-outbox-replay";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { outbox, type OutboxItem } from "@/lib/offline/outbox";
 import { formatSignedAmount, nameMap, titleOf, type Names } from "@/lib/transaction-format";
-import { useUIStore } from "@/stores/ui";
 
 function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts: Names; categories: Names }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const { body } = item;
   const title = titleOf(body, accounts, categories);
   const fee = body.type === "transfer" ? body.fee : undefined;
@@ -38,11 +37,11 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
           <p className="truncate text-sm text-muted-foreground">
             {accounts.get(body.accountId) ?? "Akun"}
             {body.description && ` · ${body.description}`}
-            {fee && ` · biaya admin ${hideAmounts ? HIDDEN_AMOUNT : formatIDR(fee.amount)}`}
+            {fee && ` · biaya admin ${money(fee.amount)}`}
           </p>
         </div>
         <p className="shrink-0 font-medium tabular-nums">
-          {hideAmounts ? HIDDEN_AMOUNT : formatSignedAmount(body.type, body.amount)}
+          {money(body.amount, (amount) => formatSignedAmount(body.type, amount))}
         </p>
       </div>
       <p className={failed ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"}>

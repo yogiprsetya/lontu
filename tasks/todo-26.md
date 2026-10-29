@@ -62,13 +62,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] `amount-guard.spec.ts` hijau, dan merah bila satu ternary lama dikembalikan sementara (dicek manual sekali)
-- [ ] `grep -rln "HIDDEN_AMOUNT" components lib` hanya `lib/money.ts`
+- [x] `amount-guard.spec.ts` hijau, dan merah bila satu ternary lama dikembalikan sementara (dicek manual sekali)
+- [x] `grep -rln "HIDDEN_AMOUNT" components lib` hanya `lib/money.ts`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/amount-guard.spec.ts` hijau
-- [ ] Manual: `/transactions`, Kelola akun, transaksi tertunda (mode pesawat), peringatan saldo di form expense
+- [x] `pnpm vitest run tests/unit/amount-guard.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): `/transactions`, Kelola akun, transaksi tertunda (mode pesawat), peringatan saldo di form expense
+
+**Catatan (2026-10-29):** Konfirmasi arsip di Kelola akun (`manage-accounts.tsx`, "Saldo saat ini …") memakai `formatIDR` langsung dan tidak disamarkan saat `hideAmounts` aktif. Perilaku itu sudah ada sebelum refactor dan dibiarkan; tes penjaga tidak menangkapnya karena hanya mencari nama. Perlu keputusan Yogi.
 
 **Dependencies:** T95
 

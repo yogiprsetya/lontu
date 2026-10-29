@@ -3,10 +3,10 @@
 import { LoadError } from "@/components/settings/load-error";
 import { TYPE_STYLES } from "@/components/transactions/type-chip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { useTransactionTotals } from "@/hooks/use-transactions";
-import { abbreviateIDR, formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { abbreviateIDR, formatIDR } from "@/lib/money";
 import type { ListFilters } from "@/lib/transaction-filters";
-import { useUIStore } from "@/stores/ui";
 
 const ITEMS = [
   { key: "income", label: "Income" },
@@ -14,8 +14,12 @@ const ITEMS = [
   { key: "saving", label: "Saving" },
 ] as const;
 
+// Full rupiah in the display font does not fit three-up at 360 px once it reaches seven digits.
+const compactIDR = (amount: number) => (amount >= 1e6 ? `Rp${abbreviateIDR(amount)}` : formatIDR(amount));
+
 export function TotalsStrip({ filters }: { filters: ListFilters }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
+  const hidden = useAmountsHidden();
   const { data, error, mutate } = useTransactionTotals(filters);
 
   if (error) return <LoadError message="Gagal memuat total." onRetry={() => void mutate()} />;
@@ -28,11 +32,8 @@ export function TotalsStrip({ filters }: { filters: ListFilters }) {
           <dd className="truncate font-heading text-lg font-extrabold tabular-nums text-foreground">
             {!data ? (
               <Skeleton className="h-6 w-full" />
-            ) : hideAmounts ? (
-              HIDDEN_AMOUNT
             ) : (
-              // Full rupiah in the display font does not fit three-up at 360 px once it reaches seven digits.
-              <span title={formatIDR(data[key])}>{data[key] >= 1e6 ? `Rp${abbreviateIDR(data[key])}` : formatIDR(data[key])}</span>
+              <span title={hidden ? undefined : formatIDR(data[key])}>{money(data[key], compactIDR)}</span>
             )}
           </dd>
         </div>

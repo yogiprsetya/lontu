@@ -167,6 +167,107 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 - **Tautan ke daftar** (dari `dashboard`): `/transactions?period=2026-10&categoryId=<uuid>&type=expense`. `period` = `YYYY-MM`, `YYYY`, atau `all`. Tanpa `period`, daftar memakai bulan berjalan (Asia/Jakarta).
 - **Antrean offline:** `pwa-offline` membutuhkan `POST` yang idempoten. Opsi `id` UUID dari client (kompatibel mundur) ditambahkan di spec modul itu, bukan di sini.
 
+### Pencatatan oleh modul lain (T104, menunggu keputusan)
+
+Masalah: `advanceRule` (`lib/server/recurring.ts`) merakit ulang urutan idempoten "replay → cek referensi → insert → balapan" dari enam ekspor modul ini (`checkAccounts`, `checkCategory`, `findReplay`, `IdConflict`, `insertSimple`, tipe `InvalidReference`). Urutan itu ditulis dua kali (di sini dan di recurring) dan cabang balapannya sudah berbeda.
+
+Batasan yang harus dipenuhi interface:
+
+1. Replay diperiksa sebelum cek referensi (akun yang diarsipkan setelah tulisan pertama tidak mengubah retry menjadi 400).
+2. Catat hanya replay bila baris tersimpan sama dengan request **dan** aturan tepat satu langkah setelah kejadian. Kecocokan ini milik recurring, jadi interface menerima predikat, bukan logika recurring.
+3. Insert berjalan di transaksi DB yang sama dengan langkah pemanggil (memajukan aturan), sesudah langkah itu, dan konflik id menggulung balik keduanya.
+4. Hasil tetap union `created` / `replayed` / `idTaken` / `invalid`, jadi `POST /api/transactions` tidak berubah.
+
+Dua ekspor dipakai kedua alternatif untuk cek referensi aturan (create/update rule): `checkSimpleReferences(userId, type, { accountId?, categoryId? })` menggantikan `checkAccounts` + `checkCategory` di recurring (ref yang tidak disebut dilewati), dan dipakai juga oleh pencatatan, jadi aturan dan transaksinya tetap divalidasi sama.
+
+#### (a) `recordSimple`: satu fungsi memegang seluruh urutan
+
+```ts
+recordSimple(userId, input: SimpleCreateInput, {
+  isOwnReplay?: (stored: TransactionCreated) => Promise<boolean> | boolean, // default: selalu true
+  before?: (tx) => Promise<boolean>,  // langkah pemanggil di transaksi DB yang sama; false = batalkan
+}): Promise<CreateResult | { aborted: true }>
+```
+
+Urutan di dalamnya (satu-satunya tempat aturan ini ditulis, kode + komentar):
+
+1. `findReplay(id)` → ada dan `isOwnReplay` → `replayed`; ada tapi bukan miliknya → `idTaken`.
+2. `checkSimpleReferences` → `invalid`.
+3. `db.transaction`: `before(tx)` (false → rollback), lalu insert dengan `onConflictDoNothing`.
+4. Konflik id → rollback, `findReplay` lagi: milik sendiri → `replayed`, selain itu `idTaken`.
+5. `before` membatalkan → `findReplay` lagi: milik sendiri → `replayed`, selain itu `aborted`.
+
+`aborted` hanya mungkin bila `before` diberikan, jadi `createTransaction` tetap mengembalikan union lama. Transfer tetap lewat `insertTransfer`, tetapi memakai inti urutan yang sama (fungsi privat `record` dengan `insert` yang bisa diganti), jadi langkah 1–4 juga satu salinan.
+
+```ts
+// createTransaction
+if (input.type !== "transfer") return recordSimple(userId, input);
+return record(userId, { id, feeId, check: () => checkReferences(input), insert: (tx) => insertTransfer(tx, input) });
+
+// advanceRule, action "post"
+let moved: Row | undefined;
+let latest = rule;
+const outcome = await recordSimple(userId, { type, id, amount, date, accountId, categoryId, description }, {
+  // Dibaca ulang tiap kali: sesudah before batal, retry paralel mungkin sudah memajukan aturan.
+  isOwnReplay: async (stored) => postMatches((latest = (await currentRule(userId, ruleId)) ?? rule), input, stored),
+  before: async (tx) => Boolean((moved = await moveRule(tx, userId, ruleId, input.occurrenceDate))),
+});
+if ("aborted" in outcome) return { stale: true };
+if ("idTaken" in outcome || "invalid" in outcome) return outcome;
+return { result: { rule: toRule(outcome.replayed ? latest : moved!), transaction: outcome.created.transaction } };
+// action "skip": tetap update bersyarat di db.transaction + Stale, tanpa modul transactions.
+```
+
+- Recurring mengimpor: `recordSimple`, `checkSimpleReferences` (dan tipe `InvalidReference`). Dari 6 nama menjadi 2 (+1 tipe).
+- Ekspor yang hilang dari luar modul: `findReplay`, `IdConflict`, `insertSimple`, `checkAccounts`, `checkCategory`, `Executor`.
+- Perubahan perilaku: tidak ada. Konflik id pada Catat kini juga melewati langkah 4, tetapi predikat pasti menolak: rollback mengembalikan aturan ke kejadian ini, sedangkan predikat menuntut aturan sudah maju satu langkah (retry paralel dari Catat yang sama berakhir di langkah 5, bukan 4, karena update bersyarat aturannya menunggu kunci baris lalu tidak menemukan baris). Hasilnya tetap `idTaken`. Ongkos: satu `select` aturan tambahan, hanya bila sudah ada baris tersimpan dengan id itu.
+- Risiko: `before` bisa disalahgunakan untuk menulis apa saja di transaksi pencatatan. Hanya recurring yang memakainya.
+
+#### (b) `prepareSimple` + `commitPrepared`: pemeriksaan di luar, insert di dalam
+
+```ts
+prepareSimple(userId, input, { isOwnReplay? }):
+  Promise<{ replayed: TransactionCreated } | { idTaken: true } | { invalid } | { ready: Prepared }>  // langkah 1–2
+commitPrepared(tx, prepared): Promise<TransactionCreated>  // langkah 3, melempar IdConflict
+```
+
+```ts
+// createTransaction (sederhana)
+const p = await prepareSimple(userId, input);
+if (!("ready" in p)) return toCreateResult(p);
+try { return { created: await db.transaction((tx) => commitPrepared(tx, p.ready)), replayed: false }; }
+catch (err) { if (!(err instanceof IdConflict)) throw err; return toCreateResult(await prepareSimple(userId, input)); }
+
+// advanceRule, action "post"
+const p = await prepareSimple(userId, txInput, { isOwnReplay: (s) => postMatches(rule, input, s) });
+if (!("ready" in p)) return toAdvance(p);
+try { return await db.transaction(async (tx) => { const moved = await moveRule(tx, …); if (!moved) throw new Stale(); … await commitPrepared(tx, p.ready) … }); }
+catch (err) {
+  if (err instanceof IdConflict) return { idTaken: true };
+  if (!(err instanceof Stale)) throw err;
+  const latest = await currentRule(userId, ruleId);
+  const again = latest && (await prepareSimple(userId, txInput, { isOwnReplay: (s) => postMatches(latest, input, s) }));
+  return again && "replayed" in again ? { result: … } : { stale: true };
+}
+```
+
+- Recurring mengimpor: `prepareSimple`, `commitPrepared`, `IdConflict`, `checkSimpleReferences` (dan tipe `InvalidReference`). Dari 6 nama menjadi 4 (+1 tipe).
+- Batasan 1 dan 2 dipenuhi `prepareSimple`; batasan 3 dipenuhi karena pemanggil memegang transaksi. Tetapi penanganan konflik dan balapan (langkah 4–5 di atas) tetap ditulis di setiap pemanggil, jadi masalah "urutan ditulis dua kali" hanya berkurang separuh.
+- Perilaku: sama. Pemeriksaan ulang setelah `Stale` menjalankan cek referensi lagi bila tidak ada replay (query sia-sia, hasilnya diabaikan).
+
+#### Perbandingan dan rekomendasi
+
+| | (a) `recordSimple` | (b) prepare/commit | Sekarang |
+| --- | --- | --- | --- |
+| Nama yang diimpor recurring | 2 (+1 tipe) | 4 (+1 tipe) | 6 |
+| Urutan replay → cek → insert → balapan ditulis | 1× | 2× (sebagian) | 2× |
+| Lolos target Checkpoint AB (≤ 2 nama) | Ya | Tidak | Tidak |
+| Perubahan perilaku | Tidak ada | Tidak ada | |
+
+Rekomendasi: **(a)**. Ia memenuhi keempat batasan dan target ≤ 2 nama, serta menghapus salinan cabang balapan. Kuncinya, kasus `Stale` menjadi `aborted`, yang ditangani modul ini dengan pemeriksaan replay yang sama.
+
+**Keputusan Yogi:** _menunggu_ (pilih (a), (b), atau batalkan phase 29).
+
 ## Deliverables
 
 ### 1. Server

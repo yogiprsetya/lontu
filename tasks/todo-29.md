@@ -12,7 +12,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Dua alternatif tertulis dengan pseudocode `advanceRule` dan `createTransaction`, jumlah ekspor, dan cara tiap batasan dipenuhi
+- [x] Dua alternatif tertulis dengan pseudocode `advanceRule` dan `createTransaction`, jumlah ekspor, dan cara tiap batasan dipenuhi
 - [ ] Keputusan Yogi dicatat di plan-29 § Keputusan
 
 **Verification:**

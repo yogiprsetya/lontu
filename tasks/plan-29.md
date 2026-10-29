@@ -22,6 +22,7 @@ Urutan berantai: T104 → T105 → T106. Bila T104 berakhir dengan "tidak lebih 
   2. Catat hanya replay bila baris tersimpan sama dengan request **dan** aturan tepat satu langkah setelah kejadian (`recurring.ts:180-192`). Kecocokan ini milik recurring, jadi interface menerima predikat pencocokan, bukan logika recurring.
   3. Insert berjalan di transaksi DB pemanggil, sesudah aturan dimajukan, dan konflik id menggulung balik keduanya.
   4. Hasil berbentuk union yang sama dengan sekarang (`created` / `replayed` / `idTaken` / `invalid`), supaya route tidak berubah.
+- **Desain T104 (2026-10-29):** dua alternatif tertulis di SPEC-transactions.md § Pencatatan oleh modul lain. Rekomendasi (a) `recordSimple` dengan `isOwnReplay` + `before`. **Keputusan Yogi: menunggu.**
 - **Di luar cakupan:** cek referensi `setBudgets` (`budgets.ts:31`, satu pesan untuk semua penolakan karena alasan privasi) tetap terpisah.
 
 ## Risiko

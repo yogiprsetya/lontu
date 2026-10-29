@@ -115,7 +115,7 @@ Hanya membaca. Param lain diabaikan.
   - **Pengeluaran per kategori:** donut + legenda (keputusan #8). Warna kategori dari token `--chart-1..5` + abu-abu untuk "Lainnya". Total expense di tengah donut.
   - **Budget Summary:** keputusan #9, progress bar dengan `role="progressbar"` seperti halaman Budget, teks status ("Hampir habis", "Melebihi budget").
   - Urutan mobile: Account Balance, kartu, Budget Summary, Expense Activity, donut. Di `lg`: dua kolom (grafik di kiri, saldo + budget di kanan).
-  - `hideAmounts`: semua nominal (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y) diganti `HIDDEN_AMOUNT` atau disembunyikan. Persen dan bentuk grafik tetap tampil.
+  - `hideAmounts`: semua nominal (kartu, saldo, legenda, tooltip, label tengah donut, sumbu Y) diganti `HIDDEN_AMOUNT` atau disembunyikan, lewat `useAmountFormat` / `useAmountsHidden` (SPEC-foundation § Util client). Persen dan bentuk grafik tetap tampil.
   - **State:** skeleton dengan tinggi sama dengan konten akhir (CLS < 0,1), error SWR per bagian dengan "Coba lagi" (bagian lain tetap tampil), periode tanpa expense → grafik diganti teks "Belum ada pengeluaran di {periode}" + tombol "Catat expense" (`/add/expense`).
 - **Aksesibilitas grafik:** setiap grafik punya judul teks dan alternatif yang terbaca screen reader (legenda donut sudah berupa daftar teks, aktivitas punya ringkasan "Total Rp…, tertinggi Rp… pada {tanggal}" dan tabel `sr-only`). Warna tidak menjadi satu-satunya pembeda.
 - **Performa:** grafik dimuat dengan `next/dynamic` di belakang skeleton supaya Recharts tidak memperberat JS awal. JS first load `/dashboard` < 200 KB gzip (SPEC.md), diukur dengan `@next/bundle-analyzer` atau output `pnpm build`.

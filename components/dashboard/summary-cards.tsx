@@ -5,13 +5,13 @@ import { ArrowDownRightIcon, ArrowUpRightIcon, MinusIcon, ScaleIcon, type Lucide
 import { LoadError } from "@/components/settings/load-error";
 import { TYPE_STYLES } from "@/components/transactions/type-chip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { changeTone, formatRangeLabel, formatShortPeriod, percentChange, type ChangeTone } from "@/lib/dashboard-format";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
+import { formatIDR } from "@/lib/money";
 import type { DashboardPeriod, DashboardSummary, DashboardTotals } from "@/lib/schemas/dashboard";
 import { filtersToUrl } from "@/lib/transaction-filters";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 const CARDS = [
   { key: "income", label: "Income", ...TYPE_STYLES.income },
@@ -37,7 +37,8 @@ function ChangeLine({ tone, icon: Icon, text }: { tone: ChangeTone; icon: Lucide
   );
 }
 
-function Change({ metric, summary, hideAmounts }: { metric: keyof DashboardTotals; summary: DashboardSummary; hideAmounts: boolean }) {
+function Change({ metric, summary }: { metric: keyof DashboardTotals; summary: DashboardSummary }) {
+  const money = useAmountFormat();
   const current = summary.totals[metric];
   const previous = summary.previousTotals[metric];
   const delta = current - previous;
@@ -48,7 +49,7 @@ function Change({ metric, summary, hideAmounts }: { metric: keyof DashboardTotal
   if (delta === 0) return <ChangeLine tone="neutral" icon={MinusIcon} text={`sama dengan ${against}`} />;
 
   // Sisa can change sign, so a percentage would mislead; it shows the difference in rupiah.
-  const size = metric === "net" ? (hideAmounts ? HIDDEN_AMOUNT : formatIDR(Math.abs(delta))) : `${Math.abs(percent ?? 0)}%`;
+  const size = metric === "net" ? money(Math.abs(delta)) : `${Math.abs(percent ?? 0)}%`;
   return (
     <ChangeLine
       tone={changeTone(metric, delta)}
@@ -59,7 +60,8 @@ function Change({ metric, summary, hideAmounts }: { metric: keyof DashboardTotal
 }
 
 export function SummaryCards({ period }: { period: DashboardPeriod }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
+  const hidden = useAmountsHidden();
   const { data, error, mutate } = useDashboard(period);
 
   if (error) return <LoadError message="Gagal memuat ringkasan." onRetry={() => void mutate()} />;
@@ -86,12 +88,12 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
                 {label}
               </span>
               <span
-                className={cn("truncate font-heading text-lg font-extrabold tabular-nums text-foreground sm:text-2xl", key === "net" && !hideAmounts && amount < 0 && "text-expense")}
-                title={hideAmounts ? undefined : formatIDR(amount)}
+                className={cn("truncate font-heading text-lg font-extrabold tabular-nums text-foreground sm:text-2xl", key === "net" && !hidden && amount < 0 && "text-expense")}
+                title={hidden ? undefined : formatIDR(amount)}
               >
-                {hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount)}
+                {money(amount)}
               </span>
-              <Change metric={key} summary={data} hideAmounts={hideAmounts} />
+              <Change metric={key} summary={data} />
             </>
           );
           return (

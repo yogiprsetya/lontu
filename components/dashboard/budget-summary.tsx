@@ -8,25 +8,24 @@ import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useBudgets } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
-import { budgetTransactionsHref, formatBudgetAmount, groupStatus, statusLabel } from "@/lib/budget-format";
+import { budgetTransactionsHref, groupStatus, statusLabel } from "@/lib/budget-format";
 import { budgetHighlights } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
-import { useUIStore } from "@/stores/ui";
 
 const LINK_CLASS = "inline-flex min-h-11 items-center text-sm font-medium underline-offset-4 hover:underline";
 
 function MonthBudget({ period }: { period: DashboardPeriod }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
   const usage = useBudgets(period);
   const categories = useCategories({ includeArchived: true });
   const names = useMemo(() => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])), [categories.data]);
-  const money = (amount: number) => formatBudgetAmount(amount, hideAmounts);
   const budgetHref = `/budget?period=${period}`;
 
   if (usage.error) return <LoadError message="Gagal memuat budget." onRetry={() => void usage.mutate()} />;

@@ -23,6 +23,11 @@ export function formatIDR(amount: number): string {
   return idrFormatter.format(amount).replace(/\s/g, "");
 }
 
+/** `format(amount)`, or HIDDEN_AMOUNT while amounts are hidden. Components use `useAmountFormat` instead. */
+export function displayAmount(amount: number, hidden: boolean, format: (amount: number) => string = formatIDR) {
+  return hidden ? HIDDEN_AMOUNT : format(amount);
+}
+
 export function parseIDR(input: string): number | null {
   const digits = input.replace(/\D/g, "");
   return digits === "" ? null : Number(digits);

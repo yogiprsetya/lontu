@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { abbreviateIDR, formatIDR, formatThousands, parseIDR } from "@/lib/money";
+import { abbreviateIDR, displayAmount, formatIDR, formatThousands, HIDDEN_AMOUNT, parseIDR } from "@/lib/money";
 
 describe("formatIDR", () => {
   it("formats rupiah with dot thousands separator and no space", () => {
@@ -86,5 +86,21 @@ describe("abbreviateIDR", () => {
 
   it("keeps the sign for negative amounts", () => {
     expect(abbreviateIDR(-1_200_000)).toBe("-1,2 jt");
+  });
+});
+
+describe("displayAmount", () => {
+  it("hides any amount behind HIDDEN_AMOUNT", () => {
+    expect(displayAmount(1500, true)).toBe(HIDDEN_AMOUNT);
+    expect(displayAmount(-2e6, true, abbreviateIDR)).toBe(HIDDEN_AMOUNT);
+  });
+
+  it("formats with formatIDR by default", () => {
+    expect(displayAmount(1500, false)).toBe(formatIDR(1500));
+  });
+
+  it("uses the given formatter when shown", () => {
+    expect(displayAmount(-2e6, false, abbreviateIDR)).toBe(abbreviateIDR(-2e6));
+    expect(displayAmount(1500, false, (n) => `+${formatIDR(n)}`)).toBe(`+${formatIDR(1500)}`);
   });
 });

@@ -12,14 +12,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] `displayAmount(1500, true) === HIDDEN_AMOUNT`, `displayAmount(1500, false) === formatIDR(1500)`, `displayAmount(-2e6, false, abbreviateIDR) === abbreviateIDR(-2e6)`
-- [ ] Tidak ada berkas di `components/dashboard/` selain `hide-amounts-button.tsx` yang menyebut `hideAmounts` atau `HIDDEN_AMOUNT`
-- [ ] Dashboard terlihat identik dengan sebelum task dalam kedua mode (bandingkan screenshot 360×800)
+- [x] `displayAmount(1500, true) === HIDDEN_AMOUNT`, `displayAmount(1500, false) === formatIDR(1500)`, `displayAmount(-2e6, false, abbreviateIDR) === abbreviateIDR(-2e6)`
+- [x] Tidak ada berkas di `components/dashboard/` selain `hide-amounts-button.tsx` yang menyebut `hideAmounts` atau `HIDDEN_AMOUNT`
+- [ ] Dashboard terlihat identik dengan sebelum task dalam kedua mode (bandingkan screenshot 360×800) (tertunda: sesi tanpa browser)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/money.spec.ts tests/unit/dashboard-format.spec.ts` hijau
-- [ ] Manual: semua butir SPEC-dashboard § `hideAmounts`
+- [x] `pnpm vitest run tests/unit/money.spec.ts tests/unit/dashboard-format.spec.ts` hijau
+- [ ] Manual: semua butir SPEC-dashboard § `hideAmounts` (tertunda: sesi tanpa browser)
+
+**Catatan (2026-10-29):** `useAmountsHidden()` ditambahkan di berkas hook yang sama untuk hal yang bukan teks (warna saldo negatif, sumbu Y dan tooltip grafik, `title` kartu ringkasan), supaya tampilannya tidak berubah. `ExpenseActivityChart` membaca hook itu sendiri, tidak lagi lewat prop.
 
 **Dependencies:** Checkpoint X
 

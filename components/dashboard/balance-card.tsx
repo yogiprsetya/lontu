@@ -6,8 +6,8 @@ import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
+import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { sumBalances } from "@/lib/dashboard-format";
-import { formatIDR, HIDDEN_AMOUNT } from "@/lib/money";
 import { ACCOUNT_TYPE_LABELS, ACCOUNT_TYPES } from "@/lib/schemas/account";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { filtersToUrl } from "@/lib/transaction-filters";
@@ -33,11 +33,11 @@ const HERO_BUTTON_CLASS = "h-11 rounded-full bg-sunny-foreground px-5 text-base 
 
 /** Balances are always today's, whatever the period; the period only scopes the drill-down. */
 export function BalanceCard({ period }: { period: DashboardPeriod }) {
-  const hideAmounts = useUIStore((s) => s.hideAmounts);
+  const money = useAmountFormat();
+  const hidden = useAmountsHidden();
   const openModal = useUIStore((s) => s.open);
   const { data, error, mutate } = useAccounts();
-  const money = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : formatIDR(amount));
-  const tone = (amount: number) => !hideAmounts && amount < 0 && "text-sunny-alert";
+  const tone = (amount: number) => !hidden && amount < 0 && "text-sunny-alert";
 
   if (error) return <LoadError message="Gagal memuat saldo." onRetry={() => void mutate()} />;
   if (!data) return <Skeleton className="mt-5 h-52 w-full rounded-[1.75rem]" aria-busy="true" />;

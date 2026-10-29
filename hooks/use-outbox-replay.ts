@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { invalidate } from "@/lib/cache-invalidation";
-import { outbox, type OutboxBody } from "@/lib/offline/outbox";
+import { outbox } from "@/lib/offline/outbox";
 import { replayOutbox, type ReplayResult } from "@/lib/offline/replay";
+import { sendCreate } from "@/lib/offline/submission";
 
 const REPLAY_EVENT = "lontu:replay";
 const INTERVAL_MS = 30_000;
@@ -13,15 +14,6 @@ const INTERVAL_MS = 30_000;
 /** Starts a replay pass now, e.g. from "Kirim sekarang" or "Coba lagi". */
 export function requestReplay() {
   window.dispatchEvent(new Event(REPLAY_EVENT));
-}
-
-function send(body: OutboxBody) {
-  return fetch("/api/transactions", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(10_000),
-  });
 }
 
 // Two tabs coming back online would otherwise both send; the client ids already stop duplicates,
@@ -39,7 +31,7 @@ export function useOutboxReplay(userId: string | undefined) {
 
     const replay = async () => {
       if (!navigator.onLine) return;
-      const result = await withOutboxLock(() => replayOutbox({ outbox, send, userId }));
+      const result = await withOutboxLock(() => replayOutbox({ outbox, send: sendCreate, userId }));
       if (result?.sent) await invalidate("transactions");
       if (result?.stopped === "auth") {
         toast("Masuk lagi untuk mengirim transaksi tertunda", {

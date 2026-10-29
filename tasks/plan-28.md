@@ -8,7 +8,7 @@ Satu modul memiliki seluruh hidup sebuah create transaksi di client: id dari cli
 
 ## Task
 
-- [ ] T101: Satu jalur kirim dan satu parser error untuk online dan replay (M, risiko tinggi)
+- [x] T101: Satu jalur kirim dan satu parser error untuk online dan replay (M, risiko tinggi)
 - [ ] T102: `startReplay` yang bisa dites, hook tinggal pemasang (M)
 - [ ] T103: Form dan daftar tertunda tanpa `userId`, `outbox`, atau toast antre sendiri (M)
 

@@ -12,14 +12,16 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Hanya satu `AbortSignal.timeout` untuk create dan hanya satu parser body error (`lib/fetcher.ts`)
-- [ ] `replay.spec.ts`: semua assertion lama tetap, hanya stub `send` berubah dari mengembalikan `Response` menjadi melempar `ApiError`/`TypeError`
-- [ ] Kasus baru: 200/201 hapus, 401 berhenti `auth`, 400 dengan `fields` → `failed` dengan pesan field pertama, 409 `TRANSACTION_ID_TAKEN` → `failed`, 500 dan timeout → `bump` + berhenti `network`
+- [x] Hanya satu `AbortSignal.timeout` untuk create dan hanya satu parser body error (`lib/fetcher.ts`)
+- [x] `replay.spec.ts`: semua assertion lama tetap, hanya stub `send` berubah dari mengembalikan `Response` menjadi melempar `ApiError`/`TypeError`
+- [x] Kasus baru: 200/201 hapus, 401 berhenti `auth`, 400 dengan `fields` → `failed` dengan pesan field pertama, 409 `TRANSACTION_ID_TAKEN` → `failed`, 500 dan timeout → `bump` + berhenti `network`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/replay.spec.ts tests/unit/use-transactions.spec.ts tests/unit/fetcher.spec.ts tests/unit/submission.spec.ts` hijau
-- [ ] `pnpm vitest run tests/api/transactions-idempotency.spec.ts` hijau tanpa diedit
+- [x] `pnpm vitest run tests/unit/replay.spec.ts tests/unit/use-transactions.spec.ts tests/unit/fetcher.spec.ts tests/unit/submission.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/transactions-idempotency.spec.ts` hijau tanpa diedit
+
+**Catatan (2026-10-29):** Status di luar 4xx (mis. 302) tetap dianggap galat jaringan seperti sebelumnya. `createTransaction` masih di `hooks/use-transactions.ts` dan memakai `sendCreate`; pemindahannya ke `lib/offline/submission.ts` di T103. Tes baru: 500, timeout (`TimeoutError`), dan status non-4xx di `replay.spec.ts`; `submission.spec.ts` untuk `sendCreate`.
 
 **Dependencies:** Checkpoint Z
 

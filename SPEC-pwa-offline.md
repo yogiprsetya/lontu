@@ -131,7 +131,8 @@ Urutan di server: parse Zod → **cek replay** → cek referensi → insert.
 
 - `lib/offline/network-error.ts` (murni): `isNetworkError(err)` (TypeError dari fetch, `AbortError`/`TimeoutError`).
 - `lib/offline/outbox.ts`: `enqueue`, `list(userId)`, `markFailed`, `remove`, `retry(id)` (kembali ke `pending`), `subscribe`, adapter penyimpanan yang bisa diganti.
-- `lib/offline/replay.ts`: `replayOutbox({ outbox, send, userId })` mengembalikan `{ sent, failed, stopped: "auth" | "network" | null }`. `send` diinjeksi supaya bisa dites tanpa jaringan. Pemicu dan Web Lock di `hooks/use-outbox-replay.ts`.
+- `lib/offline/submission.ts`: `sendCreate(body)`, satu-satunya jalur kirim create ke `POST /api/transactions` (lewat `sendJSON`, timeout `SEND_TIMEOUT_MS = 10_000`), dipakai create online dan replay.
+- `lib/offline/replay.ts`: `replayOutbox({ outbox, send, userId })` mengembalikan `{ sent, failed, stopped: "auth" | "network" | null }`. `send` diinjeksi supaya bisa dites tanpa jaringan; ia selesai saat 2xx dan melempar `ApiError` (parser `lib/fetcher.ts`) atau error jaringan. Klasifikasi tabel keputusan #10 dibaca dari `ApiError.status`; selain `ApiError` 4xx dianggap galat jaringan. Pemicu dan Web Lock di `hooks/use-outbox-replay.ts`.
 - `lib/offline/clear.ts`: `clearOfflineData(userId)` (cache SW + item outbox user itu), `ensureCacheOwner(userId)`.
 - `lib/offline/install.ts` (murni): `installPromptState({ standalone, isIOSSafari, hasPromptEvent, dismissedAt, now })` → `"hidden" | "prompt" | "ios-instructions"`.
 - `hooks/use-online-status.ts`, `hooks/use-outbox.ts` (`useSyncExternalStore`), `hooks/use-install-prompt.ts`.

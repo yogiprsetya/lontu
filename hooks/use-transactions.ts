@@ -6,6 +6,7 @@ import { apiKey, invalidate, isResourceKey, removeOptimistically } from "@/lib/c
 import { sendJSON } from "@/lib/fetcher";
 import { isNetworkError } from "@/lib/offline/network-error";
 import { outbox as defaultOutbox, type Outbox, type OutboxBody } from "@/lib/offline/outbox";
+import { sendCreate } from "@/lib/offline/submission";
 import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
 import type { Transaction, TransactionCreated, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
@@ -15,8 +16,6 @@ export function isInfiniteTransactionsKey(key: unknown) {
 }
 
 export type CreateOutcome = { status: "sent"; created: TransactionCreated } | { status: "queued"; id: string };
-
-const SEND_TIMEOUT_MS = 10_000;
 
 let persistRequested = false;
 
@@ -51,9 +50,7 @@ export async function createTransaction(
   if (!navigator.onLine) return queue(new TypeError("Offline"));
   let created: TransactionCreated;
   try {
-    created = await sendJSON<TransactionCreated>("/api/transactions", "POST", body, {
-      signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
-    });
+    created = await sendCreate(body);
   } catch (err) {
     if (isNetworkError(err)) return queue(err);
     throw err;

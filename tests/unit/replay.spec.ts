@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/lib/fetcher";
 import { createOutbox } from "@/lib/offline/outbox";
 import { replayOutbox } from "@/lib/offline/replay";
 import type { KeyValueStore } from "@/lib/offline/storage";
@@ -31,7 +32,10 @@ function body(id: string): TransactionCreateInput & { id: string } {
   };
 }
 
-const json = (status: number, payload: unknown = {}) => new Response(JSON.stringify(payload), { status });
+// `send` resolves on 2xx and throws what sendJSON throws: ApiError for any other HTTP status.
+const sentOk = () => Promise.resolve({});
+const httpError = (status: number, code = "X", message = "x", fields?: Record<string, string[]>) =>
+  Promise.reject(new ApiError(status, code, message, fields));
 
 async function outboxWith(...items: [userId: string, id: string][]) {
   const outbox = createOutbox(mapStore(), clock());
@@ -42,7 +46,7 @@ async function outboxWith(...items: [userId: string, id: string][]) {
 describe("replayOutbox", () => {
   it("sends pending items oldest first and removes them on 201 or 200", async () => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-a", "t2"]);
-    const send = vi.fn().mockResolvedValueOnce(json(201)).mockResolvedValueOnce(json(200));
+    const send = vi.fn().mockImplementationOnce(sentOk).mockImplementationOnce(sentOk);
 
     const result = await replayOutbox({ outbox, send, userId: "user-a" });
 
@@ -53,10 +57,8 @@ describe("replayOutbox", () => {
 
   it.each([400, 409])("marks a %i failed with the server message and moves on", async (status) => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-a", "t2"]);
-    const rejected = json(status, {
-      error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { accountId: ["Akun sudah diarsipkan"] } },
-    });
-    const send = vi.fn().mockResolvedValueOnce(rejected).mockResolvedValueOnce(json(201));
+    const rejected = () => httpError(status, "VALIDATION_ERROR", "Data tidak valid", { accountId: ["Akun sudah diarsipkan"] });
+    const send = vi.fn().mockImplementationOnce(rejected).mockImplementationOnce(sentOk);
 
     const result = await replayOutbox({ outbox, send, userId: "user-a" });
 
@@ -72,7 +74,7 @@ describe("replayOutbox", () => {
 
   it("uses the error message when there are no field errors", async () => {
     const outbox = await outboxWith(["user-a", "t1"]);
-    const send = vi.fn().mockResolvedValue(json(409, { error: { code: "TRANSACTION_ID_TAKEN", message: "Id sudah dipakai" } }));
+    const send = vi.fn(() => httpError(409, "TRANSACTION_ID_TAKEN", "Id sudah dipakai"));
 
     await replayOutbox({ outbox, send, userId: "user-a" });
 
@@ -81,7 +83,7 @@ describe("replayOutbox", () => {
 
   it("stops on 401 and leaves the rest pending", async () => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-a", "t2"]);
-    const send = vi.fn().mockResolvedValue(json(401));
+    const send = vi.fn(() => httpError(401, "UNAUTHORIZED"));
 
     const result = await replayOutbox({ outbox, send, userId: "user-a" });
 
@@ -95,7 +97,10 @@ describe("replayOutbox", () => {
 
   it.each([
     ["a network error", () => Promise.reject(new TypeError("Failed to fetch"))],
-    ["a 5xx", () => Promise.resolve(json(503))],
+    ["a 5xx", () => httpError(503)],
+    ["a 500", () => httpError(500, "INTERNAL")],
+    ["a timeout", () => Promise.reject(new DOMException("signal timed out", "TimeoutError"))],
+    ["a non-4xx status", () => httpError(302)],
   ])("stops on %s and counts the attempt", async (_, response) => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-a", "t2"]);
     const send = vi.fn(response);
@@ -110,7 +115,7 @@ describe("replayOutbox", () => {
   it("skips failed items and other users' items", async () => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-b", "t2"], ["user-a", "t3"]);
     await outbox.markFailed("t1", { message: "x" });
-    const send = vi.fn().mockResolvedValue(json(201));
+    const send = vi.fn().mockImplementation(sentOk);
 
     const result = await replayOutbox({ outbox, send, userId: "user-a" });
 

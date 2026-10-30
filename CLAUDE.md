@@ -17,6 +17,7 @@ If a decision changes, update the relevant spec first, then the code.
 
 ```bash
 pnpm dev | build | start | lint
+pnpm format | format:check  # prettier
 pnpm typecheck           # tsc --noEmit
 pnpm test                # vitest run (unit + API against Supabase via DATABASE_URL)
 pnpm test:e2e            # playwright (deferred, not set up yet)
@@ -55,7 +56,7 @@ Before every commit: `pnpm lint && pnpm typecheck && pnpm test`. Conventional co
 - Zod v4: `z.uuid()`, `z.flattenError(err)`. Not `z.string().uuid()` or `.flatten()`.
 - Server-only modules start with `import "server-only"`; client components with `"use client"`.
 - TypeScript strict, alias `@/*`. Files kebab-case, components PascalCase, hooks `useX`.
-- Match the formatting of existing files (double quotes). Don't reformat untouched files.
+- Prettier (`.prettierrc.json`) owns formatting; lint-staged runs it on commit. Run `pnpm format` only in a dedicated commit, and add that commit to `.git-blame-ignore-revs`.
 - Don't hand-edit `components/ui/`; add or update components via the shadcn CLI. One exception: `button.tsx` sizes `default` and `lg` use `px-4` (registry `px-2.5`). Re-apply it after any `shadcn add button --overwrite`.
 - Comments only for reasons not visible in the code.
 - Mobile: layout must work at 360 px, touch targets ≥ 44×44 px, input font 16 px, text contrast ≥ 4.5:1.

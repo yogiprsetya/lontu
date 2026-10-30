@@ -24,7 +24,11 @@ describe("API error helpers", () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({
-      error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { name: ["Wajib diisi"] } },
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Data tidak valid",
+        fields: { name: ["Wajib diisi"] },
+      },
     });
   });
 
@@ -50,7 +54,9 @@ describe("API error helpers", () => {
   it("conflict returns 409 with the given code and message", async () => {
     const res = conflict("ACCOUNT_NAME_TAKEN", "Nama akun sudah dipakai");
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: { code: "ACCOUNT_NAME_TAKEN", message: "Nama akun sudah dipakai" } });
+    expect(await res.json()).toEqual({
+      error: { code: "ACCOUNT_NAME_TAKEN", message: "Nama akun sudah dipakai" },
+    });
   });
 
   it("serverError hides the cause from the client and logs it on the server", async () => {
@@ -69,7 +75,11 @@ describe("API error helpers", () => {
     const res = fieldError("accountId", "Akun tidak ditemukan");
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({
-      error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { accountId: ["Akun tidak ditemukan"] } },
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Data tidak valid",
+        fields: { accountId: ["Akun tidak ditemukan"] },
+      },
     });
   });
 

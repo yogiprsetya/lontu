@@ -1,7 +1,12 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { useAmountsHidden } from "@/hooks/use-amount-format";
 import { formatBucket } from "@/lib/dashboard-format";
 import { abbreviateIDR, formatIDR } from "@/lib/money";
@@ -37,7 +42,9 @@ export default function ExpenseActivityChart({ activity }: Props) {
             cursor
             content={
               <ChartTooltipContent
-                labelFormatter={(_, payload) => formatBucket(String(payload[0]?.payload?.bucket ?? ""), "full")}
+                labelFormatter={(_, payload) =>
+                  formatBucket(String(payload[0]?.payload?.bucket ?? ""), "full")
+                }
                 formatter={(value) => formatIDR(Number(value))}
                 hideIndicator
               />

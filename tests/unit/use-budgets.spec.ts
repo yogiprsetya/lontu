@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BudgetUsage } from "@/lib/schemas/budget";
 
-vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
+vi.mock("swr", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("swr")>()),
+  mutate: vi.fn(),
+}));
 
 const { mutate } = await import("swr");
-const { budgetSuggestionKey, budgetsKey, copyBudgets, deleteBudget, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
+const { budgetSuggestionKey, budgetsKey, copyBudgets, deleteBudget, restoreBudget, setBudgets } =
+  await import("@/hooks/use-budgets");
 const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -13,12 +17,17 @@ const budgetKey = "/api/budgets?period=2026-10";
 
 /** True when some mutate call received a matcher that accepts `key`. */
 function revalidated(key: string) {
-  return mockedMutate.mock.calls.some(([matcher]) => typeof matcher === "function" && (matcher as (k: unknown) => boolean)(key));
+  return mockedMutate.mock.calls.some(
+    ([matcher]) => typeof matcher === "function" && (matcher as (k: unknown) => boolean)(key),
+  );
 }
 
 beforeEach(() => {
   mockedMutate.mockReset();
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({})));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => Response.json({})),
+  );
 });
 
 afterEach(() => {
@@ -32,18 +41,28 @@ describe("budgets SWR keys", () => {
 
   it("builds the suggestion key, with income only when typed", () => {
     expect(budgetSuggestionKey("2026-10")).toBe("/api/budgets/suggestion?period=2026-10");
-    expect(budgetSuggestionKey("2026-10", 7_777_777)).toBe("/api/budgets/suggestion?period=2026-10&income=7777777");
-    expect(budgetSuggestionKey("2026-10", 0)).toBe("/api/budgets/suggestion?period=2026-10&income=0");
+    expect(budgetSuggestionKey("2026-10", 7_777_777)).toBe(
+      "/api/budgets/suggestion?period=2026-10&income=7777777",
+    );
+    expect(budgetSuggestionKey("2026-10", 0)).toBe(
+      "/api/budgets/suggestion?period=2026-10&income=0",
+    );
     expect(isResourceKey("budgets", budgetSuggestionKey("2026-10"))).toBe(true);
   });
 
-  it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])("matches %s", (key) => {
-    expect(isResourceKey("budgets", key)).toBe(true);
-  });
+  it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])(
+    "matches %s",
+    (key) => {
+      expect(isResourceKey("budgets", key)).toBe(true);
+    },
+  );
 
-  it.each([["/api/budgetsx"], ["/api/transactions"], [undefined], [[budgetKey]]])("does not match %j", (key) => {
-    expect(isResourceKey("budgets", key)).toBe(false);
-  });
+  it.each([["/api/budgetsx"], ["/api/transactions"], [undefined], [[budgetKey]]])(
+    "does not match %j",
+    (key) => {
+      expect(isResourceKey("budgets", key)).toBe(false);
+    },
+  );
 });
 
 describe("cross-module revalidation", () => {
@@ -68,9 +87,15 @@ describe("cross-module revalidation", () => {
   });
 
   it("setBudgets sends one PUT and refreshes budget usage", async () => {
-    const input = { period: "2026-10", items: [{ categoryId: "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b", amount: 1 }] };
+    const input = {
+      period: "2026-10",
+      items: [{ categoryId: "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b", amount: 1 }],
+    };
     await setBudgets(input);
-    expect(fetch).toHaveBeenCalledWith("/api/budgets", expect.objectContaining({ method: "PUT", body: JSON.stringify(input) }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/budgets",
+      expect.objectContaining({ method: "PUT", body: JSON.stringify(input) }),
+    );
     expect(revalidated(budgetKey)).toBe(true);
   });
 });
@@ -109,19 +134,27 @@ describe("deleteBudget", () => {
     const next = optimisticUpdate()(usage)!;
     expect(next.items[0]).toMatchObject({ budgetId: null, budget: null, status: "none" });
     expect(next.summary.total).toEqual({ budget: 0, spent: 50, unbudgetedSpent: 50 });
-    expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-makan", expect.objectContaining({ method: "DELETE" }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/budgets/budget-makan",
+      expect.objectContaining({ method: "DELETE" }),
+    );
     expect(revalidated(budgetKey)).toBe(true);
   });
 
   it("revalidates to roll back and rethrows when the server refuses", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ error: { code: "INTERNAL", message: "x" } }, { status: 500 }));
+    vi.mocked(fetch).mockResolvedValueOnce(
+      Response.json({ error: { code: "INTERNAL", message: "x" } }, { status: 500 }),
+    );
     await expect(deleteBudget("2026-10", "budget-makan")).rejects.toMatchObject({ status: 500 });
     expect(revalidated(budgetKey)).toBe(true);
   });
 
   it("restoreBudget posts to restore and revalidates", async () => {
     await restoreBudget("budget-makan");
-    expect(fetch).toHaveBeenCalledWith("/api/budgets/budget-makan/restore", expect.objectContaining({ method: "POST" }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/budgets/budget-makan/restore",
+      expect.objectContaining({ method: "POST" }),
+    );
     expect(revalidated(budgetKey)).toBe(true);
   });
 });

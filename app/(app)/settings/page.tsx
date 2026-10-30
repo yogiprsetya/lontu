@@ -7,7 +7,15 @@ import { ThemeToggle } from "@/components/settings/theme-toggle";
 
 export const metadata: Metadata = { title: "Settings" };
 
-function Section({ title, framed, children }: { title: string; framed?: boolean; children: React.ReactNode }) {
+function Section({
+  title,
+  framed,
+  children,
+}: {
+  title: string;
+  framed?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <section aria-labelledby={`settings-${title}`} className="flex flex-col gap-3">
       <h2 id={`settings-${title}`} className="font-heading text-xl font-bold">

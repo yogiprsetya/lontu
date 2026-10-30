@@ -59,7 +59,9 @@ type Lock = (run: () => Promise<ReplayResult>) => Promise<ReplayResult | null>;
 // the lock just avoids the wasted requests.
 export const outboxLock: Lock = async (run) => {
   if (!navigator.locks) return run();
-  return navigator.locks.request("lontu-outbox", { ifAvailable: true }, (lock) => (lock ? run() : null));
+  return navigator.locks.request("lontu-outbox", { ifAvailable: true }, (lock) =>
+    lock ? run() : null,
+  );
 };
 
 /**

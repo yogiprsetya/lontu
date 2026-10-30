@@ -27,7 +27,11 @@ export function PageWave() {
         color,
       )}
     >
-      <svg viewBox="0 0 400 48" preserveAspectRatio="none" className="block h-12 w-full fill-current">
+      <svg
+        viewBox="0 0 400 48"
+        preserveAspectRatio="none"
+        className="block h-12 w-full fill-current"
+      >
         <path d="M0 30 C 90 -6, 190 4, 270 20 S 380 34, 400 12 L 400 48 L 0 48 Z" />
       </svg>
       <div className="-mt-px h-full bg-current" />

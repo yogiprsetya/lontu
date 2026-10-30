@@ -23,7 +23,10 @@ export function SectionTitle({
 }) {
   return (
     <h2 id={id} className="flex items-center gap-2.5 font-heading text-lg font-bold">
-      <span aria-hidden className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", TONES[tone])}>
+      <span
+        aria-hidden
+        className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", TONES[tone])}
+      >
         <Icon className="size-[18px]" />
       </span>
       {children}

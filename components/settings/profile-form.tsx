@@ -16,7 +16,9 @@ import { LoadError } from "./load-error";
 import { failureMessage } from "@/lib/offline/network-error";
 import { inputClass } from "@/components/forms/field-styles";
 
-const formSchema = profileSchema.pick({ displayName: true, phone: true, location: true }).required();
+const formSchema = profileSchema
+  .pick({ displayName: true, phone: true, location: true })
+  .required();
 type FormValues = z.input<typeof formSchema>;
 
 export function ProfileSection() {
@@ -55,7 +57,8 @@ function ProfileForm({ profile }: { profile: Profile }) {
       await updateProfile({ displayName, phone: phone || null, location: location || null });
       toast.success("Profil disimpan");
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan profil. Coba lagi."));
+      if (!applyServerErrors(err, setError))
+        toast.error(failureMessage(err, "Gagal menyimpan profil. Coba lagi."));
     }
   });
 

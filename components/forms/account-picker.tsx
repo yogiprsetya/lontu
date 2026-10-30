@@ -4,7 +4,13 @@ import { useEffect } from "react";
 import { PlusIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { archiveLabel, selectableItems } from "@/lib/archived";
 import { useAccounts } from "@/hooks/use-accounts";
@@ -24,7 +30,15 @@ type AccountPickerProps = {
 };
 
 /** Active accounts only. With exactly one choice it is picked for the user. */
-export function AccountPicker({ id, value, onChange, exclude, keep, invalid, describedBy }: AccountPickerProps) {
+export function AccountPicker({
+  id,
+  value,
+  onChange,
+  exclude,
+  keep,
+  invalid,
+  describedBy,
+}: AccountPickerProps) {
   const { data: all, error, mutate } = useAccounts({ includeArchived: !!keep });
   const data = all && selectableItems(all, keep).filter((a) => a.id !== exclude);
   const open = useUIStore((s) => s.open);
@@ -41,7 +55,12 @@ export function AccountPicker({ id, value, onChange, exclude, keep, invalid, des
     return (
       <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Belum ada akun aktif.</p>
-        <Button type="button" variant="outline" className="h-11 text-base" onClick={() => open("manageAccounts")}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 text-base"
+          onClick={() => open("manageAccounts")}
+        >
           <PlusIcon aria-hidden />
           Tambah akun
         </Button>

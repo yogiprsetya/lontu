@@ -39,7 +39,12 @@ function Row({ t, accounts, categories }: { t: Transaction; accounts: Names; cat
             {t.description && ` · ${t.description}`}
           </p>
         </div>
-        <p className={cn("shrink-0 font-bold tabular-nums", AMOUNT_TONE_CLASS[amountTone(t.type, t.amount)])}>
+        <p
+          className={cn(
+            "shrink-0 font-bold tabular-nums",
+            AMOUNT_TONE_CLASS[amountTone(t.type, t.amount)],
+          )}
+        >
           {money(t.amount, (amount) => formatSignedAmount(t.type, amount))}
         </p>
       </Link>
@@ -104,7 +109,10 @@ function SavedTransactions({ filters }: { filters: ListFilters }) {
     <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <section key={group.date} aria-labelledby={`day-${group.date}`}>
-          <h2 id={`day-${group.date}`} className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
+          <h2
+            id={`day-${group.date}`}
+            className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+          >
             {formatDateHeading(group.date, today)}
           </h2>
           <ul className="surface divide-y px-4">

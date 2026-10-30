@@ -28,9 +28,7 @@ export function Greeting() {
       <PageTitle className="truncate">
         {firstName ? `Halo, ${firstName}` : "Halo!"} <span aria-hidden>👋</span>
       </PageTitle>
-      <p className="truncate text-sm font-semibold text-muted-foreground">
-        {today ?? "\u00a0"}
-      </p>
+      <p className="truncate text-sm font-semibold text-muted-foreground">{today ?? "\u00a0"}</p>
     </div>
   );
 }

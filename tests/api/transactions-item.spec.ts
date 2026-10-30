@@ -40,30 +40,51 @@ function patch(id: string, body: unknown) {
 }
 
 function del(id: string) {
-  return itemRoute.DELETE(new Request(`http://localhost/api/transactions/${id}`, { method: "DELETE" }), ctx(id));
+  return itemRoute.DELETE(
+    new Request(`http://localhost/api/transactions/${id}`, { method: "DELETE" }),
+    ctx(id),
+  );
 }
 
 function restore(id: string) {
-  return restoreRoute.POST(new Request(`http://localhost/api/transactions/${id}/restore`, { method: "POST" }), ctx(id));
+  return restoreRoute.POST(
+    new Request(`http://localhost/api/transactions/${id}/restore`, { method: "POST" }),
+    ctx(id),
+  );
 }
 
 async function accountOf(accountId: string) {
-  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
-  return ((await res.json()) as { id: string; balance: number; initialBalance: number }[]).find((a) => a.id === accountId)!;
+  const res = await accountsRoute.GET(
+    new Request("http://localhost/api/accounts?include=archived"),
+    noParams,
+  );
+  return ((await res.json()) as { id: string; balance: number; initialBalance: number }[]).find(
+    (a) => a.id === accountId,
+  )!;
 }
 
 async function expenseTotal() {
-  const res = await totalsRoute.GET(new Request("http://localhost/api/transactions/totals"), noParams);
+  const res = await totalsRoute.GET(
+    new Request("http://localhost/api/transactions/totals"),
+    noParams,
+  );
   return (await res.json()).expense as number;
 }
 
 async function balanceOf(accountId: string) {
-  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
-  return ((await res.json()) as { id: string; balance: number }[]).find((a) => a.id === accountId)?.balance;
+  const res = await accountsRoute.GET(
+    new Request("http://localhost/api/accounts?include=archived"),
+    noParams,
+  );
+  return ((await res.json()) as { id: string; balance: number }[]).find((a) => a.id === accountId)
+    ?.balance;
 }
 
 async function listIds() {
-  const res = await listRoute.GET(new Request("http://localhost/api/transactions?limit=100"), noParams);
+  const res = await listRoute.GET(
+    new Request("http://localhost/api/transactions?limit=100"),
+    noParams,
+  );
   return ((await res.json()).items as Transaction[]).map((t) => t.id);
 }
 
@@ -81,12 +102,21 @@ let funded: string;
 let other: string;
 let archived: string;
 let foreign: string;
-let cat: Record<"spending" | "spending2" | "archivedSpending" | "foreignSpending" | "income", string>;
+let cat: Record<
+  "spending" | "spending2" | "archivedSpending" | "foreignSpending" | "income",
+  string
+>;
 
 async function insertAccount(userId: string, name: string, initialBalance = 0, archivedAt?: Date) {
   const [row] = await db
     .insert(accounts)
-    .values({ userId, name: `${name} ${randomUUID()}`, type: "transaction", initialBalance, archivedAt })
+    .values({
+      userId,
+      name: `${name} ${randomUUID()}`,
+      type: "transaction",
+      initialBalance,
+      archivedAt,
+    })
     .returning({ id: accounts.id });
   return row.id;
 }
@@ -124,7 +154,13 @@ beforeAll(async () => {
     .values([
       { userId: userA, name: "spending", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "spending2", kind: "spending", spendingType: "wants" },
-      { userId: userA, name: "archivedSpending", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "archivedSpending",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt: new Date(),
+      },
       { userId: userB, name: "foreignSpending", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "income", kind: "income" },
     ])
@@ -142,13 +178,22 @@ describe("GET /api/transactions/[id]", () => {
     const row = await seed({ description: "kopi" });
     const res = await get(row.id);
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id: row.id, type: "expense", amount: 25_000, description: "kopi", deletedAt: null });
+    expect(await res.json()).toMatchObject({
+      id: row.id,
+      type: "expense",
+      amount: 25_000,
+      description: "kopi",
+      deletedAt: null,
+    });
   });
 
-  it.each([["not-a-uuid"], [randomUUID()]])("returns 404 TRANSACTION_NOT_FOUND for %s", async (id) => {
-    signInAs(userA);
-    await expectError(await get(id), 404, "TRANSACTION_NOT_FOUND");
-  });
+  it.each([["not-a-uuid"], [randomUUID()]])(
+    "returns 404 TRANSACTION_NOT_FOUND for %s",
+    async (id) => {
+      signInAs(userA);
+      await expectError(await get(id), 404, "TRANSACTION_NOT_FOUND");
+    },
+  );
 
   it("returns 404 for a soft-deleted row", async () => {
     signInAs(userA);
@@ -184,15 +229,27 @@ describe("PATCH /api/transactions/[id]", () => {
     expect(body.amount).toBe(40_000);
     expect(new Date(body.updatedAt).getTime()).toBeGreaterThan(older.updatedAt.getTime());
     expect(await balanceOf(account)).toBe(35_000);
-    expect((await listIds()).filter((id) => [older.id, newer.id].includes(id))).toEqual(orderBefore);
+    expect((await listIds()).filter((id) => [older.id, newer.id].includes(id))).toEqual(
+      orderBefore,
+    );
   });
 
   it("changes date, category, account and description, and clears the description with null", async () => {
     signInAs(userA);
     const row = await seed({ description: "lama" });
-    const res = await patch(row.id, { date: "2026-01-02", categoryId: cat.spending2, accountId: other, description: null });
+    const res = await patch(row.id, {
+      date: "2026-01-02",
+      categoryId: cat.spending2,
+      accountId: other,
+      description: null,
+    });
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ date: "2026-01-02", categoryId: cat.spending2, accountId: other, description: null });
+    expect(await res.json()).toMatchObject({
+      date: "2026-01-02",
+      categoryId: cat.spending2,
+      accountId: other,
+      description: null,
+    });
   });
 
   it("edits a transfer's amount and destination", async () => {
@@ -200,7 +257,13 @@ describe("PATCH /api/transactions/[id]", () => {
     const from = await insertAccount(userA, "from", 100_000);
     const to1 = await insertAccount(userA, "to1");
     const to2 = await insertAccount(userA, "to2");
-    const row = await seed({ type: "transfer", accountId: from, toAccountId: to1, categoryId: null, amount: 10_000 });
+    const row = await seed({
+      type: "transfer",
+      accountId: from,
+      toAccountId: to1,
+      categoryId: null,
+      amount: 10_000,
+    });
 
     const res = await patch(row.id, { amount: 20_000, toAccountId: to2 });
 
@@ -230,9 +293,24 @@ describe("PATCH /api/transactions/[id]", () => {
 
   it("returns 400 fields.toAccountId when a transfer would point at its own source", async () => {
     signInAs(userA);
-    const row = await seed({ type: "transfer", accountId: funded, toAccountId: other, categoryId: null });
-    await expectError(await patch(row.id, { toAccountId: funded }), 400, "VALIDATION_ERROR", "toAccountId");
-    await expectError(await patch(row.id, { accountId: other }), 400, "VALIDATION_ERROR", "toAccountId");
+    const row = await seed({
+      type: "transfer",
+      accountId: funded,
+      toAccountId: other,
+      categoryId: null,
+    });
+    await expectError(
+      await patch(row.id, { toAccountId: funded }),
+      400,
+      "VALIDATION_ERROR",
+      "toAccountId",
+    );
+    await expectError(
+      await patch(row.id, { accountId: other }),
+      400,
+      "VALIDATION_ERROR",
+      "toAccountId",
+    );
   });
 
   it.each([
@@ -254,7 +332,11 @@ describe("PATCH /api/transactions/[id]", () => {
     const row = await seed({ accountId: archived, categoryId: cat.archivedSpending });
     const res = await patch(row.id, { amount: 1_234, description: "tetap bisa" });
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ accountId: archived, categoryId: cat.archivedSpending, amount: 1_234 });
+    expect(await res.json()).toMatchObject({
+      accountId: archived,
+      categoryId: cat.archivedSpending,
+      amount: 1_234,
+    });
   });
 
   it("returns 409 TRANSACTION_NOT_EDITABLE for an adjustment", async () => {
@@ -278,7 +360,10 @@ describe("PATCH /api/transactions/[id]", () => {
     const row = await seed();
     signInAs(userB);
     await expectError(await patch(row.id, { amount: 1 }), 404, "TRANSACTION_NOT_FOUND");
-    const [after] = await db.select().from(transactions).where(and(eq(transactions.id, row.id), eq(transactions.userId, userA)));
+    const [after] = await db
+      .select()
+      .from(transactions)
+      .where(and(eq(transactions.id, row.id), eq(transactions.userId, userA)));
     expect(after.amount).toBe(25_000);
   });
 
@@ -293,10 +378,17 @@ describe("PATCH concurrency", () => {
     signInAs(userA);
     const row = await seed();
     // Two edits racing: the loser's snapshot is stale by the time its UPDATE runs.
-    const results = await Promise.all([patch(row.id, { amount: 1_000 }), patch(row.id, { amount: 2_000 })]);
+    const results = await Promise.all([
+      patch(row.id, { amount: 1_000 }),
+      patch(row.id, { amount: 2_000 }),
+    ]);
     const statuses = results.map((r) => r.status).sort();
-    expect([[200, 200], [200, 409]]).toContainEqual(statuses);
-    for (const r of results) if (r.status === 409) expect((await r.json()).error.code).toBe("TRANSACTION_CHANGED");
+    expect([
+      [200, 200],
+      [200, 409],
+    ]).toContainEqual(statuses);
+    for (const r of results)
+      if (r.status === 409) expect((await r.json()).error.code).toBe("TRANSACTION_CHANGED");
   });
 });
 
@@ -353,7 +445,12 @@ describe("DELETE and restore /api/transactions/[id]", () => {
   it("deleting an adjustment shifts the effective initial balance back, and restore returns it", async () => {
     signInAs(userA);
     const account = await insertAccount(userA, "adj", 100_000);
-    const adjustment = await seed({ type: "adjustment", amount: 5_000, accountId: account, categoryId: null });
+    const adjustment = await seed({
+      type: "adjustment",
+      amount: 5_000,
+      accountId: account,
+      categoryId: null,
+    });
     expect(await accountOf(account)).toMatchObject({ initialBalance: 105_000, balance: 105_000 });
 
     expect((await del(adjustment.id)).status).toBe(200);
@@ -363,11 +460,14 @@ describe("DELETE and restore /api/transactions/[id]", () => {
     expect(await accountOf(account)).toMatchObject({ initialBalance: 105_000, balance: 105_000 });
   });
 
-  it.each([["not-a-uuid"], [randomUUID()]])("returns 404 TRANSACTION_NOT_FOUND for %s", async (id) => {
-    signInAs(userA);
-    await expectError(await del(id), 404, "TRANSACTION_NOT_FOUND");
-    await expectError(await restore(id), 404, "TRANSACTION_NOT_FOUND");
-  });
+  it.each([["not-a-uuid"], [randomUUID()]])(
+    "returns 404 TRANSACTION_NOT_FOUND for %s",
+    async (id) => {
+      signInAs(userA);
+      await expectError(await del(id), 404, "TRANSACTION_NOT_FOUND");
+      await expectError(await restore(id), 404, "TRANSACTION_NOT_FOUND");
+    },
+  );
 
   it("returns 404 and changes nothing for another user's row", async () => {
     const row = await seed();

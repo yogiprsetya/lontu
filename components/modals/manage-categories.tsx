@@ -29,10 +29,7 @@ import {
   SPENDING_TYPES,
 } from "@/lib/schemas/category";
 
-type View =
-  | { kind: "list" }
-  | { kind: "create" }
-  | { kind: "edit"; category: Category };
+type View = { kind: "list" } | { kind: "create" } | { kind: "edit"; category: Category };
 
 const titles = {
   list: "Kelola kategori",
@@ -46,11 +43,7 @@ type ManageCategoriesProps = {
   initialKind?: CategoryKind;
 };
 
-export function ManageCategories({
-  open,
-  onClose,
-  initialKind,
-}: ManageCategoriesProps) {
+export function ManageCategories({ open, onClose, initialKind }: ManageCategoriesProps) {
   const [tab, setTab] = useState<CategoryKind>(initialKind ?? "income");
   const [view, setView] = useState<View>({ kind: "list" });
   const [showArchived, setShowArchived] = useState(false);
@@ -72,17 +65,11 @@ export function ManageCategories({
       onOpenChange={(next) => !next && onClose()}
       title={titles[view.kind]}
       description={
-        view.kind === "list"
-          ? "Kategori untuk income, saving, dan spending."
-          : undefined
+        view.kind === "list" ? "Kategori untuk income, saving, dan spending." : undefined
       }
       footer={
         view.kind === "list" ? (
-          <Button
-            size="lg"
-            className="mx-auto h-11"
-            onClick={() => setView({ kind: "create" })}
-          >
+          <Button size="lg" className="mx-auto h-11" onClick={() => setView({ kind: "create" })}>
             <PlusIcon aria-hidden />
             Tambah kategori {KIND_LABELS[tab]}
           </Button>
@@ -153,21 +140,12 @@ function CategoryList({ kind, includeArchived, onEdit }: CategoryListProps) {
   const { data, error, mutate } = useCategories({ kind, includeArchived });
 
   if (error) {
-    return (
-      <LoadError
-        onRetry={() => void mutate()}
-        message="Gagal memuat kategori."
-      />
-    );
+    return <LoadError onRetry={() => void mutate()} message="Gagal memuat kategori." />;
   }
 
   if (!data) {
     return (
-      <div
-        className="flex flex-col gap-2"
-        aria-busy="true"
-        aria-label="Memuat kategori"
-      >
+      <div className="flex flex-col gap-2" aria-busy="true" aria-label="Memuat kategori">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-11 w-full" />
         ))}
@@ -208,9 +186,7 @@ function CategoryList({ kind, includeArchived, onEdit }: CategoryListProps) {
           {groups[type].length > 0 ? (
             <CategoryItems categories={groups[type]} onEdit={onEdit} />
           ) : (
-            <p className="px-2 py-2 text-sm text-muted-foreground">
-              Belum ada kategori.
-            </p>
+            <p className="px-2 py-2 text-sm text-muted-foreground">Belum ada kategori.</p>
           )}
         </section>
       ))}
@@ -232,19 +208,12 @@ function CategoryItems({
           {category.archivedAt ? (
             <div className="flex min-h-11 items-center gap-3 pl-2">
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-muted-foreground">
-                  {category.name}
-                </span>
+                <span className="truncate text-muted-foreground">{category.name}</span>
 
-                <span className="text-xs text-muted-foreground">
-                  Diarsipkan
-                </span>
+                <span className="text-xs text-muted-foreground">Diarsipkan</span>
               </span>
 
-              <RestoreButton
-                name={category.name}
-                restore={() => restoreCategory(category.id)}
-              />
+              <RestoreButton name={category.name} restore={() => restoreCategory(category.id)} />
             </div>
           ) : (
             <button
@@ -254,10 +223,7 @@ function CategoryItems({
             >
               <span className="min-w-0 flex-1 truncate">{category.name}</span>
 
-              <ChevronRightIcon
-                className="size-4 shrink-0 text-muted-foreground"
-                aria-hidden
-              />
+              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             </button>
           )}
         </li>

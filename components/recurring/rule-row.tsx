@@ -18,7 +18,10 @@ export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
   const due = formatDueLabel(rule.nextDueDate, today);
   const status = rule.archivedAt
     ? { text: "Diarsipkan", tone: "text-muted-foreground" }
-    : { text: `Berikutnya: ${due.text}`, tone: due.overdue ? "font-bold text-expense" : "text-foreground" };
+    : {
+        text: `Berikutnya: ${due.text}`,
+        tone: due.overdue ? "font-bold text-expense" : "text-foreground",
+      };
   const body = (
     <>
       <TypeChip type={rule.type} />
@@ -26,7 +29,9 @@ export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate font-bold">{rule.name}</span>
           {rule.isPayday && (
-            <span className="shrink-0 rounded-full bg-sunny px-2 py-0.5 text-xs font-bold text-sunny-foreground">Gajian</span>
+            <span className="shrink-0 rounded-full bg-sunny px-2 py-0.5 text-xs font-bold text-sunny-foreground">
+              Gajian
+            </span>
           )}
         </span>
         <span className="truncate text-sm text-muted-foreground tabular-nums">
@@ -49,7 +54,14 @@ export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
           {body}
         </button>
       ) : (
-        <div className={cn("flex min-w-0 flex-1 basis-48 items-center gap-3", rule.archivedAt && "opacity-80")}>{body}</div>
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 basis-48 items-center gap-3",
+            rule.archivedAt && "opacity-80",
+          )}
+        >
+          {body}
+        </div>
       )}
       {children && <div className="ms-auto flex shrink-0 items-center gap-2">{children}</div>}
     </li>

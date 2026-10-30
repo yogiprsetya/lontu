@@ -32,7 +32,10 @@ function create(body: unknown) {
 }
 
 async function balanceOf(accountId: string) {
-  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
+  const res = await accountsRoute.GET(
+    new Request("http://localhost/api/accounts?include=archived"),
+    noParams,
+  );
   const list = (await res.json()) as { id: string; balance: number }[];
   return list.find((a) => a.id === accountId)?.balance;
 }
@@ -76,7 +79,14 @@ afterAll(async () => {
 });
 
 function expense<T extends Record<string, unknown>>(accountId: string, overrides: T = {} as T) {
-  return { type: "expense", amount: 25_000, date: todayInJakarta(), accountId, categoryId: spendingA, ...overrides };
+  return {
+    type: "expense",
+    amount: 25_000,
+    date: todayInJakarta(),
+    accountId,
+    categoryId: spendingA,
+    ...overrides,
+  };
 }
 
 describe("POST /api/transactions with a client id", () => {
@@ -147,9 +157,12 @@ describe("POST /api/transactions with a client id", () => {
     signInAs(userA);
     const body = expense(await insertAccount(userA), { id: randomUUID() });
     expect((await create(body)).status).toBe(201);
-    await itemRoute.DELETE(new Request(`http://localhost/api/transactions/${body.id}`, { method: "DELETE" }), {
-      params: Promise.resolve({ id: body.id }),
-    });
+    await itemRoute.DELETE(
+      new Request(`http://localhost/api/transactions/${body.id}`, { method: "DELETE" }),
+      {
+        params: Promise.resolve({ id: body.id }),
+      },
+    );
 
     const res = await create(body);
 
@@ -196,7 +209,9 @@ describe("client ids across users", () => {
     const [before] = await db.select().from(transactions).where(eq(transactions.id, body.id));
 
     signInAs(userB);
-    const res = await create(expense(await insertAccount(userB), { id: body.id, categoryId: spendingB, amount: 1 }));
+    const res = await create(
+      expense(await insertAccount(userB), { id: body.id, categoryId: spendingB, amount: 1 }),
+    );
 
     expect(res.status).toBe(409);
     const json = await res.json();

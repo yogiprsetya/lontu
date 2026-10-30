@@ -8,7 +8,9 @@ import { monthRange, shiftPeriod } from "@/lib/period";
 
 /** Read-only: applying a suggestion goes through PUT /api/budgets. */
 export const GET = withAuth(async (req, { userId }) => {
-  const parsed = budgetSuggestionQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
+  const parsed = budgetSuggestionQuerySchema.safeParse(
+    Object.fromEntries(new URL(req.url).searchParams),
+  );
   if (!parsed.success) return badRequest(parsed.error);
   const { period, income } = parsed.data;
 
@@ -16,7 +18,10 @@ export const GET = withAuth(async (req, { userId }) => {
   const previous = shiftPeriod(period, -1);
   const [history, basis] = await Promise.all([
     budgetHistory(userId, period),
-    income ?? (previous === period ? 0 : transactionTotals(userId, monthRange(previous)).then((t) => t.income)),
+    income ??
+      (previous === period
+        ? 0
+        : transactionTotals(userId, monthRange(previous)).then((t) => t.income)),
   ]);
 
   const body: BudgetSuggestion = {

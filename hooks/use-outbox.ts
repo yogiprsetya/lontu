@@ -48,5 +48,9 @@ const getEmpty = () => EMPTY;
 export function useOutbox(): OutboxItem[] {
   const { data } = useProfile();
   const store = data?.id ? storeFor(data.id) : undefined;
-  return useSyncExternalStore(store?.subscribe ?? noopSubscribe, store?.getSnapshot ?? getEmpty, getEmpty);
+  return useSyncExternalStore(
+    store?.subscribe ?? noopSubscribe,
+    store?.getSnapshot ?? getEmpty,
+    getEmpty,
+  );
 }

@@ -32,13 +32,19 @@ function advance(id: string, body: unknown) {
 }
 
 async function balanceOf(accountId: string) {
-  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
+  const res = await accountsRoute.GET(
+    new Request("http://localhost/api/accounts?include=archived"),
+    noParams,
+  );
   const list = (await res.json()) as { id: string; balance: number }[];
   return list.find((a) => a.id === accountId)?.balance;
 }
 
 async function nextDueOf(ruleId: string) {
-  const [row] = await db.select({ d: recurringRules.nextDueDate }).from(recurringRules).where(eq(recurringRules.id, ruleId));
+  const [row] = await db
+    .select({ d: recurringRules.nextDueDate })
+    .from(recurringRules)
+    .where(eq(recurringRules.id, ruleId));
   return row.d;
 }
 
@@ -93,7 +99,13 @@ beforeAll(async () => {
     .values([
       { userId: userA, name: "income", kind: "income" },
       { userId: userA, name: "spending", kind: "spending", spendingType: "wants" },
-      { userId: userA, name: "archivedSpending", kind: "spending", spendingType: "wants", archivedAt },
+      {
+        userId: userA,
+        name: "archivedSpending",
+        kind: "spending",
+        spendingType: "wants",
+        archivedAt,
+      },
       { userId: userB, name: "foreignSpending", kind: "spending", spendingType: "wants" },
     ])
     .returning({ id: categories.id, name: categories.name });
@@ -139,7 +151,13 @@ describe("post", () => {
     expect(res.status).toBe(200);
     const result = (await res.json()) as AdvanceResult;
     expect(result.rule.nextDueDate).toBe("2026-11-05");
-    expect(result.transaction).toMatchObject({ id: body.id, type: "expense", amount: 190_000, date: "2026-10-05", description: "Netflix" });
+    expect(result.transaction).toMatchObject({
+      id: body.id,
+      type: "expense",
+      amount: 190_000,
+      date: "2026-10-05",
+      description: "Netflix",
+    });
     expect(await balanceOf(account)).toBe(before! - 190_000);
   });
 
@@ -190,7 +208,14 @@ describe("post", () => {
   it("rejects an id already used by user B's transaction without leaking it", async () => {
     const [other] = await db
       .insert(transactions)
-      .values({ userId: userB, type: "expense", amount: 5, date: "2026-10-01", accountId: foreignAccount, categoryId: cat.foreignSpending })
+      .values({
+        userId: userB,
+        type: "expense",
+        amount: 5,
+        date: "2026-10-01",
+        accountId: foreignAccount,
+        categoryId: cat.foreignSpending,
+      })
       .returning({ id: transactions.id });
     const res = await advance(ruleId, post({ id: other.id }));
     expect(res.status).toBe(409);
@@ -204,7 +229,14 @@ describe("post", () => {
   it("rejects reusing the id of an unrelated transaction of the same user", async () => {
     const [own] = await db
       .insert(transactions)
-      .values({ userId: userA, type: "expense", amount: 5, date: "2026-10-01", accountId: account, categoryId: cat.spending })
+      .values({
+        userId: userA,
+        type: "expense",
+        amount: 5,
+        date: "2026-10-01",
+        accountId: account,
+        categoryId: cat.spending,
+      })
       .returning({ id: transactions.id });
     const res = await advance(ruleId, post({ id: own.id }));
     expect(res.status).toBe(409);
@@ -217,21 +249,35 @@ describe("replay matching", () => {
   async function ownTransaction(date: string) {
     const [row] = await db
       .insert(transactions)
-      .values({ userId: userA, type: "expense", amount: 190_000, date, accountId: account, categoryId: cat.spending, description: "Netflix" })
+      .values({
+        userId: userA,
+        type: "expense",
+        amount: 190_000,
+        date,
+        accountId: account,
+        categoryId: cat.spending,
+        description: "Netflix",
+      })
       .returning({ id: transactions.id });
     return row.id;
   }
 
   it("does not replay an unrelated transaction for an occurrence two steps back", async () => {
     const id = await ownTransaction("2026-08-05");
-    const res = await advance(ruleId, post({ id, occurrenceDate: "2026-08-05", date: "2026-08-05" }));
+    const res = await advance(
+      ruleId,
+      post({ id, occurrenceDate: "2026-08-05", date: "2026-08-05" }),
+    );
     expect(res.status).toBe(409);
     expect((await res.json()).error.code).toBe("TRANSACTION_ID_TAKEN");
   });
 
   it("does not replay a transaction whose fields differ from the request", async () => {
     const id = await ownTransaction("2026-09-05");
-    const res = await advance(ruleId, post({ id, occurrenceDate: "2026-09-05", date: "2026-09-05", amount: 1 }));
+    const res = await advance(
+      ruleId,
+      post({ id, occurrenceDate: "2026-09-05", date: "2026-09-05", amount: 1 }),
+    );
     expect(res.status).toBe(409);
     expect((await res.json()).error.code).toBe("TRANSACTION_ID_TAKEN");
     expect(await nextDueOf(ruleId)).toBe("2026-10-05");
@@ -248,22 +294,31 @@ describe("skip", () => {
     expect(await countTransactions(userA)).toBe(0);
   });
 
-  it.each(["2026-09-05", "2026-11-05"])("returns 409 OCCURRENCE_STALE for occurrenceDate %s", async (occurrenceDate) => {
-    const res = await advance(ruleId, { action: "skip", occurrenceDate });
-    expect(res.status).toBe(409);
-    expect((await res.json()).error.code).toBe("OCCURRENCE_STALE");
-    expect(await nextDueOf(ruleId)).toBe("2026-10-05");
-  });
+  it.each(["2026-09-05", "2026-11-05"])(
+    "returns 409 OCCURRENCE_STALE for occurrenceDate %s",
+    async (occurrenceDate) => {
+      const res = await advance(ruleId, { action: "skip", occurrenceDate });
+      expect(res.status).toBe(409);
+      expect((await res.json()).error.code).toBe("OCCURRENCE_STALE");
+      expect(await nextDueOf(ruleId)).toBe("2026-10-05");
+    },
+  );
 
   it("allows handling a future occurrence early", async () => {
-    await db.update(recurringRules).set({ nextDueDate: "2026-11-05" }).where(eq(recurringRules.id, ruleId));
+    await db
+      .update(recurringRules)
+      .set({ nextDueDate: "2026-11-05" })
+      .where(eq(recurringRules.id, ruleId));
     const res = await advance(ruleId, { action: "skip", occurrenceDate: "2026-11-05" });
     expect(res.status).toBe(200);
     expect(await nextDueOf(ruleId)).toBe("2026-12-05");
   });
 
   it("handles a rule three months behind one occurrence at a time", async () => {
-    await db.update(recurringRules).set({ nextDueDate: "2026-07-05" }).where(eq(recurringRules.id, ruleId));
+    await db
+      .update(recurringRules)
+      .set({ nextDueDate: "2026-07-05" })
+      .where(eq(recurringRules.id, ruleId));
     await advance(ruleId, { action: "skip", occurrenceDate: "2026-07-05" });
     const res = await collection.GET(new Request("http://localhost/api/recurring"), noParams);
     const { due } = (await res.json()) as RecurringOverview;
@@ -273,31 +328,56 @@ describe("skip", () => {
 
 describe("not found and isolation", () => {
   it("returns 404 for an archived rule", async () => {
-    await db.update(recurringRules).set({ archivedAt: new Date() }).where(eq(recurringRules.id, ruleId));
+    await db
+      .update(recurringRules)
+      .set({ archivedAt: new Date() })
+      .where(eq(recurringRules.id, ruleId));
     const res = await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" });
     expect(res.status).toBe(404);
     expect((await res.json()).error.code).toBe("RULE_NOT_FOUND");
   });
 
-  it.each(["not-a-uuid", "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f"])("returns 404 for id %s", async (id) => {
-    expect((await advance(id, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(404);
-  });
+  it.each(["not-a-uuid", "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f"])(
+    "returns 404 for id %s",
+    async (id) => {
+      expect((await advance(id, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(
+        404,
+      );
+    },
+  );
 
   it("returns 404 to user B and changes nothing", async () => {
     signInAs(userB);
-    expect((await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(404);
-    expect((await advance(ruleId, post({ accountId: foreignAccount, categoryId: cat.foreignSpending }))).status).toBe(404);
+    expect((await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(
+      404,
+    );
+    expect(
+      (await advance(ruleId, post({ accountId: foreignAccount, categoryId: cat.foreignSpending })))
+        .status,
+    ).toBe(404);
     expect(await nextDueOf(ruleId)).toBe("2026-10-05");
-    expect(await db.$count(transactions, and(eq(transactions.userId, userB), eq(transactions.accountId, foreignAccount)))).toBe(0);
+    expect(
+      await db.$count(
+        transactions,
+        and(eq(transactions.userId, userB), eq(transactions.accountId, foreignAccount)),
+      ),
+    ).toBe(0);
   });
 
   it("rejects an unknown action and a malformed body", async () => {
-    expect((await advance(ruleId, { action: "undo", occurrenceDate: "2026-10-05" })).status).toBe(400);
-    expect((await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05", userId: userB })).status).toBe(400);
+    expect((await advance(ruleId, { action: "undo", occurrenceDate: "2026-10-05" })).status).toBe(
+      400,
+    );
+    expect(
+      (await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05", userId: userB }))
+        .status,
+    ).toBe(400);
   });
 
   it("returns 401 without a session", async () => {
     signInAs(null);
-    expect((await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(401);
+    expect((await advance(ruleId, { action: "skip", occurrenceDate: "2026-10-05" })).status).toBe(
+      401,
+    );
   });
 });

@@ -27,7 +27,10 @@ const okOnly = () => new CacheableResponsePlugin({ statuses: [200] });
 const lontuCaching: RuntimeCaching[] = [
   {
     matcher: ({ sameOrigin, url: { pathname } }) =>
-      sameOrigin && (pathname.startsWith("/api/auth/") || pathname === "/api/transactions/export" || pathname === "/login"),
+      sameOrigin &&
+      (pathname.startsWith("/api/auth/") ||
+        pathname === "/api/transactions/export" ||
+        pathname === "/login"),
     handler: new NetworkOnly(),
   },
   {
@@ -36,7 +39,14 @@ const lontuCaching: RuntimeCaching[] = [
     handler: new NetworkFirst({
       cacheName: API_CACHE,
       networkTimeoutSeconds: 4,
-      plugins: [okOnly(), new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: THIRTY_DAYS, maxAgeFrom: "last-used" })],
+      plugins: [
+        okOnly(),
+        new ExpirationPlugin({
+          maxEntries: 200,
+          maxAgeSeconds: THIRTY_DAYS,
+          maxAgeFrom: "last-used",
+        }),
+      ],
     }),
   },
   {
@@ -44,7 +54,14 @@ const lontuCaching: RuntimeCaching[] = [
     handler: new NetworkFirst({
       cacheName: "pages",
       networkTimeoutSeconds: 4,
-      plugins: [okOnly(), new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: THIRTY_DAYS, maxAgeFrom: "last-used" })],
+      plugins: [
+        okOnly(),
+        new ExpirationPlugin({
+          maxEntries: 32,
+          maxAgeSeconds: THIRTY_DAYS,
+          maxAgeFrom: "last-used",
+        }),
+      ],
     }),
   },
 ];

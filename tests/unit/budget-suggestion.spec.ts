@@ -14,7 +14,11 @@ function sumOf(items: { spendingType: string; amount: number }[], type: string) 
 
 describe("suggestBudgets pools", () => {
   it("splits 50/30/20", () => {
-    expect(suggestBudgets(input()).pools).toEqual({ needs: 5_000_000, wants: 3_000_000, saving: 2_000_000 });
+    expect(suggestBudgets(input()).pools).toEqual({
+      needs: 5_000_000,
+      wants: 3_000_000,
+      saving: 2_000_000,
+    });
   });
 
   it("rounds needs and wants down to Rp1.000 and leaves the rest in saving", () => {
@@ -26,14 +30,18 @@ describe("suggestBudgets pools", () => {
   });
 
   it("has no items for a zero basis", () => {
-    const result = suggestBudgets(input({ basis: 0, categories: [needs("a")], history: { a: 100 } }));
+    const result = suggestBudgets(
+      input({ basis: 0, categories: [needs("a")], history: { a: 100 } }),
+    );
     expect(result).toEqual({ pools: { needs: 0, wants: 0, saving: 0 }, items: [] });
   });
 });
 
 describe("suggestBudgets items", () => {
   it("is proportional to the 3-month history within a group", () => {
-    const { items } = suggestBudgets(input({ categories: [needs("a"), needs("b")], history: { a: 300, b: 100 } }));
+    const { items } = suggestBudgets(
+      input({ categories: [needs("a"), needs("b")], history: { a: 300, b: 100 } }),
+    );
     expect(items).toEqual([
       { categoryId: "a", spendingType: "needs", amount: 3_750_000, current: null },
       { categoryId: "b", spendingType: "needs", amount: 1_250_000, current: null },
@@ -59,7 +67,9 @@ describe("suggestBudgets items", () => {
 
   it("leaves out a group without categories", () => {
     const { items } = suggestBudgets(input({ categories: [wants("x")], history: { x: 5 } }));
-    expect(items).toEqual([{ categoryId: "x", spendingType: "wants", amount: 3_000_000, current: null }]);
+    expect(items).toEqual([
+      { categoryId: "x", spendingType: "wants", amount: 3_000_000, current: null },
+    ]);
   });
 
   it("lists needs before wants and passes current budgets through", () => {
@@ -89,7 +99,9 @@ describe("suggestBudgets items", () => {
       const categories = Array.from({ length: 1 + (random() % 12) }, (_, i) =>
         random() % 2 ? needs(`n${i}`) : wants(`w${i}`),
       );
-      const history = Object.fromEntries(categories.map((c) => [c.id, random() % 5 ? random() % 3_000_000 : 0]));
+      const history = Object.fromEntries(
+        categories.map((c) => [c.id, random() % 5 ? random() % 3_000_000 : 0]),
+      );
       const basis = random() % 50_000_000;
       const args = input({ basis, categories, history });
       const result = suggestBudgets(args);
@@ -97,7 +109,8 @@ describe("suggestBudgets items", () => {
       expect(suggestBudgets(args)).toEqual(result);
       expect(result.items.every((i) => i.amount % 1000 === 0 && i.amount >= 0)).toBe(true);
       for (const type of ["needs", "wants"] as const) {
-        if (categories.some((c) => c.spendingType === type)) expect(sumOf(result.items, type)).toBe(result.pools[type]);
+        if (categories.some((c) => c.spendingType === type))
+          expect(sumOf(result.items, type)).toBe(result.pools[type]);
       }
     }
   });

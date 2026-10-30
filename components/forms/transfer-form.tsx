@@ -46,7 +46,12 @@ export function TransferForm({ transaction }: { transaction?: Transaction }) {
     return (
       <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Transfer butuh minimal dua akun aktif.</p>
-        <Button type="button" variant="outline" className="h-11 text-base" onClick={() => open("manageAccounts")}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 text-base"
+          onClick={() => open("manageAccounts")}
+        >
           <PlusIcon aria-hidden />
           Tambah akun
         </Button>
@@ -99,15 +104,24 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
     try {
       if (transaction) {
         const { amount, date, accountId, toAccountId, description } = input;
-        await updateTransaction(transaction.id, { amount, date, accountId, toAccountId, description });
+        await updateTransaction(transaction.id, {
+          amount,
+          date,
+          accountId,
+          toAccountId,
+          description,
+        });
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
-        await submit(input, { sentMessage: input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan" });
+        await submit(input, {
+          sentMessage: input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan",
+        });
         router.push("/transactions");
       }
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transfer. Coba lagi."));
+      if (!applyServerErrors(err, setError))
+        toast.error(failureMessage(err, "Gagal menyimpan transfer. Coba lagi."));
     }
   });
 
@@ -134,7 +148,12 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         control={control}
         name="accountId"
         render={({ field }) => (
-          <FormField id="transfer-account" label="Dari akun" error={errors.accountId?.message} hint={warning}>
+          <FormField
+            id="transfer-account"
+            label="Dari akun"
+            error={errors.accountId?.message}
+            hint={warning}
+          >
             <AccountPicker
               id="transfer-account"
               value={field.value}
@@ -181,7 +200,11 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
         />
       </FormField>
 
-      <FormField id="transfer-description" label="Deskripsi (opsional)" error={errors.description?.message}>
+      <FormField
+        id="transfer-description"
+        label="Deskripsi (opsional)"
+        error={errors.description?.message}
+      >
         <Input
           id="transfer-description"
           className={inputClass}
@@ -195,7 +218,8 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
 
       {transaction ? (
         <p className="text-sm text-muted-foreground">
-          Biaya admin dicatat sebagai expense terpisah. Mengubah atau menghapus transfer ini tidak mengubahnya.
+          Biaya admin dicatat sebagai expense terpisah. Mengubah atau menghapus transfer ini tidak
+          mengubahnya.
         </p>
       ) : (
         <fieldset className="flex flex-col gap-4 rounded-2xl bg-muted px-4 py-3">
@@ -215,7 +239,11 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
                 control={control}
                 name="fee.amount"
                 render={({ field }) => (
-                  <FormField id="transfer-fee-amount" label="Nominal biaya" error={errors.fee?.amount?.message}>
+                  <FormField
+                    id="transfer-fee-amount"
+                    label="Nominal biaya"
+                    error={errors.fee?.amount?.message}
+                  >
                     <MoneyInput
                       id="transfer-fee-amount"
                       value={field.value ?? 0}
@@ -231,7 +259,11 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
                 control={control}
                 name="fee.categoryId"
                 render={({ field }) => (
-                  <FormField id="transfer-fee-category" label="Kategori biaya" error={errors.fee?.categoryId?.message}>
+                  <FormField
+                    id="transfer-fee-category"
+                    label="Kategori biaya"
+                    error={errors.fee?.categoryId?.message}
+                  >
                     <CategoryPicker
                       id="transfer-fee-category"
                       kind="spending"
@@ -244,7 +276,11 @@ function TransferFields({ transaction }: { transaction?: Transaction }) {
                 )}
               />
               {/* Server-side fee errors arrive on `fields.fee` as a whole, not per input. */}
-              <p className={errors.fee?.message ? "text-sm text-destructive" : "text-sm text-muted-foreground"}>
+              <p
+                className={
+                  errors.fee?.message ? "text-sm text-destructive" : "text-sm text-muted-foreground"
+                }
+              >
                 {errors.fee?.message ?? "Dicatat sebagai expense terpisah dari akun asal."}
               </p>
             </>

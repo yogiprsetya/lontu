@@ -50,11 +50,7 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
   const [income, setIncome] = useState<number | undefined>(undefined);
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const [applying, setApplying] = useState(false);
-  const { data, error, mutate, isValidating } = useBudgetSuggestion(
-    period,
-    income,
-    open,
-  );
+  const { data, error, mutate, isValidating } = useBudgetSuggestion(period, income, open);
 
   useEffect(() => {
     if (typed === null) return;
@@ -62,9 +58,7 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
     return () => clearTimeout(timer);
   }, [typed]);
 
-  const checked =
-    selected ??
-    (data ? defaultSuggestionSelection(data.items) : new Set<string>());
+  const checked = selected ?? (data ? defaultSuggestionSelection(data.items) : new Set<string>());
   const toApply = data ? selectedSuggestionItems(data.items, checked) : [];
   // Amounts on screen may belong to the previous income until the new one loads.
   const pending = isValidating || (typed !== null && typed !== income);
@@ -101,7 +95,12 @@ function SuggestionContent({ period, open, onOpenChange, names }: Props) {
       description={`Budget ${formatPeriodLabel(period)} dari income dan pengeluaran 3 bulan terakhir.`}
       footer={
         <div className="flex gap-2">
-          <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 flex-1 text-base"
+            onClick={onClose}
+          >
             Batal
           </Button>
           <Button
@@ -201,21 +200,12 @@ function SuggestionList({
             hint: "acuan, tidak jadi budget",
           },
         ].map(({ label, amount, hint }) => (
-          <div
-            key={label}
-            className="flex min-h-11 items-center justify-between gap-3 py-2"
-          >
+          <div key={label} className="flex min-h-11 items-center justify-between gap-3 py-2">
             <dt className="min-w-0">
               {label}
-              {hint && (
-                <span className="block text-sm text-muted-foreground">
-                  {hint}
-                </span>
-              )}
+              {hint && <span className="block text-sm text-muted-foreground">{hint}</span>}
             </dt>
-            <dd className="shrink-0 font-medium tabular-nums">
-              {money(amount)}
-            </dd>
+            <dd className="shrink-0 font-medium tabular-nums">{money(amount)}</dd>
           </div>
         ))}
       </dl>
@@ -224,15 +214,10 @@ function SuggestionList({
         if (rows.length === 0) return null;
         return (
           <fieldset key={key} className="flex flex-col">
-            <legend className="text-sm font-semibold text-muted-foreground">
-              {label}
-            </legend>
+            <legend className="text-sm font-semibold text-muted-foreground">{label}</legend>
             <div className="divide-y">
               {rows.map((item) => (
-                <label
-                  key={item.categoryId}
-                  className="flex min-h-11 items-center gap-3 py-2"
-                >
+                <label key={item.categoryId} className="flex min-h-11 items-center gap-3 py-2">
                   <Checkbox
                     checked={checked.has(item.categoryId)}
                     onCheckedChange={(on) => onToggle(item.categoryId, on)}
@@ -247,9 +232,7 @@ function SuggestionList({
                       </span>
                     )}
                   </span>
-                  <span className="shrink-0 font-medium tabular-nums">
-                    {money(item.amount)}
-                  </span>
+                  <span className="shrink-0 font-medium tabular-nums">{money(item.amount)}</span>
                 </label>
               ))}
             </div>

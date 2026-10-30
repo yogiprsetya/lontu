@@ -45,7 +45,11 @@ export function captureInstallPrompt() {
 const noopSubscribe = () => () => {};
 
 function useIsIOSSafari() {
-  return useSyncExternalStore(noopSubscribe, () => isIOSSafari(navigator.userAgent), () => false);
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => isIOSSafari(navigator.userAgent),
+    () => false,
+  );
 }
 
 // Until the persisted store loads, an earlier "Nanti" is unknown, so the card stays hidden.
@@ -58,7 +62,11 @@ function useUIStoreHydrated() {
 }
 
 export function useInstallPrompt() {
-  const promptEvent = useSyncExternalStore(promptStore.subscribe, promptStore.getSnapshot, promptStore.getServerSnapshot);
+  const promptEvent = useSyncExternalStore(
+    promptStore.subscribe,
+    promptStore.getSnapshot,
+    promptStore.getServerSnapshot,
+  );
   const standalone = useMediaQuery("(display-mode: standalone)");
   const iosSafari = useIsIOSSafari();
   const hydrated = useUIStoreHydrated();
@@ -67,7 +75,13 @@ export function useInstallPrompt() {
   const [now] = useState(() => Date.now());
 
   const state = hydrated
-    ? installPromptState({ standalone, isIOSSafari: iosSafari, hasPromptEvent: !!promptEvent, dismissedAt, now })
+    ? installPromptState({
+        standalone,
+        isIOSSafari: iosSafari,
+        hasPromptEvent: !!promptEvent,
+        dismissedAt,
+        now,
+      })
     : "hidden";
 
   async function install() {

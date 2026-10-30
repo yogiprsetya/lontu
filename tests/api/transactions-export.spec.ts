@@ -63,7 +63,13 @@ beforeAll(async () => {
     .insert(categories)
     .values([
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
-      { userId: userA, name: "Hobi Lama", kind: "spending", spendingType: "wants", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "Hobi Lama",
+        kind: "spending",
+        spendingType: "wants",
+        archivedAt: new Date(),
+      },
       { userId: userA, name: "Gaji", kind: "income" },
       { userId: userB, name: "Rahasia Kategori", kind: "spending", spendingType: "needs" },
     ])
@@ -72,14 +78,65 @@ beforeAll(async () => {
 
   const a = { userId: userA, accountId: acc.BCA };
   await db.insert(transactions).values([
-    { ...a, type: "income", amount: 5_000_000, date: "2026-10-25", categoryId: cat.Gaji, description: "Gaji Oktober" },
-    { ...a, type: "expense", amount: 25_000, date: "2026-10-10", categoryId: cat.Makan, description: "=1+1" },
-    { ...a, type: "expense", amount: 12_000, date: "2026-10-10", categoryId: cat.Makan, description: 'Nasi, "padang"\nextra' },
-    { ...a, accountId: acc["Dompet Lama"], type: "expense", amount: 9_000, date: "2026-09-30", categoryId: cat["Hobi Lama"], description: "-1" },
-    { ...a, type: "transfer", amount: 100_000, date: "2026-10-05", toAccountId: acc["Dompet Lama"] },
+    {
+      ...a,
+      type: "income",
+      amount: 5_000_000,
+      date: "2026-10-25",
+      categoryId: cat.Gaji,
+      description: "Gaji Oktober",
+    },
+    {
+      ...a,
+      type: "expense",
+      amount: 25_000,
+      date: "2026-10-10",
+      categoryId: cat.Makan,
+      description: "=1+1",
+    },
+    {
+      ...a,
+      type: "expense",
+      amount: 12_000,
+      date: "2026-10-10",
+      categoryId: cat.Makan,
+      description: 'Nasi, "padang"\nextra',
+    },
+    {
+      ...a,
+      accountId: acc["Dompet Lama"],
+      type: "expense",
+      amount: 9_000,
+      date: "2026-09-30",
+      categoryId: cat["Hobi Lama"],
+      description: "-1",
+    },
+    {
+      ...a,
+      type: "transfer",
+      amount: 100_000,
+      date: "2026-10-05",
+      toAccountId: acc["Dompet Lama"],
+    },
     { ...a, type: "adjustment", amount: -50_000, date: "2026-10-01" },
-    { ...a, type: "expense", amount: 777, date: "2026-10-02", categoryId: cat.Makan, description: "dihapus", deletedAt: new Date() },
-    { userId: userB, accountId: acc["Rahasia B"], type: "expense", amount: 1, date: "2026-10-10", categoryId: cat["Rahasia Kategori"], description: "milik B" },
+    {
+      ...a,
+      type: "expense",
+      amount: 777,
+      date: "2026-10-02",
+      categoryId: cat.Makan,
+      description: "dihapus",
+      deletedAt: new Date(),
+    },
+    {
+      userId: userB,
+      accountId: acc["Rahasia B"],
+      type: "expense",
+      amount: 1,
+      date: "2026-10-10",
+      categoryId: cat["Rahasia Kategori"],
+      description: "milik B",
+    },
   ]);
 });
 
@@ -93,20 +150,32 @@ describe("GET /api/transactions/export", () => {
     const res = await exportCsv("?from=2026-10-01&to=2026-10-31");
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("text/csv; charset=utf-8");
-    expect(res.headers.get("content-disposition")).toBe('attachment; filename="lontu-transaksi-2026-10.csv"');
+    expect(res.headers.get("content-disposition")).toBe(
+      'attachment; filename="lontu-transaksi-2026-10.csv"',
+    );
     expect((await readCsv(res)).startsWith(`${HEADER}\r\n`)).toBe(true);
   });
 
   it("names the file 'semua' without a range", async () => {
     signInAs(userA);
-    expect((await exportCsv()).headers.get("content-disposition")).toBe('attachment; filename="lontu-transaksi-semua.csv"');
+    expect((await exportCsv()).headers.get("content-disposition")).toBe(
+      'attachment; filename="lontu-transaksi-semua.csv"',
+    );
   });
 
   it("has the same rows in the same order as the list under the same filter", async () => {
     signInAs(userA);
     const query = "?from=2026-10-01&to=2026-10-31";
-    const listed = ((await (await listRoute.GET(new Request(`http://localhost/api/transactions${query}&limit=100`), noParams)).json())
-      .items as Transaction[]).map((t) => t.date);
+    const listed = (
+      (
+        await (
+          await listRoute.GET(
+            new Request(`http://localhost/api/transactions${query}&limit=100`),
+            noParams,
+          )
+        ).json()
+      ).items as Transaction[]
+    ).map((t) => t.date);
     const lines = (await csvLines(query)).slice(1).join("\r\n");
     // Multi-line cell aside, data rows begin with their date in list order.
     const rowDates = lines.match(/^\d{4}-\d{2}-\d{2}(?=,)/gm);
@@ -126,7 +195,7 @@ describe("GET /api/transactions/export", () => {
     signInAs(userA);
     const text = await csvText();
     expect(text).toContain(",'=1+1");
-    expect(text).toContain(',-50000,');
+    expect(text).toContain(",-50000,");
     expect(text).toContain('"Nasi, ""padang""\nextra"');
   });
 
@@ -159,7 +228,8 @@ describe("GET /api/transactions/export", () => {
     signInAs(userB);
     const text = await csvText();
     expect(text).toContain("Rahasia B");
-    for (const secret of ["BCA", "Gaji", "Dompet Lama", "Makan"]) expect(text).not.toContain(secret);
+    for (const secret of ["BCA", "Gaji", "Dompet Lama", "Makan"])
+      expect(text).not.toContain(secret);
 
     signInAs(userA);
     const mine = await csvText();

@@ -23,5 +23,9 @@ export function installPromptState({
 
 // Chrome and Firefox on iOS are WebKit too but cannot add to the home screen the same way.
 export function isIOSSafari(userAgent: string) {
-  return /iPhone|iPad|iPod/.test(userAgent) && /Safari\//.test(userAgent) && !/CriOS|FxiOS|EdgiOS/.test(userAgent);
+  return (
+    /iPhone|iPad|iPod/.test(userAgent) &&
+    /Safari\//.test(userAgent) &&
+    !/CriOS|FxiOS|EdgiOS/.test(userAgent)
+  );
 }

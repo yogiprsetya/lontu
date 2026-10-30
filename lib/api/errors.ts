@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-function error(status: number, code: string, message: string, fields?: Record<string, string[] | undefined>) {
+function error(
+  status: number,
+  code: string,
+  message: string,
+  fields?: Record<string, string[] | undefined>,
+) {
   return Response.json({ error: { code, message, ...(fields && { fields }) } }, { status });
 }
 
@@ -30,7 +35,10 @@ export function conflict(code: string, message: string) {
 }
 
 export function accountNameTaken() {
-  return conflict("ACCOUNT_NAME_TAKEN", "Nama akun sudah dipakai. Jika akun itu diarsipkan, pulihkan saja.");
+  return conflict(
+    "ACCOUNT_NAME_TAKEN",
+    "Nama akun sudah dipakai. Jika akun itu diarsipkan, pulihkan saja.",
+  );
 }
 
 export function accountNotFound() {
@@ -53,11 +61,17 @@ export function transactionNotFound() {
 }
 
 export function transactionNotEditable() {
-  return conflict("TRANSACTION_NOT_EDITABLE", "Penyesuaian saldo tidak bisa diubah. Hapus saja jika keliru.");
+  return conflict(
+    "TRANSACTION_NOT_EDITABLE",
+    "Penyesuaian saldo tidak bisa diubah. Hapus saja jika keliru.",
+  );
 }
 
 export function transactionChanged() {
-  return conflict("TRANSACTION_CHANGED", "Transaksi berubah saat disimpan. Muat ulang lalu coba lagi.");
+  return conflict(
+    "TRANSACTION_CHANGED",
+    "Transaksi berubah saat disimpan. Muat ulang lalu coba lagi.",
+  );
 }
 
 // Same response whoever owns the id, so it never confirms that another user's row exists.

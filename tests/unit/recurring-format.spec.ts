@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { abbreviateIDR, displayAmount } from "@/lib/money";
-import { formatDueLabel, formatFree, formatLateness, formatPaydayHeadline, formatSchedule } from "@/lib/recurring-format";
+import {
+  formatDueLabel,
+  formatFree,
+  formatLateness,
+  formatPaydayHeadline,
+  formatSchedule,
+} from "@/lib/recurring-format";
 
 const hidden = (amount: number) => displayAmount(amount, true);
 
@@ -20,7 +26,10 @@ describe("formatSchedule", () => {
 
 describe("formatDueLabel", () => {
   it("says today for a rule due today", () => {
-    expect(formatDueLabel("2026-10-27", "2026-10-27")).toEqual({ text: "Hari ini", overdue: false });
+    expect(formatDueLabel("2026-10-27", "2026-10-27")).toEqual({
+      text: "Hari ini",
+      overdue: false,
+    });
   });
 
   it("shows the day and short month for a future date", () => {
@@ -28,7 +37,10 @@ describe("formatDueLabel", () => {
   });
 
   it("marks a past date as late in words, not only color", () => {
-    expect(formatDueLabel("2026-10-25", "2026-10-27")).toEqual({ text: "Terlambat · 25 Okt", overdue: true });
+    expect(formatDueLabel("2026-10-25", "2026-10-27")).toEqual({
+      text: "Terlambat · 25 Okt",
+      overdue: true,
+    });
   });
 
   it("adds the year when it differs from this year", () => {
@@ -48,11 +60,15 @@ describe("formatLateness", () => {
 
 describe("formatPaydayHeadline", () => {
   it("counts down to payday with its date", () => {
-    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 12 }, "2026-11-13")).toBe("12 hari lagi gajian (25 Nov)");
+    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 12 }, "2026-11-13")).toBe(
+      "12 hari lagi gajian (25 Nov)",
+    );
   });
 
   it("says besok the day before", () => {
-    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 1 }, "2026-11-24")).toBe("Besok gajian (25 Nov)");
+    expect(formatPaydayHeadline({ payday: "2026-11-25", daysLeft: 1 }, "2026-11-24")).toBe(
+      "Besok gajian (25 Nov)",
+    );
   });
 });
 
@@ -66,6 +82,10 @@ describe("formatFree", () => {
   });
 
   it("hides the amount but keeps the label", () => {
-    expect(formatFree(-800_000, hidden)).toEqual({ label: "Kurang", amount: "Rp•••••", short: true });
+    expect(formatFree(-800_000, hidden)).toEqual({
+      label: "Kurang",
+      amount: "Rp•••••",
+      short: true,
+    });
   });
 });

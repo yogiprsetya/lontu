@@ -9,7 +9,9 @@ function block(selector: string): string {
 }
 
 function token(scope: string, name: string): [number, number, number] {
-  const match = block(scope).match(new RegExp(`--${name}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`));
+  const match = block(scope).match(
+    new RegExp(`--${name}:\\s*oklch\\(([\\d.]+) ([\\d.]+) ([\\d.]+)\\)`),
+  );
   if (!match) throw new Error(`--${name} missing in ${scope}`);
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
@@ -34,18 +36,24 @@ function contrast(x: [number, number, number], y: [number, number, number]): num
 }
 
 describe.each([":root", ".dark"])("semantic color tokens in %s", (scope) => {
-  it.each(["income", "expense", "budget", "transfer"])("--%s has at least 4.5:1 contrast on --background", (name) => {
-    expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(["income", "expense", "budget", "transfer"])(
+    "--%s has at least 4.5:1 contrast on --background",
+    (name) => {
+      expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });
 
 const CHARTS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"];
 
 describe.each([":root", ".dark"])("chart color tokens in %s", (scope) => {
   // WCAG 1.4.11: graphical objects need 3:1. "Lainnya" uses --muted-foreground.
-  it.each([...CHARTS, "muted-foreground"])("--%s has at least 3:1 contrast on --background", (name) => {
-    expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(3);
-  });
+  it.each([...CHARTS, "muted-foreground"])(
+    "--%s has at least 3:1 contrast on --background",
+    (name) => {
+      expect(contrast(token(scope, name), token(scope, "background"))).toBeGreaterThanOrEqual(3);
+    },
+  );
 
   it("gives every category slice its own hue", () => {
     const hues = CHARTS.map((name) => token(scope, name));

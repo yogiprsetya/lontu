@@ -39,7 +39,11 @@ import { inputClass } from "@/components/forms/field-styles";
 type FormValues = z.input<typeof simpleCreateSchema>;
 
 /** Catat for one occurrence of a recurring rule: saving advances the rule instead of a plain create. */
-export type RecurringOccurrence = { rule: RecurringRule; occurrenceDate: string; onDone: () => void };
+export type RecurringOccurrence = {
+  rule: RecurringRule;
+  occurrenceDate: string;
+  onDone: () => void;
+};
 
 /**
  * Income, expense or saving. Waits for the server, then goes to the list.
@@ -72,21 +76,24 @@ export function TransactionForm({
     defaultValues: recurring
       ? occurrenceDefaults(recurring.rule, recurring.occurrenceDate, today)
       : transaction
-      ? {
-          type,
-          amount: transaction.amount,
-          date: transaction.date,
-          accountId: transaction.accountId,
-          categoryId: transaction.categoryId ?? "",
-          description: transaction.description ?? "",
-        }
-      : { type, amount: 0, date: today, accountId: "", categoryId: "", description: "" },
+        ? {
+            type,
+            amount: transaction.amount,
+            date: transaction.date,
+            accountId: transaction.accountId,
+            categoryId: transaction.categoryId ?? "",
+            description: transaction.description ?? "",
+          }
+        : { type, amount: 0, date: today, accountId: "", categoryId: "", description: "" },
   });
   const [accountId, amount] = useWatch({ control, name: ["accountId", "amount"] });
   const warning = useShortBalanceWarning(
     accountId,
     signedEffect(type, amount),
-    transaction && { accountId: transaction.accountId, effect: signedEffect(type, transaction.amount) },
+    transaction && {
+      accountId: transaction.accountId,
+      effect: signedEffect(type, transaction.amount),
+    },
   );
 
   const onSubmit = handleSubmit(async (input) => {
@@ -98,7 +105,13 @@ export function TransactionForm({
         onDone();
       } else if (transaction) {
         const { amount, date, accountId, categoryId, description } = input;
-        await updateTransaction(transaction.id, { amount, date, accountId, categoryId, description });
+        await updateTransaction(transaction.id, {
+          amount,
+          date,
+          accountId,
+          categoryId,
+          description,
+        });
         toast.success("Perubahan tersimpan");
         backToList();
       } else {
@@ -118,16 +131,23 @@ export function TransactionForm({
         toast.error("Gagal menyimpan. Coba simpan lagi.");
         return;
       }
-      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
+      if (!applyServerErrors(err, setError))
+        toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
     }
   });
 
   return (
     // In a modal (recurring) the drawer is already the surface, and there is no bottom nav to clear.
-    <form onSubmit={onSubmit} noValidate className={recurring ? "flex flex-col gap-4" : "surface flex flex-col gap-4 px-5 py-5"}>
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className={recurring ? "flex flex-col gap-4" : "surface flex flex-col gap-4 px-5 py-5"}
+    >
       {(transaction || recurring) && (
         <p className="text-sm text-muted-foreground">
-          Jenis: <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span> (tidak bisa diubah)
+          Jenis:{" "}
+          <span className="font-medium text-foreground">{TRANSACTION_TYPE_LABELS[type]}</span>{" "}
+          (tidak bisa diubah)
         </p>
       )}
 
@@ -152,7 +172,12 @@ export function TransactionForm({
         control={control}
         name="accountId"
         render={({ field }) => (
-          <FormField id="transaction-account" label="Akun" error={errors.accountId?.message} hint={warning}>
+          <FormField
+            id="transaction-account"
+            label="Akun"
+            error={errors.accountId?.message}
+            hint={warning}
+          >
             <AccountPicker
               id="transaction-account"
               value={field.value}
@@ -196,7 +221,11 @@ export function TransactionForm({
         />
       </FormField>
 
-      <FormField id="transaction-description" label="Deskripsi (opsional)" error={errors.description?.message}>
+      <FormField
+        id="transaction-description"
+        label="Deskripsi (opsional)"
+        error={errors.description?.message}
+      >
         <Input
           id="transaction-description"
           className={inputClass}
@@ -219,4 +248,3 @@ export function TransactionForm({
     </form>
   );
 }
-

@@ -39,7 +39,10 @@ describe("withAuth", () => {
     const res = await withAuth(handler)(new Request("http://localhost/api/x"), routeContext);
 
     expect(res.status).toBe(200);
-    expect(handler).toHaveBeenCalledWith(expect.any(Request), { userId: "google-sub-1", params: { id: "abc" } });
+    expect(handler).toHaveBeenCalledWith(expect.any(Request), {
+      userId: "google-sub-1",
+      params: { id: "abc" },
+    });
   });
 
   it("turns an unexpected error into 500 INTERNAL without leaking details", async () => {
@@ -64,7 +67,9 @@ describe("withAuth", () => {
     mockedAuth.mockRejectedValue(abort);
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await expect(withAuth(vi.fn())(new Request("http://localhost/api/x"), routeContext)).rejects.toBe(abort);
+    await expect(
+      withAuth(vi.fn())(new Request("http://localhost/api/x"), routeContext),
+    ).rejects.toBe(abort);
     expect(consoleError).not.toHaveBeenCalled();
   });
 });

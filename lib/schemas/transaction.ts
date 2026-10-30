@@ -34,8 +34,8 @@ const amount = z
 
 // YYYY-MM-DD strings compare correctly as text. "Today" is read at parse time,
 // so a long-lived schema never goes stale across midnight.
-const date = z
-  .iso.date("Tanggal tidak valid")
+const date = z.iso
+  .date("Tanggal tidak valid")
   .refine((d) => d >= MIN_TRANSACTION_DATE, "Tanggal minimal 1 Januari 2000")
   .refine((d) => d <= todayInJakarta(), "Tanggal tidak boleh melewati hari ini");
 
@@ -60,7 +60,12 @@ export const SIMPLE_TRANSACTION_TYPES = ["income", "expense", "saving"] as const
 
 export type SimpleTransactionType = (typeof SIMPLE_TRANSACTION_TYPES)[number];
 
-export const simpleCreateSchema = z.strictObject({ type: z.enum(SIMPLE_TRANSACTION_TYPES), id: clientId, ...base, categoryId });
+export const simpleCreateSchema = z.strictObject({
+  type: z.enum(SIMPLE_TRANSACTION_TYPES),
+  id: clientId,
+  ...base,
+  categoryId,
+});
 
 export const transferCreateSchema = z
   .strictObject({
@@ -70,13 +75,21 @@ export const transferCreateSchema = z
     toAccountId: z.uuid("Pilih akun tujuan"),
     fee: fee.optional(),
   })
-  .refine((v) => v.toAccountId !== v.accountId, { path: ["toAccountId"], error: "Akun tujuan harus berbeda" })
-  .refine((v) => !v.id || v.fee?.id !== v.id, { path: ["fee"], error: "Id biaya admin harus berbeda dari id transfer" });
+  .refine((v) => v.toAccountId !== v.accountId, {
+    path: ["toAccountId"],
+    error: "Akun tujuan harus berbeda",
+  })
+  .refine((v) => !v.id || v.fee?.id !== v.id, {
+    path: ["fee"],
+    error: "Id biaya admin harus berbeda dari id transfer",
+  });
 
 export const transactionCreateSchema = z.discriminatedUnion(
   "type",
   [simpleCreateSchema, transferCreateSchema],
-  { error: (issue) => (issue.code === "invalid_union" ? "Jenis transaksi tidak valid" : undefined) },
+  {
+    error: (issue) => (issue.code === "invalid_union" ? "Jenis transaksi tidak valid" : undefined),
+  },
 );
 
 const notEmpty = (v: object) => Object.keys(v).length > 0;
@@ -104,7 +117,8 @@ export function transactionUpdateSchema(type: TransactionType) {
   return type === "transfer" ? transferUpdateSchema : simpleUpdateSchema;
 }
 
-export type TransactionUpdateInput = z.infer<typeof simpleUpdateSchema> & z.infer<typeof transferUpdateSchema>;
+export type TransactionUpdateInput = z.infer<typeof simpleUpdateSchema> &
+  z.infer<typeof transferUpdateSchema>;
 
 export type TransactionCreateInput = z.infer<typeof transactionCreateSchema>;
 export type SimpleCreateInput = z.infer<typeof simpleCreateSchema>;
@@ -128,7 +142,9 @@ const fromBeforeTo = (v: { from?: string; to?: string }) => !v.from || !v.to || 
 const fromBeforeToIssue = { path: ["from"], error: "Tanggal awal harus sebelum tanggal akhir" };
 
 /** Shared by list, totals and export. */
-export const transactionFilterSchema = z.object(filterShape).refine(fromBeforeTo, fromBeforeToIssue);
+export const transactionFilterSchema = z
+  .object(filterShape)
+  .refine(fromBeforeTo, fromBeforeToIssue);
 
 export type TransactionFilters = z.infer<typeof transactionFilterSchema>;
 

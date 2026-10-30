@@ -46,11 +46,17 @@ function patch(id: string, body: unknown) {
 }
 
 function archive(id: string) {
-  return item.DELETE(new Request(`http://localhost/api/recurring/${id}`, { method: "DELETE" }), idParams(id));
+  return item.DELETE(
+    new Request(`http://localhost/api/recurring/${id}`, { method: "DELETE" }),
+    idParams(id),
+  );
 }
 
 function restore(id: string) {
-  return restoreRoute.POST(new Request(`http://localhost/api/recurring/${id}/restore`, { method: "POST" }), idParams(id));
+  return restoreRoute.POST(
+    new Request(`http://localhost/api/recurring/${id}/restore`, { method: "POST" }),
+    idParams(id),
+  );
 }
 
 async function created(body: Record<string, unknown>): Promise<RecurringRule> {
@@ -69,7 +75,13 @@ function activePaydays(userId: string) {
   return db
     .select({ id: recurringRules.id })
     .from(recurringRules)
-    .where(and(eq(recurringRules.userId, userId), eq(recurringRules.isPayday, true), isNull(recurringRules.archivedAt)));
+    .where(
+      and(
+        eq(recurringRules.userId, userId),
+        eq(recurringRules.isPayday, true),
+        isNull(recurringRules.archivedAt),
+      ),
+    );
 }
 
 let userA: string;
@@ -81,11 +93,28 @@ let foreignAccount: string;
 let cat: Record<"income" | "spending" | "saving" | "archivedSpending" | "foreignSpending", string>;
 
 function netflix(overrides: Record<string, unknown> = {}) {
-  return { type: "expense", name: "Netflix", amount: 186_000, accountId: account, categoryId: cat.spending, dayOfMonth: 5, ...overrides };
+  return {
+    type: "expense",
+    name: "Netflix",
+    amount: 186_000,
+    accountId: account,
+    categoryId: cat.spending,
+    dayOfMonth: 5,
+    ...overrides,
+  };
 }
 
 function salary(overrides: Record<string, unknown> = {}) {
-  return { type: "income", name: "Gaji", amount: 10_000_000, accountId: account, categoryId: cat.income, dayOfMonth: 25, isPayday: true, ...overrides };
+  return {
+    type: "income",
+    name: "Gaji",
+    amount: 10_000_000,
+    accountId: account,
+    categoryId: cat.income,
+    dayOfMonth: 25,
+    isPayday: true,
+    ...overrides,
+  };
 }
 
 beforeAll(async () => {
@@ -113,7 +142,13 @@ beforeAll(async () => {
       { userId: userA, name: "income", kind: "income" },
       { userId: userA, name: "spending", kind: "spending", spendingType: "wants" },
       { userId: userA, name: "saving", kind: "saving" },
-      { userId: userA, name: "archivedSpending", kind: "spending", spendingType: "wants", archivedAt },
+      {
+        userId: userA,
+        name: "archivedSpending",
+        kind: "spending",
+        spendingType: "wants",
+        archivedAt,
+      },
       { userId: userB, name: "foreignSpending", kind: "spending", spendingType: "wants" },
     ])
     .returning({ id: categories.id, name: categories.name });
@@ -141,7 +176,12 @@ describe("POST /api/recurring", () => {
     const res = await create(netflix());
     expect(res.status).toBe(201);
     const rule = (await res.json()) as RecurringRule;
-    expect(rule).toMatchObject({ ...netflix(), nextDueDate: "2026-11-05", isPayday: false, archivedAt: null });
+    expect(rule).toMatchObject({
+      ...netflix(),
+      nextDueDate: "2026-11-05",
+      isPayday: false,
+      archivedAt: null,
+    });
     expect(rule.id).toBeDefined();
   });
 
@@ -203,9 +243,12 @@ describe("POST /api/recurring", () => {
     expect((await res.json()).error.fields.isPayday).toBeDefined();
   });
 
-  it.each([{ userId: "someone" }, { nextDueDate: "2026-10-01" }])("rejects body field %j", async (extra) => {
-    expect((await create(netflix(extra))).status).toBe(400);
-  });
+  it.each([{ userId: "someone" }, { nextDueDate: "2026-10-01" }])(
+    "rejects body field %j",
+    async (extra) => {
+      expect((await create(netflix(extra))).status).toBe(400);
+    },
+  );
 
   it("rejects invalid JSON", async () => {
     expect((await create("{")).status).toBe(400);
@@ -221,7 +264,9 @@ describe("GET /api/recurring", () => {
   it("sorts by next due date then name and lists only due rules in due", async () => {
     const b = (await (await create(netflix({ name: "b", dayOfMonth: 5 }))).json()) as RecurringRule;
     const a = (await (await create(netflix({ name: "A", dayOfMonth: 5 }))).json()) as RecurringRule;
-    const today = (await (await create(netflix({ name: "z", dayOfMonth: 27 }))).json()) as RecurringRule;
+    const today = (await (
+      await create(netflix({ name: "z", dayOfMonth: 27 }))
+    ).json()) as RecurringRule;
     const body = await overview();
     expect(body.rules.map((r) => r.id)).toEqual([today.id, a.id, b.id]);
     expect(body.due.map((r) => r.id)).toEqual([today.id]);
@@ -230,7 +275,10 @@ describe("GET /api/recurring", () => {
 
   it("includes archived rules in rules only when asked, never in due", async () => {
     const rule = (await (await create(netflix({ dayOfMonth: 27 }))).json()) as RecurringRule;
-    await db.update(recurringRules).set({ archivedAt: new Date() }).where(eq(recurringRules.id, rule.id));
+    await db
+      .update(recurringRules)
+      .set({ archivedAt: new Date() })
+      .where(eq(recurringRules.id, rule.id));
     expect((await overview()).rules).toEqual([]);
     const withArchived = await overview("?includeArchived=true");
     expect(withArchived.rules.map((r) => r.id)).toEqual([rule.id]);
@@ -262,9 +310,18 @@ describe("PATCH /api/recurring/[id]", () => {
 
   it("keeps the next due date when other fields change", async () => {
     const rule = await created(netflix({ dayOfMonth: 27 }));
-    await db.update(recurringRules).set({ nextDueDate: "2026-08-27" }).where(eq(recurringRules.id, rule.id));
-    const updated = (await (await patch(rule.id, { amount: 200_000, name: "Netflix HD", dayOfMonth: 27 })).json()) as RecurringRule;
-    expect(updated).toMatchObject({ amount: 200_000, name: "Netflix HD", nextDueDate: "2026-08-27" });
+    await db
+      .update(recurringRules)
+      .set({ nextDueDate: "2026-08-27" })
+      .where(eq(recurringRules.id, rule.id));
+    const updated = (await (
+      await patch(rule.id, { amount: 200_000, name: "Netflix HD", dayOfMonth: 27 })
+    ).json()) as RecurringRule;
+    expect(updated).toMatchObject({
+      amount: 200_000,
+      name: "Netflix HD",
+      nextDueDate: "2026-08-27",
+    });
   });
 
   it("allows an edit when an untouched account was archived after creation", async () => {
@@ -303,7 +360,10 @@ describe("PATCH /api/recurring/[id]", () => {
   it("keeps exactly one payday when the current payday is re-flagged while another rule takes it", async () => {
     const old = await created(salary());
     const bonus = await created(salary({ name: "Bonus", isPayday: false }));
-    const responses = await Promise.all([patch(old.id, { isPayday: true }), patch(bonus.id, { isPayday: true })]);
+    const responses = await Promise.all([
+      patch(old.id, { isPayday: true }),
+      patch(bonus.id, { isPayday: true }),
+    ]);
     expect(responses.map((r) => r.status)).toEqual([200, 200]);
     expect(await activePaydays(userA)).toHaveLength(1);
   });
@@ -348,12 +408,15 @@ describe("DELETE and restore", () => {
 });
 
 describe("rule ids", () => {
-  it.each(["not-a-uuid", "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f"])("returns 404 RULE_NOT_FOUND for %s", async (id) => {
-    for (const res of [await patch(id, { amount: 1 }), await archive(id), await restore(id)]) {
-      expect(res.status).toBe(404);
-      expect((await res.json()).error.code).toBe("RULE_NOT_FOUND");
-    }
-  });
+  it.each(["not-a-uuid", "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f"])(
+    "returns 404 RULE_NOT_FOUND for %s",
+    async (id) => {
+      for (const res of [await patch(id, { amount: 1 }), await archive(id), await restore(id)]) {
+        expect(res.status).toBe(404);
+        expect((await res.json()).error.code).toBe("RULE_NOT_FOUND");
+      }
+    },
+  );
 
   it("returns 404 to user B for user A's rule and leaves it untouched", async () => {
     const rule = await created(netflix());
@@ -370,7 +433,9 @@ describe("without a session", () => {
   it("returns 401 for every route", async () => {
     signInAs(null);
     const id = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
-    expect((await collection.GET(new Request("http://localhost/api/recurring"), noParams)).status).toBe(401);
+    expect(
+      (await collection.GET(new Request("http://localhost/api/recurring"), noParams)).status,
+    ).toBe(401);
     expect((await create(netflix())).status).toBe(401);
     expect((await patch(id, { amount: 1 })).status).toBe(401);
     expect((await archive(id)).status).toBe(401);

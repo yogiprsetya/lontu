@@ -17,9 +17,12 @@ describe("budgetPeriodFromParam", () => {
     expect(budgetPeriodFromParam(value, today)).toBe(value);
   });
 
-  it.each([null, "", "2026-12", "1999-12", "2026-13", "2026", "all"])("falls back to the current month for %j", (value) => {
-    expect(budgetPeriodFromParam(value, today)).toBe("2026-10");
-  });
+  it.each([null, "", "2026-12", "1999-12", "2026-13", "2026", "all"])(
+    "falls back to the current month for %j",
+    (value) => {
+      expect(budgetPeriodFromParam(value, today)).toBe("2026-10");
+    },
+  );
 
   it("allows January next year in December", () => {
     expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2027-01");
@@ -72,11 +75,15 @@ describe("budgetTransactionsHref", () => {
 
 describe("copyResultMessage", () => {
   it("counts what was copied", () => {
-    expect(copyResultMessage(3, true, "September 2026")).toBe("3 budget disalin dari September 2026");
+    expect(copyResultMessage(3, true, "September 2026")).toBe(
+      "3 budget disalin dari September 2026",
+    );
   });
 
   it("says 0 when the source had budgets but every category is already set", () => {
-    expect(copyResultMessage(0, true, "September 2026")).toBe("0 budget disalin. Semua kategori sudah punya budget.");
+    expect(copyResultMessage(0, true, "September 2026")).toBe(
+      "0 budget disalin. Semua kategori sudah punya budget.",
+    );
   });
 
   it("says the source month has no budget", () => {

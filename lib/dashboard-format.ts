@@ -1,6 +1,11 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
 import type { BudgetUsageItem } from "@/lib/schemas/budget";
-import type { DashboardPeriod, DashboardSummary, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
+import type {
+  DashboardPeriod,
+  DashboardSummary,
+  DashboardTotals,
+  DateRange,
+} from "@/lib/schemas/dashboard";
 import { formatPeriodLabel } from "@/lib/period";
 
 export type ChangeTone = "good" | "bad" | "neutral";
@@ -20,7 +25,10 @@ export function changeTone(metric: keyof DashboardTotals, delta: number): Change
 
 /** Current balances of active accounts; a credit card's negative balance lowers the total. */
 export function sumBalances(accounts: Account[]) {
-  const byType = Object.fromEntries(ACCOUNT_TYPES.map((type) => [type, 0])) as Record<AccountType, number>;
+  const byType = Object.fromEntries(ACCOUNT_TYPES.map((type) => [type, 0])) as Record<
+    AccountType,
+    number
+  >;
   for (const account of accounts) {
     if (!account.archivedAt) byType[account.type] += account.balance;
   }
@@ -42,7 +50,8 @@ export function formatShortPeriod(period: DashboardPeriod) {
 export function formatRangeLabel({ from, to }: DateRange) {
   const year = to.slice(0, 4);
   if (from === to) return `${dayOf(from)} ${monthOf(from)} ${year}`;
-  if (from.slice(0, 7) === to.slice(0, 7)) return `${dayOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
+  if (from.slice(0, 7) === to.slice(0, 7))
+    return `${dayOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
   return `${dayOf(from)} ${monthOf(from)}–${dayOf(to)} ${monthOf(to)} ${year}`;
 }
 
@@ -55,7 +64,10 @@ export function formatBucket(bucket: string, style: "tick" | "full") {
 type Bucket = DashboardSummary["activity"][number];
 
 export function activityPeak(activity: Bucket[]): Bucket | null {
-  return activity.reduce<Bucket | null>((peak, b) => (b.expense > (peak?.expense ?? 0) ? b : peak), null);
+  return activity.reduce<Bucket | null>(
+    (peak, b) => (b.expense > (peak?.expense ?? 0) ? b : peak),
+    null,
+  );
 }
 
 /** `categoryId: null` is "Lainnya". */
@@ -69,7 +81,11 @@ export function topCategories(rows: DashboardSummary["categories"], n = 5): Cate
   const total = rows.reduce((sum, row) => sum + row.amount, 0);
   const percent = (amount: number) => Math.round((amount * 100) / total);
   const kept = rows.length > n + 1 ? rows.slice(0, n) : rows;
-  const slices: CategorySlice[] = kept.map(({ categoryId, amount }) => ({ categoryId, amount, percent: percent(amount) }));
+  const slices: CategorySlice[] = kept.map(({ categoryId, amount }) => ({
+    categoryId,
+    amount,
+    percent: percent(amount),
+  }));
   const rest = rows.slice(kept.length).reduce((sum, row) => sum + row.amount, 0);
   if (rest > 0) slices.push({ categoryId: null, amount: rest, percent: percent(rest) });
   return slices;

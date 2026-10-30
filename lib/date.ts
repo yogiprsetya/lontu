@@ -10,7 +10,11 @@ export function todayInJakarta(now: Date = new Date()): string {
   return jakartaDate.format(now);
 }
 
-const jakartaHour = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", hour: "numeric", hourCycle: "h23" });
+const jakartaHour = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Jakarta",
+  hour: "numeric",
+  hourCycle: "h23",
+});
 
 /** Indonesian time-of-day greeting for the current hour in Asia/Jakarta. */
 export function greetingInJakarta(now: Date = new Date()): string {

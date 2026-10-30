@@ -18,7 +18,13 @@ describe("fetcher", () => {
   it("throws ApiError carrying the uniform error body", async () => {
     mockFetch(
       Response.json(
-        { error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { name: ["Wajib diisi"] } } },
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Data tidak valid",
+            fields: { name: ["Wajib diisi"] },
+          },
+        },
         { status: 400 },
       ),
     );
@@ -65,7 +71,9 @@ describe("sendJSON", () => {
   });
 
   it("throws ApiError with fields for an error response", async () => {
-    mockFetch(Response.json({ error: { code: "ACCOUNT_NAME_TAKEN", message: "Dipakai" } }, { status: 409 }));
+    mockFetch(
+      Response.json({ error: { code: "ACCOUNT_NAME_TAKEN", message: "Dipakai" } }, { status: 409 }),
+    );
 
     const error = await sendJSON("/api/accounts", "POST", {}).catch((e: unknown) => e);
 

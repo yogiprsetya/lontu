@@ -68,7 +68,10 @@ describe("sumBalances", () => {
       account({ type: "asset", subtype: "investment", balance: 20_000_000 }),
       account({ balance: 9_999_999, archivedAt: "2026-10-01T00:00:00.000Z" }),
     ]);
-    expect(result).toEqual({ total: 23_800_000, byType: { transaction: 3_800_000, asset: 20_000_000 } });
+    expect(result).toEqual({
+      total: 23_800_000,
+      byType: { transaction: 3_800_000, asset: 20_000_000 },
+    });
   });
 
   it("is 0 without accounts", () => {
@@ -130,7 +133,11 @@ describe("activityPeak", () => {
 
 describe("topCategories", () => {
   const rows = (amounts: number[]) =>
-    amounts.map((amount, i) => ({ categoryId: `c${i + 1}`, spendingType: "needs" as const, amount }));
+    amounts.map((amount, i) => ({
+      categoryId: `c${i + 1}`,
+      spendingType: "needs" as const,
+      amount,
+    }));
   const sum = (slices: { amount: number }[]) => slices.reduce((total, s) => total + s.amount, 0);
 
   it("keeps the top 5 and folds the rest into Lainnya", () => {
@@ -154,8 +161,21 @@ describe("topCategories", () => {
 });
 
 describe("budgetHighlights", () => {
-  function item(categoryId: string, status: BudgetUsageItem["status"], percent: number | null): BudgetUsageItem {
-    return { categoryId, spendingType: "needs", budgetId: null, budget: null, spent: 0, remaining: null, percent, status };
+  function item(
+    categoryId: string,
+    status: BudgetUsageItem["status"],
+    percent: number | null,
+  ): BudgetUsageItem {
+    return {
+      categoryId,
+      spendingType: "needs",
+      budgetId: null,
+      budget: null,
+      spent: 0,
+      remaining: null,
+      percent,
+      status,
+    };
   }
 
   it("puts over-budget categories first, then warnings, each by percent descending", () => {
@@ -171,7 +191,11 @@ describe("budgetHighlights", () => {
   });
 
   it("returns fewer when fewer need attention", () => {
-    expect(budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map((i) => i.categoryId)).toEqual(["warn"]);
+    expect(
+      budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map(
+        (i) => i.categoryId,
+      ),
+    ).toEqual(["warn"]);
     expect(budgetHighlights([item("ok", "ok", 10)])).toEqual([]);
   });
 });

@@ -16,5 +16,9 @@ export const onlineStore = {
 };
 
 export function useOnlineStatus(): boolean {
-  return useSyncExternalStore(onlineStore.subscribe, onlineStore.getSnapshot, onlineStore.getServerSnapshot);
+  return useSyncExternalStore(
+    onlineStore.subscribe,
+    onlineStore.getSnapshot,
+    onlineStore.getServerSnapshot,
+  );
 }

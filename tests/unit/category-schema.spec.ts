@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { CATEGORY_KIND_FOR, categoryCreateSchema, categoryRenameSchema } from "@/lib/schemas/category";
+import {
+  CATEGORY_KIND_FOR,
+  categoryCreateSchema,
+  categoryRenameSchema,
+} from "@/lib/schemas/category";
 
 function fieldErrors(result: { success: boolean; error?: z.ZodError }) {
   expect(result.success).toBe(false);
@@ -9,7 +13,9 @@ function fieldErrors(result: { success: boolean; error?: z.ZodError }) {
 
 describe("categoryCreateSchema", () => {
   it("accepts a spending category with a spendingType", () => {
-    expect(categoryCreateSchema.parse({ name: " Parkir ", kind: "spending", spendingType: "needs" })).toEqual({
+    expect(
+      categoryCreateSchema.parse({ name: " Parkir ", kind: "spending", spendingType: "needs" }),
+    ).toEqual({
       name: "Parkir",
       kind: "spending",
       spendingType: "needs",
@@ -22,16 +28,22 @@ describe("categoryCreateSchema", () => {
       kind: "income",
       spendingType: null,
     });
-    expect(categoryCreateSchema.parse({ name: "Haji", kind: "saving", spendingType: null }).spendingType).toBeNull();
+    expect(
+      categoryCreateSchema.parse({ name: "Haji", kind: "saving", spendingType: null }).spendingType,
+    ).toBeNull();
   });
 
   it("requires a spendingType for spending", () => {
-    const errors = fieldErrors(categoryCreateSchema.safeParse({ name: "Parkir", kind: "spending" }));
+    const errors = fieldErrors(
+      categoryCreateSchema.safeParse({ name: "Parkir", kind: "spending" }),
+    );
     expect(errors.spendingType?.[0]).toMatch(/needs|wants/i);
   });
 
   it("rejects a spendingType on income", () => {
-    const errors = fieldErrors(categoryCreateSchema.safeParse({ name: "Gaji", kind: "income", spendingType: "wants" }));
+    const errors = fieldErrors(
+      categoryCreateSchema.safeParse({ name: "Gaji", kind: "income", spendingType: "wants" }),
+    );
     expect(errors.spendingType).toBeDefined();
   });
 
@@ -41,7 +53,9 @@ describe("categoryCreateSchema", () => {
   });
 
   it.each(["", "x".repeat(51)])("rejects name %j", (name) => {
-    expect(fieldErrors(categoryCreateSchema.safeParse({ name, kind: "income" })).name).toBeDefined();
+    expect(
+      fieldErrors(categoryCreateSchema.safeParse({ name, kind: "income" })).name,
+    ).toBeDefined();
   });
 });
 
@@ -50,12 +64,13 @@ describe("categoryRenameSchema", () => {
     expect(categoryRenameSchema.parse({ name: " Makan Siang " })).toEqual({ name: "Makan Siang" });
   });
 
-  it.each([{ name: "X", kind: "income" }, { name: "X", spendingType: "wants" }, { kind: "income" }])(
-    "rejects %j",
-    (body) => {
-      expect(categoryRenameSchema.safeParse(body).success).toBe(false);
-    },
-  );
+  it.each([
+    { name: "X", kind: "income" },
+    { name: "X", spendingType: "wants" },
+    { kind: "income" },
+  ])("rejects %j", (body) => {
+    expect(categoryRenameSchema.safeParse(body).success).toBe(false);
+  });
 });
 
 describe("CATEGORY_KIND_FOR", () => {

@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("swr", async (importOriginal) => ({ ...(await importOriginal<typeof import("swr")>()), mutate: vi.fn() }));
+vi.mock("swr", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("swr")>()),
+  mutate: vi.fn(),
+}));
 
 const { mutate } = await import("swr");
-const { affectedBy, apiKey, invalidate, isResourceKey, removeOptimistically } = await import("@/lib/cache-invalidation");
-const { deleteTransaction, transactionKey, transactionsPageKey, transactionsTotalsKey } = await import("@/hooks/use-transactions");
+const { affectedBy, apiKey, invalidate, isResourceKey, removeOptimistically } =
+  await import("@/lib/cache-invalidation");
+const { deleteTransaction, transactionKey, transactionsPageKey, transactionsTotalsKey } =
+  await import("@/hooks/use-transactions");
 const { accountsKey, updateAccount } = await import("@/hooks/use-accounts");
 const { categoriesKey } = await import("@/hooks/use-categories");
 const { budgetSuggestionKey, budgetsKey } = await import("@/hooks/use-budgets");
@@ -25,12 +30,17 @@ const keys = {
 
 /** True when some mutate call received a matcher that accepts `key`. */
 function revalidated(key: string) {
-  return mockedMutate.mock.calls.some(([matcher]) => typeof matcher === "function" && (matcher as (k: unknown) => boolean)(key));
+  return mockedMutate.mock.calls.some(
+    ([matcher]) => typeof matcher === "function" && (matcher as (k: unknown) => boolean)(key),
+  );
 }
 
 beforeEach(() => {
   mockedMutate.mockReset();
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json({})));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => Response.json({})),
+  );
 });
 
 afterEach(() => {
@@ -143,25 +153,25 @@ describe("apiKey", () => {
   });
 
   it("appends a sub-path and the query in the given order", () => {
-    expect(apiKey("budgets", { path: "suggestion", query: { period: "2026-10", income: 100 } })).toBe(
-      "/api/budgets/suggestion?period=2026-10&income=100",
-    );
+    expect(
+      apiKey("budgets", { path: "suggestion", query: { period: "2026-10", income: 100 } }),
+    ).toBe("/api/budgets/suggestion?period=2026-10&income=100");
     expect(apiKey("transactions", { path: id })).toBe(`/api/transactions/${id}`);
   });
 
   it("drops undefined values but keeps zero", () => {
-    expect(apiKey("budgets", { path: "suggestion", query: { period: "2026-10", income: undefined } })).toBe(
-      "/api/budgets/suggestion?period=2026-10",
-    );
+    expect(
+      apiKey("budgets", { path: "suggestion", query: { period: "2026-10", income: undefined } }),
+    ).toBe("/api/budgets/suggestion?period=2026-10");
     expect(apiKey("budgets", { path: "suggestion", query: { period: "2026-10", income: 0 } })).toBe(
       "/api/budgets/suggestion?period=2026-10&income=0",
     );
   });
 
   it("takes URLSearchParams as is", () => {
-    expect(apiKey("transactions", { query: new URLSearchParams("type=expense&from=2026-10-01") })).toBe(
-      "/api/transactions?type=expense&from=2026-10-01",
-    );
+    expect(
+      apiKey("transactions", { query: new URLSearchParams("type=expense&from=2026-10-01") }),
+    ).toBe("/api/transactions?type=expense&from=2026-10-01");
     expect(apiKey("transactions", { query: new URLSearchParams() })).toBe("/api/transactions");
   });
 });
@@ -187,7 +197,14 @@ describe("every key a hook builds matches its resource and no other", () => {
     ["transactions", transactionsTotalsKey(filters)],
     ["transactions", transactionKey(id)],
   ] as const;
-  const resources = ["accounts", "categories", "transactions", "budgets", "dashboard", "recurring"] as const;
+  const resources = [
+    "accounts",
+    "categories",
+    "transactions",
+    "budgets",
+    "dashboard",
+    "recurring",
+  ] as const;
 
   it.each(built)("%s: %s", (resource, key) => {
     for (const other of resources) expect(isResourceKey(other, key)).toBe(other === resource);

@@ -29,12 +29,49 @@ beforeAll(async () => {
   const rows = await db
     .insert(accounts)
     .values([
-      { userId: userA, name: "Debit", type: "transaction", subtype: "debit", initialBalance: 3_000_000 },
-      { userId: userA, name: "E-wallet", type: "transaction", subtype: "ewallet", initialBalance: 200_000 },
-      { userId: userA, name: "Kartu kredit", type: "transaction", subtype: "credit_card", initialBalance: -500_000 },
-      { userId: userA, name: "Investasi", type: "asset", subtype: "investment", initialBalance: 10_000_000 },
-      { userId: userA, name: "Debit lama", type: "transaction", subtype: "debit", initialBalance: 999, archivedAt: new Date() },
-      { userId: userB, name: "Debit B", type: "transaction", subtype: "debit", initialBalance: 7_000_000 },
+      {
+        userId: userA,
+        name: "Debit",
+        type: "transaction",
+        subtype: "debit",
+        initialBalance: 3_000_000,
+      },
+      {
+        userId: userA,
+        name: "E-wallet",
+        type: "transaction",
+        subtype: "ewallet",
+        initialBalance: 200_000,
+      },
+      {
+        userId: userA,
+        name: "Kartu kredit",
+        type: "transaction",
+        subtype: "credit_card",
+        initialBalance: -500_000,
+      },
+      {
+        userId: userA,
+        name: "Investasi",
+        type: "asset",
+        subtype: "investment",
+        initialBalance: 10_000_000,
+      },
+      {
+        userId: userA,
+        name: "Debit lama",
+        type: "transaction",
+        subtype: "debit",
+        initialBalance: 999,
+        archivedAt: new Date(),
+      },
+      {
+        userId: userB,
+        name: "Debit B",
+        type: "transaction",
+        subtype: "debit",
+        initialBalance: 7_000_000,
+      },
     ])
     .returning({ id: accounts.id, userId: accounts.userId });
   const accountA = rows.find((r) => r.userId === userA)!.id;
@@ -53,12 +90,54 @@ beforeAll(async () => {
 
   const base = { userId: userA, accountId: accountA };
   await db.insert(recurringRules).values([
-    { ...base, type: "income", name: "Gaji", amount: 10_000_000, categoryId: cat("Gaji"), dayOfMonth: 25, nextDueDate: "2026-11-25", isPayday: true },
-    { ...base, type: "expense", name: "Netflix", amount: 186_000, categoryId: cat("Langganan"), dayOfMonth: 5, nextDueDate: "2026-11-05" },
-    { ...base, type: "expense", name: "Sewa", amount: 2_500_000, categoryId: cat("Langganan"), dayOfMonth: 1, nextDueDate: "2026-12-01" },
-    { ...base, type: "saving", name: "Setoran", amount: 1_000_000, categoryId: cat("Dana darurat"), dayOfMonth: 20, nextDueDate: "2026-11-20" },
+    {
+      ...base,
+      type: "income",
+      name: "Gaji",
+      amount: 10_000_000,
+      categoryId: cat("Gaji"),
+      dayOfMonth: 25,
+      nextDueDate: "2026-11-25",
+      isPayday: true,
+    },
+    {
+      ...base,
+      type: "expense",
+      name: "Netflix",
+      amount: 186_000,
+      categoryId: cat("Langganan"),
+      dayOfMonth: 5,
+      nextDueDate: "2026-11-05",
+    },
+    {
+      ...base,
+      type: "expense",
+      name: "Sewa",
+      amount: 2_500_000,
+      categoryId: cat("Langganan"),
+      dayOfMonth: 1,
+      nextDueDate: "2026-12-01",
+    },
+    {
+      ...base,
+      type: "saving",
+      name: "Setoran",
+      amount: 1_000_000,
+      categoryId: cat("Dana darurat"),
+      dayOfMonth: 20,
+      nextDueDate: "2026-11-20",
+    },
     // User B's big bill must never reach user A's projection.
-    { userId: userB, accountId: accountB, type: "expense", name: "B", amount: 9_000_000, categoryId: cat("Langganan B"), dayOfMonth: 15, nextDueDate: "2026-11-15" },
+    {
+      userId: userB,
+      accountId: accountB,
+      type: "expense",
+      name: "B",
+      amount: 9_000_000,
+      categoryId: cat("Langganan B"),
+      dayOfMonth: 15,
+      nextDueDate: "2026-11-15",
+    },
   ]);
 });
 
@@ -95,7 +174,12 @@ describe("recurringOverview forecast", () => {
   it("keeps spendable equal to the matching balances from GET /api/accounts", async () => {
     mockedAuth.mockResolvedValue({ user: { id: userA } });
     const res = await accountsRoute.GET(new Request("http://localhost/api/accounts"), noParams);
-    const list = (await res.json()) as { type: string; subtype: string | null; balance: number; archivedAt: string | null }[];
+    const list = (await res.json()) as {
+      type: string;
+      subtype: string | null;
+      balance: number;
+      archivedAt: string | null;
+    }[];
     const expected = list
       .filter((a) => !a.archivedAt && a.type === "transaction" && a.subtype !== "credit_card")
       .reduce((sum, a) => sum + a.balance, 0);
@@ -126,7 +210,12 @@ describe("recurringOverview forecast", () => {
       mockedAuth.mockResolvedValue({ user: { id: userA } });
       const res = await collection.GET(new Request("http://localhost/api/recurring"), noParams);
       const body = (await res.json()) as RecurringOverview;
-      expect(body.forecast).toMatchObject({ status: "ok", daysLeft: 12, spendable: 3_200_000, committed: 1_186_000 });
+      expect(body.forecast).toMatchObject({
+        status: "ok",
+        daysLeft: 12,
+        spendable: 3_200_000,
+        committed: 1_186_000,
+      });
       expect(body.due.map((r) => r.name)).toEqual(["Netflix"]);
     } finally {
       vi.useRealTimers();

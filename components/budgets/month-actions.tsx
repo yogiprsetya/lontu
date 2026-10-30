@@ -1,12 +1,26 @@
 "use client";
 
 import { CopyIcon, EllipsisVerticalIcon, SparklesIcon } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { copyFromPreviousMonth, previousMonthLabel } from "@/components/budgets/copy-from-previous-month";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  copyFromPreviousMonth,
+  previousMonthLabel,
+} from "@/components/budgets/copy-from-previous-month";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
 import { shiftPeriod } from "@/lib/period";
 
-export function MonthActions({ period, onSuggest }: { period: BudgetPeriod; onSuggest: () => void }) {
+export function MonthActions({
+  period,
+  onSuggest,
+}: {
+  period: BudgetPeriod;
+  onSuggest: () => void;
+}) {
   const canCopy = shiftPeriod(period, -1) !== period;
 
   return (

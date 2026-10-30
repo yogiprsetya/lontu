@@ -17,7 +17,10 @@ beforeAll(async () => {
   const created = await createTestUsers(1);
   [userId] = created.ids;
   cleanup = created.cleanup;
-  const [account] = await db.insert(accounts).values({ userId, name: "BCA", type: "transaction" }).returning({ id: accounts.id });
+  const [account] = await db
+    .insert(accounts)
+    .values({ userId, name: "BCA", type: "transaction" })
+    .returning({ id: accounts.id });
   const [category] = await db
     .insert(categories)
     .values({ userId, name: "Langganan", kind: "spending", spendingType: "wants" })
@@ -33,13 +36,24 @@ afterAll(async () => {
 describe("insertSimple with an executor", () => {
   it("writes through the caller's DB transaction, so a rollback leaves no row", async () => {
     const id = randomUUID();
-    const input = { type: "expense" as const, id, amount: 186_000, date: "2026-10-20", accountId, categoryId, description: null };
+    const input = {
+      type: "expense" as const,
+      id,
+      amount: 186_000,
+      date: "2026-10-20",
+      accountId,
+      categoryId,
+      description: null,
+    };
 
     const outcome = await db
       .transaction(async (tx) => {
         const { transaction } = await insertSimple(userId, input, tx);
         expect(transaction).toMatchObject({ id, type: "expense", amount: 186_000 });
-        const [visible] = await tx.select({ id: transactions.id }).from(transactions).where(eq(transactions.id, id));
+        const [visible] = await tx
+          .select({ id: transactions.id })
+          .from(transactions)
+          .where(eq(transactions.id, id));
         expect(visible).toEqual({ id });
         throw new Rollback();
       })

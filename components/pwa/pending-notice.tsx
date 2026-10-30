@@ -10,7 +10,10 @@ export function PendingNotice() {
       {count > 0 && (
         <p className="surface px-5 py-4 text-sm">
           {count} transaksi belum terkirim, belum masuk saldo dan ringkasan.{" "}
-          <Link href="/transactions" className="inline-flex min-h-11 items-center font-medium underline underline-offset-4">
+          <Link
+            href="/transactions"
+            className="inline-flex min-h-11 items-center font-medium underline underline-offset-4"
+          >
             Lihat
           </Link>
         </p>

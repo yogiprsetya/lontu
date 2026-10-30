@@ -42,6 +42,9 @@ export const categoryCreateSchema = z.discriminatedUnion(
   { error: (issue) => (issue.code === "invalid_union" ? "Jenis kategori tidak valid" : undefined) },
 );
 
-export const categoryRenameSchema = z.strictObject({ name }, "Hanya nama kategori yang bisa diubah");
+export const categoryRenameSchema = z.strictObject(
+  { name },
+  "Hanya nama kategori yang bisa diubah",
+);
 
 export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>;

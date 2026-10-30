@@ -55,7 +55,11 @@ export function DueInbox() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button className="h-11 flex-1 text-base sm:flex-none" disabled={!online} onClick={() => setRecordingId(rule.id)}>
+              <Button
+                className="h-11 flex-1 text-base sm:flex-none"
+                disabled={!online}
+                onClick={() => setRecordingId(rule.id)}
+              >
                 Catat
               </Button>
               <Button
@@ -70,7 +74,9 @@ export function DueInbox() {
           </li>
         ))}
       </ul>
-      <p className="text-sm text-muted-foreground">{online ? SKIP_HINT : "Butuh koneksi untuk mencatat atau melewati."}</p>
+      <p className="text-sm text-muted-foreground">
+        {online ? SKIP_HINT : "Butuh koneksi untuk mencatat atau melewati."}
+      </p>
       <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />
     </section>
   );

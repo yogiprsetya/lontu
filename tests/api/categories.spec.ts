@@ -49,7 +49,10 @@ function rename(id: string, body: unknown) {
 }
 
 function archive(id: string) {
-  return item.DELETE(new Request(`http://localhost/api/categories/${id}`, { method: "DELETE" }), idParams(id));
+  return item.DELETE(
+    new Request(`http://localhost/api/categories/${id}`, { method: "DELETE" }),
+    idParams(id),
+  );
 }
 
 function restore(id: string) {
@@ -61,7 +64,9 @@ function restore(id: string) {
 
 async function idOf(userId: string, name: string, kind: string) {
   signInAs(userId);
-  const all: { id: string; name: string; kind: string }[] = await (await list("?include=archived")).json();
+  const all: { id: string; name: string; kind: string }[] = await (
+    await list("?include=archived")
+  ).json();
   return all.find((c) => c.name === name && c.kind === kind)!.id;
 }
 
@@ -84,7 +89,9 @@ afterAll(async () => {
 describe("GET /api/categories", () => {
   it("orders income, saving, spending needs, spending wants, then by name", async () => {
     signInAs(seededUser);
-    const body: { kind: string; spendingType: string | null; name: string }[] = await (await list()).json();
+    const body: { kind: string; spendingType: string | null; name: string }[] = await (
+      await list()
+    ).json();
 
     expect(body.map((c) => `${c.kind}/${c.spendingType ?? "-"}/${c.name}`)).toEqual([
       "income/-/Bonus",
@@ -120,7 +127,9 @@ describe("GET /api/categories", () => {
   });
 
   it("hides archived categories unless include=archived", async () => {
-    await db.insert(categories).values({ userId: userB, name: "Lama", kind: "income", archivedAt: new Date() });
+    await db
+      .insert(categories)
+      .values({ userId: userB, name: "Lama", kind: "income", archivedAt: new Date() });
     signInAs(userB);
 
     expect(await (await list()).json()).toEqual([]);
@@ -130,7 +139,9 @@ describe("GET /api/categories", () => {
 
   it("never returns another user's categories", async () => {
     signInAs(userB);
-    const names = (await (await list("?include=archived")).json()).map((c: { name: string }) => c.name);
+    const names = (await (await list("?include=archived")).json()).map(
+      (c: { name: string }) => c.name,
+    );
     expect(names).toEqual(["Lama"]);
   });
 
@@ -187,9 +198,14 @@ describe("POST /api/categories", () => {
 
   it("ignores a userId in the body", async () => {
     signInAs(userB);
-    const { id } = await (await create({ name: "Milik B", kind: "saving", userId: seededUser })).json();
+    const { id } = await (
+      await create({ name: "Milik B", kind: "saving", userId: seededUser })
+    ).json();
 
-    const [row] = await db.select({ userId: categories.userId }).from(categories).where(eq(categories.id, id));
+    const [row] = await db
+      .select({ userId: categories.userId })
+      .from(categories)
+      .where(eq(categories.id, id));
     expect(row.userId).toBe(userB);
   });
 });
@@ -211,14 +227,29 @@ describe("PATCH /api/categories/[id]", () => {
       .returning({ id: accounts.id });
     const [tx] = await db
       .insert(transactions)
-      .values({ userId: seededUser, type: "expense", amount: 1_000, date: "2026-10-20", accountId: account.id, categoryId: id })
+      .values({
+        userId: seededUser,
+        type: "expense",
+        amount: 1_000,
+        date: "2026-10-20",
+        accountId: account.id,
+        categoryId: id,
+      })
       .returning({ id: transactions.id });
 
     const res = await rename(id, { name: "Makan Siang" });
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id, name: "Makan Siang", kind: "spending", spendingType: "needs" });
-    const [row] = await db.select({ categoryId: transactions.categoryId }).from(transactions).where(eq(transactions.id, tx.id));
+    expect(await res.json()).toMatchObject({
+      id,
+      name: "Makan Siang",
+      kind: "spending",
+      spendingType: "needs",
+    });
+    const [row] = await db
+      .select({ categoryId: transactions.categoryId })
+      .from(transactions)
+      .where(eq(transactions.id, tx.id));
     expect(row.categoryId).toBe(id);
   });
 

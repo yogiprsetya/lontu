@@ -16,7 +16,10 @@ function signInAs(userId: string | null) {
 
 function copy(body: unknown) {
   return route.POST(
-    new Request("http://localhost/api/budgets/copy", { method: "POST", body: JSON.stringify(body) }),
+    new Request("http://localhost/api/budgets/copy", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
     { params: Promise.resolve({}) },
   );
 }
@@ -45,7 +48,13 @@ beforeAll(async () => {
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "Hiburan", kind: "spending", spendingType: "wants" },
       { userId: userA, name: "Transport", kind: "spending", spendingType: "needs" },
-      { userId: userA, name: "Lama", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "Lama",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt: new Date(),
+      },
       { userId: userB, name: "Makan", kind: "spending", spendingType: "needs" },
     ])
     .returning({ id: categories.id, name: categories.name, userId: categories.userId });
@@ -94,7 +103,9 @@ describe("POST /api/budgets/copy", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ copied: 1 });
 
-    const september = Object.fromEntries((await monthOf(userA, 2026, 9)).map((b) => [b.categoryId, b.amount]));
+    const september = Object.fromEntries(
+      (await monthOf(userA, 2026, 9)).map((b) => [b.categoryId, b.amount]),
+    );
     expect(september).toEqual({ [cat.Makan]: 900_000, [cat.Hiburan]: 300_000 });
   });
 
@@ -109,27 +120,40 @@ describe("POST /api/budgets/copy", () => {
     const [before] = await monthOf(userA, 2026, 7);
     expect(await (await copy({ to: "2026-07" })).json()).toEqual({ copied: 1 });
     const [after] = await monthOf(userA, 2026, 7);
-    expect(after).toMatchObject({ id: before.id, amount: 700_000, deletedAt: null, createdAt: before.createdAt });
+    expect(after).toMatchObject({
+      id: before.id,
+      amount: 700_000,
+      deletedAt: null,
+      createdAt: before.createdAt,
+    });
   });
 
-  it.each(["2026-05", "2000-01"])("copies nothing to %s when the previous month is empty or out of range", async (to) => {
-    signInAs(userA);
-    expect(await (await copy({ to })).json()).toEqual({ copied: 0 });
-  });
+  it.each(["2026-05", "2000-01"])(
+    "copies nothing to %s when the previous month is empty or out of range",
+    async (to) => {
+      signInAs(userA);
+      expect(await (await copy({ to })).json()).toEqual({ copied: 0 });
+    },
+  );
 
   it("never reads or writes another user's budgets", async () => {
     signInAs(userB);
     expect(await (await copy({ to: "2026-09" })).json()).toEqual({ copied: 1 });
-    expect((await monthOf(userB, 2026, 9)).map((b) => [b.categoryId, b.amount])).toEqual([[catB, 42_000]]);
+    expect((await monthOf(userB, 2026, 9)).map((b) => [b.categoryId, b.amount])).toEqual([
+      [catB, 42_000],
+    ]);
     expect(await monthOf(userA, 2026, 9)).toHaveLength(2);
   });
 
-  it.each([{ to: "2026-13" }, { to: "2026-12" }, {}, { to: "2026-09", userId: "test-x" }])("rejects %j", async (body) => {
-    signInAs(userA);
-    const res = await copy(body);
-    expect(res.status).toBe(400);
-    expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
-  });
+  it.each([{ to: "2026-13" }, { to: "2026-12" }, {}, { to: "2026-09", userId: "test-x" }])(
+    "rejects %j",
+    async (body) => {
+      signInAs(userA);
+      const res = await copy(body);
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
+    },
+  );
 
   it("returns 401 without a session", async () => {
     signInAs(null);

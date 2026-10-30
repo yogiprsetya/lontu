@@ -61,7 +61,11 @@ describe("findOwnedAccounts", () => {
 
 describe("findOwnedCategory", () => {
   it("returns id, kind and archivedAt for the user's own category", async () => {
-    expect(await findOwnedCategory(userA, categoryA)).toEqual({ id: categoryA, kind: "spending", archivedAt: null });
+    expect(await findOwnedCategory(userA, categoryA)).toEqual({
+      id: categoryA,
+      kind: "spending",
+      archivedAt: null,
+    });
   });
 
   it("returns undefined for another user's category", async () => {

@@ -3,8 +3,19 @@ import { categoriesKey, filterByKind, groupBySpendingType } from "@/hooks/use-ca
 import { isResourceKey } from "@/lib/cache-invalidation";
 import type { Category } from "@/lib/schemas/category";
 
-function category(name: string, kind: Category["kind"], spendingType: Category["spendingType"] = null): Category {
-  return { id: name, name, kind, spendingType, archivedAt: null, createdAt: "2026-10-20T00:00:00.000Z" };
+function category(
+  name: string,
+  kind: Category["kind"],
+  spendingType: Category["spendingType"] = null,
+): Category {
+  return {
+    id: name,
+    name,
+    kind,
+    spendingType,
+    archivedAt: null,
+    createdAt: "2026-10-20T00:00:00.000Z",
+  };
 }
 
 const list = [
@@ -17,7 +28,11 @@ const list = [
 
 describe("filterByKind", () => {
   it("keeps the order and only the requested kind", () => {
-    expect(filterByKind(list, "spending").map((c) => c.name)).toEqual(["Makan", "Hiburan", "Tagihan"]);
+    expect(filterByKind(list, "spending").map((c) => c.name)).toEqual([
+      "Makan",
+      "Hiburan",
+      "Tagihan",
+    ]);
   });
 
   it("returns everything without a kind", () => {

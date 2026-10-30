@@ -18,7 +18,10 @@ function tx(id: string): Transaction {
   };
 }
 
-const page = (ids: string[], nextCursor: string | null): TransactionPage => ({ items: ids.map(tx), nextCursor });
+const page = (ids: string[], nextCursor: string | null): TransactionPage => ({
+  items: ids.map(tx),
+  nextCursor,
+});
 
 describe("removeFromPages", () => {
   it("removes the row from whichever page holds it", () => {

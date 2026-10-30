@@ -26,7 +26,8 @@ const CategoryDonutChart = dynamic(() => import("@/components/dashboard/category
 const CHART_COLORS = 5;
 const OTHERS_COLOR = "var(--muted-foreground)";
 // With exactly six categories there is no "Lainnya", and the sixth takes its grey; the legend still names it.
-const sliceColor = (index: number) => (index < CHART_COLORS ? `var(--chart-${index + 1})` : OTHERS_COLOR);
+const sliceColor = (index: number) =>
+  index < CHART_COLORS ? `var(--chart-${index + 1})` : OTHERS_COLOR;
 
 const ROW_CLASS = "flex min-h-11 items-center gap-3 py-2";
 
@@ -34,11 +35,16 @@ export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
   const { data, error, mutate } = useDashboard(period);
   const categories = useCategories({ includeArchived: true });
-  const names = useMemo(() => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])), [categories.data]);
+  const names = useMemo(
+    () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
+    [categories.data],
+  );
 
   let content;
   if (error) {
-    content = <LoadError message="Gagal memuat pengeluaran per kategori." onRetry={() => void mutate()} />;
+    content = (
+      <LoadError message="Gagal memuat pengeluaran per kategori." onRetry={() => void mutate()} />
+    );
   } else if (!data) {
     content = (
       <>
@@ -58,14 +64,23 @@ export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
     content = (
       <div className="flex flex-col gap-4 sm:grid sm:grid-cols-[12rem_1fr] sm:items-center">
         <CategoryDonutChart slices={slices} centerLabel={money(data.totals.expense)} />
-        <ul className="min-w-0 divide-y" aria-label={`Pengeluaran per kategori, total ${money(data.totals.expense)}`}>
+        <ul
+          className="min-w-0 divide-y"
+          aria-label={`Pengeluaran per kategori, total ${money(data.totals.expense)}`}
+        >
           {slices.map((slice) => {
             const row = (
               <>
-                <span aria-hidden className="size-3 shrink-0 rounded-full" style={{ background: slice.color }} />
+                <span
+                  aria-hidden
+                  className="size-3 shrink-0 rounded-full"
+                  style={{ background: slice.color }}
+                />
                 <span className="min-w-0 flex-1 truncate">{slice.name}</span>
                 <span className="shrink-0 text-sm tabular-nums">{money(slice.amount)}</span>
-                <span className="w-10 shrink-0 text-right text-sm text-muted-foreground tabular-nums">{slice.percent}%</span>
+                <span className="w-10 shrink-0 text-right text-sm text-muted-foreground tabular-nums">
+                  {slice.percent}%
+                </span>
               </>
             );
             return (
@@ -89,7 +104,10 @@ export function CategoryBreakdown({ period }: { period: DashboardPeriod }) {
   }
 
   return (
-    <section aria-labelledby="categories-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+    <section
+      aria-labelledby="categories-title"
+      className="flex min-w-0 flex-col gap-3 surface px-5 py-5"
+    >
       <SectionTitle id="categories-title" icon={ChartPieIcon} tone="mint">
         Pengeluaran per kategori
       </SectionTitle>

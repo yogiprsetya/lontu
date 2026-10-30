@@ -1,12 +1,22 @@
 import { z } from "zod";
 
 export const ACCOUNT_TYPES = ["transaction", "asset"] as const;
-export const ACCOUNT_SUBTYPES = ["debit", "ewallet", "credit_card", "investment", "crypto", "other"] as const;
+export const ACCOUNT_SUBTYPES = [
+  "debit",
+  "ewallet",
+  "credit_card",
+  "investment",
+  "crypto",
+  "other",
+] as const;
 
 export type AccountType = (typeof ACCOUNT_TYPES)[number];
 export type AccountSubtype = (typeof ACCOUNT_SUBTYPES)[number];
 
-export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = { transaction: "Transaksi", asset: "Aset" };
+export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+  transaction: "Transaksi",
+  asset: "Aset",
+};
 export const ACCOUNT_SUBTYPE_LABELS: Record<AccountSubtype, string> = {
   debit: "Debit",
   ewallet: "E-wallet",

@@ -16,8 +16,11 @@ function validUuid(value: string | null) {
 
 export function parseFilters(params: Pick<URLSearchParams, "get">, today: string): ListFilters {
   const type = params.get("type");
-  const filters: ListFilters = { period: parsePeriod(params.get("period"), { modes: ["month", "year", "all"], today }) };
-  if (type && (LIST_TRANSACTION_TYPES as readonly string[]).includes(type)) filters.type = type as ListTransactionType;
+  const filters: ListFilters = {
+    period: parsePeriod(params.get("period"), { modes: ["month", "year", "all"], today }),
+  };
+  if (type && (LIST_TRANSACTION_TYPES as readonly string[]).includes(type))
+    filters.type = type as ListTransactionType;
   const accountId = validUuid(params.get("accountId"));
   if (accountId) filters.accountId = accountId;
   const categoryId = validUuid(params.get("categoryId"));

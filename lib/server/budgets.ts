@@ -28,10 +28,16 @@ export async function setBudgets(
   userId: string,
   { period, items }: BudgetSetInput,
 ): Promise<Budget[] | { invalid: { field: "items"; message: string } }> {
-  const owned = await findOwnedCategories(userId, items.map((i) => i.categoryId));
-  const valid = new Set(owned.filter((c) => c.kind === "spending" && !c.archivedAt).map((c) => c.id));
+  const owned = await findOwnedCategories(
+    userId,
+    items.map((i) => i.categoryId),
+  );
+  const valid = new Set(
+    owned.filter((c) => c.kind === "spending" && !c.archivedAt).map((c) => c.id),
+  );
   // Same message for foreign, unknown, archived and wrong-kind ids, so nothing leaks.
-  if (items.some((i) => !valid.has(i.categoryId))) return { invalid: { field: "items", message: "Kategori tidak valid" } };
+  if (items.some((i) => !valid.has(i.categoryId)))
+    return { invalid: { field: "items", message: "Kategori tidak valid" } };
 
   const { year, month } = periodToYearMonth(period);
   const rows = await db
@@ -48,7 +54,11 @@ export async function setBudgets(
 }
 
 // coalesce keeps the first deleted_at, so repeating a delete changes nothing.
-async function setDeleted(userId: string, id: string, deleted: boolean): Promise<Budget | undefined> {
+async function setDeleted(
+  userId: string,
+  id: string,
+  deleted: boolean,
+): Promise<Budget | undefined> {
   if (!z.uuid().safeParse(id).success) return undefined;
   const [row] = await db
     .update(budgets)

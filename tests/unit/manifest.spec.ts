@@ -40,7 +40,9 @@ describe("web app manifest", () => {
 
   it("offers a Tambah Expense shortcut", () => {
     expect(m.shortcuts).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: "Tambah Expense", url: "/add/expense" })]),
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Tambah Expense", url: "/add/expense" }),
+      ]),
     );
   });
 });

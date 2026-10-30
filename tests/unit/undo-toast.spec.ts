@@ -44,19 +44,29 @@ describe("undoToast", () => {
   });
 
   it("shows the fallback when the server refuses the restore", async () => {
-    undoToast({ message: "Budget dihapus", restore: () => Promise.reject(new ApiError(500, "INTERNAL", "x")) });
+    undoToast({
+      message: "Budget dihapus",
+      restore: () => Promise.reject(new ApiError(500, "INTERNAL", "x")),
+    });
     await clickUndo();
     expect(mockedToast.error).toHaveBeenCalledWith("Gagal mengurungkan. Coba lagi.");
   });
 
   it("shows the offline message when the restore never reaches the server", async () => {
-    undoToast({ message: "Aturan diarsipkan", restore: () => Promise.reject(new TypeError("Failed to fetch")) });
+    undoToast({
+      message: "Aturan diarsipkan",
+      restore: () => Promise.reject(new TypeError("Failed to fetch")),
+    });
     await clickUndo();
     expect(mockedToast.error).toHaveBeenCalledWith(OFFLINE_MUTATION_MESSAGE);
   });
 
   it("takes a custom fallback", async () => {
-    undoToast({ message: "x", restore: () => Promise.reject(new Error("x")), failure: "Gagal memulihkan." });
+    undoToast({
+      message: "x",
+      restore: () => Promise.reject(new Error("x")),
+      failure: "Gagal memulihkan.",
+    });
     await clickUndo();
     expect(mockedToast.error).toHaveBeenCalledWith("Gagal memulihkan.");
   });

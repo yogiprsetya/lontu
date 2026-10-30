@@ -5,7 +5,10 @@ import { ApiError } from "@/lib/fetcher";
 describe("applyServerErrors", () => {
   it("sets the first message of each field error", () => {
     const setError = vi.fn();
-    const err = new ApiError(400, "VALIDATION_ERROR", "Data tidak valid", { name: ["Wajib", "Lain"], type: ["Salah"] });
+    const err = new ApiError(400, "VALIDATION_ERROR", "Data tidak valid", {
+      name: ["Wajib", "Lain"],
+      type: ["Salah"],
+    });
 
     expect(applyServerErrors(err, setError)).toBe(true);
     expect(setError).toHaveBeenCalledWith("name", { message: "Wajib" });

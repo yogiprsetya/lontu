@@ -5,7 +5,10 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(__dirname, "../..");
 
 // The two toggles are the only components allowed to read the flag itself.
-const ALLOWED = new Set(["components/settings/finance-section.tsx", "components/dashboard/hide-amounts-button.tsx"]);
+const ALLOWED = new Set([
+  "components/settings/finance-section.tsx",
+  "components/dashboard/hide-amounts-button.tsx",
+]);
 
 function files(dir: string, match: (name: string) => boolean): string[] {
   return readdirSync(path.join(ROOT, dir), { withFileTypes: true, recursive: true })

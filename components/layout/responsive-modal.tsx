@@ -28,7 +28,14 @@ type ResponsiveModalProps = {
 };
 
 /** Bottom drawer below `lg`, centered dialog from `lg` up. Only one of them is mounted. */
-export function ResponsiveModal({ open, onOpenChange, title, description, children, footer }: ResponsiveModalProps) {
+export function ResponsiveModal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  footer,
+}: ResponsiveModalProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   if (isDesktop) {
@@ -54,7 +61,11 @@ export function ResponsiveModal({ open, onOpenChange, title, description, childr
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-4">{children}</div>
-        {footer && <DrawerFooter className="pb-[calc(1rem+env(safe-area-inset-bottom))]">{footer}</DrawerFooter>}
+        {footer && (
+          <DrawerFooter className="pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            {footer}
+          </DrawerFooter>
+        )}
       </DrawerContent>
     </Drawer>
   );

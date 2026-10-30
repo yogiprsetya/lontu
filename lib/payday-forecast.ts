@@ -19,16 +19,25 @@ export function paydayForecast({
   const active = rules.filter((r) => !r.archivedAt);
   const payday = active.find((r) => r.isPayday);
   if (!payday) return { status: "no_payday" };
-  if (payday.nextDueDate <= today) return { status: "payday_due", ruleId: payday.id, dueDate: payday.nextDueDate };
+  if (payday.nextDueDate <= today)
+    return { status: "payday_due", ruleId: payday.id, dueDate: payday.nextDueDate };
 
   const named: (ForecastItem & { name: string })[] = [];
   for (const rule of active) {
     if (rule.type === "income") continue;
-    for (let due = rule.nextDueDate; due < payday.nextDueDate; due = advanceDate(rule.dayOfMonth, due)) {
+    for (
+      let due = rule.nextDueDate;
+      due < payday.nextDueDate;
+      due = advanceDate(rule.dayOfMonth, due)
+    ) {
       named.push({ ruleId: rule.id, dueDate: due, amount: rule.amount, name: rule.name });
     }
   }
-  named.sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+  named.sort(
+    (a, b) =>
+      a.dueDate.localeCompare(b.dueDate) ||
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+  );
   const items = named.map(({ ruleId, dueDate, amount }) => ({ ruleId, dueDate, amount }));
   const committed = items.reduce((sum, i) => sum + i.amount, 0);
 

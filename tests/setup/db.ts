@@ -19,14 +19,21 @@ export async function createTestUsers(count: number) {
 }
 
 /** Asserts a query is rejected by Postgres with the given SQLSTATE and constraint. */
-export async function expectPgError(query: PromiseLike<unknown>, code: string, constraint?: string) {
+export async function expectPgError(
+  query: PromiseLike<unknown>,
+  code: string,
+  constraint?: string,
+) {
   const error = await Promise.resolve(query).then(
     () => undefined,
     (e: unknown) => e,
   );
   expect(error, "query should have been rejected").toBeDefined();
   // Drizzle wraps driver errors; the Postgres error is on `cause`.
-  const pg = ((error as { cause?: unknown }).cause ?? error) as { code?: string; constraint_name?: string };
+  const pg = ((error as { cause?: unknown }).cause ?? error) as {
+    code?: string;
+    constraint_name?: string;
+  };
   expect(pg.code).toBe(code);
   if (constraint) expect(pg.constraint_name).toBe(constraint);
 }

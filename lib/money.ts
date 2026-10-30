@@ -24,7 +24,11 @@ export function formatIDR(amount: number): string {
 }
 
 /** `format(amount)`, or HIDDEN_AMOUNT while amounts are hidden. Components use `useAmountFormat` instead. */
-export function displayAmount(amount: number, hidden: boolean, format: (amount: number) => string = formatIDR) {
+export function displayAmount(
+  amount: number,
+  hidden: boolean,
+  format: (amount: number) => string = formatIDR,
+) {
   return hidden ? HIDDEN_AMOUNT : format(amount);
 }
 

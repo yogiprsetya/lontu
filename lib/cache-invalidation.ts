@@ -1,6 +1,7 @@
 import { mutate } from "swr";
 
-export type Resource = "accounts" | "categories" | "transactions" | "budgets" | "dashboard" | "recurring";
+export type Resource =
+  "accounts" | "categories" | "transactions" | "budgets" | "dashboard" | "recurring";
 
 /** Every SWR key of a resource starts with its base path. `infinite`: it also has useSWRInfinite lists. */
 const RESOURCES: Record<Resource, { base: string; infinite?: boolean }> = {
@@ -32,7 +33,9 @@ export function apiKey(resource: Resource, { path, query }: { path?: string; que
     query instanceof URLSearchParams
       ? query
       : new URLSearchParams(
-          Object.entries(query ?? {}).flatMap(([name, value]) => (value === undefined ? [] : [[name, String(value)]])),
+          Object.entries(query ?? {}).flatMap(([name, value]) =>
+            value === undefined ? [] : [[name, String(value)]],
+          ),
         );
   const search = params.toString();
   return search ? `${url}?${search}` : url;
@@ -70,7 +73,9 @@ export function affectedBy(changed: Resource): Resource[] {
  */
 export function invalidate(changed: Resource, { except }: { except?: string } = {}) {
   const resources = affectedBy(changed);
-  return mutate((key) => key !== except && resources.some((resource) => isResourceKey(resource, key)));
+  return mutate(
+    (key) => key !== except && resources.some((resource) => isResourceKey(resource, key)),
+  );
 }
 
 /**

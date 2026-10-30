@@ -16,12 +16,20 @@ describe("dashboardPeriodSchema", () => {
     expect(dashboardPeriodSchema.parse(period)).toBe(period);
   });
 
-  it.each(["", "2026-13", "2026-00", "26-10", "1999", "1999-12", "2026-11", "2027", "all", "2026-10-01"])(
-    "rejects %j",
-    (period) => {
-      expect(dashboardPeriodSchema.safeParse(period).success).toBe(false);
-    },
-  );
+  it.each([
+    "",
+    "2026-13",
+    "2026-00",
+    "26-10",
+    "1999",
+    "1999-12",
+    "2026-11",
+    "2027",
+    "all",
+    "2026-10-01",
+  ])("rejects %j", (period) => {
+    expect(dashboardPeriodSchema.safeParse(period).success).toBe(false);
+  });
 
   it("reads today in Jakarta, so 31 Dec 18:00 UTC already allows the new year", () => {
     vi.setSystemTime(new Date("2026-12-31T16:00:00Z"));

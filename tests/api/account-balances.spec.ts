@@ -36,9 +36,30 @@ describe("account_balances view", () => {
       .returning({ id: categories.id });
 
     await db.insert(transactions).values([
-      { userId: userA, type: "income", amount: 50_000, date: "2026-10-01", accountId: a.id, categoryId: income.id },
-      { userId: userA, type: "expense", amount: 20_000, date: "2026-10-02", accountId: a.id, categoryId: food.id },
-      { userId: userA, type: "transfer", amount: 10_000, date: "2026-10-03", accountId: a.id, toAccountId: b.id },
+      {
+        userId: userA,
+        type: "income",
+        amount: 50_000,
+        date: "2026-10-01",
+        accountId: a.id,
+        categoryId: income.id,
+      },
+      {
+        userId: userA,
+        type: "expense",
+        amount: 20_000,
+        date: "2026-10-02",
+        accountId: a.id,
+        categoryId: food.id,
+      },
+      {
+        userId: userA,
+        type: "transfer",
+        amount: 10_000,
+        date: "2026-10-03",
+        accountId: a.id,
+        toAccountId: b.id,
+      },
       {
         userId: userA,
         type: "expense",
@@ -69,10 +90,20 @@ describe("account_balances view", () => {
     await db.insert(transactions).values([
       { userId: userB, type: "adjustment", amount: 50_000, date: "2026-10-01", accountId: a.id },
       { userId: userB, type: "adjustment", amount: -30_000, date: "2026-10-02", accountId: a.id },
-      { userId: userB, type: "adjustment", amount: -5_000, date: "2026-10-03", accountId: a.id, deletedAt: new Date() },
+      {
+        userId: userB,
+        type: "adjustment",
+        amount: -5_000,
+        date: "2026-10-03",
+        accountId: a.id,
+        deletedAt: new Date(),
+      },
     ]);
 
-    const [row] = await db.select().from(accountBalances).where(eq(accountBalances.accountId, a.id));
+    const [row] = await db
+      .select()
+      .from(accountBalances)
+      .where(eq(accountBalances.accountId, a.id));
 
     expect(row.balance).toBe(120_000);
   });
@@ -83,7 +114,10 @@ describe("account_balances view", () => {
       .values({ userId: userB, name: "Kosong", type: "asset", initialBalance: 7_500 })
       .returning({ id: accounts.id });
 
-    const [row] = await db.select().from(accountBalances).where(eq(accountBalances.accountId, c.id));
+    const [row] = await db
+      .select()
+      .from(accountBalances)
+      .where(eq(accountBalances.accountId, c.id));
 
     expect(row).toEqual({ accountId: c.id, userId: userB, balance: 7_500 });
   });

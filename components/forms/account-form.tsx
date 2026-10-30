@@ -7,7 +7,13 @@ import type { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createAccount, updateAccount } from "@/hooks/use-accounts";
 import { applyServerErrors } from "@/lib/form-errors";
@@ -49,7 +55,12 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
   } = useForm<FormValues, unknown, AccountCreateInput>({
     resolver: zodResolver(accountCreateSchema),
     defaultValues: account
-      ? { name: account.name, type: account.type, subtype: account.subtype, initialBalance: account.initialBalance }
+      ? {
+          name: account.name,
+          type: account.type,
+          subtype: account.subtype,
+          initialBalance: account.initialBalance,
+        }
       : { name: "", type: "transaction", subtype: null, initialBalance: 0 },
   });
   const initialBalance = useWatch({ control, name: "initialBalance" });
@@ -66,7 +77,8 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
       }
       onDone();
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan akun. Coba lagi."));
+      if (!applyServerErrors(err, setError))
+        toast.error(failureMessage(err, "Gagal menyimpan akun. Coba lagi."));
     }
   });
 
@@ -113,14 +125,26 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
         control={control}
         name="subtype"
         render={({ field }) => (
-          <FormField id="account-subtype" label="Subjenis (opsional)" error={errors.subtype?.message}>
-            <Select items={subtypeItems} value={field.value ?? null} onValueChange={(v) => field.onChange(v)}>
+          <FormField
+            id="account-subtype"
+            label="Subjenis (opsional)"
+            error={errors.subtype?.message}
+          >
+            <Select
+              items={subtypeItems}
+              value={field.value ?? null}
+              onValueChange={(v) => field.onChange(v)}
+            >
               <SelectTrigger id="account-subtype" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {subtypeItems.map((item) => (
-                  <SelectItem key={item.value ?? "none"} value={item.value} className={selectItemClass}>
+                  <SelectItem
+                    key={item.value ?? "none"}
+                    value={item.value}
+                    className={selectItemClass}
+                  >
                     {item.label}
                   </SelectItem>
                 ))}

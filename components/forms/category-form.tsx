@@ -21,7 +21,10 @@ import { failureMessage } from "@/lib/offline/network-error";
 import { inputClass } from "@/components/forms/field-styles";
 
 // The kind comes from the active tab, so the form only edits name and, for spending, needs/wants.
-const formSchema = z.object({ name: categoryRenameSchema.shape.name, spendingType: z.enum(SPENDING_TYPES) });
+const formSchema = z.object({
+  name: categoryRenameSchema.shape.name,
+  spendingType: z.enum(SPENDING_TYPES),
+});
 type FormValues = z.infer<typeof formSchema>;
 
 type CategoryFormProps = {
@@ -51,12 +54,15 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
         await renameCategory(category.id, name);
         toast.success("Kategori diperbarui");
       } else {
-        await createCategory(kind === "spending" ? { name, kind, spendingType } : { name, kind, spendingType: null });
+        await createCategory(
+          kind === "spending" ? { name, kind, spendingType } : { name, kind, spendingType: null },
+        );
         toast.success("Kategori ditambahkan");
       }
       onDone();
     } catch (err) {
-      if (!applyServerErrors(err, setError)) toast.error(failureMessage(err, "Gagal menyimpan kategori. Coba lagi."));
+      if (!applyServerErrors(err, setError))
+        toast.error(failureMessage(err, "Gagal menyimpan kategori. Coba lagi."));
     }
   });
 
@@ -83,7 +89,11 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
           control={control}
           name="spendingType"
           render={({ field }) => (
-            <div role="group" aria-labelledby="category-spending-type-label" className="flex flex-col gap-2">
+            <div
+              role="group"
+              aria-labelledby="category-spending-type-label"
+              className="flex flex-col gap-2"
+            >
               <span id="category-spending-type-label" className="text-sm font-medium">
                 Kebutuhan atau keinginan
               </span>

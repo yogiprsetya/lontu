@@ -5,11 +5,19 @@ describe("DEFAULT_CATEGORIES", () => {
   it("has the 16 categories from the spec", () => {
     expect(DEFAULT_CATEGORIES).toHaveLength(16);
     const byGroup = (kind: string, spendingType: string | null) =>
-      DEFAULT_CATEGORIES.filter((c) => c.kind === kind && c.spendingType === spendingType).map((c) => c.name);
+      DEFAULT_CATEGORIES.filter((c) => c.kind === kind && c.spendingType === spendingType).map(
+        (c) => c.name,
+      );
 
     expect(byGroup("income", null)).toEqual(["Gaji", "Bonus", "Hadiah", "Lainnya"]);
     expect(byGroup("saving", null)).toEqual(["Dana Darurat", "Tabungan", "Investasi"]);
-    expect(byGroup("spending", "needs")).toEqual(["Makan", "Transportasi", "Tagihan", "Belanja Bulanan", "Kesehatan"]);
+    expect(byGroup("spending", "needs")).toEqual([
+      "Makan",
+      "Transportasi",
+      "Tagihan",
+      "Belanja Bulanan",
+      "Kesehatan",
+    ]);
     expect(byGroup("spending", "wants")).toEqual(["Hiburan", "Jajan", "Belanja", "Langganan"]);
   });
 

@@ -12,7 +12,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddMenu } from "./add-menu";
-import { budgetItem, dashboardItem, isActivePath, moreItems, type NavItem, transactionsItem } from "./nav-items";
+import {
+  budgetItem,
+  dashboardItem,
+  isActivePath,
+  moreItems,
+  type NavItem,
+  transactionsItem,
+} from "./nav-items";
 import { useSignOut } from "./sign-out";
 
 const slotClass =
@@ -27,7 +34,12 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
       aria-current={active ? "page" : undefined}
       className={cn(slotClass, active ? "font-extrabold text-foreground" : "text-muted-foreground")}
     >
-      <span className={cn(pillClass, active ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted")}>
+      <span
+        className={cn(
+          pillClass,
+          active ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted",
+        )}
+      >
         <item.icon className="size-5" aria-hidden />
       </span>
       {item.label}
@@ -53,21 +65,43 @@ export function BottomNav() {
         </div>
         <NavLink item={budgetItem} pathname={pathname} />
         <DropdownMenu>
-          <DropdownMenuTrigger className={cn(slotClass, moreActive ? "font-extrabold text-foreground" : "text-muted-foreground")}>
-            <span className={cn(pillClass, moreActive ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted")}>
+          <DropdownMenuTrigger
+            className={cn(
+              slotClass,
+              moreActive ? "font-extrabold text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <span
+              className={cn(
+                pillClass,
+                moreActive ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted",
+              )}
+            >
               <EllipsisIcon className="size-5" aria-hidden />
             </span>
             More
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" sideOffset={8} className="min-w-52 rounded-2xl p-1.5">
+          <DropdownMenuContent
+            side="top"
+            align="end"
+            sideOffset={8}
+            className="min-w-52 rounded-2xl p-1.5"
+          >
             {moreItems.map((item) => (
-              <DropdownMenuItem key={item.href} className="min-h-11 gap-3 rounded-xl text-base" render={<Link href={item.href} />}>
+              <DropdownMenuItem
+                key={item.href}
+                className="min-h-11 gap-3 rounded-xl text-base"
+                render={<Link href={item.href} />}
+              >
                 <item.icon className="size-5" aria-hidden />
                 {item.label}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="min-h-11 gap-3 rounded-xl text-base" onClick={() => void signOut()}>
+            <DropdownMenuItem
+              className="min-h-11 gap-3 rounded-xl text-base"
+              onClick={() => void signOut()}
+            >
               <LogOutIcon className="size-5" aria-hidden />
               Logout
             </DropdownMenuItem>

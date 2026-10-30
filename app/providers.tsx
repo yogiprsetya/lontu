@@ -20,7 +20,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       {/* No reload on reconnect: it would throw away a half-filled form. */}
-      <SerwistProvider swUrl="/sw.js" disable={process.env.NODE_ENV === "development"} reloadOnOnline={false}>
+      <SerwistProvider
+        swUrl="/sw.js"
+        disable={process.env.NODE_ENV === "development"}
+        reloadOnOnline={false}
+      >
         <SWRConfig value={{ fetcher }}>
           {children}
           {/* Top, so toasts never cover the bottom nav or a drawer's action buttons. */}

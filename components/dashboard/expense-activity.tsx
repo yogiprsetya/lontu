@@ -18,10 +18,13 @@ import { cn } from "@/lib/utils";
 // Same height as the chart so nothing shifts when Recharts arrives.
 const chartSkeleton = () => <Skeleton className="h-56 w-full" />;
 
-const ExpenseActivityChart = dynamic(() => import("@/components/dashboard/expense-activity-chart"), {
-  ssr: false,
-  loading: chartSkeleton,
-});
+const ExpenseActivityChart = dynamic(
+  () => import("@/components/dashboard/expense-activity-chart"),
+  {
+    ssr: false,
+    loading: chartSkeleton,
+  },
+);
 
 export function NoExpense({ period }: { period: DashboardPeriod }) {
   return (
@@ -56,7 +59,8 @@ export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
     ) : (
       <>
         <p className="h-5 truncate text-sm text-muted-foreground">
-          Total {money(data.totals.expense)}, tertinggi {money(peak.expense)} pada {formatBucket(peak.bucket, "full")}
+          Total {money(data.totals.expense)}, tertinggi {money(peak.expense)} pada{" "}
+          {formatBucket(peak.bucket, "full")}
         </p>
         <ExpenseActivityChart activity={data.activity} />
         <table className="sr-only">
@@ -81,7 +85,10 @@ export function ExpenseActivity({ period }: { period: DashboardPeriod }) {
   }
 
   return (
-    <section aria-labelledby="activity-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+    <section
+      aria-labelledby="activity-title"
+      className="flex min-w-0 flex-col gap-3 surface px-5 py-5"
+    >
       <SectionTitle id="activity-title" icon={ChartColumnIcon} tone="peach">
         Expense Activity
       </SectionTitle>

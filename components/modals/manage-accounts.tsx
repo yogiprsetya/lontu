@@ -14,11 +14,7 @@ import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  archiveAccount,
-  restoreAccount,
-  useAccounts,
-} from "@/hooks/use-accounts";
+import { archiveAccount, restoreAccount, useAccounts } from "@/hooks/use-accounts";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { formatIDR } from "@/lib/money";
 import {
@@ -29,10 +25,7 @@ import {
 } from "@/lib/schemas/account";
 import { cn } from "@/lib/utils";
 
-type View =
-  | { kind: "list" }
-  | { kind: "create" }
-  | { kind: "edit"; account: Account };
+type View = { kind: "list" } | { kind: "create" } | { kind: "edit"; account: Account };
 
 const titles = {
   list: "Kelola akun",
@@ -40,13 +33,7 @@ const titles = {
   edit: "Ubah akun",
 };
 
-export function ManageAccounts({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [view, setView] = useState<View>({ kind: "list" });
   const [showArchived, setShowArchived] = useState(false);
   const toList = () => setView({ kind: "list" });
@@ -62,17 +49,10 @@ export function ManageAccounts({
       open={open}
       onOpenChange={handleOpenChange}
       title={titles[view.kind]}
-      description={
-        view.kind === "list"
-          ? "Rekening, e-wallet, kartu kredit, dan aset."
-          : undefined
-      }
+      description={view.kind === "list" ? "Rekening, e-wallet, kartu kredit, dan aset." : undefined}
       footer={
         view.kind === "list" ? (
-          <Button
-            className="h-11 text-base"
-            onClick={() => setView({ kind: "create" })}
-          >
+          <Button className="h-11 text-base" onClick={() => setView({ kind: "create" })}>
             <PlusIcon aria-hidden />
             Tambah akun
           </Button>
@@ -91,11 +71,7 @@ export function ManageAccounts({
         )}
         {view.kind === "create" && <AccountForm onDone={toList} />}
         {view.kind === "edit" && (
-          <AccountForm
-            key={view.account.id}
-            account={view.account}
-            onDone={toList}
-          >
+          <AccountForm key={view.account.id} account={view.account} onDone={toList}>
             <ArchiveButton
               label="Arsipkan akun"
               name={view.account.name}
@@ -104,9 +80,8 @@ export function ManageAccounts({
                   {view.account.balance !== 0 && (
                     <>Saldo saat ini {formatIDR(view.account.balance)}. </>
                   )}
-                  Akun disembunyikan dari daftar dan pilihan, tetapi tetap
-                  tercatat di transaksi lama. Kamu bisa memulihkannya kapan
-                  saja.
+                  Akun disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi
+                  lama. Kamu bisa memulihkannya kapan saja.
                 </>
               }
               archive={() => archiveAccount(view.account.id)}
@@ -125,11 +100,7 @@ type AccountListProps = {
   onEdit: (account: Account) => void;
 };
 
-function AccountList({
-  showArchived,
-  onShowArchivedChange,
-  onEdit,
-}: AccountListProps) {
+function AccountList({ showArchived, onShowArchivedChange, onEdit }: AccountListProps) {
   const { data, error, mutate } = useAccounts({
     includeArchived: showArchived,
   });
@@ -144,11 +115,7 @@ function AccountList({
       {error ? (
         <LoadError onRetry={() => void mutate()} message="Gagal memuat akun." />
       ) : !data ? (
-        <div
-          className="flex flex-col gap-2"
-          aria-busy="true"
-          aria-label="Memuat akun"
-        >
+        <div className="flex flex-col gap-2" aria-busy="true" aria-label="Memuat akun">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-14 w-full" />
           ))}
@@ -216,10 +183,7 @@ function AccountSummary({ account }: { account: Account }) {
       </div>
       <span
         data-slot="account-balance"
-        className={cn(
-          "shrink-0 text-base font-medium",
-          account.balance < 0 && "text-destructive",
-        )}
+        className={cn("shrink-0 text-base font-medium", account.balance < 0 && "text-destructive")}
       >
         {money(account.balance)}
       </span>
@@ -233,10 +197,7 @@ function ArchivedAccountRow({ account }: { account: Account }) {
       <div className="min-w-0 flex-1 text-muted-foreground">
         <AccountSummary account={account} />
       </div>
-      <RestoreButton
-        name={account.name}
-        restore={() => restoreAccount(account.id)}
-      />
+      <RestoreButton name={account.name} restore={() => restoreAccount(account.id)} />
     </div>
   );
 }

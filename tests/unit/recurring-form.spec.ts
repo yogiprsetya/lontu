@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { occurrenceDefaults, paydayHint, recurringPostBody, reschedulesMissed, ruleFormDefaults, toUpdateInput } from "@/lib/recurring-form";
+import {
+  occurrenceDefaults,
+  paydayHint,
+  recurringPostBody,
+  reschedulesMissed,
+  ruleFormDefaults,
+  toUpdateInput,
+} from "@/lib/recurring-form";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 
 const rule: RecurringRule = {
@@ -30,7 +37,10 @@ describe("ruleFormDefaults", () => {
   });
 
   it("applies a preset such as Tambah gaji", () => {
-    expect(ruleFormDefaults({ preset: { type: "income", isPayday: true } })).toMatchObject({ type: "income", isPayday: true });
+    expect(ruleFormDefaults({ preset: { type: "income", isPayday: true } })).toMatchObject({
+      type: "income",
+      isPayday: true,
+    });
   });
 
   it("copies an existing rule", () => {
@@ -48,7 +58,9 @@ describe("ruleFormDefaults", () => {
 
 describe("toUpdateInput", () => {
   it("drops type, which is never editable", () => {
-    expect(toUpdateInput({ ...ruleFormDefaults({ rule }), isPayday: false })).not.toHaveProperty("type");
+    expect(toUpdateInput({ ...ruleFormDefaults({ rule }), isPayday: false })).not.toHaveProperty(
+      "type",
+    );
   });
 });
 
@@ -96,12 +108,31 @@ describe("occurrenceDefaults", () => {
 });
 
 describe("recurringPostBody", () => {
-  const input = { type: "expense" as const, amount: 190_000, date: "2026-10-05", accountId: "a1", categoryId: "c1", description: "Netflix" };
+  const input = {
+    type: "expense" as const,
+    amount: 190_000,
+    date: "2026-10-05",
+    accountId: "a1",
+    categoryId: "c1",
+    description: "Netflix",
+  };
 
   it("sends the occurrence and the form's fixed transaction id, without type", () => {
     const first = recurringPostBody(input, { id: "tx-1", occurrenceDate: "2026-10-05" });
-    const second = recurringPostBody({ ...input, amount: 200_000 }, { id: "tx-1", occurrenceDate: "2026-10-05" });
-    expect(first).toEqual({ action: "post", occurrenceDate: "2026-10-05", id: "tx-1", amount: 190_000, date: "2026-10-05", accountId: "a1", categoryId: "c1", description: "Netflix" });
+    const second = recurringPostBody(
+      { ...input, amount: 200_000 },
+      { id: "tx-1", occurrenceDate: "2026-10-05" },
+    );
+    expect(first).toEqual({
+      action: "post",
+      occurrenceDate: "2026-10-05",
+      id: "tx-1",
+      amount: 190_000,
+      date: "2026-10-05",
+      accountId: "a1",
+      categoryId: "c1",
+      description: "Netflix",
+    });
     expect(second.id).toBe(first.id);
     expect(first).not.toHaveProperty("type");
   });

@@ -4,7 +4,11 @@ import { TransactionForm } from "@/components/forms/transaction-form";
 import { TransferForm } from "@/components/forms/transfer-form";
 import { PageTitle } from "@/components/layout/page-title";
 import { TypeChip } from "@/components/transactions/type-chip";
-import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, isTransactionType } from "@/lib/transaction-types";
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_LABELS,
+  isTransactionType,
+} from "@/lib/transaction-types";
 
 export function generateStaticParams() {
   return TRANSACTION_TYPES.map((type) => ({ type }));

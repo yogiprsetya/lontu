@@ -55,13 +55,7 @@ type RecurringFormProps = {
   onDone: () => void;
 };
 
-export function RecurringForm({
-  rule,
-  preset,
-  currentPayday,
-  today,
-  onDone,
-}: RecurringFormProps) {
+export function RecurringForm({ rule, preset, currentPayday, today, onDone }: RecurringFormProps) {
   const {
     register,
     control,
@@ -102,12 +96,7 @@ export function RecurringForm({
   }
 
   return (
-    <form
-      id="recurring-form"
-      onSubmit={onSubmit}
-      noValidate
-      className="flex flex-col gap-4"
-    >
+    <form id="recurring-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       {rule ? (
         <p className="text-sm text-muted-foreground">
           Jenis:{" "}
@@ -117,11 +106,7 @@ export function RecurringForm({
           (tidak bisa diubah)
         </p>
       ) : (
-        <div
-          role="group"
-          aria-labelledby="recurring-type-label"
-          className="flex flex-col gap-2"
-        >
+        <div role="group" aria-labelledby="recurring-type-label" className="flex flex-col gap-2">
           <span id="recurring-type-label" className="text-sm font-medium">
             Jenis
           </span>
@@ -130,18 +115,12 @@ export function RecurringForm({
             spacing={0}
             className="grid w-full grid-cols-3"
             value={[type]}
-            onValueChange={(next) =>
-              next[0] && changeType(next[0] as RecurringType)
-            }
+            onValueChange={(next) => next[0] && changeType(next[0] as RecurringType)}
           >
             {RECURRING_GROUPS.map(({ type: value, label }) => {
               const { icon: Icon } = TYPE_STYLES[value];
               return (
-                <ToggleGroupItem
-                  key={value}
-                  value={value}
-                  className="h-11 gap-1.5 text-base"
-                >
+                <ToggleGroupItem key={value} value={value} className="h-11 gap-1.5 text-base">
                   <Icon className="size-4" aria-hidden />
                   {label}
                 </ToggleGroupItem>
@@ -174,11 +153,7 @@ export function RecurringForm({
         control={control}
         name="amount"
         render={({ field }) => (
-          <FormField
-            id="recurring-amount"
-            label="Nominal"
-            error={errors.amount?.message}
-          >
+          <FormField id="recurring-amount" label="Nominal" error={errors.amount?.message}>
             <MoneyInput
               id="recurring-amount"
               value={field.value}
@@ -195,11 +170,7 @@ export function RecurringForm({
         control={control}
         name="accountId"
         render={({ field }) => (
-          <FormField
-            id="recurring-account"
-            label="Akun"
-            error={errors.accountId?.message}
-          >
+          <FormField id="recurring-account" label="Akun" error={errors.accountId?.message}>
             <AccountPicker
               id="recurring-account"
               value={field.value}
@@ -216,11 +187,7 @@ export function RecurringForm({
         control={control}
         name="categoryId"
         render={({ field }) => (
-          <FormField
-            id="recurring-category"
-            label="Kategori"
-            error={errors.categoryId?.message}
-          >
+          <FormField id="recurring-category" label="Kategori" error={errors.categoryId?.message}>
             <CategoryPicker
               key={type}
               id="recurring-category"
@@ -259,14 +226,9 @@ export function RecurringForm({
                 {field.value ? (
                   `Tanggal ${field.value}`
                 ) : (
-                  <span className="font-normal text-muted-foreground">
-                    Pilih tanggal
-                  </span>
+                  <span className="font-normal text-muted-foreground">Pilih tanggal</span>
                 )}
-                <ChevronDownIcon
-                  className="size-4 text-muted-foreground"
-                  aria-hidden
-                />
+                <ChevronDownIcon className="size-4 text-muted-foreground" aria-hidden />
               </DropdownMenuTrigger>
 
               <DropdownMenuContent className="p-1">
@@ -314,9 +276,7 @@ export function RecurringForm({
               <p
                 id="recurring-payday-message"
                 className={
-                  errors.isPayday
-                    ? "text-sm text-destructive"
-                    : "text-sm text-muted-foreground"
+                  errors.isPayday ? "text-sm text-destructive" : "text-sm text-muted-foreground"
                 }
               >
                 {errors.isPayday?.message ??

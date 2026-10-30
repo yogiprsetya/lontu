@@ -65,8 +65,22 @@ beforeAll(async () => {
   await db.insert(transactions).values([
     { ...a, type: "expense", amount: 1_000_000, date: "2026-10-01", categoryId: cat.Makan },
     { ...a, type: "expense", amount: 250_000, date: "2026-10-31", categoryId: cat.Makan },
-    { ...a, type: "expense", amount: 50_000, date: "2026-10-15", categoryId: cat.Makan, description: "Biaya admin transfer" },
-    { ...a, type: "expense", amount: 999, date: "2026-10-10", categoryId: cat.Makan, deletedAt: new Date() },
+    {
+      ...a,
+      type: "expense",
+      amount: 50_000,
+      date: "2026-10-15",
+      categoryId: cat.Makan,
+      description: "Biaya admin transfer",
+    },
+    {
+      ...a,
+      type: "expense",
+      amount: 999,
+      date: "2026-10-10",
+      categoryId: cat.Makan,
+      deletedAt: new Date(),
+    },
     { ...a, type: "expense", amount: 777, date: "2026-09-30", categoryId: cat.Makan },
     { ...a, type: "expense", amount: 888, date: "2026-11-01", categoryId: cat.Makan },
     { ...a, type: "expense", amount: 200_000, date: "2026-10-05", categoryId: cat.Hiburan },
@@ -76,7 +90,14 @@ beforeAll(async () => {
     { ...a, type: "saving", amount: 400_000, date: "2026-10-02", categoryId: cat.Tabungan },
     { ...a, type: "transfer", amount: 300_000, date: "2026-10-03", toAccountId: toAccount.id },
     { ...a, type: "adjustment", amount: -123, date: "2026-10-04" },
-    { userId: userB, accountId: accountB.id, type: "expense", amount: 42_000, date: "2026-10-07", categoryId: catB },
+    {
+      userId: userB,
+      accountId: accountB.id,
+      type: "expense",
+      amount: 42_000,
+      date: "2026-10-07",
+      categoryId: catB,
+    },
   ]);
 
   const budgetRows = await db
@@ -84,7 +105,14 @@ beforeAll(async () => {
     .values([
       { userId: userA, categoryId: cat.Makan, year: 2026, month: 10, amount: 1_500_000 },
       { userId: userA, categoryId: cat.kos, year: 2026, month: 10, amount: 500_000 },
-      { userId: userA, categoryId: cat.Jajan, year: 2026, month: 10, amount: 100_000, deletedAt: new Date() },
+      {
+        userId: userA,
+        categoryId: cat.Jajan,
+        year: 2026,
+        month: 10,
+        amount: 100_000,
+        deletedAt: new Date(),
+      },
       { userId: userA, categoryId: cat.Hiburan, year: 2026, month: 9, amount: 300_000 },
       { userId: userB, categoryId: catB, year: 2026, month: 10, amount: 50_000 },
     ])
@@ -117,13 +145,29 @@ describe("budgetUsage", () => {
   });
 
   it("lists active spending categories plus archived ones with a budget or spending, needs first then by name", () => {
-    expect(usage.items.map((i) => i.categoryId)).toEqual([cat.kos, cat.Listrik, cat.Makan, cat.Hiburan, cat.Jajan]);
+    expect(usage.items.map((i) => i.categoryId)).toEqual([
+      cat.kos,
+      cat.Listrik,
+      cat.Makan,
+      cat.Hiburan,
+      cat.Jajan,
+    ]);
   });
 
   it("shows a category without an active budget as none, ignoring soft-deleted and other months' budgets", () => {
     const byId = Object.fromEntries(usage.items.map((i) => [i.categoryId, i]));
-    expect(byId[cat.Jajan]).toMatchObject({ budgetId: null, budget: null, spent: 0, status: "none" });
-    expect(byId[cat.Hiburan]).toMatchObject({ budget: null, spent: 200_000, remaining: null, status: "none" });
+    expect(byId[cat.Jajan]).toMatchObject({
+      budgetId: null,
+      budget: null,
+      spent: 0,
+      status: "none",
+    });
+    expect(byId[cat.Hiburan]).toMatchObject({
+      budget: null,
+      spent: 200_000,
+      remaining: null,
+      status: "none",
+    });
     expect(byId[cat.Listrik]).toMatchObject({ budget: null, spent: 100_000, status: "none" });
     expect(byId[cat.kos]).toMatchObject({ budget: 500_000, spent: 0, percent: 0, status: "ok" });
   });
@@ -182,14 +226,17 @@ describe("GET /api/budgets", () => {
     expect(body.summary.total).toEqual({ budget: 50_000, spent: 42_000, unbudgetedSpent: 0 });
   });
 
-  it.each(["", "?period=2026-13", "?period=1999-12", "?period=2026-1"])("rejects %j under fields.period", async (query) => {
-    signInAs(userA);
-    const res = await get(query);
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error.code).toBe("VALIDATION_ERROR");
-    expect(body.error.fields.period).toBeDefined();
-  });
+  it.each(["", "?period=2026-13", "?period=1999-12", "?period=2026-1"])(
+    "rejects %j under fields.period",
+    async (query) => {
+      signInAs(userA);
+      const res = await get(query);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+      expect(body.error.fields.period).toBeDefined();
+    },
+  );
 
   it("returns 401 without a session", async () => {
     signInAs(null);

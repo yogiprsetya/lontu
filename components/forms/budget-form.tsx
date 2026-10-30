@@ -11,11 +11,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { deleteBudget, restoreBudget, setBudgets } from "@/hooks/use-budgets";
 import { budgetTransactionsHref } from "@/lib/budget-format";
 import { applyServerErrors } from "@/lib/form-errors";
-import {
-  budgetAmount,
-  type BudgetPeriod,
-  type BudgetUsageItem,
-} from "@/lib/schemas/budget";
+import { budgetAmount, type BudgetPeriod, type BudgetUsageItem } from "@/lib/schemas/budget";
 import { cn } from "@/lib/utils";
 import { failureMessage } from "@/lib/offline/network-error";
 import { undoToast } from "@/lib/undo-toast";
@@ -30,11 +26,7 @@ type BudgetFormProps = {
   onDone: () => void;
 };
 
-export function BudgetForm({
-  period,
-  item,
-  onDone,
-}: BudgetFormProps) {
+export function BudgetForm({ period, item, onDone }: BudgetFormProps) {
   const {
     control,
     handleSubmit,
@@ -55,11 +47,7 @@ export function BudgetForm({
       onDone();
     } catch (err) {
       // The API reports problems on `period` or `items`; this form has one field to show them on.
-      if (
-        !applyServerErrors(err, (_name: never, error) =>
-          setError("amount", error),
-        )
-      ) {
+      if (!applyServerErrors(err, (_name: never, error) => setError("amount", error))) {
         toast.error(failureMessage(err, "Gagal menyimpan budget. Coba lagi."));
       }
     }
@@ -102,10 +90,7 @@ export function BudgetForm({
 
       <Link
         href={budgetTransactionsHref(period, item.categoryId)}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "h-11 self-start text-base",
-        )}
+        className={cn(buttonVariants({ variant: "outline" }), "h-11 self-start text-base")}
       >
         Lihat transaksi
       </Link>

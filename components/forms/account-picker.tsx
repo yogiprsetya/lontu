@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { PlusIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,11 @@ export function AccountPicker({
   const open = useUIStore((s) => s.open);
   const onlyAccount = data?.length === 1 ? data[0].id : undefined;
 
+  // Callers pass an inline onChange; keeping it out of the deps stops a re-run on every render.
+  const pick = useEffectEvent((id: string) => onChange(id));
   useEffect(() => {
-    if (onlyAccount && !value) onChange(onlyAccount);
-  }, [onlyAccount, value, onChange]);
+    if (onlyAccount && !value) pick(onlyAccount);
+  }, [onlyAccount, value]);
 
   if (error) return <LoadError onRetry={() => void mutate()} message="Gagal memuat akun." />;
   if (!data) return <Skeleton className="h-11 w-full" aria-label="Memuat akun" />;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
@@ -10,8 +10,6 @@ import {
 } from "@/components/budgets/copy-from-previous-month";
 import { MonthActions } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
-import { SuggestionPanel } from "@/components/budgets/suggestion-panel";
-import { BudgetForm } from "@/components/forms/budget-form";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
@@ -25,6 +23,14 @@ import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/period";
 import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
+
+// Loaded when first opened, not with the page.
+const SuggestionPanel = lazy(() =>
+  import("@/components/budgets/suggestion-panel").then((m) => ({ default: m.SuggestionPanel })),
+);
+const BudgetForm = lazy(() =>
+  import("@/components/forms/budget-form").then((m) => ({ default: m.BudgetForm })),
+);
 
 function ViewSkeleton() {
   return (
@@ -49,6 +55,9 @@ export function BudgetView() {
   // Only the category id: the row itself always comes from the SWR cache.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  // Kept mounted after the first opening so the panel's close animation plays.
+  const [suggestedOnce, setSuggestedOnce] = useState(false);
+  if (suggesting && !suggestedOnce) setSuggestedOnce(true);
   const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
@@ -165,20 +174,26 @@ export function BudgetView() {
         footer={<FormActions form="budget-form" onCancel={() => setEditingId(null)} />}
       >
         {editing && (
-          <BudgetForm
-            key={`${period}-${editing.categoryId}`}
-            period={period}
-            item={editing}
-            onDone={() => setEditingId(null)}
-          />
+          <Suspense fallback={<Skeleton className="h-32 w-full rounded-2xl" />}>
+            <BudgetForm
+              key={`${period}-${editing.categoryId}`}
+              period={period}
+              item={editing}
+              onDone={() => setEditingId(null)}
+            />
+          </Suspense>
         )}
       </ResponsiveModal>
-      <SuggestionPanel
-        period={period}
-        open={suggesting}
-        onOpenChange={setSuggesting}
-        names={names}
-      />
+      {suggestedOnce && (
+        <Suspense fallback={null}>
+          <SuggestionPanel
+            period={period}
+            open={suggesting}
+            onOpenChange={setSuggesting}
+            names={names}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

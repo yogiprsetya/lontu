@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { RecurringForm } from "@/components/forms/recurring-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
@@ -28,6 +27,11 @@ import type { RulePreset } from "@/lib/recurring-form";
 import { RECURRING_GROUPS } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
+
+// Loaded on the first Tambah or Ubah, not with the page.
+const RecurringForm = lazy(() =>
+  import("@/components/forms/recurring-form").then((m) => ({ default: m.RecurringForm })),
+);
 
 type Editing = { kind: "create"; preset?: RulePreset } | { kind: "edit"; id: string } | null;
 
@@ -314,14 +318,16 @@ export function RecurringView() {
         }
       >
         {formOpen && (
-          <RecurringForm
-            key={editingRule?.id ?? "create"}
-            rule={editingRule}
-            preset={editing?.kind === "create" ? editing.preset : undefined}
-            currentPayday={currentPayday}
-            today={today}
-            onDone={close}
-          />
+          <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+            <RecurringForm
+              key={editingRule?.id ?? "create"}
+              rule={editingRule}
+              preset={editing?.kind === "create" ? editing.preset : undefined}
+              currentPayday={currentPayday}
+              today={today}
+              onDone={close}
+            />
+          </Suspense>
         )}
       </ResponsiveModal>
       <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />

@@ -58,14 +58,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] Edit nama, nominal, dan kategori tersimpan; hanya field yang berubah dikirim di `PATCH`
-- [ ] Bulan lalu: sheet tanpa field dan tanpa Simpan
-- [ ] Tautan per kategori membuka `/transactions` dengan filter yang totalnya sama dengan angka di rincian
+- [x] Edit nama, nominal, dan kategori tersimpan; hanya field yang berubah dikirim di `PATCH`
+- [x] Bulan lalu: sheet tanpa field dan tanpa Simpan
+- [ ] Tautan per kategori membuka `/transactions` dengan filter yang totalnya sama dengan angka di rincian (kode: `budgetTransactionsHref`, sama dengan invarian query; cek visual tertunda: sesi tanpa browser)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/use-budgets.spec.ts` hijau
-- [ ] Manual: pindahkan Jajan dari budget A (hapus centang) ke budget B (centang) → angka keduanya dan "tanpa budget" konsisten
+- [x] `pnpm vitest run tests/unit/use-budgets.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): pindahkan Jajan dari budget A (hapus centang) ke budget B (centang) → angka keduanya dan "tanpa budget" konsisten
 
 **Dependencies:** T113, T115
 

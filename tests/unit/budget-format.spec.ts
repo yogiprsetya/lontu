@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   budgetCategoryOptions,
+  budgetPatch,
   budgetPeriodFromParam,
   budgetTransactionsHref,
   groupStatus,
@@ -134,5 +135,21 @@ describe("budgetCategoryOptions", () => {
     expect(budgetCategoryOptions({ categories, usage, spendingType: "needs" })).toEqual([
       { id: "makan", name: "Makan", status: "free" },
     ]);
+  });
+});
+
+describe("budgetPatch", () => {
+  const initial = { name: "Jajan", amount: 800_000, categoryIds: ["jajan", "hiburan"] };
+
+  it("sends only the fields that changed", () => {
+    expect(budgetPatch(initial, { ...initial, amount: 900_000 })).toEqual({ amount: 900_000 });
+    expect(budgetPatch(initial, { ...initial, name: "Hura" })).toEqual({ name: "Hura" });
+  });
+
+  it("compares categories as a set", () => {
+    expect(budgetPatch(initial, { ...initial, categoryIds: ["hiburan", "jajan"] })).toEqual({});
+    expect(budgetPatch(initial, { ...initial, categoryIds: ["jajan"] })).toEqual({
+      categoryIds: ["jajan"],
+    });
   });
 });

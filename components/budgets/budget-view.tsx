@@ -3,6 +3,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PlusIcon } from "lucide-react";
+import { BudgetBreakdown } from "@/components/budgets/budget-breakdown";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
 import { MonthStepper } from "@/components/budgets/month-stepper";
@@ -41,7 +42,7 @@ function ViewSkeleton() {
 
 type ListProps = { usage: BudgetUsage; names: Map<string, string> };
 
-function BudgetList({ usage, names }: ListProps) {
+function BudgetList({ usage, names, onOpen }: ListProps & { onOpen: (budgetId: string) => void }) {
   // The rows that need attention first; the API orders by type and name.
   const items = useMemo(() => [...usage.items].sort(compareByAttention), [usage.items]);
   const nameList = (ids: string[]) => ids.map((id) => names.get(id) ?? "Kategori").join(", ");
@@ -53,6 +54,7 @@ function BudgetList({ usage, names }: ListProps) {
           key={item.budgetId}
           item={item}
           categoryNames={nameList(item.categories.map((c) => c.categoryId))}
+          onOpen={() => onOpen(item.budgetId)}
         />
       ))}
     </ul>
@@ -81,9 +83,13 @@ export function BudgetView() {
   // Budgets change only in the current month; earlier months are read-only.
   const isCurrent = period === today.slice(0, 7);
   const [adding, setAdding] = useState(false);
+  // Only the id: the budget itself always comes from the SWR cache.
+  const [openId, setOpenId] = useState<string | null>(null);
   const openModal = useUIStore((s) => s.open);
   const usage = useBudgetUsage(period);
   const categories = useCategories({ includeArchived: true });
+
+  const opened = usage.data?.items.find((i) => i.budgetId === openId);
 
   const names = useMemo(
     () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
@@ -140,7 +146,7 @@ export function BudgetView() {
             )}
           </div>
         ) : (
-          <BudgetList usage={usage.data} names={names} />
+          <BudgetList usage={usage.data} names={names} onOpen={setOpenId} />
         )}
         <UnbudgetedLine usage={usage.data} names={names} />
       </>
@@ -178,6 +184,34 @@ export function BudgetView() {
               onDone={() => setAdding(false)}
             />
           </Suspense>
+        )}
+      </ResponsiveModal>
+      <ResponsiveModal
+        open={!!opened}
+        onOpenChange={(open) => !open && setOpenId(null)}
+        title={opened?.name ?? "Budget"}
+        description={formatPeriodLabel(period)}
+        footer={
+          isCurrent ? (
+            <FormActions form="budget-form" onCancel={() => setOpenId(null)} />
+          ) : undefined
+        }
+      >
+        {opened && categories.data && (
+          <div className="flex flex-col gap-6">
+            <BudgetBreakdown period={period} item={opened} names={names} />
+            {isCurrent && usage.data && (
+              <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+                <BudgetForm
+                  key={opened.budgetId}
+                  categories={categories.data}
+                  usage={usage.data}
+                  budget={opened}
+                  onDone={() => setOpenId(null)}
+                />
+              </Suspense>
+            )}
+          </div>
         )}
       </ResponsiveModal>
     </>

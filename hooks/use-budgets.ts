@@ -9,6 +9,7 @@ import type {
   BudgetCreateInput,
   BudgetPeriod,
   BudgetSetInput,
+  BudgetUpdateInput,
   BudgetUsage,
   BudgetVersion,
 } from "@/lib/schemas/budget";
@@ -56,4 +57,10 @@ export async function createBudget(input: BudgetCreateInput) {
   const created = await sendJSON<BudgetVersion>("/api/budgets", "POST", input);
   await invalidate("budgets");
   return created;
+}
+
+export async function updateBudget(id: string, input: BudgetUpdateInput) {
+  const updated = await sendJSON<BudgetVersion>(`/api/budgets/${id}`, "PATCH", input);
+  await invalidate("budgets");
+  return updated;
 }

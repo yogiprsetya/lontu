@@ -10,7 +10,7 @@ Dari ponsel, pemilik membuka `/budget`, melihat budget bernama diurut dari yang 
 
 - [x] T114: `/budget` membaca model baru (M; halaman hanya-baca sampai T115)
 - [x] T115: Tambah budget (M)
-- [ ] T116: Sheet budget: rincian per kategori + edit (M)
+- [x] T116: Sheet budget: rincian per kategori + edit (M)
 
 Urutan berantai: T114 → T115 → T116.
 

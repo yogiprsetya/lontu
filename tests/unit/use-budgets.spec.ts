@@ -7,8 +7,15 @@ vi.mock("swr", async (importOriginal) => ({
 }));
 
 const { mutate } = await import("swr");
-const { budgetUsageKey, budgetsKey, createBudget, deleteBudget, restoreBudget, setBudgets } =
-  await import("@/hooks/use-budgets");
+const {
+  budgetUsageKey,
+  budgetsKey,
+  createBudget,
+  deleteBudget,
+  restoreBudget,
+  setBudgets,
+  updateBudget,
+} = await import("@/hooks/use-budgets");
 const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -165,6 +172,17 @@ describe("createBudget", () => {
     expect(fetch).toHaveBeenCalledWith(
       "/api/budgets",
       expect.objectContaining({ method: "POST", body: JSON.stringify(input) }),
+    );
+    expect(revalidated("/api/budgets/usage?period=2026-10")).toBe(true);
+  });
+});
+
+describe("updateBudget", () => {
+  it("patches the budget and refreshes every budget key", async () => {
+    await updateBudget("budget-jajan", { amount: 900_000 });
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/budgets/budget-jajan",
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify({ amount: 900_000 }) }),
     );
     expect(revalidated("/api/budgets/usage?period=2026-10")).toBe(true);
   });

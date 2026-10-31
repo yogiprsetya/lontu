@@ -10,22 +10,29 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createBudget } from "@/hooks/use-budgets";
-import { budgetCategoryOptions } from "@/lib/budget-format";
+import { createBudget, updateBudget } from "@/hooks/use-budgets";
+import { budgetCategoryOptions, budgetPatch } from "@/lib/budget-format";
 import { applyServerErrors } from "@/lib/form-errors";
 import { failureMessage } from "@/lib/offline/network-error";
 import { budgetCreateSchema, type BudgetCreateInput } from "@/lib/schemas/budget";
-import type { BudgetUsage } from "@/lib/schemas/budget-usage";
+import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import { SPENDING_TYPES, type Category, type SpendingType } from "@/lib/schemas/category";
 
 type BudgetFormProps = {
   categories: Category[];
   /** The current month's usage: which categories other budgets already hold. */
   usage: BudgetUsage;
+  /** Edit this budget's current version; omit to create one. */
+  budget?: BudgetUsageItem;
   onDone: () => void;
 };
 
-export function BudgetForm({ categories, usage, onDone }: BudgetFormProps) {
+export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProps) {
+  const initial = budget && {
+    name: budget.name,
+    amount: budget.budget,
+    categoryIds: budget.categories.map((c) => c.categoryId),
+  };
   const {
     register,
     control,
@@ -35,15 +42,27 @@ export function BudgetForm({ categories, usage, onDone }: BudgetFormProps) {
     formState: { errors },
   } = useForm<BudgetCreateInput>({
     resolver: zodResolver(budgetCreateSchema),
-    defaultValues: { name: "", amount: 0, spendingType: "wants", categoryIds: [] },
+    defaultValues: initial
+      ? { ...initial, spendingType: budget.spendingType }
+      : { name: "", amount: 0, spendingType: "wants", categoryIds: [] },
   });
   const spendingType = useWatch({ control, name: "spendingType" });
-  const options = budgetCategoryOptions({ categories, usage, spendingType });
+  const options = budgetCategoryOptions({
+    categories,
+    usage,
+    budgetId: budget?.budgetId,
+    spendingType,
+  });
   const label = SPENDING_TYPE_LABELS[spendingType];
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      await createBudget(input);
+      if (budget && initial) {
+        const patch = budgetPatch(initial, input);
+        if (Object.keys(patch).length > 0) await updateBudget(budget.budgetId, patch);
+      } else {
+        await createBudget(input);
+      }
       toast.success("Budget disimpan");
       onDone();
     } catch (err) {
@@ -88,36 +107,42 @@ export function BudgetForm({ categories, usage, onDone }: BudgetFormProps) {
         )}
       />
 
-      <Controller
-        control={control}
-        name="spendingType"
-        render={({ field }) => (
-          <div role="group" aria-labelledby="budget-type-label" className="flex flex-col gap-2">
-            <span id="budget-type-label" className="text-base font-semibold">
-              Kebutuhan atau keinginan
-            </span>
-            <ToggleGroup
-              variant="outline"
-              spacing={0}
-              className="grid w-full grid-cols-2"
-              value={[field.value]}
-              onValueChange={(next) => {
-                const type = next[0] as SpendingType | undefined;
-                if (!type || type === field.value) return;
-                field.onChange(type);
-                // A budget never mixes types, so picks of the other type are dropped.
-                setValue("categoryIds", []);
-              }}
-            >
-              {SPENDING_TYPES.map((type) => (
-                <ToggleGroupItem key={type} value={type} className="h-11 text-base">
-                  {SPENDING_TYPE_LABELS[type]}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </div>
-        )}
-      />
+      {budget ? (
+        <p className="text-sm text-muted-foreground">
+          Jenis: {label}. Jenis budget tidak bisa diubah.
+        </p>
+      ) : (
+        <Controller
+          control={control}
+          name="spendingType"
+          render={({ field }) => (
+            <div role="group" aria-labelledby="budget-type-label" className="flex flex-col gap-2">
+              <span id="budget-type-label" className="text-base font-semibold">
+                Kebutuhan atau keinginan
+              </span>
+              <ToggleGroup
+                variant="outline"
+                spacing={0}
+                className="grid w-full grid-cols-2"
+                value={[field.value]}
+                onValueChange={(next) => {
+                  const type = next[0] as SpendingType | undefined;
+                  if (!type || type === field.value) return;
+                  field.onChange(type);
+                  // A budget never mixes types, so picks of the other type are dropped.
+                  setValue("categoryIds", []);
+                }}
+              >
+                {SPENDING_TYPES.map((type) => (
+                  <ToggleGroupItem key={type} value={type} className="h-11 text-base">
+                    {SPENDING_TYPE_LABELS[type]}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          )}
+        />
+      )}
 
       <Controller
         control={control}

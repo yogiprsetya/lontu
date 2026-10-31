@@ -12,14 +12,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] `compareByAttention` dites murni: over sebelum warning sebelum ok, persen turun, seri diputus nama
-- [ ] `budgetPeriodFromParam("2026-12", "2026-11-15")` → `2026-11`; stepper tidak bisa maju melewati bulan berjalan
-- [ ] Halaman memakai `useBudgetUsage` saja (`rg -n "useBudgets\(" components` kosong); status tetap terbaca tanpa warna; progress `role="progressbar"`
+- [x] `compareByAttention` dites murni: over sebelum warning sebelum ok, persen turun, seri diputus nama
+- [x] `budgetPeriodFromParam("2026-12", "2026-11-15")` → `2026-11`; stepper tidak bisa maju melewati bulan berjalan
+- [x] Halaman memakai `useBudgetUsage` saja (`rg -n "useBudgets\(" components` kosong); status tetap terbaca tanpa warna; progress `role="progressbar"`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/use-budgets.spec.ts` hijau
-- [ ] Manual: budget dari T111/T112 (dibuat lewat API) tampil berurutan; bulan lalu menampilkan versi lama
+- [x] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/use-budgets.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): budget dari T111/T112 (dibuat lewat API) tampil berurutan; bulan lalu menampilkan versi lama
 
 **Dependencies:** T108, T109, T111
 

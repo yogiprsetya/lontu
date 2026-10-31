@@ -1,7 +1,7 @@
 import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { groupStatus, statusLabel } from "@/lib/budget-format";
-import type { BudgetUsage } from "@/lib/schemas/budget";
+import type { BudgetUsage } from "@/lib/schemas/budget-usage";
 import { cn } from "@/lib/utils";
 
 const GROUPS = [

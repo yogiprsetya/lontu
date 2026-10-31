@@ -56,3 +56,17 @@ export function summarizeBudgetUsage(
   }
   return summary;
 }
+
+const ATTENTION: Record<BudgetStatus, number> = { over: 0, warning: 1, ok: 2, none: 3 };
+
+/** Over, then warning, then ok; within a status the fullest first, then by name. */
+export function compareByAttention(
+  a: Pick<NamedBudgetUsageItem, "name" | "status" | "percent">,
+  b: Pick<NamedBudgetUsageItem, "name" | "status" | "percent">,
+) {
+  return (
+    ATTENTION[a.status] - ATTENTION[b.status] ||
+    (b.percent ?? -1) - (a.percent ?? -1) ||
+    a.name.localeCompare(b.name, "id", { sensitivity: "base" })
+  );
+}

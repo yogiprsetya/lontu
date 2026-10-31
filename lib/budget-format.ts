@@ -1,18 +1,12 @@
 import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
 import { parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
-import { maxBudgetPeriod, type BudgetGroup, type BudgetPeriod } from "@/lib/schemas/budget";
+import type { BudgetGroup, BudgetPeriod } from "@/lib/schemas/budget";
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */
 export function budgetPeriodFromParam(value: string | null, today: string): BudgetPeriod {
-  return parsePeriod(value, { modes: ["month"], today, max: maxBudgetPeriod(today) });
+  return parsePeriod(value, { modes: ["month"], today, max: today });
 }
-
-/** Spending types that take a budget, in display order. */
-export const BUDGET_GROUPS = [
-  { key: "needs", label: "Needs" },
-  { key: "wants", label: "Wants" },
-] as const;
 
 const STATUS_LABEL: Record<BudgetStatus, string | null> = {
   none: null,

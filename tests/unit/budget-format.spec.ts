@@ -10,19 +10,20 @@ import { maxBudgetPeriod } from "@/lib/schemas/budget";
 const today = "2026-10-23";
 
 describe("budgetPeriodFromParam", () => {
-  it.each(["2026-10", "2026-11", "2000-01", "2024-02"])("keeps %s", (value) => {
+  it.each(["2026-10", "2026-09", "2000-01", "2024-02"])("keeps %s", (value) => {
     expect(budgetPeriodFromParam(value, today)).toBe(value);
   });
 
-  it.each([null, "", "2026-12", "1999-12", "2026-13", "2026", "all"])(
+  it.each([null, "", "2026-11", "2026-12", "1999-12", "2026-13", "2026", "all"])(
     "falls back to the current month for %j",
     (value) => {
       expect(budgetPeriodFromParam(value, today)).toBe("2026-10");
     },
   );
 
-  it("allows January next year in December", () => {
-    expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2027-01");
+  it("stops at the current month, across a year boundary", () => {
+    expect(budgetPeriodFromParam("2026-12", "2026-11-15")).toBe("2026-11");
+    expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2026-12");
   });
 });
 

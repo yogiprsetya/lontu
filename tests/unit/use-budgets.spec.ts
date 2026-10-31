@@ -7,7 +7,8 @@ vi.mock("swr", async (importOriginal) => ({
 }));
 
 const { mutate } = await import("swr");
-const { budgetsKey, deleteBudget, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
+const { budgetUsageKey, budgetsKey, deleteBudget, restoreBudget, setBudgets } =
+  await import("@/hooks/use-budgets");
 const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -36,6 +37,11 @@ afterEach(() => {
 describe("budgets SWR keys", () => {
   it("builds the contract key", () => {
     expect(budgetsKey("2026-10")).toBe(budgetKey);
+  });
+
+  it("builds the usage key under the budgets resource", () => {
+    expect(budgetUsageKey("2026-10")).toBe("/api/budgets/usage?period=2026-10");
+    expect(isResourceKey("budgets", budgetUsageKey("2026-10"))).toBe(true);
   });
 
   it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])(

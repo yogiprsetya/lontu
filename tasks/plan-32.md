@@ -8,7 +8,7 @@ Dari ponsel, pemilik membuka `/budget`, melihat budget bernama diurut dari yang 
 
 ## Task
 
-- [ ] T114: `/budget` membaca model baru (M; halaman hanya-baca sampai T115)
+- [x] T114: `/budget` membaca model baru (M; halaman hanya-baca sampai T115)
 - [ ] T115: Tambah budget (M)
 - [ ] T116: Sheet budget: rincian per kategori + edit (M)
 

@@ -54,7 +54,9 @@ export async function checkReferences(
 ): Promise<InvalidReference | undefined> {
   const [account, category] = await Promise.all([
     refs.accountId ? checkAccounts(userId, { accountId: refs.accountId }) : undefined,
-    refs.categoryId ? checkCategory(userId, refs.categoryId, CATEGORY_KIND_FOR[type], "categoryId") : undefined,
+    refs.categoryId
+      ? checkCategory(userId, refs.categoryId, CATEGORY_KIND_FOR[type], "categoryId")
+      : undefined,
   ]);
   return account ?? category;
 }
@@ -103,7 +105,8 @@ async function currentRule(userId: string, id: string) {
   return row;
 }
 
-export type UpdateRuleResult = { rule: RecurringRule } | { invalid: InvalidField } | { notFound: true };
+export type UpdateRuleResult =
+  { rule: RecurringRule } | { invalid: InvalidField } | { notFound: true };
 
 /**
  * Only references the request changes are re-checked, so a rule whose account was archived
@@ -147,12 +150,20 @@ export async function updateRule(
 }
 
 /** Archiving also drops the payday flag, so a later restore never clashes with a newer payday. */
-export async function setRuleArchived(userId: string, id: string, archived: boolean): Promise<RecurringRule | undefined> {
+export async function setRuleArchived(
+  userId: string,
+  id: string,
+  archived: boolean,
+): Promise<RecurringRule | undefined> {
   if (!isUuid(id)) return undefined;
   const [row] = await db
     .update(recurringRules)
     // coalesce keeps the original timestamp when archiving twice.
-    .set(archived ? { archivedAt: sql`coalesce(${recurringRules.archivedAt}, now())`, isPayday: false } : { archivedAt: null })
+    .set(
+      archived
+        ? { archivedAt: sql`coalesce(${recurringRules.archivedAt}, now())`, isPayday: false }
+        : { archivedAt: null },
+    )
     .where(ownedRule(userId, id))
     .returning();
   return row && toRule(row);
@@ -198,7 +209,11 @@ async function findPostReplay(userId: string, rule: Row, input: PostInput) {
  * createTransaction, the replay check runs before the reference checks, so a retry after the
  * account was archived still replays.
  */
-export async function advanceRule(userId: string, id: string, input: RecurringAdvanceInput): Promise<AdvanceOutcome> {
+export async function advanceRule(
+  userId: string,
+  id: string,
+  input: RecurringAdvanceInput,
+): Promise<AdvanceOutcome> {
   if (!isUuid(id)) return { notFound: true };
   const rule = await currentRule(userId, id);
   if (!rule) return { notFound: true };
@@ -215,7 +230,10 @@ export async function advanceRule(userId: string, id: string, input: RecurringAd
     return await db.transaction(async (tx) => {
       const [moved] = await tx
         .update(recurringRules)
-        .set({ nextDueDate: advanceDate(rule.dayOfMonth, input.occurrenceDate), updatedAt: sql`now()` })
+        .set({
+          nextDueDate: advanceDate(rule.dayOfMonth, input.occurrenceDate),
+          updatedAt: sql`now()`,
+        })
         .where(and(liveRule(userId, id), eq(recurringRules.nextDueDate, input.occurrenceDate)))
         .returning();
       if (!moved) throw new Stale();
@@ -223,7 +241,11 @@ export async function advanceRule(userId: string, id: string, input: RecurringAd
       let transaction: Transaction | null = null;
       if (input.action === "post") {
         const { id: txId, amount, date, accountId, categoryId, description } = input;
-        ({ transaction } = await insertSimple(userId, { type, id: txId, amount, date, accountId, categoryId, description }, tx));
+        ({ transaction } = await insertSimple(
+          userId,
+          { type, id: txId, amount, date, accountId, categoryId, description },
+          tx,
+        ));
       }
       return { result: { rule: toRule(moved), transaction } };
     });

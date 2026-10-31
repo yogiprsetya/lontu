@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation";
 export function useBackToList() {
   const router = useRouter();
   return () => {
-    const cameFromApp = !document.referrer || new URL(document.referrer).origin === window.location.origin;
+    const cameFromApp =
+      !document.referrer || new URL(document.referrer).origin === window.location.origin;
     if (window.history.length > 1 && cameFromApp) router.back();
     else router.push("/transactions");
   };

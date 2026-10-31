@@ -9,7 +9,9 @@ import { toRule } from "@/lib/server/recurring";
 /** Money free to spend (spec decision #4): active transaction accounts except credit cards; null subtype counts. */
 async function spendableBalance(userId: string) {
   const [row] = await db
-    .select({ total: sql<number>`coalesce(sum(${accountBalances.balance}), 0)::bigint`.mapWith(Number) })
+    .select({
+      total: sql<number>`coalesce(sum(${accountBalances.balance}), 0)::bigint`.mapWith(Number),
+    })
     .from(accountBalances)
     .innerJoin(accounts, eq(accounts.id, accountBalances.accountId))
     .where(
@@ -33,8 +35,17 @@ export async function recurringOverview(
     db
       .select()
       .from(recurringRules)
-      .where(and(eq(recurringRules.userId, userId), includeArchived ? undefined : isNull(recurringRules.archivedAt)))
-      .orderBy(asc(recurringRules.nextDueDate), sql`lower(${recurringRules.name})`, asc(recurringRules.id)),
+      .where(
+        and(
+          eq(recurringRules.userId, userId),
+          includeArchived ? undefined : isNull(recurringRules.archivedAt),
+        ),
+      )
+      .orderBy(
+        asc(recurringRules.nextDueDate),
+        sql`lower(${recurringRules.name})`,
+        asc(recurringRules.id),
+      ),
     spendableBalance(userId),
   ]);
   const rules = rows.map(toRule);

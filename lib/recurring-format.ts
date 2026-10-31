@@ -9,8 +9,17 @@ export const RECURRING_GROUPS: { type: RecurringType; label: string }[] = [
 ];
 
 // Dates are plain YYYY-MM-DD strings; reading them as UTC keeps the calendar day fixed in any local zone.
-const dayMonth = new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", day: "numeric", month: "short" });
-const dayMonthYear = new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
+const dayMonth = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "UTC",
+  day: "numeric",
+  month: "short",
+});
+const dayMonthYear = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "UTC",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
 
 export function formatShortDate(date: string, today: string) {
   const formatter = date.slice(0, 4) === today.slice(0, 4) ? dayMonth : dayMonthYear;
@@ -18,7 +27,11 @@ export function formatShortDate(date: string, today: string) {
 }
 
 /** `money` is the screen's amount formatter (`useAmountFormat`), so hidden amounts stay hidden. */
-export function formatSchedule(amount: number, dayOfMonth: number, money: (amount: number) => string = formatIDR) {
+export function formatSchedule(
+  amount: number,
+  dayOfMonth: number,
+  money: (amount: number) => string = formatIDR,
+) {
   return `${money(amount)} · tiap tanggal ${dayOfMonth}`;
 }
 
@@ -26,7 +39,9 @@ export function formatSchedule(amount: number, dayOfMonth: number, money: (amoun
 export function formatDueLabel(nextDueDate: string, today: string) {
   if (nextDueDate === today) return { text: "Hari ini", overdue: false };
   const date = formatShortDate(nextDueDate, today);
-  return nextDueDate < today ? { text: `Terlambat · ${date}`, overdue: true } : { text: date, overdue: false };
+  return nextDueDate < today
+    ? { text: `Terlambat · ${date}`, overdue: true }
+    : { text: date, overdue: false };
 }
 
 export function formatLateness(dueDate: string, today: string) {
@@ -34,7 +49,10 @@ export function formatLateness(dueDate: string, today: string) {
   return late <= 0 ? "hari ini" : `terlambat ${late} hari`;
 }
 
-export function formatPaydayHeadline({ payday, daysLeft }: { payday: string; daysLeft: number }, today: string) {
+export function formatPaydayHeadline(
+  { payday, daysLeft }: { payday: string; daysLeft: number },
+  today: string,
+) {
   const date = formatShortDate(payday, today);
   return daysLeft === 1 ? `Besok gajian (${date})` : `${daysLeft} hari lagi gajian (${date})`;
 }

@@ -23,7 +23,15 @@ import { discardQueued, retryQueued } from "@/lib/offline/submission";
 import type { OutboxItem } from "@/lib/offline/outbox";
 import { formatSignedAmount, nameMap, titleOf, type Names } from "@/lib/transaction-format";
 
-function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts: Names; categories: Names }) {
+function PendingRow({
+  item,
+  accounts,
+  categories,
+}: {
+  item: OutboxItem;
+  accounts: Names;
+  categories: Names;
+}) {
   const money = useAmountFormat();
   const { body } = item;
   const title = titleOf(body, accounts, categories);
@@ -45,8 +53,14 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
           {money(body.amount, (amount) => formatSignedAmount(body.type, amount))}
         </p>
       </div>
-      <p className={failed ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"}>
-        <span className="rounded-full border px-2 py-0.5 text-xs font-bold">{failed ? "Gagal" : "Tertunda"}</span>
+      <p
+        className={
+          failed ? "text-sm font-medium text-destructive" : "text-sm text-muted-foreground"
+        }
+      >
+        <span className="rounded-full border px-2 py-0.5 text-xs font-bold">
+          {failed ? "Gagal" : "Tertunda"}
+        </span>
         {failed && item.error && ` ${item.error.message}`}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -60,15 +74,23 @@ function PendingRow({ item, accounts, categories }: { item: OutboxItem; accounts
           </Button>
         )}
         <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="ghost" className="h-11 text-base" />}>Buang</AlertDialogTrigger>
+          <AlertDialogTrigger render={<Button variant="ghost" className="h-11 text-base" />}>
+            Buang
+          </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Buang transaksi ini?</AlertDialogTitle>
-              <AlertDialogDescription>Transaksi belum terkirim dan akan hilang dari perangkat ini.</AlertDialogDescription>
+              <AlertDialogDescription>
+                Transaksi belum terkirim dan akan hilang dari perangkat ini.
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" className="h-11 text-base" onClick={() => void discardQueued(item.id)}>
+              <AlertDialogAction
+                variant="destructive"
+                className="h-11 text-base"
+                onClick={() => void discardQueued(item.id)}
+              >
                 Buang
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -90,7 +112,10 @@ export function PendingTransactions() {
   return (
     <div aria-live="polite">
       {items.length > 0 && (
-        <section aria-labelledby="pending-heading" className="flex flex-col gap-2 surface px-5 py-4">
+        <section
+          aria-labelledby="pending-heading"
+          className="flex flex-col gap-2 surface px-5 py-4"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 id="pending-heading" className="font-heading text-lg font-bold">
               Menunggu dikirim ({items.length})
@@ -101,10 +126,17 @@ export function PendingTransactions() {
               </Button>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">Belum masuk saldo dan ringkasan sampai terkirim.</p>
+          <p className="text-sm text-muted-foreground">
+            Belum masuk saldo dan ringkasan sampai terkirim.
+          </p>
           <ul className="divide-y">
             {items.map((item) => (
-              <PendingRow key={item.id} item={item} accounts={accountNames} categories={categoryNames} />
+              <PendingRow
+                key={item.id}
+                item={item}
+                accounts={accountNames}
+                categories={categoryNames}
+              />
             ))}
           </ul>
         </section>

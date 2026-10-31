@@ -56,7 +56,13 @@ export async function budgetHistory(userId: string, period: BudgetPeriod) {
         isNull(budgets.deletedAt),
       ),
     )
-    .where(and(eq(categories.userId, userId), eq(categories.kind, "spending"), isNull(categories.archivedAt)))
+    .where(
+      and(
+        eq(categories.userId, userId),
+        eq(categories.kind, "spending"),
+        isNull(categories.archivedAt),
+      ),
+    )
     .groupBy(categories.id, budgets.amount)
     .orderBy(asc(categories.spendingType), sql`lower(${categories.name})`);
 

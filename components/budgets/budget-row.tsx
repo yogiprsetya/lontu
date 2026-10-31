@@ -16,9 +16,16 @@ export function BudgetRow({ item, name, onEdit }: Props) {
       <li className="flex min-h-14 items-center justify-between gap-3 py-2">
         <div className="min-w-0">
           <p className="truncate font-bold">{name}</p>
-          <p className="truncate text-sm text-muted-foreground tabular-nums">{money(item.spent)} terpakai</p>
+          <p className="truncate text-sm text-muted-foreground tabular-nums">
+            {money(item.spent)} terpakai
+          </p>
         </div>
-        <Button variant="outline" className="h-11 shrink-0 text-base" disabled={!onEdit} onClick={onEdit}>
+        <Button
+          variant="outline"
+          className="h-11 shrink-0 text-base"
+          disabled={!onEdit}
+          onClick={onEdit}
+        >
           Atur budget
         </Button>
       </li>
@@ -38,10 +45,16 @@ export function BudgetRow({ item, name, onEdit }: Props) {
           <span
             className={cn(
               "shrink-0 text-sm tabular-nums",
-              item.status === "over" ? "text-expense" : item.status === "warning" ? "text-budget" : "text-muted-foreground",
+              item.status === "over"
+                ? "text-expense"
+                : item.status === "warning"
+                  ? "text-budget"
+                  : "text-muted-foreground",
             )}
           >
-            {item.remaining! < 0 ? `Lebih ${money(-item.remaining!)}` : `Sisa ${money(item.remaining!)}`}
+            {item.remaining! < 0
+              ? `Lebih ${money(-item.remaining!)}`
+              : `Sisa ${money(item.remaining!)}`}
           </span>
         </span>
         <BudgetProgress
@@ -55,7 +68,11 @@ export function BudgetRow({ item, name, onEdit }: Props) {
             {item.percent !== null && ` · ${item.percent}%`}
           </span>
           {text && (
-            <span className={cn("font-bold", item.status === "over" ? "text-expense" : "text-budget")}>{text}</span>
+            <span
+              className={cn("font-bold", item.status === "over" ? "text-expense" : "text-budget")}
+            >
+              {text}
+            </span>
           )}
         </span>
       </button>

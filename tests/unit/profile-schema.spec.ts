@@ -7,7 +7,10 @@ describe("profileSchema", () => {
   });
 
   it("accepts null to clear phone and location", () => {
-    expect(profileSchema.parse({ phone: null, location: null })).toEqual({ phone: null, location: null });
+    expect(profileSchema.parse({ phone: null, location: null })).toEqual({
+      phone: null,
+      location: null,
+    });
   });
 
   it("rejects an empty display name", () => {
@@ -27,6 +30,8 @@ describe("profileSchema", () => {
   });
 
   it("strips fields the client may not set", () => {
-    expect(profileSchema.parse({ email: "x@example.com", id: "other", displayName: "Yogi" })).toEqual({ displayName: "Yogi" });
+    expect(
+      profileSchema.parse({ email: "x@example.com", id: "other", displayName: "Yogi" }),
+    ).toEqual({ displayName: "Yogi" });
   });
 });

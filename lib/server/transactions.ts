@@ -1,6 +1,18 @@
 import "server-only";
 import { z } from "zod";
-import { and, desc, eq, getTableColumns, gte, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
@@ -26,7 +38,10 @@ type Row = typeof transactions.$inferSelect;
 export type Executor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /** A referenced id that failed the ownership/active/kind check, reported on one body field. */
-export type InvalidReference = { field: "accountId" | "toAccountId" | "categoryId" | "fee"; message: string };
+export type InvalidReference = {
+  field: "accountId" | "toAccountId" | "categoryId" | "fee";
+  message: string;
+};
 
 const FEE_DESCRIPTION = "Biaya admin transfer";
 
@@ -47,7 +62,10 @@ function toTransaction(row: Row): Transaction {
 }
 
 // Foreign and unknown ids share one message so a response never reveals another user's data.
-export async function checkAccounts(userId: string, fields: Partial<Record<"accountId" | "toAccountId", string>>) {
+export async function checkAccounts(
+  userId: string,
+  fields: Partial<Record<"accountId" | "toAccountId", string>>,
+) {
   const owned = await findOwnedAccounts(userId, Object.values(fields));
   for (const [field, id] of Object.entries(fields) as ["accountId" | "toAccountId", string][]) {
     const account = owned.find((a) => a.id === id);
@@ -65,10 +83,14 @@ export async function checkCategory(
   const category = await findOwnedCategory(userId, id);
   if (!category) return { field, message: "Kategori tidak ditemukan" };
   if (category.archivedAt) return { field, message: "Kategori sudah diarsipkan" };
-  if (category.kind !== kind) return { field, message: "Kategori tidak sesuai dengan jenis transaksi" };
+  if (category.kind !== kind)
+    return { field, message: "Kategori tidak sesuai dengan jenis transaksi" };
 }
 
-async function checkReferences(userId: string, input: TransactionCreateInput): Promise<InvalidReference | undefined> {
+async function checkReferences(
+  userId: string,
+  input: TransactionCreateInput,
+): Promise<InvalidReference | undefined> {
   if (input.type !== "transfer") {
     const [account, category] = await Promise.all([
       checkAccounts(userId, { accountId: input.accountId }),
@@ -110,7 +132,11 @@ export async function findReplay(
 }
 
 // onConflictDoNothing turns a duplicate id from a concurrent request into "no row" instead of an error.
-export async function insertSimple(userId: string, input: SimpleCreateInput, executor: Executor = db): Promise<TransactionCreated> {
+export async function insertSimple(
+  userId: string,
+  input: SimpleCreateInput,
+  executor: Executor = db,
+): Promise<TransactionCreated> {
   const [row] = await executor
     .insert(transactions)
     .values({ userId, ...input })
@@ -120,7 +146,10 @@ export async function insertSimple(userId: string, input: SimpleCreateInput, exe
   return { transaction: toTransaction(row), fee: null };
 }
 
-async function insertTransfer(userId: string, { fee, ...input }: TransferCreateInput): Promise<TransactionCreated> {
+async function insertTransfer(
+  userId: string,
+  { fee, ...input }: TransferCreateInput,
+): Promise<TransactionCreated> {
   return db.transaction(async (tx) => {
     const [row] = await tx
       .insert(transactions)
@@ -149,14 +178,18 @@ async function insertTransfer(userId: string, { fee, ...input }: TransferCreateI
   });
 }
 
-export type CreateResult = { created: TransactionCreated; replayed: boolean } | { invalid: InvalidReference } | IdTaken;
+export type CreateResult =
+  { created: TransactionCreated; replayed: boolean } | { invalid: InvalidReference } | IdTaken;
 
 /**
  * With a client `id`, a repeat of an earlier create returns the stored rows (first write wins).
  * The replay check runs before the reference checks: an account archived after the first write
  * must not turn a retry into a 400.
  */
-export async function createTransaction(userId: string, input: TransactionCreateInput): Promise<CreateResult> {
+export async function createTransaction(
+  userId: string,
+  input: TransactionCreateInput,
+): Promise<CreateResult> {
   const feeId = input.type === "transfer" ? input.fee?.id : undefined;
   const replay = input.id ? await findReplay(userId, input.id, feeId) : undefined;
   if (replay) return "idTaken" in replay ? replay : { created: replay, replayed: true };
@@ -164,7 +197,9 @@ export async function createTransaction(userId: string, input: TransactionCreate
   const invalid = await checkReferences(userId, input);
   if (invalid) return { invalid };
   try {
-    const created = await (input.type === "transfer" ? insertTransfer(userId, input) : insertSimple(userId, input));
+    const created = await (input.type === "transfer"
+      ? insertTransfer(userId, input)
+      : insertSimple(userId, input));
     return { created, replayed: false };
   } catch (err) {
     if (!(err instanceof IdConflict) || !input.id) throw err;
@@ -185,7 +220,10 @@ export function transactionWhere(userId: string, filters: TransactionFilters) {
     isNull(transactions.deletedAt),
     filters.type ? eq(transactions.type, filters.type) : undefined,
     filters.accountId
-      ? or(eq(transactions.accountId, filters.accountId), eq(transactions.toAccountId, filters.accountId))
+      ? or(
+          eq(transactions.accountId, filters.accountId),
+          eq(transactions.toAccountId, filters.accountId),
+        )
       : undefined,
     filters.categoryId ? eq(transactions.categoryId, filters.categoryId) : undefined,
     filters.from ? gte(transactions.date, filters.from) : undefined,
@@ -219,14 +257,20 @@ export async function listTransactions(
   const page = rows.slice(0, limit);
   const last = page.at(-1);
   const nextKey: CursorKey | undefined =
-    rows.length > limit && last ? { date: last.date, createdAtMicros: Number(last.micros), id: last.id } : undefined;
+    rows.length > limit && last
+      ? { date: last.date, createdAtMicros: Number(last.micros), id: last.id }
+      : undefined;
   return { items: page.map(toTransaction), nextCursor: nextKey ? encodeCursor(nextKey) : null };
 }
 
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
 
 function ownedLiveRow(userId: string, id: string) {
-  return and(eq(transactions.id, id), eq(transactions.userId, userId), isNull(transactions.deletedAt));
+  return and(
+    eq(transactions.id, id),
+    eq(transactions.userId, userId),
+    isNull(transactions.deletedAt),
+  );
 }
 
 export async function getTransaction(userId: string, id: string): Promise<Transaction | undefined> {
@@ -246,22 +290,36 @@ export type UpdateResult =
 /** Only references the request changes are re-checked, so a row whose account was archived later can still be edited. */
 async function checkChangedReferences(userId: string, row: Row, input: TransactionUpdateInput) {
   const accountFields: Partial<Record<"accountId" | "toAccountId", string>> = {};
-  if (input.accountId && input.accountId !== row.accountId) accountFields.accountId = input.accountId;
-  if (input.toAccountId && input.toAccountId !== row.toAccountId) accountFields.toAccountId = input.toAccountId;
+  if (input.accountId && input.accountId !== row.accountId)
+    accountFields.accountId = input.accountId;
+  if (input.toAccountId && input.toAccountId !== row.toAccountId)
+    accountFields.toAccountId = input.toAccountId;
 
   const [account, category] = await Promise.all([
     Object.keys(accountFields).length ? checkAccounts(userId, accountFields) : undefined,
     input.categoryId && input.categoryId !== row.categoryId
-      ? checkCategory(userId, input.categoryId, CATEGORY_KIND_FOR[row.type as keyof typeof CATEGORY_KIND_FOR], "categoryId")
+      ? checkCategory(
+          userId,
+          input.categoryId,
+          CATEGORY_KIND_FOR[row.type as keyof typeof CATEGORY_KIND_FOR],
+          "categoryId",
+        )
       : undefined,
   ]);
   return account ?? category;
 }
 
-export async function updateTransaction(userId: string, id: string, body: unknown): Promise<UpdateResult> {
+export async function updateTransaction(
+  userId: string,
+  id: string,
+  body: unknown,
+): Promise<UpdateResult> {
   if (!isUuid(id)) return { notFound: true };
   const [row] = await db
-    .select({ ...getTableColumns(transactions), version: sql<string>`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint` })
+    .select({
+      ...getTableColumns(transactions),
+      version: sql<string>`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint`,
+    })
     .from(transactions)
     .where(ownedLiveRow(userId, id));
   if (!row) return { notFound: true };
@@ -275,7 +333,8 @@ export async function updateTransaction(userId: string, id: string, body: unknow
   if (row.type === "transfer") {
     const accountId = input.accountId ?? row.accountId;
     const toAccountId = input.toAccountId ?? row.toAccountId;
-    if (accountId === toAccountId) return { invalid: { field: "toAccountId", message: "Akun tujuan harus berbeda" } };
+    if (accountId === toAccountId)
+      return { invalid: { field: "toAccountId", message: "Akun tujuan harus berbeda" } };
   }
 
   const invalid = await checkChangedReferences(userId, row, input);
@@ -285,7 +344,12 @@ export async function updateTransaction(userId: string, id: string, body: unknow
     .update(transactions)
     .set({ ...input, updatedAt: sql`now()` })
     // Compared in microseconds (a JS Date would truncate): only if nobody changed the row since the checks above read it.
-    .where(and(ownedLiveRow(userId, id), sql`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint = ${row.version}::bigint`))
+    .where(
+      and(
+        ownedLiveRow(userId, id),
+        sql`(extract(epoch from ${transactions.updatedAt}) * 1000000)::bigint = ${row.version}::bigint`,
+      ),
+    )
     .returning();
   if (updated) return { transaction: toTransaction(updated) };
   return (await getTransaction(userId, id)) ? { changed: true } : { notFound: true };
@@ -301,7 +365,11 @@ async function findAnyTransaction(userId: string, id: string) {
 
 // Only touches rows that are not already in the target state, so repeating the call
 // neither moves deleted_at nor fails.
-async function setDeleted(userId: string, id: string, deleted: boolean): Promise<Transaction | undefined> {
+async function setDeleted(
+  userId: string,
+  id: string,
+  deleted: boolean,
+): Promise<Transaction | undefined> {
   if (!isUuid(id)) return undefined;
   const [updated] = await db
     .update(transactions)

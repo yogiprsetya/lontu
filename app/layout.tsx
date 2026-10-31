@@ -5,7 +5,11 @@ import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-sans" });
-const baloo = Baloo_2({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-display" });
+const baloo = Baloo_2({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   title: { default: "Lontu", template: "%s · Lontu" },
@@ -24,7 +28,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // next-themes sets the theme class on <html> before hydration.
-    <html lang="id" className={cn("h-full", "antialiased", "font-sans", nunito.variable, baloo.variable)} suppressHydrationWarning>
+    <html
+      lang="id"
+      className={cn("h-full", "antialiased", "font-sans", nunito.variable, baloo.variable)}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col tabular-nums">
         <Providers>{children}</Providers>
       </body>

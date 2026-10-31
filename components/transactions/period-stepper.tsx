@@ -33,11 +33,7 @@ type Props = {
   modes?: readonly PeriodMode[];
 };
 
-export function PeriodStepper({
-  period,
-  onChange,
-  modes = ["month", "year"],
-}: Props) {
+export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: Props) {
   const today = todayInJakarta();
   const items = MODES.filter((m) => modes.includes(m.value));
   const mode = periodMode(period);
@@ -78,8 +74,7 @@ export function PeriodStepper({
         items={items}
         value={mode}
         onValueChange={(value) =>
-          value &&
-          onChange(switchPeriodMode(period, value as PeriodMode, today))
+          value && onChange(switchPeriodMode(period, value as PeriodMode, today))
         }
       >
         <SelectTrigger
@@ -91,11 +86,7 @@ export function PeriodStepper({
 
         <SelectContent alignItemWithTrigger={false}>
           {items.map((m) => (
-            <SelectItem
-              key={m.value}
-              value={m.value}
-              className={selectItemClass}
-            >
+            <SelectItem key={m.value} value={m.value} className={selectItemClass}>
               {m.label}
             </SelectItem>
           ))}

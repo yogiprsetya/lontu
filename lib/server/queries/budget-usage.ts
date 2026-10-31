@@ -64,8 +64,10 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
     )
     .orderBy(asc(categories.spendingType), sql`lower(${categories.name})`);
 
-  const items = rows.map(
-    (row): BudgetUsageItem => ({ ...row, spendingType: row.spendingType as SpendingType, ...budgetStatus(row.budget, row.spent) }),
-  );
+  const items = rows.map((row): BudgetUsageItem => ({
+    ...row,
+    spendingType: row.spendingType as SpendingType,
+    ...budgetStatus(row.budget, row.spent),
+  }));
   return { period, items, summary: summarizeBudgets(items) };
 }

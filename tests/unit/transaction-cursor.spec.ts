@@ -15,7 +15,9 @@ describe("transaction cursor", () => {
 
   it("keeps microsecond precision", () => {
     const micros = 1_760_000_000_000_001;
-    expect(decodeCursor(encodeCursor({ ...key, createdAtMicros: micros }))?.createdAtMicros).toBe(micros);
+    expect(decodeCursor(encodeCursor({ ...key, createdAtMicros: micros }))?.createdAtMicros).toBe(
+      micros,
+    );
   });
 
   it.each([

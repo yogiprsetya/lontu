@@ -4,7 +4,13 @@ import { db } from "@/db";
 import { categories, transactions } from "@/db/schema";
 import { dashboardMode, dashboardRanges } from "@/lib/dashboard-period";
 import type { SpendingType } from "@/lib/schemas/category";
-import type { DashboardMode, DashboardPeriod, DashboardSummary, DashboardTotals, DateRange } from "@/lib/schemas/dashboard";
+import type {
+  DashboardMode,
+  DashboardPeriod,
+  DashboardSummary,
+  DashboardTotals,
+  DateRange,
+} from "@/lib/schemas/dashboard";
 import { transactionTotals } from "@/lib/server/queries/transaction-totals";
 import { transactionWhere } from "@/lib/server/transactions";
 
@@ -45,7 +51,10 @@ async function expenseByCategory(userId: string, range: DateRange) {
   const rows = await db
     .select({ categoryId: categories.id, spendingType: categories.spendingType, amount })
     .from(transactions)
-    .innerJoin(categories, and(eq(categories.id, transactions.categoryId), eq(categories.userId, userId)))
+    .innerJoin(
+      categories,
+      and(eq(categories.id, transactions.categoryId), eq(categories.userId, userId)),
+    )
     .where(transactionWhere(userId, { ...range, type: "expense" }))
     .groupBy(categories.id, categories.spendingType)
     .having(sql`sum(${transactions.amount}) > 0`)
@@ -54,7 +63,11 @@ async function expenseByCategory(userId: string, range: DateRange) {
 }
 
 /** `today` is a parameter so tests can pin it; the route passes `todayInJakarta()`. */
-export async function dashboardSummary(userId: string, period: DashboardPeriod, today: string): Promise<DashboardSummary> {
+export async function dashboardSummary(
+  userId: string,
+  period: DashboardPeriod,
+  today: string,
+): Promise<DashboardSummary> {
   const { range, previous } = dashboardRanges(period, today);
   const [totals, previousTotals, activity, byCategory] = await Promise.all([
     totalsWithNet(userId, range),

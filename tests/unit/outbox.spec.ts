@@ -38,7 +38,14 @@ describe("outbox", () => {
     await outbox.enqueue("user-a", body("t1"));
 
     expect(await outbox.list("user-a")).toEqual([
-      { id: "t1", userId: "user-a", body: body("t1"), createdAt: "2026-10-25T01:00:01.000Z", status: "pending", attempts: 0 },
+      {
+        id: "t1",
+        userId: "user-a",
+        body: body("t1"),
+        createdAt: "2026-10-25T01:00:01.000Z",
+        status: "pending",
+        attempts: 0,
+      },
     ]);
   });
 
@@ -64,7 +71,10 @@ describe("outbox", () => {
     const outbox = createOutbox(mapStore(), clock());
     await outbox.enqueue("user-a", body("t1"));
 
-    await outbox.markFailed("t1", { message: "Akun sudah diarsipkan", fields: { accountId: ["Akun sudah diarsipkan"] } });
+    await outbox.markFailed("t1", {
+      message: "Akun sudah diarsipkan",
+      fields: { accountId: ["Akun sudah diarsipkan"] },
+    });
     expect((await outbox.list("user-a"))[0]).toMatchObject({
       status: "failed",
       error: { message: "Akun sudah diarsipkan", fields: { accountId: ["Akun sudah diarsipkan"] } },

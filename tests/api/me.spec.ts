@@ -47,7 +47,9 @@ describe("GET /api/me", () => {
     signInAs(null);
     const res = await GET(new Request("http://localhost/api/me"), ctx);
     expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: { code: "UNAUTHORIZED", message: expect.any(String) } });
+    expect(await res.json()).toEqual({
+      error: { code: "UNAUTHORIZED", message: expect.any(String) },
+    });
   });
 
   it("returns the signed-in user's own profile", async () => {
@@ -98,10 +100,20 @@ describe("PATCH /api/me", () => {
 
   it("updates only the signed-in user's profile", async () => {
     signInAs(userA);
-    const res = await patch({ displayName: "User A", phone: "0812", location: "Bandung", id: userB });
+    const res = await patch({
+      displayName: "User A",
+      phone: "0812",
+      location: "Bandung",
+      id: userB,
+    });
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id: userA, displayName: "User A", phone: "0812", location: "Bandung" });
+    expect(await res.json()).toMatchObject({
+      id: userA,
+      displayName: "User A",
+      phone: "0812",
+      location: "Bandung",
+    });
 
     const [b] = await db.select().from(users).where(eq(users.id, userB));
     expect(b).toMatchObject({ displayName: "User B", phone: null, location: null });

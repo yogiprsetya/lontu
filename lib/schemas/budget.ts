@@ -41,7 +41,12 @@ export type BudgetSuggestion = {
   basis: number;
   basisSource: "previous_month" | "input";
   pools: { needs: number; wants: number; saving: number };
-  items: { categoryId: string; spendingType: SpendingType; amount: number; current: number | null }[];
+  items: {
+    categoryId: string;
+    spendingType: SpendingType;
+    amount: number;
+    current: number | null;
+  }[];
 };
 
 export const BUDGET_PERIOD_FORMAT = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -65,7 +70,10 @@ export const budgetAmount = z
   .max(1e12, "Maksimal 1 triliun");
 
 // Item issues flatten onto `fields.items`, which the forms show as one message.
-const budgetItem = z.strictObject({ categoryId: z.uuid("Kategori tidak valid"), amount: budgetAmount });
+const budgetItem = z.strictObject({
+  categoryId: z.uuid("Kategori tidak valid"),
+  amount: budgetAmount,
+});
 
 export const budgetSetSchema = z.strictObject({
   period: budgetPeriodSchema,
@@ -73,7 +81,10 @@ export const budgetSetSchema = z.strictObject({
     .array(budgetItem, "Daftar budget tidak valid")
     .min(1, "Minimal satu budget")
     .max(100, "Maksimal 100 budget")
-    .refine((items) => new Set(items.map((i) => i.categoryId)).size === items.length, "Kategori tidak boleh ganda"),
+    .refine(
+      (items) => new Set(items.map((i) => i.categoryId)).size === items.length,
+      "Kategori tidak boleh ganda",
+    ),
 });
 
 export type BudgetSetInput = z.infer<typeof budgetSetSchema>;

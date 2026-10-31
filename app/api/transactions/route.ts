@@ -1,10 +1,18 @@
-import { badRequest, fieldError, invalidCursor, invalidJson, transactionIdTaken } from "@/lib/api/errors";
+import {
+  badRequest,
+  fieldError,
+  invalidCursor,
+  invalidJson,
+  transactionIdTaken,
+} from "@/lib/api/errors";
 import { withAuth } from "@/lib/api/with-auth";
 import { transactionCreateSchema, transactionListQuerySchema } from "@/lib/schemas/transaction";
 import { createTransaction, listTransactions } from "@/lib/server/transactions";
 
 export const GET = withAuth(async (req, { userId }) => {
-  const parsed = transactionListQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
+  const parsed = transactionListQuerySchema.safeParse(
+    Object.fromEntries(new URL(req.url).searchParams),
+  );
   if (!parsed.success) return badRequest(parsed.error);
 
   const result = await listTransactions(userId, parsed.data);

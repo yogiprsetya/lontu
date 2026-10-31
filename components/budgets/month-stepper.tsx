@@ -6,7 +6,13 @@ import { todayInJakarta } from "@/lib/date";
 import { maxBudgetPeriod, type BudgetPeriod } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 
-export function MonthStepper({ period, onChange }: { period: BudgetPeriod; onChange: (period: BudgetPeriod) => void }) {
+export function MonthStepper({
+  period,
+  onChange,
+}: {
+  period: BudgetPeriod;
+  onChange: (period: BudgetPeriod) => void;
+}) {
   const previous = shiftPeriod(period, -1);
   const next = shiftPeriod(period, 1);
 
@@ -21,7 +27,10 @@ export function MonthStepper({ period, onChange }: { period: BudgetPeriod; onCha
       >
         <ChevronLeftIcon aria-hidden />
       </Button>
-      <p className="min-w-0 flex-1 truncate text-center font-heading text-lg font-bold" aria-live="polite">
+      <p
+        className="min-w-0 flex-1 truncate text-center font-heading text-lg font-bold"
+        aria-live="polite"
+      >
         {formatPeriodLabel(period)}
       </p>
       <Button

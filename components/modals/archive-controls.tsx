@@ -19,11 +19,18 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { failureMessage } from "@/lib/offline/network-error";
 
-type ShowArchivedSwitchProps = { id: string; checked: boolean; onCheckedChange: (checked: boolean) => void };
+type ShowArchivedSwitchProps = {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+};
 
 export function ShowArchivedSwitch({ id, checked, onCheckedChange }: ShowArchivedSwitchProps) {
   return (
-    <Label htmlFor={id} className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-base font-normal">
+    <Label
+      htmlFor={id}
+      className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-base font-normal"
+    >
       Tampilkan arsip
       <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </Label>
@@ -39,7 +46,13 @@ type ArchiveButtonProps = {
   onArchived: () => void;
 };
 
-export function ArchiveButton({ label, name, description, archive, onArchived }: ArchiveButtonProps) {
+export function ArchiveButton({
+  label,
+  name,
+  description,
+  archive,
+  onArchived,
+}: ArchiveButtonProps) {
   const [pending, setPending] = useState(false);
 
   async function confirm() {
@@ -56,7 +69,11 @@ export function ArchiveButton({ label, name, description, archive, onArchived }:
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger render={<Button type="button" variant="destructive" className="h-11 self-start text-base" />}>
+      <AlertDialogTrigger
+        render={
+          <Button type="button" variant="destructive" className="h-11 self-start text-base" />
+        }
+      >
         <ArchiveIcon aria-hidden />
         {label}
       </AlertDialogTrigger>
@@ -82,7 +99,13 @@ export function ArchiveButton({ label, name, description, archive, onArchived }:
   );
 }
 
-export function RestoreButton({ name, restore }: { name: string; restore: () => Promise<unknown> }) {
+export function RestoreButton({
+  name,
+  restore,
+}: {
+  name: string;
+  restore: () => Promise<unknown>;
+}) {
   const [pending, setPending] = useState(false);
 
   async function handleClick() {
@@ -98,7 +121,12 @@ export function RestoreButton({ name, restore }: { name: string; restore: () => 
   }
 
   return (
-    <Button variant="outline" className="h-11 shrink-0 text-base" disabled={pending} onClick={() => void handleClick()}>
+    <Button
+      variant="outline"
+      className="h-11 shrink-0 text-base"
+      disabled={pending}
+      onClick={() => void handleClick()}
+    >
       Pulihkan
     </Button>
   );

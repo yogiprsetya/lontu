@@ -43,8 +43,22 @@ describe("transactions constraints", () => {
     const rows = await db
       .insert(transactions)
       .values([
-        { userId, type: "expense", amount: 1000, date: "2026-10-20", accountId: accountA, categoryId: spending },
-        { userId, type: "transfer", amount: 1000, date: "2026-10-20", accountId: accountA, toAccountId: accountB },
+        {
+          userId,
+          type: "expense",
+          amount: 1000,
+          date: "2026-10-20",
+          accountId: accountA,
+          categoryId: spending,
+        },
+        {
+          userId,
+          type: "transfer",
+          amount: 1000,
+          date: "2026-10-20",
+          accountId: accountA,
+          toAccountId: accountB,
+        },
       ])
       .returning({ id: transactions.id });
     expect(rows).toHaveLength(2);
@@ -52,7 +66,13 @@ describe("transactions constraints", () => {
 
   it("rejects a transfer without to_account_id", async () => {
     await expectPgError(
-      db.insert(transactions).values({ userId, type: "transfer", amount: 1000, date: "2026-10-20", accountId: accountA }),
+      db.insert(transactions).values({
+        userId,
+        type: "transfer",
+        amount: 1000,
+        date: "2026-10-20",
+        accountId: accountA,
+      }),
       CHECK_VIOLATION,
       "transactions_transfer_target_check",
     );
@@ -75,7 +95,9 @@ describe("transactions constraints", () => {
 
   it("rejects an expense without a category", async () => {
     await expectPgError(
-      db.insert(transactions).values({ userId, type: "expense", amount: 1000, date: "2026-10-20", accountId: accountA }),
+      db
+        .insert(transactions)
+        .values({ userId, type: "expense", amount: 1000, date: "2026-10-20", accountId: accountA }),
       CHECK_VIOLATION,
       "transactions_category_check",
     );
@@ -99,7 +121,14 @@ describe("transactions constraints", () => {
 
   it.each([0, -500])("rejects amount %i", async (amount) => {
     await expectPgError(
-      db.insert(transactions).values({ userId, type: "expense", amount, date: "2026-10-20", accountId: accountA, categoryId: spending }),
+      db.insert(transactions).values({
+        userId,
+        type: "expense",
+        amount,
+        date: "2026-10-20",
+        accountId: accountA,
+        categoryId: spending,
+      }),
       CHECK_VIOLATION,
       "transactions_amount_check",
     );
@@ -107,7 +136,14 @@ describe("transactions constraints", () => {
 
   it("rejects an unknown type", async () => {
     await expectPgError(
-      db.insert(transactions).values({ userId, type: "refund", amount: 1000, date: "2026-10-20", accountId: accountA, categoryId: spending }),
+      db.insert(transactions).values({
+        userId,
+        type: "refund",
+        amount: 1000,
+        date: "2026-10-20",
+        accountId: accountA,
+        categoryId: spending,
+      }),
       CHECK_VIOLATION,
       "transactions_type_check",
     );
@@ -140,7 +176,9 @@ describe("adjustment transactions", () => {
 
   it("rejects an adjustment of zero", async () => {
     await expectPgError(
-      db.insert(transactions).values({ userId, type: "adjustment", amount: 0, date: "2026-10-20", accountId: accountA }),
+      db
+        .insert(transactions)
+        .values({ userId, type: "adjustment", amount: 0, date: "2026-10-20", accountId: accountA }),
       CHECK_VIOLATION,
       "transactions_amount_check",
     );
@@ -181,14 +219,19 @@ describe("categories constraints", () => {
 
   it("rejects a duplicate name within the same kind, case-insensitively", async () => {
     await expectPgError(
-      db.insert(categories).values({ userId, name: "MAKAN", kind: "spending", spendingType: "wants" }),
+      db
+        .insert(categories)
+        .values({ userId, name: "MAKAN", kind: "spending", spendingType: "wants" }),
       UNIQUE_VIOLATION,
       "categories_user_kind_name_unique",
     );
   });
 
   it("allows the same name under a different kind", async () => {
-    const rows = await db.insert(categories).values({ userId, name: "Makan", kind: "income" }).returning();
+    const rows = await db
+      .insert(categories)
+      .values({ userId, name: "Makan", kind: "income" })
+      .returning();
     expect(rows).toHaveLength(1);
   });
 });
@@ -222,16 +265,22 @@ describe("budgets constraints", () => {
 
   it("rejects a negative amount", async () => {
     await expectPgError(
-      db.insert(budgets).values({ userId, categoryId: spending, year: 2026, month: 10, amount: -1 }),
+      db
+        .insert(budgets)
+        .values({ userId, categoryId: spending, year: 2026, month: 10, amount: -1 }),
       CHECK_VIOLATION,
       "budgets_amount_check",
     );
   });
 
   it("rejects a second budget for the same category and month", async () => {
-    await db.insert(budgets).values({ userId, categoryId: spending, year: 2026, month: 11, amount: 1000 });
+    await db
+      .insert(budgets)
+      .values({ userId, categoryId: spending, year: 2026, month: 11, amount: 1000 });
     await expectPgError(
-      db.insert(budgets).values({ userId, categoryId: spending, year: 2026, month: 11, amount: 2000 }),
+      db
+        .insert(budgets)
+        .values({ userId, categoryId: spending, year: 2026, month: 11, amount: 2000 }),
       UNIQUE_VIOLATION,
       "budgets_user_category_period_unique",
     );
@@ -251,7 +300,10 @@ describe("recurring_rules constraints", () => {
   });
 
   it("accepts a valid rule", async () => {
-    const rows = await db.insert(recurringRules).values(rule()).returning({ id: recurringRules.id });
+    const rows = await db
+      .insert(recurringRules)
+      .values(rule())
+      .returning({ id: recurringRules.id });
     expect(rows).toHaveLength(1);
   });
 
@@ -291,6 +343,10 @@ describe("recurring_rules constraints", () => {
     const payday = { ...rule(), type: "income", name: "Gaji", isPayday: true };
     await db.insert(recurringRules).values({ ...payday, archivedAt: new Date() });
     await db.insert(recurringRules).values(payday);
-    await expectPgError(db.insert(recurringRules).values(payday), UNIQUE_VIOLATION, "recurring_rules_one_payday");
+    await expectPgError(
+      db.insert(recurringRules).values(payday),
+      UNIQUE_VIOLATION,
+      "recurring_rules_one_payday",
+    );
   });
 });

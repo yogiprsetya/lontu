@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isActivePath, moreItems, recurringItem, sidebarItems } from "@/components/layout/nav-items";
+import {
+  isActivePath,
+  moreItems,
+  recurringItem,
+  sidebarItems,
+} from "@/components/layout/nav-items";
 
 describe("isActivePath", () => {
   it("matches the exact path", () => {

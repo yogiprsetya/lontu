@@ -16,7 +16,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         process.env.ALLOWED_EMAILS,
       );
       if (!allowed) return false;
-      await upsertUser({ id: profile.sub, email: profile.email!, name: profile.name, image: profile.picture });
+      await upsertUser({
+        id: profile.sub,
+        email: profile.email!,
+        name: profile.name,
+        image: profile.picture,
+      });
       return true;
     },
     jwt({ token, profile }) {

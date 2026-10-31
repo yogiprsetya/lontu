@@ -49,7 +49,10 @@ function update(id: string, body: unknown) {
 }
 
 function archive(id: string) {
-  return item.DELETE(new Request(`http://localhost/api/accounts/${id}`, { method: "DELETE" }), idParams(id));
+  return item.DELETE(
+    new Request(`http://localhost/api/accounts/${id}`, { method: "DELETE" }),
+    idParams(id),
+  );
 }
 
 function restore(id: string) {
@@ -68,7 +71,11 @@ async function createAs(userId: string, body: Record<string, unknown>) {
 
 function adjustmentsOf(accountId: string) {
   return db
-    .select({ amount: transactions.amount, date: transactions.date, description: transactions.description })
+    .select({
+      amount: transactions.amount,
+      date: transactions.date,
+      description: transactions.description,
+    })
     .from(transactions)
     .where(and(eq(transactions.accountId, accountId), eq(transactions.type, "adjustment")))
     .orderBy(transactions.createdAt);
@@ -108,21 +115,33 @@ describe("POST /api/accounts", () => {
 
   it("accepts a negative initial balance", async () => {
     signInAs(userA);
-    const res = await create({ name: "Kartu Kredit", type: "transaction", subtype: "credit_card", initialBalance: -500_000 });
+    const res = await create({
+      name: "Kartu Kredit",
+      type: "transaction",
+      subtype: "credit_card",
+      initialBalance: -500_000,
+    });
 
     expect(res.status).toBe(201);
-    expect(await res.json()).toMatchObject({ initialBalance: -500_000, balance: -500_000, subtype: "credit_card" });
+    expect(await res.json()).toMatchObject({
+      initialBalance: -500_000,
+      balance: -500_000,
+      subtype: "credit_card",
+    });
   });
 
-  it.each([1.5, "100", 1e12 + 1])("returns 400 with fields.initialBalance for %j", async (initialBalance) => {
-    signInAs(userA);
-    const res = await create({ name: "Salah", type: "transaction", initialBalance });
+  it.each([1.5, "100", 1e12 + 1])(
+    "returns 400 with fields.initialBalance for %j",
+    async (initialBalance) => {
+      signInAs(userA);
+      const res = await create({ name: "Salah", type: "transaction", initialBalance });
 
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.error.code).toBe("VALIDATION_ERROR");
-    expect(body.error.fields.initialBalance).toBeDefined();
-  });
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+      expect(body.error.fields.initialBalance).toBeDefined();
+    },
+  );
 
   it.each(["", "x".repeat(51)])("returns 400 with fields.name for name %j", async (name) => {
     signInAs(userA);
@@ -147,7 +166,9 @@ describe("POST /api/accounts", () => {
   });
 
   it("returns 409 when the name belongs to an archived account", async () => {
-    await db.insert(accounts).values({ userId: userA, name: "Lama", type: "asset", archivedAt: new Date() });
+    await db
+      .insert(accounts)
+      .values({ userId: userA, name: "Lama", type: "asset", archivedAt: new Date() });
     signInAs(userA);
 
     expect((await create({ name: "LAMA", type: "asset" })).status).toBe(409);
@@ -158,7 +179,10 @@ describe("POST /api/accounts", () => {
     const res = await create({ name: "Milik A", type: "asset", userId: userB });
     const { id } = await res.json();
 
-    const [row] = await db.select({ userId: accounts.userId }).from(accounts).where(eq(accounts.id, id));
+    const [row] = await db
+      .select({ userId: accounts.userId })
+      .from(accounts)
+      .where(eq(accounts.id, id));
     expect(row.userId).toBe(userA);
   });
 
@@ -171,7 +195,9 @@ describe("POST /api/accounts", () => {
 describe("GET /api/accounts", () => {
   it("orders transaction accounts before assets, then by name case-insensitively", async () => {
     signInAs(userA);
-    const names = (await (await list()).json()).map((a: { type: string; name: string }) => `${a.type}:${a.name}`);
+    const names = (await (await list()).json()).map(
+      (a: { type: string; name: string }) => `${a.type}:${a.name}`,
+    );
 
     expect(names).toEqual(["transaction:BCA", "transaction:Kartu Kredit", "asset:Milik A"]);
   });
@@ -181,7 +207,9 @@ describe("GET /api/accounts", () => {
     const all = await (await list("?include=archived")).json();
 
     expect(all.map((a: { name: string }) => a.name)).toContain("Lama");
-    expect(all.find((a: { name: string }) => a.name === "Lama").archivedAt).toEqual(expect.any(String));
+    expect(all.find((a: { name: string }) => a.name === "Lama").archivedAt).toEqual(
+      expect.any(String),
+    );
   });
 
   it("matches account_balances after income, expense, transfer and adjustment rows", async () => {
@@ -200,21 +228,57 @@ describe("GET /api/accounts", () => {
       ])
       .returning({ id: categories.id });
     await db.insert(transactions).values([
-      { userId: userB, type: "income", amount: 40_000, date: "2026-10-01", accountId: x.id, categoryId: salary.id },
-      { userId: userB, type: "expense", amount: 15_000, date: "2026-10-02", accountId: x.id, categoryId: food.id },
-      { userId: userB, type: "transfer", amount: 5_000, date: "2026-10-03", accountId: x.id, toAccountId: y.id },
+      {
+        userId: userB,
+        type: "income",
+        amount: 40_000,
+        date: "2026-10-01",
+        accountId: x.id,
+        categoryId: salary.id,
+      },
+      {
+        userId: userB,
+        type: "expense",
+        amount: 15_000,
+        date: "2026-10-02",
+        accountId: x.id,
+        categoryId: food.id,
+      },
+      {
+        userId: userB,
+        type: "transfer",
+        amount: 5_000,
+        date: "2026-10-03",
+        accountId: x.id,
+        toAccountId: y.id,
+      },
       { userId: userB, type: "adjustment", amount: 25_000, date: "2026-10-04", accountId: x.id },
-      { userId: userB, type: "adjustment", amount: 1_000, date: "2026-10-05", accountId: x.id, deletedAt: new Date() },
+      {
+        userId: userB,
+        type: "adjustment",
+        amount: 1_000,
+        date: "2026-10-05",
+        accountId: x.id,
+        deletedAt: new Date(),
+      },
     ]);
 
     signInAs(userB);
-    const body: { id: string; balance: number; initialBalance: number }[] = await (await list()).json();
-    const views = await db.select().from(accountBalances).where(inArray(accountBalances.accountId, [x.id, y.id]));
+    const body: { id: string; balance: number; initialBalance: number }[] = await (
+      await list()
+    ).json();
+    const views = await db
+      .select()
+      .from(accountBalances)
+      .where(inArray(accountBalances.accountId, [x.id, y.id]));
 
     for (const v of views) {
       expect(body.find((a) => a.id === v.accountId)?.balance).toBe(v.balance);
     }
-    expect(body.find((a) => a.id === x.id)).toMatchObject({ balance: 145_000, initialBalance: 125_000 });
+    expect(body.find((a) => a.id === x.id)).toMatchObject({
+      balance: 145_000,
+      initialBalance: 125_000,
+    });
   });
 
   it("never returns another user's accounts", async () => {
@@ -232,20 +296,32 @@ describe("GET /api/accounts", () => {
 
 describe("PATCH /api/accounts/[id]", () => {
   it("records starting-balance edits as adjustments and leaves initial_balance untouched", async () => {
-    const id = await createAs(userA, { name: "Jago", type: "transaction", initialBalance: 100_000 });
+    const id = await createAs(userA, {
+      name: "Jago",
+      type: "transaction",
+      initialBalance: 100_000,
+    });
     const [food] = await db
       .insert(categories)
       .values({ userId: userA, name: "Makan", kind: "spending", spendingType: "needs" })
       .returning({ id: categories.id });
-    await db
-      .insert(transactions)
-      .values({ userId: userA, type: "expense", amount: 20_000, date: "2026-10-01", accountId: id, categoryId: food.id });
+    await db.insert(transactions).values({
+      userId: userA,
+      type: "expense",
+      amount: 20_000,
+      date: "2026-10-01",
+      accountId: id,
+      categoryId: food.id,
+    });
 
     const res = await update(id, { initialBalance: 150_000 });
 
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ id, initialBalance: 150_000, balance: 130_000 });
-    const [row] = await db.select({ initialBalance: accounts.initialBalance }).from(accounts).where(eq(accounts.id, id));
+    const [row] = await db
+      .select({ initialBalance: accounts.initialBalance })
+      .from(accounts)
+      .where(eq(accounts.id, id));
     expect(row.initialBalance).toBe(100_000);
     expect(await adjustmentsOf(id)).toEqual([
       { amount: 50_000, date: todayInJakarta(), description: "Penyesuaian saldo awal" },
@@ -267,7 +343,9 @@ describe("PATCH /api/accounts/[id]", () => {
     // Open pool connections up front; otherwise each new connection takes seconds and the edits never overlap.
     await Promise.all(targets.map(() => db.execute(sql`select 1`)));
 
-    const results = await Promise.all(targets.map((initialBalance) => update(id, { initialBalance })));
+    const results = await Promise.all(
+      targets.map((initialBalance) => update(id, { initialBalance })),
+    );
 
     expect(results.map((r) => r.status)).toEqual(targets.map(() => 200));
     const [final] = (await (await list()).json()).filter((a: { id: string }) => a.id === id);
@@ -281,7 +359,12 @@ describe("PATCH /api/accounts/[id]", () => {
 
     const res = await update(id, { name: "GoPay", type: "asset", subtype: "ewallet" });
 
-    expect(await res.json()).toMatchObject({ name: "GoPay", type: "asset", subtype: "ewallet", initialBalance: 0 });
+    expect(await res.json()).toMatchObject({
+      name: "GoPay",
+      type: "asset",
+      subtype: "ewallet",
+      initialBalance: 0,
+    });
     expect(await adjustmentsOf(id)).toHaveLength(0);
   });
 

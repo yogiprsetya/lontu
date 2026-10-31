@@ -31,7 +31,10 @@ function create(body: unknown) {
 }
 
 async function balanceOf(accountId: string) {
-  const res = await accountsRoute.GET(new Request("http://localhost/api/accounts?include=archived"), noParams);
+  const res = await accountsRoute.GET(
+    new Request("http://localhost/api/accounts?include=archived"),
+    noParams,
+  );
   const list = (await res.json()) as { id: string; balance: number }[];
   return list.find((a) => a.id === accountId)?.balance;
 }
@@ -78,7 +81,9 @@ beforeAll(async () => {
       { userId: userB, name: "foreignAccount", type: "transaction" },
     ])
     .returning({ id: accounts.id, name: accounts.name });
-  ({ account, archivedAccount, foreignAccount, otherAccount } = Object.fromEntries(accountRows.map((r) => [r.name, r.id])));
+  ({ account, archivedAccount, foreignAccount, otherAccount } = Object.fromEntries(
+    accountRows.map((r) => [r.name, r.id]),
+  ));
 
   const categoryRows = await db
     .insert(categories)
@@ -86,7 +91,13 @@ beforeAll(async () => {
       { userId: userA, name: "income", kind: "income" },
       { userId: userA, name: "saving", kind: "saving" },
       { userId: userA, name: "spending", kind: "spending", spendingType: "needs" },
-      { userId: userA, name: "archivedSpending", kind: "spending", spendingType: "needs", archivedAt },
+      {
+        userId: userA,
+        name: "archivedSpending",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt,
+      },
       { userId: userB, name: "foreignSpending", kind: "spending", spendingType: "needs" },
     ])
     .returning({ id: categories.id, name: categories.name });
@@ -122,7 +133,9 @@ describe("POST /api/transactions", () => {
     const funded = await insertFundedAccount(userA, 100_000);
     const today = todayInJakarta();
 
-    const res = await create(expense({ accountId: funded, date: today, description: " Makan siang " }));
+    const res = await create(
+      expense({ accountId: funded, date: today, description: " Makan siang " }),
+    );
 
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual({
@@ -148,10 +161,22 @@ describe("POST /api/transactions", () => {
     signInAs(userA);
     const funded = await insertFundedAccount(userA, 100_000);
 
-    expect((await create(expense({ type: "income", amount: 50_000, accountId: funded, categoryId: cat.income }))).status).toBe(201);
+    expect(
+      (
+        await create(
+          expense({ type: "income", amount: 50_000, accountId: funded, categoryId: cat.income }),
+        )
+      ).status,
+    ).toBe(201);
     expect(await balanceOf(funded)).toBe(150_000);
 
-    expect((await create(expense({ type: "saving", amount: 30_000, accountId: funded, categoryId: cat.saving }))).status).toBe(201);
+    expect(
+      (
+        await create(
+          expense({ type: "saving", amount: 30_000, accountId: funded, categoryId: cat.saving }),
+        )
+      ).status,
+    ).toBe(201);
     expect(await balanceOf(funded)).toBe(120_000);
   });
 
@@ -167,10 +192,13 @@ describe("POST /api/transactions", () => {
     await expectFieldError(await create(expense({ amount })), "amount");
   });
 
-  it.each([["21-10-2026"], ["1999-12-31"], [tomorrowInJakarta()]])("returns 400 fields.date for %s", async (date) => {
-    signInAs(userA);
-    await expectFieldError(await create(expense({ date })), "date");
-  });
+  it.each([["21-10-2026"], ["1999-12-31"], [tomorrowInJakarta()]])(
+    "returns 400 fields.date for %s",
+    async (date) => {
+      signInAs(userA);
+      await expectFieldError(await create(expense({ date })), "date");
+    },
+  );
 
   it("returns 400 fields.description for 201 characters", async () => {
     signInAs(userA);
@@ -182,24 +210,36 @@ describe("POST /api/transactions", () => {
     await expectFieldError(await create(expense({ type: "adjustment" })), "type");
   });
 
-  it.each([{ userId: "test-someone-else" }, { fee: { amount: 1000 } }])("returns 400 for unknown field %j", async (extra) => {
-    signInAs(userA);
-    const res = await create(expense(extra));
-    expect(res.status).toBe(400);
-    expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
-  });
+  it.each([{ userId: "test-someone-else" }, { fee: { amount: 1000 } }])(
+    "returns 400 for unknown field %j",
+    async (extra) => {
+      signInAs(userA);
+      const res = await create(expense(extra));
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
+    },
+  );
 
   it("returns 400 fields.categoryId for income without a category", async () => {
     signInAs(userA);
-    await expectFieldError(await create(expense({ type: "income", categoryId: undefined })), "categoryId");
+    await expectFieldError(
+      await create(expense({ type: "income", categoryId: undefined })),
+      "categoryId",
+    );
   });
 
   it("gives the same accountId message for a foreign and an unknown account, and writes nothing", async () => {
     signInAs(userA);
     const before = await countRows(userA);
 
-    const foreign = await expectFieldError(await create(expense({ accountId: foreignAccount })), "accountId");
-    const unknown = await expectFieldError(await create(expense({ accountId: randomUUID() })), "accountId");
+    const foreign = await expectFieldError(
+      await create(expense({ accountId: foreignAccount })),
+      "accountId",
+    );
+    const unknown = await expectFieldError(
+      await create(expense({ accountId: randomUUID() })),
+      "accountId",
+    );
 
     expect(foreign).toBe(unknown);
     expect(await countRows(userA)).toBe(before);
@@ -213,14 +253,23 @@ describe("POST /api/transactions", () => {
 
   it("gives the same categoryId message for a foreign and an unknown category", async () => {
     signInAs(userA);
-    const foreign = await expectFieldError(await create(expense({ categoryId: cat.foreignSpending })), "categoryId");
-    const unknown = await expectFieldError(await create(expense({ categoryId: randomUUID() })), "categoryId");
+    const foreign = await expectFieldError(
+      await create(expense({ categoryId: cat.foreignSpending })),
+      "categoryId",
+    );
+    const unknown = await expectFieldError(
+      await create(expense({ categoryId: randomUUID() })),
+      "categoryId",
+    );
     expect(foreign).toBe(unknown);
   });
 
   it("returns 400 fields.categoryId for an archived category", async () => {
     signInAs(userA);
-    await expectFieldError(await create(expense({ categoryId: cat.archivedSpending })), "categoryId");
+    await expectFieldError(
+      await create(expense({ categoryId: cat.archivedSpending })),
+      "categoryId",
+    );
   });
 
   it.each([
@@ -268,7 +317,13 @@ describe("POST /api/transactions transfer", () => {
 
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.transaction).toMatchObject({ type: "transfer", amount: 10_000, accountId: from, toAccountId: to, categoryId: null });
+    expect(body.transaction).toMatchObject({
+      type: "transfer",
+      amount: 10_000,
+      accountId: from,
+      toAccountId: to,
+      categoryId: null,
+    });
     expect(body.fee).toBeNull();
     expect(await balanceOf(from)).toBe(90_000);
     expect(await balanceOf(to)).toBe(10_000);
@@ -280,7 +335,14 @@ describe("POST /api/transactions transfer", () => {
     const to = await insertFundedAccount(userA, 0);
     const date = todayInJakarta();
 
-    const res = await create(transfer({ accountId: from, toAccountId: to, date, fee: { amount: 2_500, categoryId: cat.spending } }));
+    const res = await create(
+      transfer({
+        accountId: from,
+        toAccountId: to,
+        date,
+        fee: { amount: 2_500, categoryId: cat.spending },
+      }),
+    );
 
     expect(res.status).toBe(201);
     const body = await res.json();
@@ -335,8 +397,14 @@ describe("POST /api/transactions transfer", () => {
 
   it("gives the same toAccountId message for a foreign and an unknown destination", async () => {
     signInAs(userA);
-    const foreign = await expectFieldError(await create(transfer({ toAccountId: foreignAccount })), "toAccountId");
-    const unknown = await expectFieldError(await create(transfer({ toAccountId: randomUUID() })), "toAccountId");
+    const foreign = await expectFieldError(
+      await create(transfer({ toAccountId: foreignAccount })),
+      "toAccountId",
+    );
+    const unknown = await expectFieldError(
+      await create(transfer({ toAccountId: randomUUID() })),
+      "toAccountId",
+    );
     expect(foreign).toBe(unknown);
   });
 });

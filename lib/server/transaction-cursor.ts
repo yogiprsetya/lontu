@@ -11,7 +11,9 @@ export function encodeCursor({ date, createdAtMicros, id }: CursorKey) {
 /** Returns null for anything that is not a cursor this module produced. */
 export function decodeCursor(cursor: string): CursorKey | null {
   try {
-    const parsed = tupleSchema.safeParse(JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")));
+    const parsed = tupleSchema.safeParse(
+      JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")),
+    );
     if (!parsed.success) return null;
     const [date, createdAtMicros, id] = parsed.data;
     return { date, createdAtMicros, id };

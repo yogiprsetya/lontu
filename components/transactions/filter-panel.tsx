@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SlidersHorizontalIcon } from "lucide-react";
-import { KIND_LABELS } from "@/components/forms/category-form";
+import { KIND_LABELS } from "@/components/forms/category-labels";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,15 +19,8 @@ import { selectTriggerClass, selectItemClass } from "@/components/forms/field-st
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
-import {
-  CATEGORY_KINDS,
-  CATEGORY_KIND_FOR,
-  type Category,
-} from "@/lib/schemas/category";
-import {
-  LIST_TRANSACTION_TYPES,
-  type ListTransactionType,
-} from "@/lib/schemas/transaction";
+import { CATEGORY_KINDS, CATEGORY_KIND_FOR, type Category } from "@/lib/schemas/category";
+import { LIST_TRANSACTION_TYPES, type ListTransactionType } from "@/lib/schemas/transaction";
 import {
   countActiveFilters,
   normalizeFilters,
@@ -45,18 +38,12 @@ const ALL = "all";
 const typeLabel = (type: ListTransactionType) =>
   type === "adjustment" ? ADJUSTMENT_LABEL : TRANSACTION_TYPE_LABELS[type];
 
-function Field({
-  id,
-  label,
-  children,
-}: {
-  id: string;
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-base font-semibold">{label}</Label>
+      <Label htmlFor={id} className="text-base font-semibold">
+        {label}
+      </Label>
       {children}
     </div>
   );
@@ -69,20 +56,13 @@ type FilterPanelProps = {
   lockedType?: ListTransactionType;
 };
 
-export function FilterPanel({
-  filters,
-  onChange,
-  lockedType,
-}: FilterPanelProps) {
+export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps) {
   const [open, setOpen] = useState(false);
   const accounts = useAccounts({ includeArchived: true });
   const categories = useCategories({ includeArchived: true });
-  const active = countActiveFilters(
-    lockedType ? { ...filters, type: undefined } : filters,
-  );
+  const active = countActiveFilters(lockedType ? { ...filters, type: undefined } : filters);
 
-  const kindOf = (id: string) =>
-    categories.data?.find((c) => c.id === id)?.kind;
+  const kindOf = (id: string) => categories.data?.find((c) => c.id === id)?.kind;
   const set = (patch: Partial<ListFilters>) =>
     onChange(normalizeFilters({ ...filters, ...patch }, kindOf, lockedType));
 
@@ -98,8 +78,7 @@ export function FilterPanel({
     })),
   ];
   const takesCategory =
-    !filters.type ||
-    (filters.type !== "transfer" && filters.type !== "adjustment");
+    !filters.type || (filters.type !== "transfer" && filters.type !== "adjustment");
   const allowedKind =
     takesCategory && filters.type
       ? CATEGORY_KIND_FOR[filters.type as Exclude<TransactionType, "transfer">]
@@ -114,11 +93,7 @@ export function FilterPanel({
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="h-11 text-base"
-        onClick={() => setOpen(true)}
-      >
+      <Button variant="outline" className="h-11 text-base" onClick={() => setOpen(true)}>
         <SlidersHorizontalIcon aria-hidden />
         Filter
         {active > 0 && (
@@ -141,11 +116,7 @@ export function FilterPanel({
               variant="outline"
               className="h-11 text-base"
               disabled={active === 0}
-              onClick={() =>
-                onChange(
-                  normalizeFilters(resetFilters(filters), kindOf, lockedType),
-                )
-              }
+              onClick={() => onChange(normalizeFilters(resetFilters(filters), kindOf, lockedType))}
             >
               Reset
             </Button>
@@ -173,11 +144,7 @@ export function FilterPanel({
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false}>
                   {types.map((t) => (
-                    <SelectItem
-                      key={t.value}
-                      value={t.value}
-                      className={selectItemClass}
-                    >
+                    <SelectItem key={t.value} value={t.value} className={selectItemClass}>
                       {t.label}
                     </SelectItem>
                   ))}
@@ -189,20 +156,14 @@ export function FilterPanel({
             <Select
               items={accountItems}
               value={filters.accountId ?? ALL}
-              onValueChange={(v) =>
-                v && set({ accountId: v === ALL ? undefined : v })
-              }
+              onValueChange={(v) => v && set({ accountId: v === ALL ? undefined : v })}
             >
               <SelectTrigger id="filter-account" className={selectTriggerClass}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {accountItems.map((a) => (
-                  <SelectItem
-                    key={a.value}
-                    value={a.value}
-                    className={selectItemClass}
-                  >
+                  <SelectItem key={a.value} value={a.value} className={selectItemClass}>
                     {a.label}
                   </SelectItem>
                 ))}
@@ -214,9 +175,7 @@ export function FilterPanel({
               <Select
                 items={categoryItems}
                 value={filters.categoryId ?? ALL}
-                onValueChange={(v) =>
-                  v && set({ categoryId: v === ALL ? undefined : v })
-                }
+                onValueChange={(v) => v && set({ categoryId: v === ALL ? undefined : v })}
               >
                 <SelectTrigger id="filter-category" className={selectTriggerClass}>
                   <SelectValue />
@@ -225,15 +184,15 @@ export function FilterPanel({
                   <SelectItem value={ALL} className={selectItemClass}>
                     Semua kategori
                   </SelectItem>
-                  {CATEGORY_KINDS.filter(
-                    (kind) => !allowedKind || kind === allowedKind,
-                  ).map((kind) => (
-                    <CategoryGroup
-                      key={kind}
-                      label={KIND_LABELS[kind]}
-                      categories={categoryList.filter((c) => c.kind === kind)}
-                    />
-                  ))}
+                  {CATEGORY_KINDS.filter((kind) => !allowedKind || kind === allowedKind).map(
+                    (kind) => (
+                      <CategoryGroup
+                        key={kind}
+                        label={KIND_LABELS[kind]}
+                        categories={categoryList.filter((c) => c.kind === kind)}
+                      />
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </Field>
@@ -244,13 +203,7 @@ export function FilterPanel({
   );
 }
 
-function CategoryGroup({
-  label,
-  categories,
-}: {
-  label: string;
-  categories: Category[];
-}) {
+function CategoryGroup({ label, categories }: { label: string; categories: Category[] }) {
   if (categories.length === 0) return null;
   return (
     <SelectGroup>

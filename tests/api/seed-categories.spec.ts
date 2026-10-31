@@ -52,7 +52,10 @@ describe("default category seeding in upsertUser", () => {
   it("does not re-seed a user whose categories are all archived", async () => {
     const identity = newIdentity();
     await upsertUser(identity);
-    await db.update(categories).set({ archivedAt: new Date() }).where(eq(categories.userId, identity.id));
+    await db
+      .update(categories)
+      .set({ archivedAt: new Date() })
+      .where(eq(categories.userId, identity.id));
 
     await upsertUser(identity);
 

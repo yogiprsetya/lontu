@@ -32,7 +32,9 @@ export function SignOutConfirm({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Keluar dari Lontu?</AlertDialogTitle>
-          <AlertDialogDescription>{count} transaksi belum terkirim akan dibuang. Tetap keluar?</AlertDialogDescription>
+          <AlertDialogDescription>
+            {count} transaksi belum terkirim akan dibuang. Tetap keluar?
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>

@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isInfiniteTransactionsKey, transactionsPageKey, transactionsTotalsKey } from "@/hooks/use-transactions";
+import {
+  isInfiniteTransactionsKey,
+  transactionsPageKey,
+  transactionsTotalsKey,
+} from "@/hooks/use-transactions";
 import { createTransaction } from "@/lib/offline/submission";
 import { isResourceKey } from "@/lib/cache-invalidation";
 import { ApiError } from "@/lib/fetcher";
@@ -18,9 +22,12 @@ describe("isTransactionsKey", () => {
     expect(isTransactionsKey(key)).toBe(true);
   });
 
-  it.each([["/api/accounts"], ["/api/transactionsx"], [["/api/transactions"]], [undefined]])("does not match %j", (key) => {
-    expect(isTransactionsKey(key)).toBe(false);
-  });
+  it.each([["/api/accounts"], ["/api/transactionsx"], [["/api/transactions"]], [undefined]])(
+    "does not match %j",
+    (key) => {
+      expect(isTransactionsKey(key)).toBe(false);
+    },
+  );
 });
 
 describe("transactionsPageKey", () => {
@@ -29,7 +36,9 @@ describe("transactionsPageKey", () => {
   });
 
   it("follows the previous page's cursor, encoded", () => {
-    expect(transactionsPageKey(1, { items: [], nextCursor: "a+b/c=" })).toBe("/api/transactions?cursor=a%2Bb%2Fc%3D");
+    expect(transactionsPageKey(1, { items: [], nextCursor: "a+b/c=" })).toBe(
+      "/api/transactions?cursor=a%2Bb%2Fc%3D",
+    );
   });
 
   it("stops when the previous page had no next cursor", () => {
@@ -46,7 +55,9 @@ describe("transactionsPageKey with filters", () => {
   const filters = { period: "2026-10", type: "expense" } as const;
 
   it("puts the filter query on the first page", () => {
-    expect(transactionsPageKey(0, null, filters)).toBe("/api/transactions?type=expense&from=2026-10-01&to=2026-10-31");
+    expect(transactionsPageKey(0, null, filters)).toBe(
+      "/api/transactions?type=expense&from=2026-10-01&to=2026-10-31",
+    );
   });
 
   it("appends the cursor after the filter query", () => {
@@ -56,16 +67,24 @@ describe("transactionsPageKey with filters", () => {
   });
 
   it("is the same key for equal filters", () => {
-    expect(transactionsPageKey(0, null, { type: "expense", period: "2026-10" })).toBe(transactionsPageKey(0, null, filters));
+    expect(transactionsPageKey(0, null, { type: "expense", period: "2026-10" })).toBe(
+      transactionsPageKey(0, null, filters),
+    );
   });
 });
 
 describe("transactionsTotalsKey", () => {
-  const filters = { period: "2026-10", type: "expense", accountId: "0b0e5f7e-4f0a-4c53-9a4e-2f6d1c9f8a11" } as const;
+  const filters = {
+    period: "2026-10",
+    type: "expense",
+    accountId: "0b0e5f7e-4f0a-4c53-9a4e-2f6d1c9f8a11",
+  } as const;
 
   it("is the list key's query on the totals path", () => {
     const listKey = transactionsPageKey(0, null, filters)!;
-    expect(transactionsTotalsKey(filters)).toBe(listKey.replace("/api/transactions", "/api/transactions/totals"));
+    expect(transactionsTotalsKey(filters)).toBe(
+      listKey.replace("/api/transactions", "/api/transactions/totals"),
+    );
   });
 
   it("has no query for all-time without filters", () => {
@@ -90,7 +109,14 @@ describe("isInfiniteTransactionsKey", () => {
 
 describe("createTransaction", () => {
   const accountId = "8d2c0f4e-2a3b-4c5d-8e6f-7a8b9c0d1e2f";
-  const input = { type: "expense", amount: 25_000, date: "2026-10-25", accountId, categoryId: accountId, description: null } as const;
+  const input = {
+    type: "expense",
+    amount: 25_000,
+    date: "2026-10-25",
+    accountId,
+    categoryId: accountId,
+    description: null,
+  } as const;
 
   function mapStore(): KeyValueStore {
     const data = new Map<string, unknown>();
@@ -116,7 +142,9 @@ describe("createTransaction", () => {
   });
 
   it("queues without fetching when the browser is offline", async () => {
-    const { fetchMock, outbox } = setup(false, () => Promise.resolve(new Response("{}", { status: 201 })));
+    const { fetchMock, outbox } = setup(false, () =>
+      Promise.resolve(new Response("{}", { status: 201 })),
+    );
 
     const result = await createTransaction(input, { userId: "user-a", outbox });
 
@@ -128,7 +156,9 @@ describe("createTransaction", () => {
   });
 
   it("queues the same id it sent when fetch rejects", async () => {
-    const { outbox, sentBody } = setup(true, () => Promise.reject(new TypeError("Failed to fetch")));
+    const { outbox, sentBody } = setup(true, () =>
+      Promise.reject(new TypeError("Failed to fetch")),
+    );
 
     const result = await createTransaction(input, { userId: "user-a", outbox });
 
@@ -138,7 +168,15 @@ describe("createTransaction", () => {
 
   it("gives a transfer fee its own id", async () => {
     const { outbox } = setup(false, () => Promise.reject(new TypeError("Failed to fetch")));
-    const transfer = { type: "transfer", amount: 10_000, date: "2026-10-25", accountId, toAccountId: accountId, description: null, fee: { amount: 1_000, categoryId: accountId } } as const;
+    const transfer = {
+      type: "transfer",
+      amount: 10_000,
+      date: "2026-10-25",
+      accountId,
+      toAccountId: accountId,
+      description: null,
+      fee: { amount: 1_000, categoryId: accountId },
+    } as const;
 
     await createTransaction(transfer, { userId: "user-a", outbox });
 
@@ -149,16 +187,22 @@ describe("createTransaction", () => {
 
   it.each([400, 500])("throws an ApiError on %i and does not queue", async (status) => {
     const { outbox } = setup(true, () =>
-      Promise.resolve(new Response(JSON.stringify({ error: { code: "X", message: "Gagal" } }), { status })),
+      Promise.resolve(
+        new Response(JSON.stringify({ error: { code: "X", message: "Gagal" } }), { status }),
+      ),
     );
 
-    await expect(createTransaction(input, { userId: "user-a", outbox })).rejects.toBeInstanceOf(ApiError);
+    await expect(createTransaction(input, { userId: "user-a", outbox })).rejects.toBeInstanceOf(
+      ApiError,
+    );
     expect(await outbox.list("user-a")).toEqual([]);
   });
 
   it("sends a client id when online and returns the created rows", async () => {
     const created = { transaction: { id: "x" }, fee: null };
-    const { outbox, sentBody } = setup(true, () => Promise.resolve(new Response(JSON.stringify(created), { status: 201 })));
+    const { outbox, sentBody } = setup(true, () =>
+      Promise.resolve(new Response(JSON.stringify(created), { status: 201 })),
+    );
 
     const result = await createTransaction(input, { userId: "user-a", outbox });
 

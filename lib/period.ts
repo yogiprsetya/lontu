@@ -12,7 +12,11 @@ export type MonthOrYearPeriod = Period;
 const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
 const YEAR = /^\d{4}$/;
 
-const monthLabel = new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", month: "long", year: "numeric" });
+const monthLabel = new Intl.DateTimeFormat("id-ID", {
+  timeZone: "UTC",
+  month: "long",
+  year: "numeric",
+});
 
 export function periodMode(period: Period): PeriodMode {
   if (period === "all") return "all";
@@ -45,7 +49,10 @@ export function parsePeriod(
   value: string | null,
   { modes, today, max }: { modes: readonly PeriodMode[]; today: string; max?: string },
 ): Period {
-  const valid = isPeriod(value) && modes.includes(periodMode(value)) && (max === undefined || notAfter(value, max));
+  const valid =
+    isPeriod(value) &&
+    modes.includes(periodMode(value)) &&
+    (max === undefined || notAfter(value, max));
   return valid ? value : today.slice(0, 7);
 }
 
@@ -54,7 +61,10 @@ export function periodToRange(period: Period): { from?: string; to?: string } {
   if (YEAR.test(period)) return { from: `${period}-01-01`, to: `${period}-12-31` };
   const [, year, month] = MONTH.exec(period) ?? [];
   if (!year) return {};
-  return { from: `${period}-01`, to: `${period}-${pad(lastDayOfMonth(Number(year), Number(month)))}` };
+  return {
+    from: `${period}-01`,
+    to: `${period}-${pad(lastDayOfMonth(Number(year), Number(month)))}`,
+  };
 }
 
 function step(period: MonthOrYearPeriod, delta: 1 | -1): MonthOrYearPeriod {

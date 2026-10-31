@@ -19,20 +19,26 @@ import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
 
-const LINK_CLASS = "inline-flex min-h-11 items-center text-sm font-medium underline-offset-4 hover:underline";
+const LINK_CLASS =
+  "inline-flex min-h-11 items-center text-sm font-medium underline-offset-4 hover:underline";
 
 function MonthBudget({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
   const usage = useBudgets(period);
   const categories = useCategories({ includeArchived: true });
-  const names = useMemo(() => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])), [categories.data]);
+  const names = useMemo(
+    () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
+    [categories.data],
+  );
   const budgetHref = `/budget?period=${period}`;
 
-  if (usage.error) return <LoadError message="Gagal memuat budget." onRetry={() => void usage.mutate()} />;
+  if (usage.error)
+    return <LoadError message="Gagal memuat budget." onRetry={() => void usage.mutate()} />;
   if (!usage.data) return <Skeleton className="h-44 w-full" />;
 
   const total = usage.data.summary.total;
   const { budgetedSpent, percent, status } = groupStatus(total);
+
   if (total.budget === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
@@ -46,11 +52,13 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
   const highlights = budgetHighlights(usage.data.items);
   const totalText = statusLabel(status);
+
   return (
     <>
       <div className="flex flex-col gap-2">
         <p className="truncate font-semibold tabular-nums">
-          {money(budgetedSpent)} <span className="font-normal text-muted-foreground">dari {money(total.budget)}</span>
+          {money(budgetedSpent)}{" "}
+          <span className="font-normal text-muted-foreground">dari {money(total.budget)}</span>
         </p>
         <BudgetProgress
           percent={percent}
@@ -64,9 +72,17 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
         <ul className="divide-y" aria-label="Budget yang perlu diperhatikan">
           {highlights.map((item) => (
             <li key={item.categoryId}>
-              <Link href={budgetTransactionsHref(period, item.categoryId)} className="flex min-h-11 items-center justify-between gap-3 py-2">
+              <Link
+                href={budgetTransactionsHref(period, item.categoryId)}
+                className="flex min-h-11 items-center justify-between gap-3 py-2"
+              >
                 <span className="min-w-0 truncate">{names.get(item.categoryId) ?? "Kategori"}</span>
-                <span className={cn("shrink-0 text-sm tabular-nums", item.status === "over" ? "text-expense" : "text-budget")}>
+                <span
+                  className={cn(
+                    "shrink-0 text-sm tabular-nums",
+                    item.status === "over" ? "text-expense" : "text-budget",
+                  )}
+                >
                   {item.percent !== null && `${item.percent}% · `}
                   {statusLabel(item.status)}
                 </span>
@@ -84,7 +100,10 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
 export function DashboardBudgetSummary({ period }: { period: DashboardPeriod }) {
   return (
-    <section aria-labelledby="budget-title" className="flex min-w-0 flex-col gap-3 surface px-5 py-5">
+    <section
+      aria-labelledby="budget-title"
+      className="flex min-w-0 flex-col gap-3 surface px-5 py-5"
+    >
       <SectionTitle id="budget-title" icon={WalletIcon} tone="lilac">
         Budget
       </SectionTitle>

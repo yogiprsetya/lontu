@@ -3,7 +3,9 @@ import { clearOfflineCaches, clearOfflineData, ensureCacheOwner } from "@/lib/of
 import { createOutbox } from "@/lib/offline/outbox";
 import type { KeyValueStore } from "@/lib/offline/storage";
 
-function mapStore(initial: Record<string, unknown> = {}): Pick<KeyValueStore, "get" | "set"> & { data: Map<string, unknown> } {
+function mapStore(
+  initial: Record<string, unknown> = {},
+): Pick<KeyValueStore, "get" | "set"> & { data: Map<string, unknown> } {
   const data = new Map(Object.entries(initial));
   return {
     data,
@@ -22,7 +24,13 @@ function fakeCaches(names: string[]) {
 
 describe("clearOfflineCaches", () => {
   it("deletes the API and page caches but keeps the precache", async () => {
-    const caches = fakeCaches(["lontu-api", "pages", "pages-rsc", "pages-rsc-prefetch", "serwist-precache-v2"]);
+    const caches = fakeCaches([
+      "lontu-api",
+      "pages",
+      "pages-rsc",
+      "pages-rsc-prefetch",
+      "serwist-precache-v2",
+    ]);
 
     await clearOfflineCaches(caches);
 

@@ -12,7 +12,10 @@ describe("accounts SWR keys", () => {
     expect(isResourceKey("accounts", key)).toBe(true);
   });
 
-  it.each(["/api/categories", "/api/me", ["/api/accounts"], undefined])("leaves %j alone", (key) => {
-    expect(isResourceKey("accounts", key)).toBe(false);
-  });
+  it.each(["/api/categories", "/api/me", ["/api/accounts"], undefined])(
+    "leaves %j alone",
+    (key) => {
+      expect(isResourceKey("accounts", key)).toBe(false);
+    },
+  );
 });

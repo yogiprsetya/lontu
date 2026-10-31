@@ -14,14 +14,9 @@ export default function OfflinePage() {
       <div className="flex w-full max-w-sm flex-col items-start gap-4">
         <WifiOffIcon className="size-8 text-muted-foreground" aria-hidden />
         <PageTitle>Kamu sedang offline</PageTitle>
-        <p className="text-muted-foreground">
-          Halaman ini belum pernah dibuka di perangkat ini.
-        </p>
+        <p className="text-muted-foreground">Halaman ini belum pernah dibuka di perangkat ini.</p>
         <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <Link
-            href="/dashboard"
-            className={cn(buttonVariants(), "h-11 text-base")}
-          >
+          <Link href="/dashboard" className={cn(buttonVariants(), "h-11 text-base")}>
             Ke Dashboard
           </Link>
         </div>

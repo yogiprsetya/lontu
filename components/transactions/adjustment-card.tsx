@@ -5,7 +5,12 @@ import { useAmountFormat } from "@/hooks/use-amount-format";
 import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
 import type { Transaction } from "@/lib/schemas/transaction";
-import { AMOUNT_TONE_CLASS, amountTone, formatDateHeading, formatSignedAmount } from "@/lib/transaction-format";
+import {
+  AMOUNT_TONE_CLASS,
+  amountTone,
+  formatDateHeading,
+  formatSignedAmount,
+} from "@/lib/transaction-format";
 import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +25,19 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
     ["Akun", account ? archiveLabel(account) : "…"],
     [
       "Jumlah",
-      <span key="amount" className={cn("font-medium tabular-nums", AMOUNT_TONE_CLASS[amountTone("adjustment", transaction.amount)])}>
+      <span
+        key="amount"
+        className={cn(
+          "font-medium tabular-nums",
+          AMOUNT_TONE_CLASS[amountTone("adjustment", transaction.amount)],
+        )}
+      >
         {money(transaction.amount, (amount) => formatSignedAmount("adjustment", amount))}
       </span>,
     ],
-    ...(transaction.description ? ([["Deskripsi", transaction.description]] as [string, React.ReactNode][]) : []),
+    ...(transaction.description
+      ? ([["Deskripsi", transaction.description]] as [string, React.ReactNode][])
+      : []),
   ];
 
   return (
@@ -38,8 +51,8 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
         ))}
       </dl>
       <p className="text-sm text-muted-foreground">
-        Dibuat saat saldo awal akun diubah. Penyesuaian tidak bisa diedit; menghapusnya mengembalikan saldo awal efektif
-        akun.
+        Dibuat saat saldo awal akun diubah. Penyesuaian tidak bisa diedit; menghapusnya
+        mengembalikan saldo awal efektif akun.
       </p>
     </div>
   );

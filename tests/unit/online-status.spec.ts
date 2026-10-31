@@ -45,6 +45,25 @@ describe("onlineStore", () => {
     expect(win.listenerCount()).toBe(0);
   });
 
+  it("shares one listener pair across subscribers", () => {
+    const win = fakeWindow(true);
+    const first = vi.fn();
+    const second = vi.fn();
+
+    const unsubscribeFirst = onlineStore.subscribe(first);
+    const unsubscribeSecond = onlineStore.subscribe(second);
+    expect(win.listenerCount()).toBe(2);
+
+    win.set(false);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+
+    unsubscribeFirst();
+    expect(win.listenerCount()).toBe(2);
+    unsubscribeSecond();
+    expect(win.listenerCount()).toBe(0);
+  });
+
   it("assumes online on the server so no offline UI flashes", () => {
     expect(onlineStore.getServerSnapshot()).toBe(true);
   });

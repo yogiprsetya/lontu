@@ -47,18 +47,34 @@ beforeAll(async () => {
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "Transport", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "Hiburan", kind: "spending", spendingType: "wants" },
-      { userId: userA, name: "Lama", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "Lama",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt: new Date(),
+      },
       { userId: userA, name: "Gaji", kind: "income" },
       { userId: userB, name: "Makan", kind: "spending", spendingType: "needs" },
       { userId: userB, name: "Gaji", kind: "income" },
     ])
-    .returning({ id: categories.id, name: categories.name, userId: categories.userId, kind: categories.kind });
+    .returning({
+      id: categories.id,
+      name: categories.name,
+      userId: categories.userId,
+      kind: categories.kind,
+    });
   cat = Object.fromEntries(rows.filter((r) => r.userId === userA).map((r) => [r.name, r.id]));
   catB = rows.find((r) => r.userId === userB && r.kind === "spending")!.id;
   const gajiB = rows.find((r) => r.userId === userB && r.kind === "income")!.id;
 
   const a = { userId: userA, accountId: account.id };
-  const expense = (categoryId: string, amount: number, date: string, deletedAt: Date | null = null) => ({
+  const expense = (
+    categoryId: string,
+    amount: number,
+    date: string,
+    deletedAt: Date | null = null,
+  ) => ({
     ...a,
     type: "expense",
     amount,
@@ -66,7 +82,13 @@ beforeAll(async () => {
     categoryId,
     deletedAt,
   });
-  const income = (amount: number, date: string) => ({ ...a, type: "income", amount, date, categoryId: cat.Gaji });
+  const income = (amount: number, date: string) => ({
+    ...a,
+    type: "income",
+    amount,
+    date,
+    categoryId: cat.Gaji,
+  });
   await db.insert(transactions).values([
     // Period 2026-10: income from September, history July–September.
     income(10_000_000, "2026-09-15"),
@@ -87,13 +109,34 @@ beforeAll(async () => {
     expense(cat.Makan, 100, "2025-11-01"),
     expense(cat.Transport, 100, "2025-12-31"),
     expense(cat.Makan, 999_999, "2026-02-01"),
-    { userId: userB, accountId: accountB.id, type: "income", amount: 99_000_000, date: "2026-09-01", categoryId: gajiB },
-    { userId: userB, accountId: accountB.id, type: "expense", amount: 1_000, date: "2026-09-01", categoryId: catB },
+    {
+      userId: userB,
+      accountId: accountB.id,
+      type: "income",
+      amount: 99_000_000,
+      date: "2026-09-01",
+      categoryId: gajiB,
+    },
+    {
+      userId: userB,
+      accountId: accountB.id,
+      type: "expense",
+      amount: 1_000,
+      date: "2026-09-01",
+      categoryId: catB,
+    },
   ]);
 
   await db.insert(budgets).values([
     { userId: userA, categoryId: cat.Makan, year: 2026, month: 10, amount: 1_200_000 },
-    { userId: userA, categoryId: cat.Hiburan, year: 2026, month: 10, amount: 50_000, deletedAt: new Date() },
+    {
+      userId: userA,
+      categoryId: cat.Hiburan,
+      year: 2026,
+      month: 10,
+      amount: 50_000,
+      deletedAt: new Date(),
+    },
   ]);
 });
 
@@ -130,7 +173,9 @@ describe("GET /api/budgets/suggestion", () => {
 
   it("uses a typed income instead", async () => {
     signInAs(userA);
-    const body = (await (await suggest("?period=2026-10&income=7777777")).json()) as BudgetSuggestion;
+    const body = (await (
+      await suggest("?period=2026-10&income=7777777")
+    ).json()) as BudgetSuggestion;
     expect(body).toMatchObject({
       basis: 7_777_777,
       basisSource: "input",
@@ -170,9 +215,17 @@ describe("GET /api/budgets/suggestion", () => {
 
   it("does not write anything", async () => {
     signInAs(userA);
-    const before = await db.select().from(budgets).where(inArray(budgets.userId, [userA, userB]));
+    const before = await db
+      .select()
+      .from(budgets)
+      .where(inArray(budgets.userId, [userA, userB]));
     await suggest("?period=2026-11&income=5000000");
-    expect(await db.select().from(budgets).where(inArray(budgets.userId, [userA, userB]))).toEqual(before);
+    expect(
+      await db
+        .select()
+        .from(budgets)
+        .where(inArray(budgets.userId, [userA, userB])),
+    ).toEqual(before);
   });
 
   it("never uses another user's income, spending or categories", async () => {
@@ -184,15 +237,18 @@ describe("GET /api/budgets/suggestion", () => {
     expect(rows).toEqual([]);
   });
 
-  it.each(["", "?period=2026-13", "?period=2026-10&income=-1", "?period=2026-10&income=1.5", "?period=2026-10&income=abc"])(
-    "rejects %j",
-    async (query) => {
-      signInAs(userA);
-      const res = await suggest(query);
-      expect(res.status).toBe(400);
-      expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
-    },
-  );
+  it.each([
+    "",
+    "?period=2026-13",
+    "?period=2026-10&income=-1",
+    "?period=2026-10&income=1.5",
+    "?period=2026-10&income=abc",
+  ])("rejects %j", async (query) => {
+    signInAs(userA);
+    const res = await suggest(query);
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
+  });
 
   it("returns 401 without a session", async () => {
     signInAs(null);

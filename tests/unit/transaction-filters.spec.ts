@@ -35,9 +35,12 @@ describe("parseFilters", () => {
     expect(parse("period=all").period).toBe("all");
   });
 
-  it.each(["2026-13", "2026-00", "26", "abc", "2026-1", "2026-10-01", ""])("ignores invalid period %j", (period) => {
-    expect(parse(`period=${period}`).period).toBe("2026-10");
-  });
+  it.each(["2026-13", "2026-00", "26", "abc", "2026-1", "2026-10-01", ""])(
+    "ignores invalid period %j",
+    (period) => {
+      expect(parse(`period=${period}`).period).toBe("2026-10");
+    },
+  );
 
   it("ignores invalid type and ids, and unknown params", () => {
     expect(parse("type=foo&accountId=abc&categoryId=1&x=y")).toEqual({ period: "2026-10" });
@@ -46,7 +49,12 @@ describe("parseFilters", () => {
 
 describe("filtersToSearchParams (API / SWR key)", () => {
   it("expands the period into from/to in a fixed param order", () => {
-    const params = filtersToSearchParams({ categoryId: CATEGORY, period: "2026-02", type: "expense", accountId: ACCOUNT });
+    const params = filtersToSearchParams({
+      categoryId: CATEGORY,
+      period: "2026-02",
+      type: "expense",
+      accountId: ACCOUNT,
+    });
     expect(params.toString()).toBe(
       `type=expense&accountId=${ACCOUNT}&categoryId=${CATEGORY}&from=2026-02-01&to=2026-02-28`,
     );
@@ -78,11 +86,16 @@ describe("normalizeFilters", () => {
   const kindOf = (id: string) => (id === CATEGORY ? ("income" as const) : undefined);
 
   it.each(["transfer", "adjustment"] as const)("drops the category when type is %s", (type) => {
-    expect(normalizeFilters({ period: "all", type, categoryId: CATEGORY }, kindOf)).toEqual({ period: "all", type });
+    expect(normalizeFilters({ period: "all", type, categoryId: CATEGORY }, kindOf)).toEqual({
+      period: "all",
+      type,
+    });
   });
 
   it("drops a category whose kind does not match the type", () => {
-    expect(normalizeFilters({ period: "all", type: "expense", categoryId: CATEGORY }, kindOf)).toEqual({
+    expect(
+      normalizeFilters({ period: "all", type: "expense", categoryId: CATEGORY }, kindOf),
+    ).toEqual({
       period: "all",
       type: "expense",
     });
@@ -105,11 +118,20 @@ describe("countActiveFilters / resetFilters", () => {
   it("counts type, account and category, never the period", () => {
     expect(countActiveFilters({ period: "2026-10" })).toBe(0);
     expect(countActiveFilters({ period: "all", type: "expense" })).toBe(1);
-    expect(countActiveFilters({ period: "all", type: "expense", accountId: ACCOUNT, categoryId: CATEGORY })).toBe(3);
+    expect(
+      countActiveFilters({
+        period: "all",
+        type: "expense",
+        accountId: ACCOUNT,
+        categoryId: CATEGORY,
+      }),
+    ).toBe(3);
   });
 
   it("reset keeps the period only", () => {
-    expect(resetFilters({ period: "2025", type: "income", accountId: ACCOUNT, categoryId: CATEGORY })).toEqual({
+    expect(
+      resetFilters({ period: "2025", type: "income", accountId: ACCOUNT, categoryId: CATEGORY }),
+    ).toEqual({
       period: "2025",
     });
   });
@@ -119,8 +141,14 @@ describe("normalizeFilters with lockedType", () => {
   const kindOf = (id: string) => (id === CATEGORY ? ("income" as const) : undefined);
 
   it("forces the locked type over whatever the URL carried", () => {
-    expect(normalizeFilters({ period: "all", type: "income" }, kindOf, "expense")).toEqual({ period: "all", type: "expense" });
-    expect(normalizeFilters({ period: "all" }, kindOf, "expense")).toEqual({ period: "all", type: "expense" });
+    expect(normalizeFilters({ period: "all", type: "income" }, kindOf, "expense")).toEqual({
+      period: "all",
+      type: "expense",
+    });
+    expect(normalizeFilters({ period: "all" }, kindOf, "expense")).toEqual({
+      period: "all",
+      type: "expense",
+    });
   });
 
   it("drops a category that does not fit the locked type", () => {
@@ -132,7 +160,9 @@ describe("normalizeFilters with lockedType", () => {
 
   it("keeps a category that fits", () => {
     const spendingKind = () => "spending" as const;
-    expect(normalizeFilters({ period: "all", categoryId: CATEGORY }, spendingKind, "expense")).toEqual({
+    expect(
+      normalizeFilters({ period: "all", categoryId: CATEGORY }, spendingKind, "expense"),
+    ).toEqual({
       period: "all",
       type: "expense",
       categoryId: CATEGORY,

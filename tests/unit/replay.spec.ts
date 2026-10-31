@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/fetcher";
 import { createOutbox } from "@/lib/offline/outbox";
-import { REPLAY_INTERVAL_MS, replayOutbox, requestReplay, startReplay, type ReplayResult } from "@/lib/offline/replay";
+import {
+  REPLAY_INTERVAL_MS,
+  replayOutbox,
+  requestReplay,
+  startReplay,
+  type ReplayResult,
+} from "@/lib/offline/replay";
 import type { KeyValueStore } from "@/lib/offline/storage";
 import type { TransactionCreateInput } from "@/lib/schemas/transaction";
 
@@ -57,7 +63,10 @@ describe("replayOutbox", () => {
 
   it.each([400, 409])("marks a %i failed with the server message and moves on", async (status) => {
     const outbox = await outboxWith(["user-a", "t1"], ["user-a", "t2"]);
-    const rejected = () => httpError(status, "VALIDATION_ERROR", "Data tidak valid", { accountId: ["Akun sudah diarsipkan"] });
+    const rejected = () =>
+      httpError(status, "VALIDATION_ERROR", "Data tidak valid", {
+        accountId: ["Akun sudah diarsipkan"],
+      });
     const send = vi.fn().mockImplementationOnce(rejected).mockImplementationOnce(sentOk);
 
     const result = await replayOutbox({ outbox, send, userId: "user-a" });
@@ -67,7 +76,10 @@ describe("replayOutbox", () => {
       expect.objectContaining({
         id: "t1",
         status: "failed",
-        error: { message: "Akun sudah diarsipkan", fields: { accountId: ["Akun sudah diarsipkan"] } },
+        error: {
+          message: "Akun sudah diarsipkan",
+          fields: { accountId: ["Akun sudah diarsipkan"] },
+        },
       }),
     ]);
   });
@@ -134,7 +146,9 @@ describe("startReplay", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     target = new EventTarget();
-    page = Object.assign(new EventTarget(), { visibilityState: "visible" as DocumentVisibilityState });
+    page = Object.assign(new EventTarget(), {
+      visibilityState: "visible" as DocumentVisibilityState,
+    });
     online = true;
     // requestReplay dispatches on window; here the window is the test target.
     vi.stubGlobal("window", target);
@@ -152,7 +166,18 @@ describe("startReplay", () => {
     const send = vi.fn().mockImplementation(sentOk);
     const onSent = vi.fn(async () => {});
     const onAuthLost = vi.fn();
-    const stop = startReplay({ userId: "user-a", outbox, send, target, page, isOnline: () => online, lock: noLock, onSent, onAuthLost, ...overrides });
+    const stop = startReplay({
+      userId: "user-a",
+      outbox,
+      send,
+      target,
+      page,
+      isOnline: () => online,
+      lock: noLock,
+      onSent,
+      onAuthLost,
+      ...overrides,
+    });
     await vi.advanceTimersByTimeAsync(0);
     return { outbox, send, onSent, onAuthLost, stop };
   }
@@ -175,7 +200,17 @@ describe("startReplay", () => {
   it("does not call onSent after a pass that sent nothing", async () => {
     const outbox = await outboxWith();
     const onSent = vi.fn(async () => {});
-    const stop = startReplay({ userId: "user-a", outbox, send: vi.fn(), target, page, isOnline: () => online, lock: noLock, onSent, onAuthLost: vi.fn() });
+    const stop = startReplay({
+      userId: "user-a",
+      outbox,
+      send: vi.fn(),
+      target,
+      page,
+      isOnline: () => online,
+      lock: noLock,
+      onSent,
+      onAuthLost: vi.fn(),
+    });
     await vi.advanceTimersByTimeAsync(0);
     expect(onSent).not.toHaveBeenCalled();
     stop();
@@ -195,7 +230,9 @@ describe("startReplay", () => {
   it("skips the pass when the page turns hidden", async () => {
     const { outbox, stop } = await start();
     page.visibilityState = "hidden";
-    expect(await passes(outbox, () => void page.dispatchEvent(new Event("visibilitychange")))).toBe(0);
+    expect(await passes(outbox, () => void page.dispatchEvent(new Event("visibilitychange")))).toBe(
+      0,
+    );
     stop();
   });
 
@@ -220,7 +257,9 @@ describe("startReplay", () => {
   });
 
   it("calls onAuthLost when the session has expired", async () => {
-    const { onAuthLost, onSent, stop } = await start({ send: vi.fn(() => httpError(401, "UNAUTHORIZED")) });
+    const { onAuthLost, onSent, stop } = await start({
+      send: vi.fn(() => httpError(401, "UNAUTHORIZED")),
+    });
     expect(onAuthLost).toHaveBeenCalledTimes(1);
     expect(onSent).not.toHaveBeenCalled();
     stop();

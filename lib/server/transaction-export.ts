@@ -6,9 +6,22 @@ import { accounts, categories, transactions } from "@/db/schema";
 import { type Cell, toCSV } from "@/lib/csv";
 import type { TransactionFilters } from "@/lib/schemas/transaction";
 import { transactionWhere } from "@/lib/server/transactions";
-import { ADJUSTMENT_LABEL, TRANSACTION_TYPE_LABELS, isTransactionType } from "@/lib/transaction-types";
+import {
+  ADJUSTMENT_LABEL,
+  TRANSACTION_TYPE_LABELS,
+  isTransactionType,
+} from "@/lib/transaction-types";
 
-const HEADER = ["Tanggal", "Jenis", "Jumlah", "Akun", "Akun Tujuan", "Kategori", "Needs/Wants", "Deskripsi"];
+const HEADER = [
+  "Tanggal",
+  "Jenis",
+  "Jumlah",
+  "Akun",
+  "Akun Tujuan",
+  "Kategori",
+  "Needs/Wants",
+  "Deskripsi",
+];
 
 const SPENDING_LABELS = { needs: "Needs", wants: "Wants" } as const;
 

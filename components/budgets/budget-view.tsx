@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
-import { copyFromPreviousMonth, MonthActions, previousMonthLabel } from "@/components/budgets/month-actions";
+import {
+  copyFromPreviousMonth,
+  previousMonthLabel,
+} from "@/components/budgets/copy-from-previous-month";
+import { MonthActions } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
-import { SuggestionPanel } from "@/components/budgets/suggestion-panel";
-import { BudgetForm } from "@/components/forms/budget-form";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
@@ -21,6 +23,14 @@ import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/period";
 import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
+
+// Loaded when first opened, not with the page.
+const SuggestionPanel = lazy(() =>
+  import("@/components/budgets/suggestion-panel").then((m) => ({ default: m.SuggestionPanel })),
+);
+const BudgetForm = lazy(() =>
+  import("@/components/forms/budget-form").then((m) => ({ default: m.BudgetForm })),
+);
 
 function ViewSkeleton() {
   return (
@@ -45,6 +55,9 @@ export function BudgetView() {
   // Only the category id: the row itself always comes from the SWR cache.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  // Kept mounted after the first opening so the panel's close animation plays.
+  const [suggestedOnce, setSuggestedOnce] = useState(false);
+  if (suggesting && !suggestedOnce) setSuggestedOnce(true);
   const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
@@ -52,7 +65,10 @@ export function BudgetView() {
     [categories.data],
   );
   // Archived categories cannot take a new budget (the API rejects them), so their rows stay read-only.
-  const archived = useMemo(() => new Set(categories.data?.filter((c) => c.archivedAt).map((c) => c.id)), [categories.data]);
+  const archived = useMemo(
+    () => new Set(categories.data?.filter((c) => c.archivedAt).map((c) => c.id)),
+    [categories.data],
+  );
 
   // replace, not push: stepping through months must not fill the back stack.
   function setPeriod(next: BudgetPeriod) {
@@ -77,24 +93,34 @@ export function BudgetView() {
     content = (
       <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
         <p className="text-muted-foreground">Belum ada kategori spending untuk diberi budget.</p>
-        <Button className="h-11 text-base" onClick={() => openModal("manageCategories", { kind: "spending" })}>
+        <Button
+          className="h-11 text-base"
+          onClick={() => openModal("manageCategories", { kind: "spending" })}
+        >
           Tambah kategori
         </Button>
       </div>
     );
   } else {
     const items = usage.data.items;
-    const rowsOf = (type: BudgetUsageItem["spendingType"]) => items.filter((i) => i.spendingType === type);
+    const rowsOf = (type: BudgetUsageItem["spendingType"]) =>
+      items.filter((i) => i.spendingType === type);
     content = (
       <>
         {items.every((i) => i.budget === null) && (
           <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
-            <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
+            <p className="text-muted-foreground">
+              Belum ada budget untuk {formatPeriodLabel(period)}.
+            </p>
             <div className="flex flex-wrap justify-center gap-2">
               <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
                 Salin dari {previousMonthLabel(period)}
               </Button>
-              <Button variant="outline" className="h-11 text-base" onClick={() => setSuggesting(true)}>
+              <Button
+                variant="outline"
+                className="h-11 text-base"
+                onClick={() => setSuggesting(true)}
+              >
                 Saran 50/30/20
               </Button>
             </div>
@@ -106,7 +132,10 @@ export function BudgetView() {
           if (rows.length === 0) return null;
           return (
             <section key={key} aria-labelledby={`budget-${key}`}>
-              <h2 id={`budget-${key}`} className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              <h2
+                id={`budget-${key}`}
+                className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+              >
                 {label}
               </h2>
               <ul className="surface divide-y px-4">
@@ -115,7 +144,11 @@ export function BudgetView() {
                     key={item.categoryId}
                     item={item}
                     name={names.get(item.categoryId) ?? "Kategori"}
-                    onEdit={archived.has(item.categoryId) ? undefined : () => setEditingId(item.categoryId)}
+                    onEdit={
+                      archived.has(item.categoryId)
+                        ? undefined
+                        : () => setEditingId(item.categoryId)
+                    }
                   />
                 ))}
               </ul>
@@ -141,15 +174,26 @@ export function BudgetView() {
         footer={<FormActions form="budget-form" onCancel={() => setEditingId(null)} />}
       >
         {editing && (
-          <BudgetForm
-            key={`${period}-${editing.categoryId}`}
-            period={period}
-            item={editing}
-            onDone={() => setEditingId(null)}
-          />
+          <Suspense fallback={<Skeleton className="h-32 w-full rounded-2xl" />}>
+            <BudgetForm
+              key={`${period}-${editing.categoryId}`}
+              period={period}
+              item={editing}
+              onDone={() => setEditingId(null)}
+            />
+          </Suspense>
         )}
       </ResponsiveModal>
-      <SuggestionPanel period={period} open={suggesting} onOpenChange={setSuggesting} names={names} />
+      {suggestedOnce && (
+        <Suspense fallback={null}>
+          <SuggestionPanel
+            period={period}
+            open={suggesting}
+            onOpenChange={setSuggesting}
+            names={names}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

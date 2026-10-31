@@ -15,13 +15,18 @@ describe("proxy", () => {
     expect(res.headers.get("location")).toBe("http://localhost:3000/login");
   });
 
-  it.each(["authjs.session-token=abc", "__Secure-authjs.session-token=abc"])("passes through with %s", (cookie) => {
-    const res = proxy(request("/dashboard", cookie));
-    expect(res.headers.get("location")).toBeNull();
-  });
+  it.each(["authjs.session-token=abc", "__Secure-authjs.session-token=abc"])(
+    "passes through with %s",
+    (cookie) => {
+      const res = proxy(request("/dashboard", cookie));
+      expect(res.headers.get("location")).toBeNull();
+    },
+  );
 
   it("passes through chunked session cookies", () => {
-    const res = proxy(request("/dashboard", "authjs.session-token.0=abc; authjs.session-token.1=def"));
+    const res = proxy(
+      request("/dashboard", "authjs.session-token.0=abc; authjs.session-token.1=def"),
+    );
     expect(res.headers.get("location")).toBeNull();
   });
 });

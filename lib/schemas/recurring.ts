@@ -53,7 +53,10 @@ const amount = z
   .int("Nominal harus bilangan bulat rupiah")
   .min(1, "Nominal minimal Rp1")
   .max(1e12, "Maksimal 1 triliun");
-const dayOfMonth = z.int("Pilih tanggal 1–31").min(1, "Pilih tanggal 1–31").max(31, "Pilih tanggal 1–31");
+const dayOfMonth = z
+  .int("Pilih tanggal 1–31")
+  .min(1, "Pilih tanggal 1–31")
+  .max(31, "Pilih tanggal 1–31");
 
 const editable = {
   name,
@@ -67,7 +70,11 @@ const editable = {
 const paydayIssue = { path: ["isPayday"], error: "Hanya aturan income yang bisa jadi gajian" };
 
 export const recurringCreateSchema = z
-  .strictObject({ type: z.enum(RECURRING_TYPES, "Jenis aturan tidak valid"), ...editable, isPayday: editable.isPayday.default(false) })
+  .strictObject({
+    type: z.enum(RECURRING_TYPES, "Jenis aturan tidak valid"),
+    ...editable,
+    isPayday: editable.isPayday.default(false),
+  })
   .refine((v) => !v.isPayday || v.type === "income", paydayIssue);
 
 /** `type` is never editable; whether `isPayday` fits the stored type is checked on the server. */
@@ -80,7 +87,7 @@ const occurrenceDate = z.iso.date("Tanggal kejadian tidak valid");
 
 const { date, description } = simpleCreateSchema.shape;
 
-// Flat post fields so `fields` maps straight onto TransactionForm via applyServerErrors.
+// Flat post fields so `fields` maps straight onto RecordOccurrenceForm via applyServerErrors.
 export const recurringAdvanceSchema = z.discriminatedUnion(
   "action",
   [

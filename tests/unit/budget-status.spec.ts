@@ -15,7 +15,11 @@ describe("budgetStatus", () => {
   });
 
   it("rounds percent down", () => {
-    expect(budgetStatus(1_500_000, 1_300_000)).toEqual({ remaining: 200_000, percent: 86, status: "warning" });
+    expect(budgetStatus(1_500_000, 1_300_000)).toEqual({
+      remaining: 200_000,
+      percent: 86,
+      status: "warning",
+    });
   });
 
   it("keeps a negative remaining when over budget", () => {

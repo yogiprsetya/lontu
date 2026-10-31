@@ -1,6 +1,17 @@
-import { badRequest, fieldError, invalidJson, transactionChanged, transactionNotEditable, transactionNotFound } from "@/lib/api/errors";
+import {
+  badRequest,
+  fieldError,
+  invalidJson,
+  transactionChanged,
+  transactionNotEditable,
+  transactionNotFound,
+} from "@/lib/api/errors";
 import { withAuth } from "@/lib/api/with-auth";
-import { getTransaction, softDeleteTransaction, updateTransaction } from "@/lib/server/transactions";
+import {
+  getTransaction,
+  softDeleteTransaction,
+  updateTransaction,
+} from "@/lib/server/transactions";
 
 export const GET = withAuth<{ id: string }>(async (_req, { userId, params }) => {
   const transaction = await getTransaction(userId, params.id);

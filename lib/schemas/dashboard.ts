@@ -33,6 +33,9 @@ export const DASHBOARD_PERIOD_FORMAT = /^(\d{4}|\d{4}-(0[1-9]|1[0-2]))$/;
 export const dashboardPeriodSchema = z
   .string("Periode tidak valid")
   .regex(DASHBOARD_PERIOD_FORMAT, "Periode tidak valid")
-  .refine((p) => isPastOrCurrentPeriod(p, todayInJakarta()), "Periode antara tahun 2000 dan sekarang");
+  .refine(
+    (p) => isPastOrCurrentPeriod(p, todayInJakarta()),
+    "Periode antara tahun 2000 dan sekarang",
+  );
 
 export const dashboardQuerySchema = z.object({ period: dashboardPeriodSchema });

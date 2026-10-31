@@ -11,7 +11,9 @@ export function applyServerErrors(err: unknown, setError: SetError): boolean {
     set("name", { message: err.message });
     return true;
   }
-  const entries = Object.entries(err.fields ?? {}).filter((e): e is [string, string[]] => !!e[1]?.length);
+  const entries = Object.entries(err.fields ?? {}).filter(
+    (e): e is [string, string[]] => !!e[1]?.length,
+  );
   for (const [name, messages] of entries) set(name, { message: messages[0] });
   return entries.length > 0;
 }

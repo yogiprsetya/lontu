@@ -18,36 +18,53 @@ describe("accountCreateSchema", () => {
   });
 
   it("accepts a negative initial balance and any subtype with any type", () => {
-    const parsed = accountCreateSchema.parse({ name: "Kartu", type: "asset", subtype: "credit_card", initialBalance: -500_000 });
+    const parsed = accountCreateSchema.parse({
+      name: "Kartu",
+      type: "asset",
+      subtype: "credit_card",
+      initialBalance: -500_000,
+    });
     expect(parsed.initialBalance).toBe(-500_000);
   });
 
   it.each([1.5, "100", 1e12 + 1, -1e12 - 1])("rejects initialBalance %j", (initialBalance) => {
-    const errors = fieldErrors(accountCreateSchema.safeParse({ name: "BCA", type: "transaction", initialBalance }));
+    const errors = fieldErrors(
+      accountCreateSchema.safeParse({ name: "BCA", type: "transaction", initialBalance }),
+    );
     expect(errors.initialBalance).toBeDefined();
   });
 
   it.each(["", "   ", "x".repeat(51)])("rejects name %j", (name) => {
-    expect(fieldErrors(accountCreateSchema.safeParse({ name, type: "transaction" })).name).toBeDefined();
+    expect(
+      fieldErrors(accountCreateSchema.safeParse({ name, type: "transaction" })).name,
+    ).toBeDefined();
   });
 
   it("accepts a 50-character name", () => {
-    expect(accountCreateSchema.safeParse({ name: "x".repeat(50), type: "asset" }).success).toBe(true);
+    expect(accountCreateSchema.safeParse({ name: "x".repeat(50), type: "asset" }).success).toBe(
+      true,
+    );
   });
 
   it("rejects an unknown type or subtype", () => {
-    const errors = fieldErrors(accountCreateSchema.safeParse({ name: "BCA", type: "cash", subtype: "gold" }));
+    const errors = fieldErrors(
+      accountCreateSchema.safeParse({ name: "BCA", type: "cash", subtype: "gold" }),
+    );
     expect(Object.keys(errors).sort()).toEqual(["subtype", "type"]);
   });
 
   it("drops unknown keys such as userId", () => {
-    expect(accountCreateSchema.parse({ name: "BCA", type: "asset", userId: "other" })).not.toHaveProperty("userId");
+    expect(
+      accountCreateSchema.parse({ name: "BCA", type: "asset", userId: "other" }),
+    ).not.toHaveProperty("userId");
   });
 });
 
 describe("accountUpdateSchema", () => {
   it("accepts a subset of fields without filling defaults", () => {
-    expect(accountUpdateSchema.parse({ initialBalance: 150_000 })).toEqual({ initialBalance: 150_000 });
+    expect(accountUpdateSchema.parse({ initialBalance: 150_000 })).toEqual({
+      initialBalance: 150_000,
+    });
   });
 
   it("allows clearing the subtype", () => {

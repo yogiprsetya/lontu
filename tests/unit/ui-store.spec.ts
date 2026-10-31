@@ -16,7 +16,10 @@ beforeAll(async () => {
 describe("useUIStore", () => {
   it("opens and closes a modal with props", () => {
     useUIStore.getState().open("manageAccounts", { focusId: "a1" });
-    expect(useUIStore.getState()).toMatchObject({ modal: "manageAccounts", modalProps: { focusId: "a1" } });
+    expect(useUIStore.getState()).toMatchObject({
+      modal: "manageAccounts",
+      modalProps: { focusId: "a1" },
+    });
 
     useUIStore.getState().close();
     expect(useUIStore.getState()).toMatchObject({ modal: null, modalProps: undefined });

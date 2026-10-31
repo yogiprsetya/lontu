@@ -32,13 +32,18 @@ function put(body: unknown) {
 }
 
 function del(id: string) {
-  return item.DELETE(new Request(`http://localhost/api/budgets/${id}`, { method: "DELETE" }), { params: Promise.resolve({ id }) });
+  return item.DELETE(new Request(`http://localhost/api/budgets/${id}`, { method: "DELETE" }), {
+    params: Promise.resolve({ id }),
+  });
 }
 
 function restore(id: string) {
-  return restoreRoute.POST(new Request(`http://localhost/api/budgets/${id}/restore`, { method: "POST" }), {
-    params: Promise.resolve({ id }),
-  });
+  return restoreRoute.POST(
+    new Request(`http://localhost/api/budgets/${id}/restore`, { method: "POST" }),
+    {
+      params: Promise.resolve({ id }),
+    },
+  );
 }
 
 let userA: string;
@@ -62,7 +67,13 @@ beforeAll(async () => {
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
       { userId: userA, name: "Hiburan", kind: "spending", spendingType: "wants" },
       { userId: userA, name: "Transport", kind: "spending", spendingType: "needs" },
-      { userId: userA, name: "Lama", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "Lama",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt: new Date(),
+      },
       { userId: userA, name: "Gaji", kind: "income" },
       { userId: userA, name: "Tabungan", kind: "saving" },
       { userId: userB, name: "Makan", kind: "spending", spendingType: "needs" },
@@ -85,7 +96,10 @@ beforeEach(() => {
 describe("PUT /api/budgets", () => {
   it("creates a budget and returns it with its period", async () => {
     signInAs(userA);
-    const res = await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1_500_000 }] });
+    const res = await put({
+      period: "2026-10",
+      items: [{ categoryId: cat.Makan, amount: 1_500_000 }],
+    });
     expect(res.status).toBe(200);
     const [budget] = (await res.json()) as Budget[];
     expect(budget).toEqual({
@@ -100,23 +114,33 @@ describe("PUT /api/budgets", () => {
 
   it("updates the same row on a second PUT", async () => {
     signInAs(userA);
-    const [first] = (await (await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1_500_000 }] })).json()) as Budget[];
-    const [second] = (await (await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1_200_000 }] })).json()) as Budget[];
+    const [first] = (await (
+      await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1_500_000 }] })
+    ).json()) as Budget[];
+    const [second] = (await (
+      await put({ period: "2026-10", items: [{ categoryId: cat.Makan, amount: 1_200_000 }] })
+    ).json()) as Budget[];
     expect(second.id).toBe(first.id);
     expect(second.amount).toBe(1_200_000);
     const rows = await db
       .select()
       .from(budgets)
-      .where(and(eq(budgets.userId, userA), eq(budgets.categoryId, cat.Makan), eq(budgets.month, 10)));
+      .where(
+        and(eq(budgets.userId, userA), eq(budgets.categoryId, cat.Makan), eq(budgets.month, 10)),
+      );
     expect(rows).toHaveLength(1);
   });
 
   it("revives a soft-deleted row with the same id and created_at", async () => {
     signInAs(userA);
-    const [created] = (await (await put({ period: "2026-09", items: [{ categoryId: cat.Hiburan, amount: 300_000 }] })).json()) as Budget[];
+    const [created] = (await (
+      await put({ period: "2026-09", items: [{ categoryId: cat.Hiburan, amount: 300_000 }] })
+    ).json()) as Budget[];
     await db.update(budgets).set({ deletedAt: new Date() }).where(eq(budgets.id, created.id));
 
-    const [revived] = (await (await put({ period: "2026-09", items: [{ categoryId: cat.Hiburan, amount: 250_000 }] })).json()) as Budget[];
+    const [revived] = (await (
+      await put({ period: "2026-09", items: [{ categoryId: cat.Hiburan, amount: 250_000 }] })
+    ).json()) as Budget[];
     expect(revived).toEqual({ ...created, amount: 250_000, deletedAt: null });
   });
 
@@ -128,12 +152,16 @@ describe("PUT /api/budgets", () => {
       { categoryId: cat.Hiburan, amount: 1e12 },
     ];
     const body = (await (await put({ period: "2026-08", items })).json()) as Budget[];
-    expect(body.map((b) => [b.categoryId, b.amount])).toEqual(items.map((i) => [i.categoryId, i.amount]));
+    expect(body.map((b) => [b.categoryId, b.amount])).toEqual(
+      items.map((i) => [i.categoryId, i.amount]),
+    );
   });
 
   it("accepts next month", async () => {
     signInAs(userA);
-    expect((await put({ period: "2026-11", items: [{ categoryId: cat.Makan, amount: 1 }] })).status).toBe(200);
+    expect(
+      (await put({ period: "2026-11", items: [{ categoryId: cat.Makan, amount: 1 }] })).status,
+    ).toBe(200);
   });
 
   it.each(["Gaji", "Tabungan", "Lama", "foreign", "unknown"])(
@@ -172,7 +200,11 @@ describe("PUT /api/budgets", () => {
 
   it("rejects a userId in the body", async () => {
     signInAs(userA);
-    const res = await put({ period: "2026-10", userId: userB, items: [{ categoryId: cat.Makan, amount: 1 }] });
+    const res = await put({
+      period: "2026-10",
+      userId: userB,
+      items: [{ categoryId: cat.Makan, amount: 1 }],
+    });
     expect(res.status).toBe(400);
   });
 
@@ -200,7 +232,9 @@ describe("PUT /api/budgets", () => {
 describe("DELETE /api/budgets/[id] and restore", () => {
   async function createBudget(month: string, categoryId: string, amount = 100_000) {
     signInAs(userA);
-    const [budget] = (await (await put({ period: month, items: [{ categoryId, amount }] })).json()) as Budget[];
+    const [budget] = (await (
+      await put({ period: month, items: [{ categoryId, amount }] })
+    ).json()) as Budget[];
     return budget;
   }
 
@@ -214,7 +248,11 @@ describe("DELETE /api/budgets/[id] and restore", () => {
     const [row] = await db.select().from(budgets).where(eq(budgets.id, budget.id));
     expect(row.deletedAt).not.toBeNull();
     const usage = await budgetUsage(userA, "2026-06");
-    expect(usage.items.find((i) => i.categoryId === cat.Transport)).toMatchObject({ budgetId: null, budget: null, status: "none" });
+    expect(usage.items.find((i) => i.categoryId === cat.Transport)).toMatchObject({
+      budgetId: null,
+      budget: null,
+      status: "none",
+    });
   });
 
   it("is idempotent: deleting again keeps the first deleted_at", async () => {

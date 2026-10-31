@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CalendarClockIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
-import { RecordOccurrenceModal, SKIP_HINT, skipOccurrence } from "@/components/recurring/occurrence-actions";
+import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
+import { SKIP_HINT, skipOccurrence } from "@/components/recurring/skip-occurrence";
 import { TypeChip } from "@/components/transactions/type-chip";
 import { Button } from "@/components/ui/button";
 import { useAmountFormat } from "@/hooks/use-amount-format";
@@ -54,7 +55,11 @@ export function DueInbox() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button className="h-11 flex-1 text-base sm:flex-none" disabled={!online} onClick={() => setRecordingId(rule.id)}>
+              <Button
+                className="h-11 flex-1 text-base sm:flex-none"
+                disabled={!online}
+                onClick={() => setRecordingId(rule.id)}
+              >
                 Catat
               </Button>
               <Button
@@ -69,7 +74,9 @@ export function DueInbox() {
           </li>
         ))}
       </ul>
-      <p className="text-sm text-muted-foreground">{online ? SKIP_HINT : "Butuh koneksi untuk mencatat atau melewati."}</p>
+      <p className="text-sm text-muted-foreground">
+        {online ? SKIP_HINT : "Butuh koneksi untuk mencatat atau melewati."}
+      </p>
       <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />
     </section>
   );

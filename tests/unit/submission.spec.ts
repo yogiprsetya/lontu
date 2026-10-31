@@ -5,7 +5,8 @@ vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { success: vi.fn() }) }
 const { toast } = await import("sonner");
 const { ApiError } = await import("@/lib/fetcher");
 const { createOutbox } = await import("@/lib/offline/outbox");
-const { discardQueued, retryQueued, SEND_TIMEOUT_MS, sendCreate, submitTransaction } = await import("@/lib/offline/submission");
+const { discardQueued, retryQueued, SEND_TIMEOUT_MS, sendCreate, submitTransaction } =
+  await import("@/lib/offline/submission");
 import type { OutboxBody } from "@/lib/offline/outbox";
 import type { KeyValueStore } from "@/lib/offline/storage";
 
@@ -58,20 +59,31 @@ describe("sendCreate", () => {
       "fetch",
       vi.fn(async () =>
         Response.json(
-          { error: { code: "VALIDATION_ERROR", message: "Data tidak valid", fields: { accountId: ["Akun sudah diarsipkan"] } } },
+          {
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "Data tidak valid",
+              fields: { accountId: ["Akun sudah diarsipkan"] },
+            },
+          },
           { status: 400 },
         ),
       ),
     );
 
     await expect(sendCreate(body)).rejects.toEqual(
-      new ApiError(400, "VALIDATION_ERROR", "Data tidak valid", { accountId: ["Akun sudah diarsipkan"] }),
+      new ApiError(400, "VALIDATION_ERROR", "Data tidak valid", {
+        accountId: ["Akun sudah diarsipkan"],
+      }),
     );
   });
 
   it("lets a network failure through as is", async () => {
     const failure = new TypeError("Failed to fetch");
-    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(failure)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.reject(failure)),
+    );
 
     await expect(sendCreate(body)).rejects.toBe(failure);
   });
@@ -92,7 +104,11 @@ describe("submitTransaction", () => {
     vi.stubGlobal("navigator", { onLine: false, storage: { persist } });
     const outbox = createOutbox(mapStore());
 
-    const outcome = await submitTransaction(input, { userId: "user-a", outbox, sentMessage: "Expense tersimpan" });
+    const outcome = await submitTransaction(input, {
+      userId: "user-a",
+      outbox,
+      sentMessage: "Expense tersimpan",
+    });
 
     expect(outcome.status).toBe("queued");
     expect(await outbox.list("user-a")).toHaveLength(1);
@@ -103,9 +119,15 @@ describe("submitTransaction", () => {
 
   it("shows the caller's message once the server has it", async () => {
     vi.stubGlobal("navigator", { onLine: true });
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ transaction: { id: "x" }, fee: null }, { status: 201 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ transaction: { id: "x" }, fee: null }, { status: 201 })),
+    );
 
-    const outcome = await submitTransaction(input, { userId: "user-a", sentMessage: "Transfer dan biaya admin tersimpan" });
+    const outcome = await submitTransaction(input, {
+      userId: "user-a",
+      sentMessage: "Transfer dan biaya admin tersimpan",
+    });
 
     expect(outcome.status).toBe("sent");
     expect(toast.success).toHaveBeenCalledWith("Transfer dan biaya admin tersimpan");
@@ -115,7 +137,9 @@ describe("submitTransaction", () => {
   it("throws the network error offline when there is no user to queue for", async () => {
     vi.stubGlobal("navigator", { onLine: false });
 
-    await expect(submitTransaction(input, { userId: undefined, sentMessage: "x" })).rejects.toBeInstanceOf(TypeError);
+    await expect(
+      submitTransaction(input, { userId: undefined, sentMessage: "x" }),
+    ).rejects.toBeInstanceOf(TypeError);
     expect(toast).not.toHaveBeenCalled();
   });
 });

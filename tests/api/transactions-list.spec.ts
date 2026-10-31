@@ -76,7 +76,8 @@ beforeAll(async () => {
     .returning({ id: accounts.id, name: accounts.name });
   accountA = rows.find((r) => r.name === "a")!.id;
   accountB = rows.find((r) => r.name === "b")!.id;
-  const idOf = (rows_: { id: string; name: string }[], name: string) => rows_.find((r) => r.name === name)!.id;
+  const idOf = (rows_: { id: string; name: string }[], name: string) =>
+    rows_.find((r) => r.name === name)!.id;
   const accountX = idOf(rows, "x");
   const accountY = idOf(rows, "y");
   totalsAccount = idOf(rows, "d");
@@ -107,36 +108,105 @@ beforeAll(async () => {
     .insert(transactions)
     .values([
       { ...c, type: "income", amount: 100, date: "2026-10-05", categoryId: inc, description: "r1" },
-      { ...c, type: "expense", amount: 200, date: "2026-10-10", categoryId: spend1, description: "r2" },
-      { ...c, accountId: accountY, type: "expense", amount: 300, date: "2026-10-15", categoryId: spend2, description: "r3" },
-      { ...c, type: "transfer", amount: 400, date: "2026-10-10", toAccountId: accountY, description: "r4" },
+      {
+        ...c,
+        type: "expense",
+        amount: 200,
+        date: "2026-10-10",
+        categoryId: spend1,
+        description: "r2",
+      },
+      {
+        ...c,
+        accountId: accountY,
+        type: "expense",
+        amount: 300,
+        date: "2026-10-15",
+        categoryId: spend2,
+        description: "r3",
+      },
+      {
+        ...c,
+        type: "transfer",
+        amount: 400,
+        date: "2026-10-10",
+        toAccountId: accountY,
+        description: "r4",
+      },
       { ...c, type: "adjustment", amount: -500, date: "2026-09-01", description: "r5" },
     ])
     .returning({ id: transactions.id, description: transactions.description });
-  totalsCat = Object.fromEntries(categoryRows.filter((r) => r.name.startsWith("d")).map((r) => [r.name, r.id]));
+  totalsCat = Object.fromEntries(
+    categoryRows.filter((r) => r.name.startsWith("d")).map((r) => [r.name, r.id]),
+  );
   const d = { userId: userD, accountId: totalsAccount };
   await db.insert(transactions).values([
     { ...d, type: "income", amount: 1000, date: "2026-10-01", categoryId: totalsCat.dinc },
     { ...d, type: "income", amount: 2000, date: "2026-10-20", categoryId: totalsCat.dinc },
     { ...d, type: "expense", amount: 300, date: "2026-10-02", categoryId: totalsCat.dspend },
-    { ...d, type: "expense", amount: 2500, date: "2026-10-20", categoryId: totalsCat.dspend, description: "Biaya admin transfer" },
+    {
+      ...d,
+      type: "expense",
+      amount: 2500,
+      date: "2026-10-20",
+      categoryId: totalsCat.dspend,
+      description: "Biaya admin transfer",
+    },
     { ...d, type: "saving", amount: 700, date: "2026-10-03", categoryId: totalsCat.dsave },
     { ...d, type: "adjustment", amount: -999, date: "2026-10-04" },
-    { ...d, type: "income", amount: 77777, date: "2026-10-05", categoryId: totalsCat.dinc, deletedAt: new Date() },
+    {
+      ...d,
+      type: "income",
+      amount: 77777,
+      date: "2026-10-05",
+      categoryId: totalsCat.dinc,
+      deletedAt: new Date(),
+    },
     { ...d, type: "expense", amount: 5, date: "2025-01-01", categoryId: totalsCat.dspend },
   ]);
   rowC = Object.fromEntries(filterRows.map((r) => [r.description, r.id]));
 
-  const base = { categoryId: categoryA, userId: userA, type: "income", amount: 1000, accountId: accountA };
+  const base = {
+    categoryId: categoryA,
+    userId: userA,
+    type: "income",
+    amount: 1000,
+    accountId: accountA,
+  };
   const inserted = await db
     .insert(transactions)
     .values([
-      { ...base, date: "2026-10-02", createdAt: at("2026-10-02T01:00:00.000000Z"), description: "newest day" },
+      {
+        ...base,
+        date: "2026-10-02",
+        createdAt: at("2026-10-02T01:00:00.000000Z"),
+        description: "newest day",
+      },
       // Same date, created_at differing only in microseconds: ms-truncated cursors skip or repeat one.
-      { ...base, date: "2026-10-01", createdAt: at("2026-10-01T05:00:00.000002Z"), description: "us2" },
-      { ...base, date: "2026-10-01", createdAt: at("2026-10-01T05:00:00.000001Z"), description: "us1" },
-      { ...base, date: "2026-10-01", createdAt: at("2026-10-01T04:00:00.000000Z"), description: "earlier" },
-      { ...base, date: "2026-09-30", createdAt: at("2026-09-30T23:00:00.000000Z"), description: "oldest" },
+      {
+        ...base,
+        date: "2026-10-01",
+        createdAt: at("2026-10-01T05:00:00.000002Z"),
+        description: "us2",
+      },
+      {
+        ...base,
+        date: "2026-10-01",
+        createdAt: at("2026-10-01T05:00:00.000001Z"),
+        description: "us1",
+      },
+      {
+        ...base,
+        date: "2026-10-01",
+        createdAt: at("2026-10-01T04:00:00.000000Z"),
+        description: "earlier",
+      },
+      {
+        ...base,
+        date: "2026-09-30",
+        createdAt: at("2026-09-30T23:00:00.000000Z"),
+        description: "oldest",
+      },
       {
         ...base,
         date: "2026-10-02",
@@ -144,7 +214,15 @@ beforeAll(async () => {
         deletedAt: new Date(),
         description: "deleted",
       },
-      { userId: userB, type: "income", amount: 5, date: "2026-10-02", accountId: accountB, categoryId: categoryB, description: "foreign" },
+      {
+        userId: userB,
+        type: "income",
+        amount: 5,
+        date: "2026-10-02",
+        accountId: accountB,
+        categoryId: categoryB,
+        description: "foreign",
+      },
     ])
     .returning({ id: transactions.id, description: transactions.description });
   const byDescription = Object.fromEntries(inserted.map((r) => [r.description, r.id]));
@@ -176,7 +254,13 @@ describe("GET /api/transactions", () => {
   it("returns an id-only shape with deletedAt null", async () => {
     signInAs(userA);
     const [first] = ((await (await list("?limit=1")).json()) as Page).items;
-    expect(first).toMatchObject({ type: "income", amount: 1000, date: "2026-10-02", accountId: accountA, deletedAt: null });
+    expect(first).toMatchObject({
+      type: "income",
+      amount: 1000,
+      date: "2026-10-02",
+      accountId: accountA,
+      deletedAt: null,
+    });
   });
 
   it("rejects limit 0 and 101 with fields.limit", async () => {
@@ -188,12 +272,15 @@ describe("GET /api/transactions", () => {
     }
   });
 
-  it.each(["garbage", Buffer.from("[1]").toString("base64url")])("rejects cursor %s with INVALID_CURSOR", async (cursor) => {
-    signInAs(userA);
-    const res = await list(`?cursor=${cursor}`);
-    expect(res.status).toBe(400);
-    expect((await res.json()).error.code).toBe("INVALID_CURSOR");
-  });
+  it.each(["garbage", Buffer.from("[1]").toString("base64url")])(
+    "rejects cursor %s with INVALID_CURSOR",
+    async (cursor) => {
+      signInAs(userA);
+      const res = await list(`?cursor=${cursor}`);
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe("INVALID_CURSOR");
+    },
+  );
 
   it("never returns another user's rows", async () => {
     signInAs(userB);
@@ -243,7 +330,9 @@ describe("GET /api/transactions filters", () => {
 
   it("combines filters", async () => {
     signInAs(userC);
-    expect(await ids(`?type=expense&accountId=${accountYId}&from=2026-10-01&to=2026-10-31`)).toEqual(rows("r3"));
+    expect(
+      await ids(`?type=expense&accountId=${accountYId}&from=2026-10-01&to=2026-10-31`),
+    ).toEqual(rows("r3"));
     expect(await ids(`?type=income&accountId=${accountYId}`)).toEqual(new Set());
   });
 
@@ -294,7 +383,10 @@ describe("GET /api/transactions filters", () => {
 
 describe("GET /api/transactions/totals", () => {
   function totals(query = "") {
-    return totalsRoute.GET(new Request(`http://localhost/api/transactions/totals${query}`), noParams);
+    return totalsRoute.GET(
+      new Request(`http://localhost/api/transactions/totals${query}`),
+      noParams,
+    );
   }
 
   it("sums income, expense and saving; skips transfers, adjustments and deleted rows", async () => {
@@ -307,8 +399,16 @@ describe("GET /api/transactions/totals", () => {
 
   it("applies the same filters as the list", async () => {
     signInAs(userD);
-    expect(await (await totals("?type=expense")).json()).toEqual({ income: 0, expense: 2805, saving: 0 });
-    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({ income: 3000, expense: 0, saving: 0 });
+    expect(await (await totals("?type=expense")).json()).toEqual({
+      income: 0,
+      expense: 2805,
+      saving: 0,
+    });
+    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({
+      income: 3000,
+      expense: 0,
+      saving: 0,
+    });
   });
 
   it("matches the sum of every listed row under the same filter", async () => {
@@ -327,12 +427,18 @@ describe("GET /api/transactions/totals", () => {
 
   it("returns numeric zeros for an empty result", async () => {
     signInAs(userD);
-    expect(await (await totals("?from=2030-01-01")).json()).toEqual({ income: 0, expense: 0, saving: 0 });
+    expect(await (await totals("?from=2030-01-01")).json()).toEqual({
+      income: 0,
+      expense: 0,
+      saving: 0,
+    });
   });
 
   it("ignores cursor and limit", async () => {
     signInAs(userD);
-    expect(await (await totals("?limit=0&cursor=junk&from=2026-10-01&to=2026-10-31")).json()).toEqual({
+    expect(
+      await (await totals("?limit=0&cursor=junk&from=2026-10-01&to=2026-10-31")).json(),
+    ).toEqual({
       income: 3000,
       expense: 2800,
       saving: 700,
@@ -341,7 +447,10 @@ describe("GET /api/transactions/totals", () => {
 
   it("rejects invalid filters with 400 and fields", async () => {
     signInAs(userD);
-    for (const [query, field] of [["?type=foo", "type"], ["?from=2026-10-10&to=2026-10-01", "from"]]) {
+    for (const [query, field] of [
+      ["?type=foo", "type"],
+      ["?from=2026-10-10&to=2026-10-01", "from"],
+    ]) {
       const res = await totals(query);
       expect(res.status).toBe(400);
       expect((await res.json()).error.fields[field]).toBeDefined();
@@ -351,7 +460,11 @@ describe("GET /api/transactions/totals", () => {
   it("never counts another user's rows", async () => {
     signInAs(userA);
     expect(await (await totals()).json()).toEqual({ income: 5000, expense: 0, saving: 0 });
-    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({ income: 0, expense: 0, saving: 0 });
+    expect(await (await totals(`?categoryId=${totalsCat.dinc}`)).json()).toEqual({
+      income: 0,
+      expense: 0,
+      saving: 0,
+    });
   });
 
   it("returns 401 without a session", async () => {

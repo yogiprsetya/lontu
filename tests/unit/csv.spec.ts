@@ -3,7 +3,10 @@ import { BOM, toCSV } from "@/lib/csv";
 
 describe("toCSV", () => {
   it("starts with a UTF-8 BOM and joins rows with CRLF", () => {
-    const csv = toCSV([["a", "b"], ["c", "d"]]);
+    const csv = toCSV([
+      ["a", "b"],
+      ["c", "d"],
+    ]);
     expect(csv.startsWith(BOM)).toBe(true);
     expect(csv.slice(BOM.length)).toBe("a,b\r\nc,d");
   });
@@ -25,10 +28,13 @@ describe("toCSV", () => {
     expect(toCSV([[text]]).slice(BOM.length)).toBe(cell);
   });
 
-  it.each(["=1+1", "+1", "-1", "@SUM(A1)", "\tx", "\rx"])("prefixes a quote on text starting with %j", (text) => {
-    const out = toCSV([[text]]).slice(BOM.length);
-    expect(out.replace(/^"|"$/g, "")).toBe(`'${text}`);
-  });
+  it.each(["=1+1", "+1", "-1", "@SUM(A1)", "\tx", "\rx"])(
+    "prefixes a quote on text starting with %j",
+    (text) => {
+      const out = toCSV([[text]]).slice(BOM.length);
+      expect(out.replace(/^"|"$/g, "")).toBe(`'${text}`);
+    },
+  );
 
   it("guards before escaping, so a formula with a comma stays one safe cell", () => {
     expect(toCSV([["=A1,B1"]]).slice(BOM.length)).toBe(`"'=A1,B1"`);

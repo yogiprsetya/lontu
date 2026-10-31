@@ -13,16 +13,20 @@ export const SEND_TIMEOUT_MS = 10_000;
 
 /** The one way a create reaches the server. Throws ApiError on an HTTP error, or the network error. */
 export function sendCreate(body: OutboxBody) {
-  return sendJSON<TransactionCreated>("/api/transactions", "POST", body, { signal: AbortSignal.timeout(SEND_TIMEOUT_MS) });
+  return sendJSON<TransactionCreated>("/api/transactions", "POST", body, {
+    signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
+  });
 }
 
-export type CreateOutcome = { status: "sent"; created: TransactionCreated } | { status: "queued"; id: string };
+export type CreateOutcome =
+  { status: "sent"; created: TransactionCreated } | { status: "queued"; id: string };
 
 // One id per submit, sent online too: a request that reached the server but lost its response
 // is then safe to repeat.
 function withClientIds(input: TransactionCreateInput): OutboxBody {
   const id = crypto.randomUUID();
-  if (input.type === "transfer" && input.fee) return { ...input, id, fee: { ...input.fee, id: crypto.randomUUID() } };
+  if (input.type === "transfer" && input.fee)
+    return { ...input, id, fee: { ...input.fee, id: crypto.randomUUID() } };
   return { ...input, id };
 }
 
@@ -58,7 +62,11 @@ let persistRequested = false;
 /** The create forms' submit: sends or queues, then tells the user which one happened. */
 export async function submitTransaction(
   input: TransactionCreateInput,
-  { userId, outbox, sentMessage }: { userId: string | undefined; outbox?: Outbox; sentMessage: string },
+  {
+    userId,
+    outbox,
+    sentMessage,
+  }: { userId: string | undefined; outbox?: Outbox; sentMessage: string },
 ): Promise<CreateOutcome> {
   const outcome = await createTransaction(input, { userId, outbox });
   if (outcome.status === "sent") {

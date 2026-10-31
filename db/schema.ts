@@ -100,7 +100,10 @@ export const transactions = pgTable.withRLS(
       "transactions_amount_check",
       sql`case when ${t.type} = 'adjustment' then ${t.amount} <> 0 else ${t.amount} > 0 end`,
     ),
-    check("transactions_transfer_target_check", sql`(${t.type} = 'transfer') = (${t.toAccountId} is not null)`),
+    check(
+      "transactions_transfer_target_check",
+      sql`(${t.type} = 'transfer') = (${t.toAccountId} is not null)`,
+    ),
     check(
       "transactions_category_check",
       sql`(${t.type} in ('transfer', 'adjustment')) = (${t.categoryId} is null)`,
@@ -171,9 +174,7 @@ export const accountBalances = pgView("account_balances", {
   accountId: uuid("account_id").notNull(),
   userId: text("user_id").notNull(),
   balance: money("balance").notNull(),
-})
-  .with({ securityInvoker: true })
-  .as(sql`
+}).with({ securityInvoker: true }).as(sql`
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
         when t.type in ('income', 'adjustment')             then t.amount

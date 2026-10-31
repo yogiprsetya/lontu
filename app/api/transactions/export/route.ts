@@ -5,7 +5,9 @@ import { exportTransactionsCsv } from "@/lib/server/transaction-export";
 import { exportFilename } from "@/lib/transaction-filters";
 
 export const GET = withAuth(async (req, { userId }) => {
-  const parsed = transactionFilterSchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
+  const parsed = transactionFilterSchema.safeParse(
+    Object.fromEntries(new URL(req.url).searchParams),
+  );
   if (!parsed.success) return badRequest(parsed.error);
 
   return new Response(await exportTransactionsCsv(userId, parsed.data), {

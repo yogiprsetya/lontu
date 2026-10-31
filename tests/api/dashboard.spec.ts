@@ -47,7 +47,13 @@ beforeAll(async () => {
     .insert(categories)
     .values([
       { userId: userA, name: "Makan", kind: "spending", spendingType: "needs" },
-      { userId: userA, name: "Listrik", kind: "spending", spendingType: "needs", archivedAt: new Date() },
+      {
+        userId: userA,
+        name: "Listrik",
+        kind: "spending",
+        spendingType: "needs",
+        archivedAt: new Date(),
+      },
       { userId: userA, name: "Hiburan", kind: "spending", spendingType: "wants" },
       { userId: userA, name: "Gaji", kind: "income" },
       { userId: userA, name: "Tabungan", kind: "saving" },
@@ -59,9 +65,23 @@ beforeAll(async () => {
   await db.insert(transactions).values([
     { ...a, type: "income", amount: 10_000_000, date: "2026-10-01", categoryId: cat.Gaji },
     { ...a, type: "expense", amount: 2_000_000, date: "2026-10-01", categoryId: cat.Makan },
-    { ...a, type: "expense", amount: 50_000, date: "2026-10-25", categoryId: cat.Makan, description: "Biaya admin transfer" },
+    {
+      ...a,
+      type: "expense",
+      amount: 50_000,
+      date: "2026-10-25",
+      categoryId: cat.Makan,
+      description: "Biaya admin transfer",
+    },
     { ...a, type: "expense", amount: 950_000, date: "2026-10-10", categoryId: cat.Listrik },
-    { ...a, type: "expense", amount: 999, date: "2026-10-11", categoryId: cat.Makan, deletedAt: new Date() },
+    {
+      ...a,
+      type: "expense",
+      amount: 999,
+      date: "2026-10-11",
+      categoryId: cat.Makan,
+      deletedAt: new Date(),
+    },
     { ...a, type: "saving", amount: 1_000_000, date: "2026-10-02", categoryId: cat.Tabungan },
     { ...a, type: "transfer", amount: 300_000, date: "2026-10-03", toAccountId: toAccount.id },
     { ...a, type: "adjustment", amount: -123, date: "2026-10-04" },
@@ -79,7 +99,11 @@ afterAll(async () => {
 
 describe("dashboardSummary", () => {
   it("totals the current month to date, leaving out transfers, adjustments and deleted rows", async () => {
-    const { activity, categories, ...summary } = await dashboardSummary(userA, "2026-10", "2026-10-25");
+    const { activity, categories, ...summary } = await dashboardSummary(
+      userA,
+      "2026-10",
+      "2026-10-25",
+    );
     expect(categories).toHaveLength(2);
     expect(activity).toHaveLength(25);
     expect(summary).toEqual({
@@ -136,26 +160,38 @@ describe("dashboardSummary categories", () => {
 
   it("stays inside the range", async () => {
     const { categories } = await dashboardSummary(userA, "2026-09", "2026-10-25");
-    expect(categories).toEqual([{ categoryId: cat.Makan, spendingType: "needs", amount: 1_000_000 }]);
+    expect(categories).toEqual([
+      { categoryId: cat.Makan, spendingType: "needs", amount: 1_000_000 },
+    ]);
   });
 });
 
 describe("dashboardSummary activity", () => {
-  const byBucket = (activity: DashboardSummary["activity"]) => Object.fromEntries(activity.map((b) => [b.bucket, b.expense]));
+  const byBucket = (activity: DashboardSummary["activity"]) =>
+    Object.fromEntries(activity.map((b) => [b.bucket, b.expense]));
 
   it("has one bucket per day up to today, empty days at 0, only expenses", async () => {
     const { activity, totals } = await dashboardSummary(userA, "2026-10", "2026-10-25");
     expect(activity.map((b) => b.bucket)).toEqual(
       Array.from({ length: 25 }, (_, i) => `2026-10-${String(i + 1).padStart(2, "0")}`),
     );
-    expect(byBucket(activity)).toMatchObject({ "2026-10-01": 2_000_000, "2026-10-10": 950_000, "2026-10-25": 50_000, "2026-10-02": 0 });
+    expect(byBucket(activity)).toMatchObject({
+      "2026-10-01": 2_000_000,
+      "2026-10-10": 950_000,
+      "2026-10-25": 50_000,
+      "2026-10-02": 0,
+    });
     expect(activity.reduce((sum, b) => sum + b.expense, 0)).toBe(totals.expense);
   });
 
   it("covers a whole past month, the first and the last day included", async () => {
     const september = await dashboardSummary(userA, "2026-09", "2026-10-25");
     expect(september.activity).toHaveLength(30);
-    expect(byBucket(september.activity)).toMatchObject({ "2026-09-25": 400_000, "2026-09-26": 600_000, "2026-09-30": 0 });
+    expect(byBucket(september.activity)).toMatchObject({
+      "2026-09-25": 400_000,
+      "2026-09-26": 600_000,
+      "2026-09-30": 0,
+    });
 
     const february = await dashboardSummary(userA, "2028-02", "2028-03-10");
     expect(february.activity).toHaveLength(29);
@@ -165,8 +201,14 @@ describe("dashboardSummary activity", () => {
 
   it("has one bucket per month in year mode, stopping at the current month", async () => {
     const { activity, totals } = await dashboardSummary(userA, "2026", "2026-10-25");
-    expect(activity.map((b) => b.bucket)).toEqual(Array.from({ length: 10 }, (_, i) => `2026-${String(i + 1).padStart(2, "0")}`));
-    expect(byBucket(activity)).toMatchObject({ "2026-08": 0, "2026-09": 1_000_000, "2026-10": 3_000_000 });
+    expect(activity.map((b) => b.bucket)).toEqual(
+      Array.from({ length: 10 }, (_, i) => `2026-${String(i + 1).padStart(2, "0")}`),
+    );
+    expect(byBucket(activity)).toMatchObject({
+      "2026-08": 0,
+      "2026-09": 1_000_000,
+      "2026-10": 3_000_000,
+    });
     expect(activity.reduce((sum, b) => sum + b.expense, 0)).toBe(totals.expense);
 
     const leap = await dashboardSummary(userA, "2028", "2028-02-29");
@@ -184,20 +226,31 @@ describe("GET /api/dashboard", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as DashboardSummary;
     expect(body.range).toEqual({ from: "2026-09-01", to: "2026-09-30" });
-    expect(body.totals).toEqual({ income: 8_000_000, expense: 1_000_000, saving: 0, net: 7_000_000 });
+    expect(body.totals).toEqual({
+      income: 8_000_000,
+      expense: 1_000_000,
+      saving: 0,
+      net: 7_000_000,
+    });
   });
 
-  it.each(["", "?period=", "?period=2026-13", "?period=26-10", "?period=1999", "?period=1999-12", "?period=2999-01", "?period=2999"])(
-    "rejects %j under fields.period",
-    async (query) => {
-      signInAs(userA);
-      const res = await get(query);
-      expect(res.status).toBe(400);
-      const body = await res.json();
-      expect(body.error.code).toBe("VALIDATION_ERROR");
-      expect(body.error.fields.period).toBeDefined();
-    },
-  );
+  it.each([
+    "",
+    "?period=",
+    "?period=2026-13",
+    "?period=26-10",
+    "?period=1999",
+    "?period=1999-12",
+    "?period=2999-01",
+    "?period=2999",
+  ])("rejects %j under fields.period", async (query) => {
+    signInAs(userA);
+    const res = await get(query);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(body.error.fields.period).toBeDefined();
+  });
 
   it("returns 401 without a session", async () => {
     signInAs(null);

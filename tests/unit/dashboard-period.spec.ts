@@ -17,9 +17,18 @@ describe("dashboardRanges, month", () => {
   });
 
   it("clamps to the last day of a shorter previous month", () => {
-    expect(dashboardRanges("2026-10", "2026-10-31").previous.range).toEqual({ from: "2026-09-01", to: "2026-09-30" });
-    expect(dashboardRanges("2028-03", "2028-03-31").previous.range).toEqual({ from: "2028-02-01", to: "2028-02-29" });
-    expect(dashboardRanges("2026-03", "2026-03-30").previous.range).toEqual({ from: "2026-02-01", to: "2026-02-28" });
+    expect(dashboardRanges("2026-10", "2026-10-31").previous.range).toEqual({
+      from: "2026-09-01",
+      to: "2026-09-30",
+    });
+    expect(dashboardRanges("2028-03", "2028-03-31").previous.range).toEqual({
+      from: "2028-02-01",
+      to: "2028-02-29",
+    });
+    expect(dashboardRanges("2026-03", "2026-03-30").previous.range).toEqual({
+      from: "2026-02-01",
+      to: "2026-02-28",
+    });
   });
 
   it("compares a past month in full with the full month before it", () => {

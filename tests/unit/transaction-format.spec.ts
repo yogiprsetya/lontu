@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { amountTone, formatDateHeading, formatSignedAmount, groupByDate, titleOf } from "@/lib/transaction-format";
+import {
+  amountTone,
+  formatDateHeading,
+  formatSignedAmount,
+  groupByDate,
+  titleOf,
+} from "@/lib/transaction-format";
 
 describe("formatDateHeading", () => {
   it("labels today and yesterday", () => {
@@ -46,7 +52,11 @@ describe("amountTone", () => {
 
 describe("groupByDate", () => {
   it("groups consecutive items by date, keeping order", () => {
-    const items = [{ date: "b", n: 1 }, { date: "b", n: 2 }, { date: "a", n: 3 }];
+    const items = [
+      { date: "b", n: 1 },
+      { date: "b", n: 2 },
+      { date: "a", n: 3 },
+    ];
     expect(groupByDate(items)).toEqual([
       { date: "b", items: [items[0], items[1]] },
       { date: "a", items: [items[2]] },
@@ -59,19 +69,36 @@ describe("groupByDate", () => {
 });
 
 describe("titleOf", () => {
-  const accounts = new Map([["a1", "BCA"], ["a2", "Dompet"]]);
+  const accounts = new Map([
+    ["a1", "BCA"],
+    ["a2", "Dompet"],
+  ]);
   const categories = new Map([["c1", "Makan"]]);
 
   it("names a transfer by its accounts", () => {
-    expect(titleOf({ type: "transfer", accountId: "a1", toAccountId: "a2", categoryId: null }, accounts, categories)).toBe(
-      "BCA → Dompet",
-    );
+    expect(
+      titleOf(
+        { type: "transfer", accountId: "a1", toAccountId: "a2", categoryId: null },
+        accounts,
+        categories,
+      ),
+    ).toBe("BCA → Dompet");
   });
 
   it("names other types by category, with a fallback", () => {
-    expect(titleOf({ type: "expense", accountId: "a1", toAccountId: null, categoryId: "c1" }, accounts, categories)).toBe("Makan");
-    expect(titleOf({ type: "expense", accountId: "a1", toAccountId: null, categoryId: "c9" }, accounts, categories)).toBe(
-      "Tanpa kategori",
-    );
+    expect(
+      titleOf(
+        { type: "expense", accountId: "a1", toAccountId: null, categoryId: "c1" },
+        accounts,
+        categories,
+      ),
+    ).toBe("Makan");
+    expect(
+      titleOf(
+        { type: "expense", accountId: "a1", toAccountId: null, categoryId: "c9" },
+        accounts,
+        categories,
+      ),
+    ).toBe("Tanpa kategori");
   });
 });

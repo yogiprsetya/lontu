@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { abbreviateIDR, displayAmount, formatIDR, formatThousands, HIDDEN_AMOUNT, parseIDR } from "@/lib/money";
+import {
+  abbreviateIDR,
+  displayAmount,
+  formatIDR,
+  formatThousands,
+  HIDDEN_AMOUNT,
+  parseIDR,
+} from "@/lib/money";
 
 describe("formatIDR", () => {
   it("formats rupiah with dot thousands separator and no space", () => {

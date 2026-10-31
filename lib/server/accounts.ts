@@ -33,7 +33,10 @@ async function selectAccounts(where: SQL | undefined): Promise<Account[]> {
     .from(accounts)
     .innerJoin(accountBalances, eq(accountBalances.accountId, accounts.id))
     .where(where)
-    .orderBy(sql`case ${accounts.type} when 'transaction' then 0 else 1 end`, sql`lower(${accounts.name})`);
+    .orderBy(
+      sql`case ${accounts.type} when 'transaction' then 0 else 1 end`,
+      sql`lower(${accounts.name})`,
+    );
   return rows.map((r) => ({
     ...r,
     type: r.type as AccountType,
@@ -44,7 +47,9 @@ async function selectAccounts(where: SQL | undefined): Promise<Account[]> {
 }
 
 export function listAccounts(userId: string, { includeArchived = false } = {}) {
-  return selectAccounts(and(eq(accounts.userId, userId), includeArchived ? undefined : isNull(accounts.archivedAt)));
+  return selectAccounts(
+    and(eq(accounts.userId, userId), includeArchived ? undefined : isNull(accounts.archivedAt)),
+  );
 }
 
 export async function getAccount(userId: string, id: string): Promise<Account | undefined> {
@@ -76,7 +81,10 @@ export async function updateAccount(userId: string, id: string, input: AccountUp
     if (initialBalance !== undefined) {
       // Separate statement from the lock: under READ COMMITTED it gets a fresh
       // snapshot, so it sees adjustments committed by whoever held the lock before us.
-      const [{ current }] = await tx.select({ current: effectiveInitialBalance }).from(accounts).where(owned);
+      const [{ current }] = await tx
+        .select({ current: effectiveInitialBalance })
+        .from(accounts)
+        .where(owned);
       const delta = initialBalance - current;
       if (delta !== 0) {
         await tx.insert(transactions).values({

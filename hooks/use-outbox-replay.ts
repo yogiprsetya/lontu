@@ -22,6 +22,16 @@ export function useOutboxReplay(userId: string | undefined) {
       });
     const isOnline = () => navigator.onLine;
     const onSent = () => invalidate("transactions");
-    return startReplay({ userId, outbox, send: sendCreate, target: window, page: document, isOnline, lock: outboxLock, onSent, onAuthLost });
+    return startReplay({
+      userId,
+      outbox,
+      send: sendCreate,
+      target: window,
+      page: document,
+      isOnline,
+      lock: outboxLock,
+      onSent,
+      onAuthLost,
+    });
   }, [userId, router]);
 }

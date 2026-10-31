@@ -1,18 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { RecurringForm } from "@/components/forms/recurring-form";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import {
-  RestoreButton,
-  ShowArchivedSwitch,
-} from "@/components/modals/archive-controls";
-import {
-  RecordOccurrenceModal,
-  skipOccurrence,
-} from "@/components/recurring/occurrence-actions";
+import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
+import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
+import { skipOccurrence } from "@/components/recurring/skip-occurrence";
 import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
@@ -34,18 +28,16 @@ import { RECURRING_GROUPS } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
 
-type Editing =
-  | { kind: "create"; preset?: RulePreset }
-  | { kind: "edit"; id: string }
-  | null;
+// Loaded on the first Tambah or Ubah, not with the page.
+const RecurringForm = lazy(() =>
+  import("@/components/forms/recurring-form").then((m) => ({ default: m.RecurringForm })),
+);
+
+type Editing = { kind: "create"; preset?: RulePreset } | { kind: "edit"; id: string } | null;
 
 function ViewSkeleton() {
   return (
-    <div
-      className="flex flex-col gap-3"
-      aria-busy="true"
-      aria-label="Memuat aturan"
-    >
+    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat aturan">
       {Array.from({ length: 4 }, (_, i) => (
         <Skeleton key={i} className="h-20 w-full rounded-2xl" />
       ))}
@@ -96,6 +88,105 @@ function RowMenu({ rule, online, onArchive }: RowMenuProps) {
   );
 }
 
+function EmptyRules({
+  showArchived,
+  onCreate,
+}: {
+  showArchived: boolean;
+  onCreate: (preset: RulePreset) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
+      <p className="text-muted-foreground">
+        {showArchived
+          ? "Belum ada aturan, termasuk arsip."
+          : "Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian."}
+      </p>
+      {!showArchived && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button
+            className="h-11 text-base"
+            onClick={() => onCreate({ type: "income", isPayday: true })}
+          >
+            Tambah gaji
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-11 text-base"
+            onClick={() => onCreate({ type: "expense" })}
+          >
+            Tambah tagihan
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type RuleGroupsProps = {
+  rules: RecurringRule[];
+  accountNames: Map<string, string>;
+  today: string;
+  online: boolean;
+  onEdit: (id: string) => void;
+  onRecord: (id: string) => void;
+  onArchive: (rule: RecurringRule) => void;
+};
+
+function RuleGroups({
+  rules,
+  accountNames,
+  today,
+  online,
+  onEdit,
+  onRecord,
+  onArchive,
+}: RuleGroupsProps) {
+  return RECURRING_GROUPS.map(({ type, label }) => {
+    const rows = rules.filter((r) => r.type === type);
+    if (rows.length === 0) return null;
+    return (
+      <section key={type} aria-labelledby={`recurring-${type}`}>
+        <h2
+          id={`recurring-${type}`}
+          className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+        >
+          {label}
+        </h2>
+        <ul className="surface divide-y px-4">
+          {rows.map((rule) => (
+            <RuleRow
+              key={rule.id}
+              rule={rule}
+              accountName={accountNames.get(rule.accountId) ?? "Akun"}
+              today={today}
+              onEdit={rule.archivedAt ? undefined : () => onEdit(rule.id)}
+            >
+              {rule.archivedAt ? (
+                <RestoreButton name={rule.name} restore={() => restoreRule(rule.id)} />
+              ) : (
+                <>
+                  {/* Always visible, not in the menu; filled once the occurrence is due. */}
+                  <Button
+                    variant={rule.nextDueDate <= today ? "default" : "outline"}
+                    className="h-11 px-4 text-base"
+                    disabled={!online}
+                    onClick={() => onRecord(rule.id)}
+                  >
+                    Catat
+                  </Button>
+                  <RowMenu rule={rule} online={online} onArchive={() => onArchive(rule)} />
+                </>
+              )}
+            </RuleRow>
+          ))}
+        </ul>
+      </section>
+    );
+  });
+}
+
 export function RecurringView() {
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
@@ -110,15 +201,9 @@ export function RecurringView() {
 
   const rules = recurring.data?.rules.filter((r) => !archiving.has(r.id));
   const editingRule =
-    editing?.kind === "edit"
-      ? recurring.data?.rules.find((r) => r.id === editing.id)
-      : undefined;
-  const recording = recurring.data?.rules.find(
-    (r) => r.id === recordingId && !r.archivedAt,
-  );
-  const currentPayday = recurring.data?.rules.find(
-    (r) => r.isPayday && !r.archivedAt,
-  );
+    editing?.kind === "edit" ? recurring.data?.rules.find((r) => r.id === editing.id) : undefined;
+  const recording = recurring.data?.rules.find((r) => r.id === recordingId && !r.archivedAt);
+  const currentPayday = recurring.data?.rules.find((r) => r.isPayday && !r.archivedAt);
   const close = () => setEditing(null);
 
   function settle(id: string) {
@@ -157,93 +242,23 @@ export function RecurringView() {
     content = <ViewSkeleton />;
   } else if (rules.length === 0) {
     content = (
-      <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
-        <p className="text-muted-foreground">
-          {showArchived
-            ? "Belum ada aturan, termasuk arsip."
-            : "Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian."}
-        </p>
-        {!showArchived && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button
-              className="h-11 text-base"
-              onClick={() =>
-                setEditing({
-                  kind: "create",
-                  preset: { type: "income", isPayday: true },
-                })
-              }
-            >
-              Tambah gaji
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-11 text-base"
-              onClick={() =>
-                setEditing({ kind: "create", preset: { type: "expense" } })
-              }
-            >
-              Tambah tagihan
-            </Button>
-          </div>
-        )}
-      </div>
+      <EmptyRules
+        showArchived={showArchived}
+        onCreate={(preset) => setEditing({ kind: "create", preset })}
+      />
     );
   } else {
-    content = RECURRING_GROUPS.map(({ type, label }) => {
-      const rows = rules.filter((r) => r.type === type);
-      if (rows.length === 0) return null;
-      return (
-        <section key={type} aria-labelledby={`recurring-${type}`}>
-          <h2
-            id={`recurring-${type}`}
-            className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
-          >
-            {label}
-          </h2>
-          <ul className="surface divide-y px-4">
-            {rows.map((rule) => (
-              <RuleRow
-                key={rule.id}
-                rule={rule}
-                accountName={accountNames.get(rule.accountId) ?? "Akun"}
-                today={today}
-                onEdit={
-                  rule.archivedAt
-                    ? undefined
-                    : () => setEditing({ kind: "edit", id: rule.id })
-                }
-              >
-                {rule.archivedAt ? (
-                  <RestoreButton
-                    name={rule.name}
-                    restore={() => restoreRule(rule.id)}
-                  />
-                ) : (
-                  <>
-                    {/* Always visible, not in the menu; filled once the occurrence is due. */}
-                    <Button
-                      variant={rule.nextDueDate <= today ? "default" : "outline"}
-                      className="h-11 px-4 text-base"
-                      disabled={!online}
-                      onClick={() => setRecordingId(rule.id)}
-                    >
-                      Catat
-                    </Button>
-                    <RowMenu
-                      rule={rule}
-                      online={online}
-                      onArchive={() => void archive(rule)}
-                    />
-                  </>
-                )}
-              </RuleRow>
-            ))}
-          </ul>
-        </section>
-      );
-    });
+    content = (
+      <RuleGroups
+        rules={rules}
+        accountNames={accountNames}
+        today={today}
+        online={online}
+        onEdit={(id) => setEditing({ kind: "edit", id })}
+        onRecord={setRecordingId}
+        onArchive={(rule) => void archive(rule)}
+      />
+    );
   }
 
   const formOpen = editing?.kind === "create" || !!editingRule;
@@ -303,20 +318,19 @@ export function RecurringView() {
         }
       >
         {formOpen && (
-          <RecurringForm
-            key={editingRule?.id ?? "create"}
-            rule={editingRule}
-            preset={editing?.kind === "create" ? editing.preset : undefined}
-            currentPayday={currentPayday}
-            today={today}
-            onDone={close}
-          />
+          <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+            <RecurringForm
+              key={editingRule?.id ?? "create"}
+              rule={editingRule}
+              preset={editing?.kind === "create" ? editing.preset : undefined}
+              currentPayday={currentPayday}
+              today={today}
+              onDone={close}
+            />
+          </Suspense>
         )}
       </ResponsiveModal>
-      <RecordOccurrenceModal
-        rule={recording}
-        onClose={() => setRecordingId(null)}
-      />
+      <RecordOccurrenceModal rule={recording} onClose={() => setRecordingId(null)} />
     </>
   );
 }

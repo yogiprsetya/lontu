@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
 import { useProfile } from "@/hooks/use-profile";
@@ -8,14 +9,24 @@ import { sendJSON } from "@/lib/fetcher";
 import { submitTransaction } from "@/lib/offline/submission";
 import { removeFromPages } from "@/lib/transaction-cache";
 import { filtersToSearchParams, type ListFilters } from "@/lib/transaction-filters";
-import type { Transaction, TransactionCreateInput, TransactionPage, TransactionTotals, TransactionUpdateInput } from "@/lib/schemas/transaction";
+import type {
+  Transaction,
+  TransactionCreateInput,
+  TransactionPage,
+  TransactionTotals,
+  TransactionUpdateInput,
+} from "@/lib/schemas/transaction";
 
 export function isInfiniteTransactionsKey(key: unknown) {
   return isResourceKey("transactions", key) && (key as string).startsWith("$inf$");
 }
 
 /** `getKey` for useSWRInfinite: null once the previous page has no next cursor. */
-export function transactionsPageKey(pageIndex: number, previous: TransactionPage | null, filters?: ListFilters) {
+export function transactionsPageKey(
+  pageIndex: number,
+  previous: TransactionPage | null,
+  filters?: ListFilters,
+) {
   const params = filters ? filtersToSearchParams(filters) : new URLSearchParams();
   if (pageIndex > 0 && previous) {
     if (!previous.nextCursor) return null;
@@ -25,11 +36,15 @@ export function transactionsPageKey(pageIndex: number, previous: TransactionPage
 }
 
 export function useTransactions(filters: ListFilters) {
-  const swr = useSWRInfinite<TransactionPage>((index, previous) => transactionsPageKey(index, previous, filters));
+  const swr = useSWRInfinite<TransactionPage>((index, previous) =>
+    transactionsPageKey(index, previous, filters),
+  );
   const pages = swr.data;
+  // Stable between renders so callers can memoize on it.
+  const items = useMemo(() => pages?.flatMap((p) => p.items), [pages]);
   return {
     ...swr,
-    items: pages?.flatMap((p) => p.items),
+    items,
     hasMore: !!pages?.at(-1)?.nextCursor,
     isLoadingMore: !!pages && swr.size > 0 && typeof pages[swr.size - 1] === "undefined",
   };

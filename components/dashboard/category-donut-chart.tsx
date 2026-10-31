@@ -13,7 +13,15 @@ export default function CategoryDonutChart({ slices, centerLabel }: Props) {
     <div className="relative mx-auto size-48" aria-hidden>
       <ChartContainer config={config} className="aspect-square size-48">
         <PieChart accessibilityLayer={false}>
-          <Pie data={slices} dataKey="amount" nameKey="key" innerRadius="62%" outerRadius="100%" strokeWidth={2} isAnimationActive={false}>
+          <Pie
+            data={slices}
+            dataKey="amount"
+            nameKey="key"
+            innerRadius="62%"
+            outerRadius="100%"
+            strokeWidth={2}
+            isAnimationActive={false}
+          >
             {slices.map((slice) => (
               <Cell key={slice.key} fill={slice.color} className="stroke-background" />
             ))}
@@ -22,7 +30,9 @@ export default function CategoryDonutChart({ slices, centerLabel }: Props) {
       </ChartContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-10 text-center">
         <span className="text-xs text-muted-foreground">Total</span>
-        <span className="max-w-full truncate text-sm font-semibold tabular-nums">{centerLabel}</span>
+        <span className="max-w-full truncate text-sm font-semibold tabular-nums">
+          {centerLabel}
+        </span>
       </div>
     </div>
   );

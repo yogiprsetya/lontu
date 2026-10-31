@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-form";
+import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,15 @@ type CategoryPickerProps = {
 };
 
 /** Active categories of one kind; spending is grouped into Needs and Wants. */
-export function CategoryPicker({ id, kind, keep, value, onChange, invalid, describedBy }: CategoryPickerProps) {
+export function CategoryPicker({
+  id,
+  kind,
+  keep,
+  value,
+  onChange,
+  invalid,
+  describedBy,
+}: CategoryPickerProps) {
   const { data: all, error, mutate } = useCategories({ kind, includeArchived: !!keep });
   const data = all && selectableItems(all, keep);
   const open = useUIStore((s) => s.open);
@@ -74,17 +82,21 @@ export function CategoryPicker({ id, kind, keep, value, onChange, invalid, descr
         <SelectValue placeholder="Pilih kategori" />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
-        {kind === "spending"
-          ? SPENDING_TYPES.map(
-              (type) =>
-                groups[type].length > 0 && (
-                  <SelectGroup key={type}>
-                    <SelectLabel className="text-sm font-semibold">{SPENDING_TYPE_LABELS[type]}</SelectLabel>
-                    <CategoryItems categories={groups[type]} />
-                  </SelectGroup>
-                ),
-            )
-          : <CategoryItems categories={data} />}
+        {kind === "spending" ? (
+          SPENDING_TYPES.map(
+            (type) =>
+              groups[type].length > 0 && (
+                <SelectGroup key={type}>
+                  <SelectLabel className="text-sm font-semibold">
+                    {SPENDING_TYPE_LABELS[type]}
+                  </SelectLabel>
+                  <CategoryItems categories={groups[type]} />
+                </SelectGroup>
+              ),
+          )
+        ) : (
+          <CategoryItems categories={data} />
+        )}
       </SelectContent>
     </Select>
   );

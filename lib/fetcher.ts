@@ -40,6 +40,11 @@ export async function sendJSON<T = unknown>(
   const init: RequestInit =
     body === undefined
       ? { method, signal }
-      : { method, signal, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
+      : {
+          method,
+          signal,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        };
   return parse<T>(await fetch(url, init));
 }

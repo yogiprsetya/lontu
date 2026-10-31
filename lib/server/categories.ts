@@ -3,7 +3,12 @@ import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { DEFAULT_CATEGORIES } from "@/lib/default-categories";
-import type { Category, CategoryCreateInput, CategoryKind, SpendingType } from "@/lib/schemas/category";
+import type {
+  Category,
+  CategoryCreateInput,
+  CategoryKind,
+  SpendingType,
+} from "@/lib/schemas/category";
 
 type Executor = Pick<typeof db, "execute">;
 
@@ -51,11 +56,15 @@ async function selectCategories(where: SQL | undefined): Promise<Category[]> {
 }
 
 export function listCategories(userId: string, { includeArchived = false } = {}) {
-  return selectCategories(and(eq(categories.userId, userId), includeArchived ? undefined : isNull(categories.archivedAt)));
+  return selectCategories(
+    and(eq(categories.userId, userId), includeArchived ? undefined : isNull(categories.archivedAt)),
+  );
 }
 
 export async function getCategory(userId: string, id: string): Promise<Category | undefined> {
-  const [category] = await selectCategories(and(eq(categories.userId, userId), eq(categories.id, id)));
+  const [category] = await selectCategories(
+    and(eq(categories.userId, userId), eq(categories.id, id)),
+  );
   return category;
 }
 

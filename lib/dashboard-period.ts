@@ -30,6 +30,9 @@ export function dashboardRanges(period: DashboardPeriod, today: string) {
   const lastDay = fullRange(sameMonthBefore).to;
   return {
     range: { from: range.from, to: today },
-    previous: { period: prev, range: { from: previous.range.from, to: sameDay < lastDay ? sameDay : lastDay } },
+    previous: {
+      period: prev,
+      range: { from: previous.range.from, to: sameDay < lastDay ? sameDay : lastDay },
+    },
   };
 }

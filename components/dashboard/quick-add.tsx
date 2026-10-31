@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TYPE_STYLES } from "@/components/transactions/type-chip";
+import { TYPE_STYLES } from "@/components/transactions/type-styles";
 import { cn } from "@/lib/utils";
 import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 

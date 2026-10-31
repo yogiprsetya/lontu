@@ -20,7 +20,10 @@ export type OutboxItem = {
 const PREFIX = "outbox:";
 const keyOf = (id: string) => `${PREFIX}${id}`;
 
-export function createOutbox(store: KeyValueStore = browserStore, now: () => Date = () => new Date()) {
+export function createOutbox(
+  store: KeyValueStore = browserStore,
+  now: () => Date = () => new Date(),
+) {
   const listeners = new Set<() => void>();
   const notify = () => listeners.forEach((listener) => listener());
 
@@ -35,7 +38,14 @@ export function createOutbox(store: KeyValueStore = browserStore, now: () => Dat
     /** A second enqueue of the same id keeps the first item. */
     async enqueue(userId: string, body: OutboxBody) {
       if (await store.get(keyOf(body.id))) return;
-      const item: OutboxItem = { id: body.id, userId, body, createdAt: now().toISOString(), status: "pending", attempts: 0 };
+      const item: OutboxItem = {
+        id: body.id,
+        userId,
+        body,
+        createdAt: now().toISOString(),
+        status: "pending",
+        attempts: 0,
+      };
       await store.set(keyOf(body.id), item);
       notify();
     },
@@ -45,7 +55,8 @@ export function createOutbox(store: KeyValueStore = browserStore, now: () => Dat
         .map(([, item]) => item)
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
-    markFailed: (id: string, error: OutboxError) => update(id, (item) => ({ ...item, status: "failed", error })),
+    markFailed: (id: string, error: OutboxError) =>
+      update(id, (item) => ({ ...item, status: "failed", error })),
     retry: (id: string) => update(id, (item) => ({ ...item, status: "pending", error: undefined })),
     bump: (id: string) => update(id, (item) => ({ ...item, attempts: item.attempts + 1 })),
     async remove(id: string) {

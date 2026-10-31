@@ -10,7 +10,7 @@ Keputusan budget bernama tertulis di spec dan disetujui Yogi sebelum ada kode. D
 
 - [x] T107: Revisi spec dan persetujuan (S, dokumen saja, berhenti untuk Yogi)
 - [x] T108: Hapus saran 50/30/20 (M, hanya penghapusan)
-- [ ] T109: Hapus salin dari bulan lalu (M, hanya penghapusan)
+- [x] T109: Hapus salin dari bulan lalu (M, hanya penghapusan)
 
 Urutan: T107 dulu. T108 dan T109 bebas urutan, satu commit masing-masing.
 

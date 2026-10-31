@@ -76,14 +76,14 @@ type BudgetUsage = { period: BudgetPeriod; items: BudgetUsageItem[]; unbudgeted:
 
 **Acceptance criteria:**
 
-- [ ] `rg -n "copyBudgets|budgetCopySchema|copyFromPreviousMonth|copyResultMessage|MonthActions|NoBudgetsPrompt" app components hooks lib tests` kosong
-- [ ] Header `/budget` hanya stepper bulan
-- [ ] Batas 2000-01 tetap dites di `tests/unit/period.spec.ts`; tes yang hilang hanya tes salin
+- [x] `rg -n "copyBudgets|budgetCopySchema|copyFromPreviousMonth|copyResultMessage|MonthActions|NoBudgetsPrompt" app components hooks lib tests` kosong
+- [x] Header `/budget` hanya stepper bulan
+- [x] Batas 2000-01 tetap dites di `tests/unit/period.spec.ts`; tes yang hilang hanya tes salin
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual 360×800: header tanpa menu, bulan kosong menampilkan teks
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual 360×800 (tertunda: sesi tanpa browser): header tanpa menu, bulan kosong menampilkan teks
 
 **Dependencies:** T107 (setelah T108 bila `month-actions.tsx` dihapus di sini)
 

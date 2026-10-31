@@ -75,5 +75,3 @@ export const budgetSetSchema = z.strictObject({
 });
 
 export type BudgetSetInput = z.infer<typeof budgetSetSchema>;
-
-export const budgetCopySchema = z.strictObject({ to: budgetPeriodSchema });

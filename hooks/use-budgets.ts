@@ -35,10 +35,3 @@ export async function restoreBudget(id: string) {
   await invalidate("budgets");
   return restored;
 }
-
-/** Fills `to` from the month before; only categories without an active budget are touched. */
-export async function copyBudgets(to: BudgetPeriod) {
-  const result = await sendJSON<{ copied: number }>("/api/budgets/copy", "POST", { to });
-  await invalidate("budgets");
-  return result;
-}

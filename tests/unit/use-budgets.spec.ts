@@ -7,8 +7,7 @@ vi.mock("swr", async (importOriginal) => ({
 }));
 
 const { mutate } = await import("swr");
-const { budgetsKey, copyBudgets, deleteBudget, restoreBudget, setBudgets } =
-  await import("@/hooks/use-budgets");
+const { budgetsKey, deleteBudget, restoreBudget, setBudgets } = await import("@/hooks/use-budgets");
 const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
@@ -143,18 +142,6 @@ describe("deleteBudget", () => {
     expect(fetch).toHaveBeenCalledWith(
       "/api/budgets/budget-makan/restore",
       expect.objectContaining({ method: "POST" }),
-    );
-    expect(revalidated(budgetKey)).toBe(true);
-  });
-});
-
-describe("copyBudgets", () => {
-  it("posts the target month and refreshes budget usage", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ copied: 2 }));
-    expect(await copyBudgets("2026-10")).toEqual({ copied: 2 });
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/budgets/copy",
-      expect.objectContaining({ method: "POST", body: JSON.stringify({ to: "2026-10" }) }),
     );
     expect(revalidated(budgetKey)).toBe(true);
   });

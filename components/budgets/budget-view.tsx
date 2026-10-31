@@ -4,11 +4,6 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
-import {
-  copyFromPreviousMonth,
-  previousMonthLabel,
-} from "@/components/budgets/copy-from-previous-month";
-import { MonthActions } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
@@ -36,17 +31,6 @@ function ViewSkeleton() {
       {Array.from({ length: 5 }, (_, i) => (
         <Skeleton key={i} className="h-16 w-full rounded-2xl" />
       ))}
-    </div>
-  );
-}
-
-function NoBudgetsPrompt({ period }: { period: BudgetPeriod }) {
-  return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
-      <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
-      <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
-        Salin dari {previousMonthLabel(period)}
-      </Button>
     </div>
   );
 }
@@ -143,7 +127,11 @@ export function BudgetView() {
     const { items, summary } = usage.data;
     content = (
       <>
-        {items.every((i) => i.budget === null) && <NoBudgetsPrompt period={period} />}
+        {items.every((i) => i.budget === null) && (
+          <p className="rounded-2xl border-2 border-dashed px-6 py-8 text-center text-muted-foreground">
+            Belum ada budget untuk {formatPeriodLabel(period)}.
+          </p>
+        )}
         <BudgetSummary summary={summary} />
         <BudgetGroups items={items} names={names} archived={archived} onEdit={setEditingId} />
       </>
@@ -154,7 +142,6 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
-        <MonthActions period={period} />
       </div>
       {content}
       <ResponsiveModal

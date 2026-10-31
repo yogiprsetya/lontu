@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TransactionForm } from "@/components/forms/transaction-form";
-import { TransferForm } from "@/components/forms/transfer-form";
+import { CreateTransactionForm } from "@/components/forms/transaction-form";
+import { CreateTransferForm } from "@/components/forms/transfer-form";
 import { PageTitle } from "@/components/layout/page-title";
 import { TypeChip } from "@/components/transactions/type-chip";
 import {
@@ -29,7 +29,7 @@ export default async function AddTransactionPage({ params }: PageProps<"/add/[ty
         <TypeChip type={type} />
         Tambah {TRANSACTION_TYPE_LABELS[type]}
       </PageTitle>
-      {type === "transfer" ? <TransferForm /> : <TransactionForm type={type} />}
+      {type === "transfer" ? <CreateTransferForm /> : <CreateTransactionForm type={type} />}
     </main>
   );
 }

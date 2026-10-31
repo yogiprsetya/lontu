@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
-import { TransactionForm } from "@/components/forms/transaction-form";
-import { TransferForm } from "@/components/forms/transfer-form";
+import { EditTransactionForm } from "@/components/forms/transaction-form";
+import { EditTransferForm } from "@/components/forms/transfer-form";
 import { AdjustmentCard } from "@/components/transactions/adjustment-card";
 import { LoadError } from "@/components/settings/load-error";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -75,11 +75,11 @@ export function TransactionEditor({ id }: { id: string }) {
   return (
     <>
       {data.type === "transfer" ? (
-        <TransferForm transaction={data} />
+        <EditTransferForm transaction={data} />
       ) : data.type === "adjustment" ? (
         <AdjustmentCard transaction={data} />
       ) : (
-        <TransactionForm type={data.type} transaction={data} />
+        <EditTransactionForm type={data.type} transaction={data} />
       )}
       <DeleteButton id={data.id} />
     </>

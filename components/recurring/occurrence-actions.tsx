@@ -6,8 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 
 // Loaded on the first Catat: the form and its pickers would otherwise ship with the dashboard.
-const TransactionForm = lazy(() =>
-  import("@/components/forms/transaction-form").then((m) => ({ default: m.TransactionForm })),
+const RecordOccurrenceForm = lazy(() =>
+  import("@/components/forms/transaction-form").then((m) => ({
+    default: m.RecordOccurrenceForm,
+  })),
 );
 
 /** Catat: the transaction form for the rule's next occurrence, in a modal. */
@@ -26,10 +28,11 @@ export function RecordOccurrenceModal({
     >
       {rule && (
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
-          <TransactionForm
+          <RecordOccurrenceForm
             key={`${rule.id}-${rule.nextDueDate}`}
-            type={rule.type}
-            recurring={{ rule, occurrenceDate: rule.nextDueDate, onDone: onClose }}
+            rule={rule}
+            occurrenceDate={rule.nextDueDate}
+            onDone={onClose}
           />
         </Suspense>
       )}

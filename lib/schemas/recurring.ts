@@ -87,7 +87,7 @@ const occurrenceDate = z.iso.date("Tanggal kejadian tidak valid");
 
 const { date, description } = simpleCreateSchema.shape;
 
-// Flat post fields so `fields` maps straight onto TransactionForm via applyServerErrors.
+// Flat post fields so `fields` maps straight onto RecordOccurrenceForm via applyServerErrors.
 export const recurringAdvanceSchema = z.discriminatedUnion(
   "action",
   [

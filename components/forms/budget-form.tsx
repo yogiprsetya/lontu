@@ -7,13 +7,17 @@ import { SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { inputClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createBudget, updateBudget } from "@/hooks/use-budgets";
+import { createBudget, deleteBudget, restoreBudget, updateBudget } from "@/hooks/use-budgets";
 import { budgetCategoryOptions, budgetPatch } from "@/lib/budget-format";
+import { ApiError } from "@/lib/fetcher";
 import { applyServerErrors } from "@/lib/form-errors";
+import { formatPeriodLabel } from "@/lib/period";
 import { failureMessage } from "@/lib/offline/network-error";
+import { undoToast } from "@/lib/undo-toast";
 import { budgetCreateSchema, type BudgetCreateInput } from "@/lib/schemas/budget";
 import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import { SPENDING_TYPES, type Category, type SpendingType } from "@/lib/schemas/category";
@@ -39,7 +43,7 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
     handleSubmit,
     setError,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BudgetCreateInput>({
     resolver: zodResolver(budgetCreateSchema),
     defaultValues: initial
@@ -70,6 +74,25 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
         toast.error(failureMessage(err, "Gagal menyimpan budget. Coba lagi."));
     }
   });
+
+  // The budget leaves the list at once (optimistic), so the sheet closes before the server answers.
+  async function onDelete(id: string) {
+    onDone();
+    try {
+      await deleteBudget(usage.period, id);
+      undoToast({
+        message: "Budget dihapus",
+        restore: () =>
+          restoreBudget(id).catch((err: unknown) => {
+            // Its name or categories went to another budget meanwhile; the server says which.
+            if (err instanceof ApiError && err.status === 409) toast.error(err.message);
+            else throw err;
+          }),
+      });
+    } catch (err) {
+      toast.error(failureMessage(err, "Gagal menghapus budget. Coba lagi."));
+    }
+  }
 
   return (
     <form id="budget-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
@@ -193,6 +216,23 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
           </fieldset>
         )}
       />
+
+      {budget && (
+        <div className="flex flex-col gap-2 border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 text-base text-destructive"
+            disabled={isSubmitting}
+            onClick={() => void onDelete(budget.budgetId)}
+          >
+            Hapus budget
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Berakhir mulai {formatPeriodLabel(usage.period)}. Bulan sebelumnya tetap.
+          </p>
+        </div>
+      )}
     </form>
   );
 }

@@ -34,14 +34,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `endBudgetInUsage` dites murni: item keluar, `unbudgeted` dan `summary` sama dengan hasil server untuk data yang sama; id tak dikenal → data tidak berubah
-- [ ] `DELETE` gagal → baris kembali dan toast galat (dites dengan mock `mutate`/`sendJSON` seperti `use-budgets.spec.ts` sekarang)
-- [ ] Tidak ada data budget di Zustand
+- [x] `endBudgetInUsage` dites murni: item keluar, `unbudgeted` dan `summary` sama dengan hasil server untuk data yang sama; id tak dikenal → data tidak berubah
+- [x] `DELETE` gagal → baris kembali dan toast galat (dites dengan mock `mutate`/`sendJSON` seperti `use-budgets.spec.ts` sekarang)
+- [x] Tidak ada data budget di Zustand
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-cache.spec.ts tests/unit/use-budgets.spec.ts` hijau
-- [ ] Manual: hapus → baris hilang seketika, "tanpa budget" bertambah; Urungkan mengembalikannya
+- [x] `pnpm vitest run tests/unit/budget-cache.spec.ts tests/unit/use-budgets.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): hapus → baris hilang seketika, "tanpa budget" bertambah; Urungkan mengembalikannya
 
 **Dependencies:** T116, T117
 

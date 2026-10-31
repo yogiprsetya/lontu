@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BudgetUsage } from "@/lib/schemas/budget";
+import type { BudgetUsage as NamedBudgetUsage } from "@/lib/schemas/budget-usage";
 
 vi.mock("swr", async (importOriginal) => ({
   ...(await importOriginal<typeof import("swr")>()),
@@ -102,61 +102,64 @@ describe("cross-module revalidation", () => {
 });
 
 describe("deleteBudget", () => {
-  const usage: BudgetUsage = {
+  const usageKey = "/api/budgets/usage?period=2026-10";
+  const usage: NamedBudgetUsage = {
     period: "2026-10",
     items: [
       {
-        categoryId: "makan",
-        spendingType: "needs",
-        budgetId: "budget-makan",
+        budgetId: "budget-jajan",
+        name: "Jajan",
+        spendingType: "wants",
         budget: 100,
         spent: 50,
         remaining: 50,
         percent: 50,
         status: "ok",
+        categories: [{ categoryId: "jajan", spent: 50 }],
       },
     ],
+    unbudgeted: [],
     summary: {
-      needs: { budget: 100, spent: 50, unbudgetedSpent: 0 },
-      wants: { budget: 0, spent: 0, unbudgetedSpent: 0 },
+      needs: { budget: 0, spent: 0, unbudgetedSpent: 0 },
+      wants: { budget: 100, spent: 50, unbudgetedSpent: 0 },
       total: { budget: 100, spent: 50, unbudgetedSpent: 0 },
     },
   };
 
   function optimisticUpdate() {
-    const call = mockedMutate.mock.calls.find(([key]) => key === budgetKey);
+    const call = mockedMutate.mock.calls.find(([key]) => key === usageKey);
     expect(call, "the month's usage should be updated before the request").toBeDefined();
     expect(call![2]).toEqual({ revalidate: false });
-    return call![1] as (current?: BudgetUsage) => BudgetUsage | undefined;
+    return call![1] as (current?: NamedBudgetUsage) => NamedBudgetUsage | undefined;
   }
 
-  it("clears the budget in the month's cache at once, sends DELETE, then revalidates", async () => {
-    await deleteBudget("2026-10", "budget-makan");
+  it("ends the budget in the month's cache at once, sends DELETE, then revalidates", async () => {
+    await deleteBudget("2026-10", "budget-jajan");
     const next = optimisticUpdate()(usage)!;
-    expect(next.items[0]).toMatchObject({ budgetId: null, budget: null, status: "none" });
-    expect(next.summary.total).toEqual({ budget: 0, spent: 50, unbudgetedSpent: 50 });
+    expect(next.items).toEqual([]);
+    expect(next.unbudgeted).toEqual([{ categoryId: "jajan", spendingType: "wants", spent: 50 }]);
     expect(fetch).toHaveBeenCalledWith(
-      "/api/budgets/budget-makan",
+      "/api/budgets/budget-jajan",
       expect.objectContaining({ method: "DELETE" }),
     );
-    expect(revalidated(budgetKey)).toBe(true);
+    expect(revalidated(usageKey)).toBe(true);
   });
 
   it("revalidates to roll back and rethrows when the server refuses", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       Response.json({ error: { code: "INTERNAL", message: "x" } }, { status: 500 }),
     );
-    await expect(deleteBudget("2026-10", "budget-makan")).rejects.toMatchObject({ status: 500 });
-    expect(revalidated(budgetKey)).toBe(true);
+    await expect(deleteBudget("2026-10", "budget-jajan")).rejects.toMatchObject({ status: 500 });
+    expect(revalidated(usageKey)).toBe(true);
   });
 
   it("restoreBudget posts to restore and revalidates", async () => {
-    await restoreBudget("budget-makan");
+    await restoreBudget("budget-jajan");
     expect(fetch).toHaveBeenCalledWith(
-      "/api/budgets/budget-makan/restore",
+      "/api/budgets/budget-jajan/restore",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(revalidated(budgetKey)).toBe(true);
+    expect(revalidated(usageKey)).toBe(true);
   });
 });
 

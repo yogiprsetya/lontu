@@ -43,6 +43,25 @@ describe("createMediaQueryStore", () => {
     expect(media.listenerCount()).toBe(0);
   });
 
+  it("shares one listener per query across stores and subscribers", () => {
+    const media = fakeMatchMedia(false);
+    const first = vi.fn();
+    const second = vi.fn();
+
+    const unsubscribeFirst = createMediaQueryStore("(min-width: 1024px)").subscribe(first);
+    const unsubscribeSecond = createMediaQueryStore("(min-width: 1024px)").subscribe(second);
+    expect(media.listenerCount()).toBe(1);
+
+    media.set(true);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+
+    unsubscribeFirst();
+    expect(media.listenerCount()).toBe(1);
+    unsubscribeSecond();
+    expect(media.listenerCount()).toBe(0);
+  });
+
   it("assumes no match on the server so mobile renders first", () => {
     expect(createMediaQueryStore("(min-width: 1024px)").getServerSnapshot()).toBe(false);
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import useSWR from "swr";
 import useSWRInfinite from "swr/infinite";
 import { useProfile } from "@/hooks/use-profile";
@@ -39,9 +40,11 @@ export function useTransactions(filters: ListFilters) {
     transactionsPageKey(index, previous, filters),
   );
   const pages = swr.data;
+  // Stable between renders so callers can memoize on it.
+  const items = useMemo(() => pages?.flatMap((p) => p.items), [pages]);
   return {
     ...swr,
-    items: pages?.flatMap((p) => p.items),
+    items,
     hasMore: !!pages?.at(-1)?.nextCursor,
     isLoadingMore: !!pages && swr.size > 0 && typeof pages[swr.size - 1] === "undefined",
   };

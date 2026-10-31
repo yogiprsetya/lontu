@@ -83,6 +83,10 @@ export function budgetNotFound() {
   return notFound("BUDGET_NOT_FOUND", "Budget tidak ditemukan");
 }
 
+export function budgetNameTaken() {
+  return conflict("BUDGET_NAME_TAKEN", "Nama budget sudah dipakai budget lain bulan ini.");
+}
+
 export function ruleNotFound() {
   return notFound("RULE_NOT_FOUND", "Aturan tidak ditemukan");
 }

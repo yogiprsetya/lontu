@@ -1,10 +1,17 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { budgets } from "@/db/schema";
+import { budgets, budgetVersions, categories } from "@/db/schema";
+import { todayInJakarta } from "@/lib/date";
 import { periodToYearMonth, yearMonthToPeriod } from "@/lib/period";
-import type { Budget, BudgetSetInput } from "@/lib/schemas/budget";
+import type {
+  Budget,
+  BudgetCreateInput,
+  BudgetSetInput,
+  BudgetVersion,
+} from "@/lib/schemas/budget";
+import type { SpendingType } from "@/lib/schemas/category";
 import { findOwnedCategories } from "@/lib/server/ownership";
 
 type Row = typeof budgets.$inferSelect;
@@ -71,3 +78,116 @@ async function setDeleted(
 export const softDeleteBudget = (userId: string, id: string) => setDeleted(userId, id, true);
 // Allowed even when the category is archived: it brings back an old budget, not a new one.
 export const restoreBudget = (userId: string, id: string) => setDeleted(userId, id, false);
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type VersionRow = typeof budgetVersions.$inferSelect;
+
+export type InvalidCategories = { invalid: { field: "categoryIds"; message: string } };
+export type BudgetWriteResult = BudgetVersion | InvalidCategories | { nameTaken: true };
+
+const invalidCategories = (message: string): InvalidCategories => ({
+  invalid: { field: "categoryIds", message },
+});
+
+function toBudgetVersion(row: VersionRow): BudgetVersion {
+  return {
+    id: row.budgetId,
+    name: row.name,
+    spendingType: row.spendingType as SpendingType,
+    amount: row.amount,
+    categoryIds: row.categoryIds,
+    period: yearMonthToPeriod(row.year, row.month),
+    deletedAt: row.deletedAt?.toISOString() ?? null,
+  };
+}
+
+/**
+ * Serializes every budget write of one user until commit, so two requests cannot both pass
+ * the "one category, one budget" check. Transaction-scoped, so it suits the pooler.
+ */
+async function lockBudgets(tx: Tx, userId: string) {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${userId}))`);
+}
+
+/** Each budget's latest version at or before `period`, ended ones included. */
+async function effectiveVersions(tx: Tx, userId: string, period: string) {
+  const { year, month } = periodToYearMonth(period);
+  return tx
+    .selectDistinctOn([budgetVersions.budgetId])
+    .from(budgetVersions)
+    .where(
+      and(
+        eq(budgetVersions.userId, userId),
+        sql`(${budgetVersions.year}, ${budgetVersions.month}) <= (${year}::int, ${month}::int)`,
+      ),
+    )
+    .orderBy(budgetVersions.budgetId, desc(budgetVersions.year), desc(budgetVersions.month));
+}
+
+/**
+ * Categories must be the user's, spending, of the budget's type, and active unless `kept`
+ * (already in the budget's effective version). One message for every failure, so nothing leaks.
+ */
+async function checkCategories(
+  userId: string,
+  ids: string[],
+  spendingType: SpendingType,
+  kept: ReadonlySet<string> = new Set(),
+) {
+  const rows = await db
+    .select({
+      id: categories.id,
+      kind: categories.kind,
+      spendingType: categories.spendingType,
+      archivedAt: categories.archivedAt,
+    })
+    .from(categories)
+    .where(and(eq(categories.userId, userId), inArray(categories.id, ids)));
+  const valid = new Set(
+    rows
+      .filter(
+        (c) =>
+          c.kind === "spending" &&
+          c.spendingType === spendingType &&
+          (!c.archivedAt || kept.has(c.id)),
+      )
+      .map((c) => c.id),
+  );
+  return ids.every((id) => valid.has(id)) ? undefined : invalidCategories("Kategori tidak valid");
+}
+
+/** Another budget shown this month already has one of the categories or the name. */
+function clash(
+  shown: VersionRow[],
+  { name, categoryIds }: { name: string; categoryIds: string[] },
+  self?: string,
+): InvalidCategories | { nameTaken: true } | undefined {
+  const others = shown.filter((v) => v.budgetId !== self && !v.deletedAt);
+  const taken = new Set(others.flatMap((v) => v.categoryIds));
+  if (categoryIds.some((id) => taken.has(id)))
+    return invalidCategories("Kategori sudah dipakai budget lain");
+  if (others.some((v) => v.name.toLowerCase() === name.toLowerCase())) return { nameTaken: true };
+}
+
+const currentPeriod = () => todayInJakarta().slice(0, 7);
+
+export async function createBudget(
+  userId: string,
+  input: BudgetCreateInput,
+): Promise<BudgetWriteResult> {
+  const period = currentPeriod();
+  const invalid = await checkCategories(userId, input.categoryIds, input.spendingType);
+  if (invalid) return invalid;
+
+  return db.transaction(async (tx) => {
+    await lockBudgets(tx, userId);
+    const rejected = clash(await effectiveVersions(tx, userId, period), input);
+    if (rejected) return rejected;
+
+    const [row] = await tx
+      .insert(budgetVersions)
+      .values({ userId, budgetId: crypto.randomUUID(), ...periodToYearMonth(period), ...input })
+      .returning();
+    return toBudgetVersion(row);
+  });
+}

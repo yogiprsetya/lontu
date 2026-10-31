@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { BudgetStatus } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
-import type { SpendingType } from "@/lib/schemas/category";
+import { SPENDING_TYPES, type SpendingType } from "@/lib/schemas/category";
 import { MIN_PERIOD_YEAR, shiftPeriod, type MonthPeriod } from "@/lib/period";
 
 /** Stored as `year` + `month` columns. */
@@ -75,3 +75,38 @@ export const budgetSetSchema = z.strictObject({
 });
 
 export type BudgetSetInput = z.infer<typeof budgetSetSchema>;
+
+/** One version of a named budget; `id` is the budget's id, the same across its versions. */
+export type BudgetVersion = {
+  id: string;
+  name: string;
+  spendingType: SpendingType;
+  amount: number;
+  categoryIds: string[];
+  /** The month this version takes effect. */
+  period: BudgetPeriod;
+  deletedAt: string | null;
+};
+
+// Same rule as category names.
+export const budgetName = z
+  .string("Nama wajib diisi")
+  .trim()
+  .min(1, "Nama wajib diisi")
+  .max(50, "Maksimal 50 karakter");
+
+const budgetCategoryIds = z
+  .array(z.uuid("Kategori tidak valid"), "Pilih kategori")
+  .min(1, "Pilih minimal satu kategori")
+  .max(50, "Maksimal 50 kategori")
+  .refine((ids) => new Set(ids).size === ids.length, "Kategori tidak boleh ganda");
+
+// No period: every write lands in the current month, which the server decides.
+export const budgetCreateSchema = z.strictObject({
+  name: budgetName,
+  spendingType: z.enum(SPENDING_TYPES, "Pilih needs atau wants"),
+  amount: budgetAmount,
+  categoryIds: budgetCategoryIds,
+});
+
+export type BudgetCreateInput = z.infer<typeof budgetCreateSchema>;

@@ -57,13 +57,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `POST { name: "Jajan & Hiburan", spendingType: "wants", amount: 800000, categoryIds: [Jajan, Hiburan] }` → 201 dengan `period` bulan berjalan; `budgetUsage` bulan ini memuatnya, bulan lalu tidak
-- [ ] Kategori needs di budget wants, income/saving, terarsip, milik B, tidak ada → 400 `fields.categoryIds` "Kategori tidak valid", nol baris. Kategori milik budget lain bulan ini → 400 "Kategori sudah dipakai budget lain". Nama sama (beda huruf besar) → 409 `BUDGET_NAME_TAKEN`. Body tidak valid, `userId` atau `period` di body → 400
-- [ ] Dua `POST` paralel yang mengklaim kategori sama → tepat satu 201, satu 400. Isolasi A/B, tanpa session → 401
+- [x] `POST { name: "Jajan & Hiburan", spendingType: "wants", amount: 800000, categoryIds: [Jajan, Hiburan] }` → 201 dengan `period` bulan berjalan; `budgetUsage` bulan ini memuatnya, bulan lalu tidak
+- [x] Kategori needs di budget wants, income/saving, terarsip, milik B, tidak ada → 400 `fields.categoryIds` "Kategori tidak valid", nol baris. Kategori milik budget lain bulan ini → 400 "Kategori sudah dipakai budget lain". Nama sama (beda huruf besar) → 409 `BUDGET_NAME_TAKEN`. Body tidak valid, `userId` atau `period` di body → 400
+- [x] Dua `POST` paralel yang mengklaim kategori sama → tepat satu 201, satu 400. Isolasi A/B, tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budgets.spec.ts tests/unit/budget-schema.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budgets.spec.ts tests/unit/budget-schema.spec.ts` hijau
 
 **Dependencies:** T110
 

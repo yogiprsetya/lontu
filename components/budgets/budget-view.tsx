@@ -43,6 +43,56 @@ function ViewSkeleton() {
   );
 }
 
+function NoBudgetsPrompt({ period, onSuggest }: { period: BudgetPeriod; onSuggest: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
+      <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
+          Salin dari {previousMonthLabel(period)}
+        </Button>
+        <Button variant="outline" className="h-11 text-base" onClick={onSuggest}>
+          Saran 50/30/20
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type BudgetGroupsProps = {
+  items: BudgetUsageItem[];
+  names: Map<string, string>;
+  archived: Set<string>;
+  onEdit: (categoryId: string) => void;
+};
+
+function BudgetGroups({ items, names, archived, onEdit }: BudgetGroupsProps) {
+  return BUDGET_GROUPS.map(({ key, label }) => {
+    const rows = items.filter((i) => i.spendingType === key);
+    if (rows.length === 0) return null;
+    return (
+      <section key={key} aria-labelledby={`budget-${key}`}>
+        <h2
+          id={`budget-${key}`}
+          className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
+        >
+          {label}
+        </h2>
+        <ul className="surface divide-y px-4">
+          {rows.map((item) => (
+            <BudgetRow
+              key={item.categoryId}
+              item={item}
+              name={names.get(item.categoryId) ?? "Kategori"}
+              onEdit={archived.has(item.categoryId) ? undefined : () => onEdit(item.categoryId)}
+            />
+          ))}
+        </ul>
+      </section>
+    );
+  });
+}
+
 /** The month lives in the URL so a refresh or a shared link shows the same budget. */
 export function BudgetView() {
   const router = useRouter();
@@ -102,59 +152,14 @@ export function BudgetView() {
       </div>
     );
   } else {
-    const items = usage.data.items;
-    const rowsOf = (type: BudgetUsageItem["spendingType"]) =>
-      items.filter((i) => i.spendingType === type);
+    const { items, summary } = usage.data;
     content = (
       <>
         {items.every((i) => i.budget === null) && (
-          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
-            <p className="text-muted-foreground">
-              Belum ada budget untuk {formatPeriodLabel(period)}.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
-                Salin dari {previousMonthLabel(period)}
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11 text-base"
-                onClick={() => setSuggesting(true)}
-              >
-                Saran 50/30/20
-              </Button>
-            </div>
-          </div>
+          <NoBudgetsPrompt period={period} onSuggest={() => setSuggesting(true)} />
         )}
-        <BudgetSummary summary={usage.data.summary} />
-        {BUDGET_GROUPS.map(({ key, label }) => {
-          const rows = rowsOf(key);
-          if (rows.length === 0) return null;
-          return (
-            <section key={key} aria-labelledby={`budget-${key}`}>
-              <h2
-                id={`budget-${key}`}
-                className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
-              >
-                {label}
-              </h2>
-              <ul className="surface divide-y px-4">
-                {rows.map((item) => (
-                  <BudgetRow
-                    key={item.categoryId}
-                    item={item}
-                    name={names.get(item.categoryId) ?? "Kategori"}
-                    onEdit={
-                      archived.has(item.categoryId)
-                        ? undefined
-                        : () => setEditingId(item.categoryId)
-                    }
-                  />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        <BudgetSummary summary={summary} />
+        <BudgetGroups items={items} names={names} archived={archived} onEdit={setEditingId} />
       </>
     );
   }

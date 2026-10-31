@@ -14,6 +14,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Selesai (T66–T76). JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
+| Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | Direncanakan (menunggu review plan) |
 
 ---
 
@@ -608,3 +609,88 @@ Phase berurutan. Phase 29 boleh dikerjakan paralel dengan 26–28 karena hanya m
 1. `stores/period.ts` (`usePeriodStore`) tidak dipakai di mana pun kecuali `period-store.spec.ts`, dan disebut di `SPEC-foundation.md` dan SPEC.md § Project structure. Hapus berkas, tesnya, dan rujukan spec-nya di T90? (Default: tidak dihapus sampai disetujui.) **Dijawab 2026-10-29: hapus di T90.**
 2. Review mengusulkan `AFFECTS` transitif. Saat direncanakan ternyata akarnya sisi `recurring → transactions`: edit nama aturan sekarang me-refetch semua daftar transaksi, dan closure akan memperluasnya. T97 menghapus sisi itu (Catat tetap perubahan `transactions`) dan menulis aturan "setiap entri lengkap, tanpa closure". Setuju? **Dijawab 2026-10-29: setuju.**
 3. Setelah desain T104: lanjut ke T105, atau Phase 29 dibatalkan bila interface-nya tidak lebih sederhana dari enam ekspor sekarang?
+
+---
+
+# Budget bernama
+
+Sumber: sesi idea-refine + `/plan` 2026-10-31 (alur: tambah budget → nama, nominal, Needs/Wants, beberapa kategori) · Spec: [SPEC-budgets.md](../SPEC-budgets.md), direvisi di T107 · 2026-10-31
+
+## Overview
+
+Pemilik mengelola beberapa **budget bernama** (mis. "Jajan & Hiburan" Rp800.000), masing-masing mencakup beberapa kategori spending dari satu jenis (Needs atau Wants), menggantikan satu baris per kategori per bulan. Budget berlaku terus setiap bulan sampai diubah. Perubahan berlaku mulai bulan berjalan, dan bulan lalu tetap menampilkan nama, nominal, dan kategori yang berlaku saat itu. `/budget` menjawab "budget mana yang hampir habis": urut Melebihi → Hampir habis → Aman. Saran 50/30/20, salin dari bulan lalu, dan budget bulan depan dihapus. Budget mingguan tidak dikerjakan.
+
+## Kondisi repo saat ini
+
+- Modul `budgets` selesai (T42–T54): tabel `budgets` satu baris per `(kategori, bulan)`, `PUT /api/budgets` upsert, `copy`, `suggestion`, soft delete + restore, halaman `/budget` dan Budget Summary dashboard per kategori.
+- **DB dipakai bersama oleh tes dan produksi** (`DATABASE_URL`, SPEC.md § Testing strategy). Migrasi untuk tes langsung berlaku di produksi, jadi selama build skema hanya boleh bertambah. Tabel lama baru dihapus setelah kode baru tayang.
+- Service worker meng-cache `GET /api/*` (NetworkFirst, 30 hari, `worker/sw.ts`). Respons bentuk lama di path yang sama bisa disajikan offline ke kode baru.
+- drizzle-kit `1.0.0-rc.4` punya `generate --explain` (dry run), `--custom`, dan `--hints` (rename/create/confirm_data_loss tanpa prompt).
+- Phase 29 (T104–T106) menunggu keputusan Yogi di T104 dan hanya menyentuh `lib/server/transactions.ts` + `lib/server/recurring.ts`: tidak beririsan. Butir `[ ]` lain di todo-25..28 adalah cek manual tertunda (sesi tanpa browser).
+- Kategori: nama 1–50 karakter, `spending_type` terkunci. `category-form.tsx` sudah memakai `ToggleGroup` untuk Needs/Wants. `checkbox` dan `toggle-group` terpasang.
+- ±729 kasus tes (`it`/`test`) per 2026-10-31.
+
+## Dependency graph
+
+```
+Phase 30  T107 Spec (Yogi setuju) ─┬─► T108 Hapus saran 50/30/20
+                                   └─► T109 Hapus salin bulan lalu
+Phase 31  T110 Tabel budget_versions (additive)
+           ├─► T111 budgetUsage berversi + GET /api/budgets/usage
+           └─► T112 POST /api/budgets ─► T113 PATCH /api/budgets/[id]
+Phase 32  T114 /budget baca (butuh T108, T109, T111) ─► T115 Tambah budget (butuh T112)
+                                                       ─► T116 Edit + rincian (butuh T113)
+Phase 33  T117 DELETE/restore = akhiri (butuh T112, T114) ─► T118 Hapus + Urungkan
+          T119 Dashboard Budget Summary (butuh T111)
+          T120 Hapus jalur lama (butuh T114–T119)
+Phase 34  T121 Migrasi data lama (file + dry run) ─► T122 Cutover produksi + drop tabel lama
+```
+
+## Phases
+
+| Phase                             | Plan                     | Todo                     | Task      | Checkpoint   |
+| --------------------------------- | ------------------------ | ------------------------ | --------- | ------------ |
+| 30. Spec dan pembersihan          | [plan-30.md](plan-30.md) | [todo-30.md](todo-30.md) | T107–T109 | AC           |
+| 31. Model dan API                 | [plan-31.md](plan-31.md) | [todo-31.md](todo-31.md) | T110–T113 | AD           |
+| 32. Lihat dan atur budget         | [plan-32.md](plan-32.md) | [todo-32.md](todo-32.md) | T114–T116 | AE           |
+| 33. Akhiri, dashboard, jalur lama | [plan-33.md](plan-33.md) | [todo-33.md](todo-33.md) | T117–T120 | AF           |
+| 34. Cutover                       | [plan-34.md](plan-34.md) | [todo-34.md](todo-34.md) | T121–T122 | AG (selesai) |
+
+## Aturan lintas phase
+
+- **Branch `refactor/named-budgets`.** master dan produksi tetap di model lama sampai T122.
+- **Expand → switch → contract.** T110 hanya menambah tabel (kode produksi lama tidak terpengaruh). T121 menyalin data lama saat cutover. T122 menghapus tabel lama setelah produksi diverifikasi. Setiap `db:migrate` didahului `drizzle-kit generate --explain` dan membaca `migration.sql`.
+- **Parallel change.** Jalur baru dibangun di samping yang lama dengan nama final: path baca baru `/api/budgets/usage`, hook `useBudgetUsage`, tipe baca di `lib/schemas/budget-usage.ts`, tipe tulis `BudgetVersion`. Satu-satunya rename: query lama → `legacyBudgetUsage` (T111). Konsumen pindah satu per satu, jalur lama dihapus di T120. Di antara T114 dan T115, `/budget` di branch hanya-baca (precedent T46 → T47).
+- **Tes lama dihapus hanya bersama perilakunya** (T108, T109, T117, T120, T122), dan setiap perilaku baru punya tes setara: batas bulan, kategori terarsip, invarian `summary.total.spent = transactionTotals.expense`, isolasi A/B, 401. Jumlah tes sebelum/sesudah dicatat di tiap checkpoint.
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
+- Tidak ada dependency npm baru dan tidak ada komponen shadcn baru.
+
+## Keputusan perencanaan (2026-10-31)
+
+1. **Diputuskan Yogi 2026-10-31:** weekly tidak dikerjakan; bulan lalu tampil seperti saat itu (versi); Needs/Wants memfilter pemilih kategori, budget tidak pernah campur; saran 50/30/20 dihapus.
+2. **Satu tabel `budget_versions` menggantikan `budgets`.** Baris = versi budget yang berlaku mulai `(year, month)` sampai ada versi lebih baru. `budget_id` = identitas lintas versi. Nama, jenis, nominal, dan `category_ids uuid[]` ikut versi. `deleted_at` di sebuah versi = budget berakhir mulai bulan itu. Setelah T122 tetap 6 tabel (keputusan terkunci #8 cukup ganti nama tabel). Alternatif dua tabel (definisi + versi) ditolak: butuh rename tabel di DB bersama, dan nama/kategori tetap harus berversi.
+3. **Semua tulisan di bulan berjalan (Asia/Jakarta), dihitung server.** Client tidak mengirim `period` untuk tulisan. Bulan lalu hanya-baca. Stepper maks bulan berjalan. Upsert pada `(user_id, budget_id, year, month)`, jadi simpan dua kali di bulan yang sama = satu versi (idiom keputusan #5 lama).
+4. **Satu kategori di paling banyak satu budget per bulan.** Dicek server di dalam transaksi DB dengan `pg_advisory_xact_lock(hashtext(user_id))`, jadi dua tulisan paralel tidak bisa mengklaim kategori yang sama. Ini yang menjaga invarian total = expense bulan itu.
+5. **Path baca baru `GET /api/budgets/usage?period=`.** Cache service worker lama untuk `/api/budgets?period=` tidak pernah tersaji ke kode baru, dan route lama tetap hidup untuk UI lama selama transisi.
+6. **Hapus = akhiri mulai bulan ini** (bulan lalu tetap), dengan Urungkan.
+7. **Drill-down tanpa mengubah kontrak transactions.** Sheet budget berisi rincian per kategori, masing-masing ke `/transactions?period&type=expense&categoryId`. Baris Budget Summary dashboard ke `/budget?period=`.
+8. **Data lama dimigrasi sebagai riwayat dan berakhir di bulan cutover** (default Open question 1): bulan lalu tampil persis, bulan berjalan mulai kosong.
+
+## Risiko modul
+
+| Risiko                                                                  | Dampak | Mitigasi                                                                                                                     |
+| ----------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Migrasi di DB bersama merusak produksi                                  | Tinggi | Expand additive (T110), salin data di cutover (T121), drop terakhir (T122). `--explain` + baca SQL. Cadangan `budgets` sebelum T122 |
+| SQL versi efektif salah (versi lama/baru, budget berakhir, batas bulan) | Tinggi | T111 tes merah dulu: versi Sep/Nov dilihat dari Okt/Des, baris akhir, budget dibuat belakangan, Februari kabisat, invarian    |
+| Kategori terhitung di dua budget (double tap, dua tab)                  | Tinggi | Advisory lock per user + tes paralel di T112, invarian di T111                                                               |
+| Backfill data lama membawa budget melewati bulan kosong                 | Tinggi | Baris akhir di bulan sesudah celah. Tes backfill dalam transaksi yang di-rollback (T121), dry run banding total per bulan     |
+| drizzle-kit RC salah tafsir kolom array atau drop                       | Sedang | `--explain`, `--hints` bila ada prompt, baca `migration.sql`                                                                 |
+| Hapus tes tampak seperti melemahkan tes                                 | Sedang | Hanya bersama perilakunya, didaftar per task, perilaku baru punya tes setara, jumlah dicatat                                 |
+| Jendela singkat saat cutover                                            | Rendah | Satu pengguna. Deploy dulu (kode baru mengabaikan tabel lama), lalu backfill, lalu drop setelah verifikasi                   |
+| Perubahan di hari terakhir bulan tercatat untuk bulan itu               | Rendah | Diterima, ditulis di spec (Open question 3)                                                                                  |
+
+## Open questions
+
+1. **Budget lama per kategori saat cutover:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (bulan berjalan mulai kosong, pemilik membuat budget bernama baru), atau tetap aktif sebagai budget satu kategori yang lalu digabung manual? (Default: berakhir di bulan cutover. Baris lama untuk bulan depan diabaikan.)
+2. **Nama budget unik** (tanpa beda huruf besar) di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN`. Setuju?
+3. **Tanpa "berlaku mulai bulan depan".** Mengubah budget tanggal 31 ikut mengubah bulan itu. Setuju?

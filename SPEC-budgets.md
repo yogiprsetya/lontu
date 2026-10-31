@@ -1,238 +1,260 @@
 # Spec module: `budgets`
 
-Status: draft · 2026-10-23 · @Yogi
+Status: draft · revisi 2026-10-31 (budget bernama) · @Yogi
+Asal: sesi idea-refine 2026-10-31. Menggantikan model per kategori per bulan (2026-10-23, T42–T54). Plan: [tasks/plan.md](tasks/plan.md) § Budget bernama.
 Bergantung pada: `accounts-categories`, `transactions` · Dipakai oleh: `dashboard`, `pwa-offline` · Indeks: [SPEC.md](SPEC.md)
 
 ## Objective
 
-Pengguna menetapkan batas pengeluaran bulanan per kategori spending, melihat berapa yang sudah terpakai dan sisanya, dan tahu kategori mana yang hampir habis sebelum akhir bulan. Menyiapkan bulan baru cukup satu tap: salin dari bulan lalu, atau terapkan saran 50/30/20 dari income.
+Pemilik mengelola beberapa **budget bernama**, misalnya "Jajan & Hiburan" Rp800.000 per bulan. Setiap budget mencakup beberapa kategori spending dari satu jenis (Needs atau Wants). Budget berlaku terus setiap bulan sampai diubah atau diakhiri, jadi bulan baru tidak perlu disiapkan. `/budget` menjawab "budget mana yang hampir habis": urut Melebihi → Hampir habis → Aman. Bulan lalu tampil seperti saat itu (nama, nominal, dan kategori yang berlaku waktu itu) dan hanya bisa dibaca.
 
-Modul ini pemilik **kontrak** `/api/budgets*`, query `budgetUsage`, dan hook SWR-nya. `dashboard` memakai `budgetUsage` untuk kartu Budget Summary.
+Modul ini pemilik **kontrak** `/api/budgets*`, query `budgetUsage`, hook `useBudgetUsage`, dan fungsi murni `compareByAttention` / `summarizeBudgetUsage`. `dashboard` memakai `budgetUsage` untuk kartu Budget Summary.
 
-Di luar cakupan: budget untuk kategori income atau saving, budget tahunan atau mingguan, rollover sisa budget ke bulan berikutnya, notifikasi push, budget per akun, prediksi laju belanja (pace).
+Di luar cakupan: budget mingguan atau tahunan, rollover sisa ke bulan berikutnya, "berlaku mulai bulan depan", menyiapkan atau mengubah bulan lalu, saran 50/30/20, salin dari bulan lalu, budget untuk income atau saving, budget per akun, budget campuran Needs + Wants, notifikasi push, prediksi laju belanja (pace).
 
 ## Keputusan
 
-Nomor 1–4 diputuskan Yogi pada 2026-10-23. Sisanya usulan untuk direview.
+Nomor 1–8 diputuskan Yogi pada 2026-10-31 (plan.md § Budget bernama, Keputusan perencanaan dan Open questions 1–3). Nomor 9–13 dibawa dari model lama tanpa perubahan.
 
-1. **Hanya kategori `kind = spending`** yang bisa diberi budget, dikelompokkan Needs / Wants. Saving tetap tampil sebagai angka total, tanpa target.
-2. **Hapus = soft delete** lewat kolom baru `budgets.deleted_at` (lihat [Perubahan skema](#perubahan-skema)), dengan "Urungkan" di toast seperti transaksi.
-3. **Salin dari bulan lalu hanya mengisi yang kosong.** Kategori yang sudah punya budget aktif di bulan tujuan tidak disentuh. Aman ditekan dua kali.
-4. **Saran 50/30/20 mengisi nominal otomatis** per kategori (algoritma di [Saran 50/30/20](#saran-503020)). Pengguna melihat pratinjau, memilih baris, lalu menerapkannya.
-5. **Set budget = upsert pada kunci `(kategori, bulan)`**, bukan create + edit per id. `PUT` yang sama dua kali menghasilkan keadaan yang sama, jadi `pwa-offline` bisa memutar ulang antrean tanpa id dari client. Baris yang sudah di-soft-delete dihidupkan lagi oleh upsert, sehingga index unik yang ada tetap penuh (tidak parsial).
-6. **Periode = `YYYY-MM`, dari 2000-01 sampai bulan depan (Asia/Jakarta).** Bulan depan diizinkan supaya budget bisa disiapkan di akhir bulan. Periode hidup di URL (`/budget?period=2026-10`), tidak di `usePeriodStore`, sama dengan keputusan #10 transactions.
-7. **Terpakai = `sum(amount)` transaksi `expense` tak terhapus** dengan `date` di bulan itu. Transfer, adjustment, dan saving tidak dihitung. Biaya admin transfer adalah expense biasa, jadi ikut terhitung.
-8. **Status per kategori:** `none` (tanpa budget), `ok` (< 80%), `warning` (≥ 80% dan sisa > 0), `over` (sisa ≤ 0, yaitu terpakai ≥ budget, atau budget 0 dengan pengeluaran > 0). Dihitung oleh satu fungsi murni yang dipakai server dan client.
-9. **`amount` budget 0..1e12.** Budget 0 berarti "jangan belanja di kategori ini", bukan "tanpa budget".
-10. **Arsip kategori tidak menyentuh budget-nya.** Kategori terarsip tidak bisa diberi budget baru dan dilewati saat salin atau saran, tetapi budget lama dan pengeluarannya tetap tampil dengan label "(arsip)".
-11. **Respons memakai id, nama di-resolve di client** dari `useCategories({ includeArchived: true })`, sama dengan keputusan #8 transactions. `spendingType` ikut di respons karena pengelompokan dihitung di server.
+1. **Budget bernama, berversi.** Satu baris tabel `budget_versions` = satu versi budget yang berlaku mulai `(year, month)` sampai ada versi yang lebih baru. `budget_id` adalah identitas lintas versi. Nama, jenis, nominal, dan kategori ikut versi, jadi bulan lalu tampil persis seperti saat itu.
+2. **Satu jenis per budget.** `spending_type` (needs/wants) dipilih saat membuat dan terkunci. Semua kategori di budget harus `kind = spending` dengan `spending_type` yang sama. Pemilih kategori di form hanya menampilkan jenis terpilih.
+3. **Semua tulisan berlaku di bulan berjalan** (Asia/Jakarta, dihitung server dengan `todayInJakarta()`). Client tidak pernah mengirim `period` untuk tulisan. Bulan lalu hanya-baca, dan tidak ada bulan depan. Mengubah budget di hari terakhir bulan ikut mengubah bulan itu (diterima, Open question 3).
+4. **Satu kategori di paling banyak satu budget per bulan.** Dicek server di dalam transaksi DB yang memegang `pg_advisory_xact_lock(hashtext(user_id))`, jadi dua tulisan paralel tidak bisa mengklaim kategori yang sama. Invarian `summary.total.spent = expense bulan itu` bergantung pada aturan ini.
+5. **Nama unik tanpa beda huruf besar** di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN` (Open question 2). Nama budget yang sudah berakhir boleh dipakai lagi.
+6. **Simpan dua kali di bulan yang sama = satu versi.** Upsert pada `(user_id, budget_id, year, month)`. `PATCH` yang sama dua kali menghasilkan keadaan yang sama.
+7. **Hapus = akhiri mulai bulan ini**, dengan Urungkan. Bulan lalu tetap. Budget yang dibuat dan diakhiri di bulan yang sama tidak tampil di bulan mana pun.
+8. **Data lama dimigrasi sebagai riwayat dan berakhir di bulan cutover** (Open question 1): bulan lalu tampil persis seperti sebelum cutover, bulan berjalan mulai kosong, dan pemilik membuat budget bernama baru. Baris lama untuk bulan sesudah cutover diabaikan.
+9. **Terpakai = `sum(amount)` transaksi `expense` tak terhapus** dengan `date` di bulan itu. Transfer, adjustment, dan saving tidak dihitung. Biaya admin transfer adalah expense biasa, jadi ikut.
+10. **Status:** `ok` (< 80%), `warning` (≥ 80% dan sisa > 0), `over` (sisa ≤ 0, atau budget 0 dengan pengeluaran > 0), dari satu fungsi murni `budgetStatus()` yang dipakai server dan client. `none` hanya tersisa untuk ringkasan grup tanpa budget.
+11. **`amount` 0..1e12.** Budget 0 berarti "jangan belanja di kategori-kategori ini".
+12. **Arsip kategori tidak menyentuh budget.** Kategori terarsip yang sudah ada di versi efektif boleh tetap di budget dan pengeluarannya tetap terhitung (berlabel "(arsip)"). Kategori terarsip tidak bisa ditambahkan ke budget.
+13. **Respons memakai id kategori**, nama kategori di-resolve di client dari `useCategories({ includeArchived: true })`. Nama budget ikut di respons karena berversi.
 
 ## Perubahan skema
 
-Disetujui lewat keputusan #2. Migrasi baru hanya **menambah** kolom, tidak mengubah atau menghapus kolom.
+Disetujui lewat T107. Expand → switch → contract, karena DB dipakai bersama oleh tes dan produksi (SPEC.md § Testing strategy).
 
-| Objek                                 | Sebelum                               | Sesudah                      |
-| ------------------------------------- | ------------------------------------- | ---------------------------- |
-| `budgets.deleted_at`                  | tidak ada                             | `timestamptz null`           |
-| `budgets_user_category_period_unique` | `(user_id, category_id, year, month)` | tidak berubah (keputusan #5) |
+| Langkah                  | Objek                                     | Isi                                                                                                       |
+| ------------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Expand (T110, additive)  | tabel baru `budget_versions`              | lihat di bawah. `budgets` tidak disentuh, kode produksi lama tetap jalan                                    |
+| Backfill (T121, kustom)  | `budget_versions`                         | salin baris `budgets` aktif ≤ bulan cutover, lihat [Migrasi dan cutover](#migrasi-dan-cutover)              |
+| Contract (T122)          | tabel `budgets`                           | `DROP TABLE "budgets"` setelah produksi terverifikasi                                                     |
 
-Tidak ada index baru. Query usage membaca `transactions` per user dan rentang tanggal, dan skala pribadi tidak membutuhkan index tambahan. Jika `EXPLAIN` menunjukkan perlu, itu Ask first.
+**`budget_versions`** (`pgTable.withRLS`, RLS deny-all seperti tabel lain):
+
+| Kolom           | Tipe                                                                        |
+| --------------- | --------------------------------------------------------------------------- |
+| `id`            | `uuid pk default gen_random_uuid()` (id baris, internal)                    |
+| `user_id`       | `text not null references users(id) on delete cascade`                      |
+| `budget_id`     | `uuid not null` (identitas budget lintas versi, dibuat server)              |
+| `name`          | `text not null`                                                             |
+| `spending_type` | `text not null check in ('needs','wants')`                                  |
+| `year`          | `int not null`                                                              |
+| `month`         | `int not null check 1..12`                                                  |
+| `amount`        | `bigint not null check >= 0`                                                |
+| `category_ids`  | `uuid[] not null check cardinality(category_ids) >= 1`                      |
+| `created_at`    | `timestamptz not null default now()`                                        |
+| `deleted_at`    | `timestamptz null` (terisi = budget berakhir mulai bulan versi ini)          |
+
+Unik `(user_id, budget_id, year, month)`. Elemen `category_ids` tidak punya FK: kepemilikan dan jenis dicek saat tulis, dan kategori tidak pernah di-hard-delete. Tidak ada index lain. Bila `EXPLAIN` menunjukkan perlu, itu Ask first.
+
+**Versi efektif bulan P** untuk sebuah `budget_id` = baris dengan `(year, month)` terbesar yang ≤ P. Budget **tampil** di P bila versi efektifnya ada dan `deleted_at is null`. Kategori efektif = `unnest(category_ids)` versi itu.
 
 ## Kontrak API
 
-Semua route memakai `withAuth`, memfilter `user_id` dari session, dan format error dari `lib/api/errors.ts`. Id di path yang bukan UUID, tidak ada, atau milik user lain → **404 `BUDGET_NOT_FOUND`**.
+Semua route memakai `withAuth`, memfilter `user_id` dari session, dan format error dari `lib/api/errors.ts`. `[id]` di path adalah `budget_id`. Id yang bukan UUID, tidak ada, milik user lain, atau budget yang tidak tampil di bulan berjalan → **404 `BUDGET_NOT_FOUND`** (pengecualian `DELETE`/`restore` di bawah).
 
 ### Tipe
 
 ```ts
-// lib/schemas/budget.ts (dipakai client & server)
+// lib/schemas/budget.ts (tulis) dan lib/schemas/budget-usage.ts (baca), dipakai client & server
 type BudgetPeriod = string; // YYYY-MM
+type SpendingType = "needs" | "wants";
+type BudgetStatus = "none" | "ok" | "warning" | "over";
 
-type Budget = {
-  id: string;
-  categoryId: string;
-  period: BudgetPeriod; // dari kolom year + month
+type BudgetVersion = {
+  id: string; // budget_id
+  name: string;
+  spendingType: SpendingType;
   amount: number; // integer rupiah, 0..1e12
-  createdAt: string;
+  categoryIds: string[];
+  period: BudgetPeriod; // bulan versi ini berlaku
   deletedAt: string | null;
 };
 
-type BudgetStatus = "none" | "ok" | "warning" | "over";
-
 type BudgetUsageItem = {
-  categoryId: string;
-  spendingType: "needs" | "wants";
-  budgetId: string | null;
-  budget: number | null; // null = tanpa budget aktif
+  budgetId: string;
+  name: string;
+  spendingType: SpendingType;
+  budget: number;
   spent: number;
-  remaining: number | null; // budget − spent, boleh negatif
-  percent: number | null; // floor(spent * 100 / budget), null jika budget null atau 0
-  status: BudgetStatus;
+  remaining: number; // budget − spent, boleh negatif
+  percent: number | null; // floor(spent * 100 / budget), null bila budget 0
+  status: BudgetStatus; // ok | warning | over
+  categories: { categoryId: string; spent: number }[]; // kategori efektif, urut lower(nama)
 };
 
 type BudgetGroup = {
-  budget: number; // jumlah budget aktif
+  budget: number; // jumlah budget yang tampil
   spent: number; // semua expense di grup, termasuk kategori tanpa budget
-  unbudgetedSpent: number; // bagian dari spent yang kategorinya tanpa budget
+  unbudgetedSpent: number; // bagian dari spent yang kategorinya tidak ada di budget mana pun
 };
 
 type BudgetUsage = {
   period: BudgetPeriod;
   items: BudgetUsageItem[];
+  unbudgeted: { categoryId: string; spendingType: SpendingType; spent: number }[];
   summary: { needs: BudgetGroup; wants: BudgetGroup; total: BudgetGroup };
-};
-
-type BudgetSuggestion = {
-  period: BudgetPeriod;
-  basis: number; // income yang dipakai sebagai dasar
-  basisSource: "previous_month" | "input";
-  pools: { needs: number; wants: number; saving: number }; // 50 / 30 / 20
-  items: {
-    categoryId: string;
-    spendingType: "needs" | "wants";
-    amount: number;
-    current: number | null;
-  }[];
 };
 ```
 
 ### Route
 
-| Method & path                    | Body / query                                       | Sukses                                       | Error                  |
-| -------------------------------- | -------------------------------------------------- | -------------------------------------------- | ---------------------- |
-| `GET /api/budgets`               | `?period=YYYY-MM` (wajib)                          | 200 `BudgetUsage`                            | 400 `VALIDATION_ERROR` |
-| `PUT /api/budgets`               | `{ period, items: [{ categoryId, amount }] }`      | 200 `Budget[]` (urutan sama dengan `items`)  | 400                    |
-| `DELETE /api/budgets/[id]`       | —                                                  | 200 `Budget` (`deletedAt` terisi). Idempoten | 404                    |
-| `POST /api/budgets/[id]/restore` | —                                                  | 200 `Budget` (aktif). Idempoten              | 404                    |
-| `POST /api/budgets/copy`         | `{ to: YYYY-MM }`                                  | 200 `{ copied: number }`                     | 400                    |
-| `GET /api/budgets/suggestion`    | `?period=YYYY-MM&income=<int>` (`income` opsional) | 200 `BudgetSuggestion`                       | 400                    |
+| Method & path                    | Body / query                                  | Sukses                                       | Error                              |
+| -------------------------------- | --------------------------------------------- | -------------------------------------------- | ---------------------------------- |
+| `GET /api/budgets/usage`         | `?period=YYYY-MM` (2000-01..bulan berjalan)   | 200 `BudgetUsage`                            | 400                                |
+| `POST /api/budgets`              | `{ name, spendingType, amount, categoryIds }` | 201 `BudgetVersion`                          | 400, 409 `BUDGET_NAME_TAKEN`       |
+| `PATCH /api/budgets/[id]`        | `{ name?, amount?, categoryIds? }` (min 1)    | 200 `BudgetVersion`                          | 400, 404, 409 `BUDGET_NAME_TAKEN`  |
+| `DELETE /api/budgets/[id]`       | —                                             | 200 `BudgetVersion` (`deletedAt`). Idempoten | 404                                |
+| `POST /api/budgets/[id]/restore` | —                                             | 200 `BudgetVersion` (aktif). Idempoten       | 404, 409 `BUDGET_RESTORE_CONFLICT` |
 
-**`PUT`:** `items` 1–100, `categoryId` unik di dalam `items`. Setiap `categoryId` harus milik user, aktif, dan `kind = spending`. Jika satu item gagal, tidak ada yang ditulis (semua cek selesai sebelum insert, lalu satu statement `insert … on conflict (user_id, category_id, year, month) do update set amount = excluded.amount, deleted_at = null`). `created_at` baris lama tetap.
+Dihapus bersama model lama: `GET /api/budgets`, `PUT /api/budgets`, `POST /api/budgets/copy` (T109), `GET /api/budgets/suggestion` (T108). Path baca sengaja baru (`/usage`), supaya respons bentuk lama yang di-cache service worker untuk `/api/budgets?period=` tidak pernah tersaji ke kode baru.
 
-**`DELETE` / `restore`** melihat baris terhapus. `restore` pada budget yang kategorinya sudah diarsipkan tetap diizinkan (budget lama, keputusan #10).
+### Validasi (Zod)
 
-**`copy`:** sumber = bulan sebelum `to`. Menyalin budget aktif sumber yang kategorinya aktif ke `to`, hanya untuk kategori yang belum punya budget **aktif** di `to` (budget terhapus di `to` dihidupkan lagi dengan nominal sumber). `copied` = jumlah baris yang ditulis. Sumber kosong → 200 `{ copied: 0 }`.
+- `period` (query baca): regex `^\d{4}-(0[1-9]|1[0-2])$`, lalu rentang 2000-01..bulan berjalan dengan `todayInJakarta()` saat parse. Hilang, `2026-13`, `1999-12`, atau bulan depan → 400 `fields.period`.
+- `name`: trim, 1–50 karakter (sama dengan nama kategori). `amount`: `z.int()`, 0..1e12. `spendingType`: `needs | wants`.
+- `categoryIds`: `z.array(z.uuid()).min(1).max(50)`, refine unik.
+- `budgetCreateSchema` dan `budgetUpdateSchema` memakai `z.strictObject`. Field tak dikenal (termasuk `userId`, `period`, dan `spendingType` di `PATCH`) → 400. `PATCH` tanpa field → 400.
+- Penolakan kategori hanya punya dua pesan, keduanya di `fields.categoryIds`:
+  - "Kategori tidak valid": milik user lain, tidak ada, bukan spending, beda jenis dengan budget, atau terarsip yang baru ditambahkan. Pesannya sama supaya tidak membocorkan data user lain.
+  - "Kategori sudah dipakai budget lain": kategori ada di budget lain yang tampil di bulan berjalan.
 
-**`suggestion`:** hanya membaca, tidak menulis apa pun. Penerapan memakai `PUT`.
+### Aturan tulis
 
-### Validasi (Zod, `lib/schemas/budget.ts`)
+Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hashtext(userId))` → cek → upsert. M = bulan berjalan. Lock level transaksi dilepas saat commit, jadi aman di pooler transaction mode.
 
-- `period`: regex `^\d{4}-(0[1-9]|1[0-2])$`, lalu cek rentang keputusan #6 dengan `todayInJakarta()` saat parse.
-- `amount`: `z.int()`, 0..1e12. `income` (query): `z.coerce.number().int()`, 0..1e12.
-- `items`: `z.array(z.strictObject({ categoryId: z.uuid(), amount })).min(1).max(100)`, refine `categoryId` unik.
-- Body memakai `z.strictObject`. Field tak dikenal (termasuk `userId`) → 400.
-- Kategori asing, tidak ada, terarsip, atau bukan spending → 400 `fieldError("items", "Kategori tidak valid")`. Pesannya sama untuk semua kasus supaya tidak membocorkan data user lain.
+- **`POST`:** cek kategori (milik user, aktif, spending, jenis sama, tidak dipakai budget lain yang tampil di M) dan nama unik. Insert versi M dengan `budget_id` baru.
+- **`PATCH`:** ambil versi efektif M (harus tampil), gabungkan field, cek seperti `POST` dengan mengecualikan budget ini sendiri. Kategori terarsip yang sudah ada di versi efektif boleh tetap. Ganti nama ke nama sendiri dengan huruf beda → 200. Upsert versi M (`on conflict (user_id, budget_id, year, month) do update`, `created_at` tetap).
+- **`DELETE`:** bila versi efektif M tampil: bila M sudah punya versi → `deleted_at = coalesce(deleted_at, now())`; bila belum → sisipkan versi M yang menyalin versi efektif dengan `deleted_at = now()`. Bila budget sudah berakhir **di M** → 200 tanpa perubahan (idempoten). Bila tidak ada versi ≤ M, atau budget berakhir sebelum M → 404.
+- **`restore`:** hanya untuk budget yang berakhir di M: kosongkan `deleted_at` versi M setelah cek ulang nama dan kategori. Bentrok → 409 `BUDGET_RESTORE_CONFLICT` ("Tidak bisa dipulihkan: kategori atau nama sudah dipakai budget lain"). Budget yang sudah tampil → 200 tanpa perubahan. Budget yang berakhir sebelum M → 404.
 
 ### Query `budgetUsage`
 
-`lib/server/queries/budget-usage.ts`, satu query SQL:
+`lib/server/queries/budget-usage.ts`, `budgetUsage(userId, period)`, satu query SQL:
 
-- Baris = kategori spending milik user yang **aktif**, ditambah kategori terarsip yang punya budget aktif atau pengeluaran di bulan itu.
-- Left join budget aktif bulan itu, dan subquery `sum(amount)` expense tak terhapus per `category_id` dengan `date between awal and akhir bulan`.
-- Urut `spending_type` (needs, wants), lalu `lower(name)`.
-- `remaining`, `percent`, `status` dihitung di TS dari baris yang sudah teragregasi, memakai `budgetStatus()` dari `lib/budget-status.ts`. Ini bukan agregasi baris transaksi di client.
-- `summary` dijumlahkan dari `items` (puluhan baris).
+- `distinct on (budget_id)` versi efektif per budget dengan `(year, month) ≤ period`, hanya yang tampil.
+- `unnest(category_ids)` → kategori efektif, left join subquery `sum(amount)` expense tak terhapus per `category_id` dalam `monthRange(period)`.
+- `items` urut `spending_type` (needs, wants), lalu `lower(name)`. Halaman dan dashboard mengurutkan ulang dengan `compareByAttention`.
+- `unbudgeted`: kategori spending (termasuk terarsip) dengan `spent > 0` yang tidak ada di budget tampil mana pun bulan itu.
+- `remaining`, `percent`, `status` dihitung di TS dengan `budgetStatus()`. `summary` dari `summarizeBudgetUsage(items, unbudgeted)` (`lib/budget-status.ts`, murni), yang juga dipakai update optimistic. Ini puluhan baris yang sudah teragregasi, bukan agregasi baris transaksi di client.
 
-**Invarian:** `summary.total.spent` sama dengan `transactionTotals(userId, { from, to }).expense` untuk bulan yang sama. Dites.
-
-### Saran 50/30/20
-
-Data dari DB (`lib/server/queries/budget-history.ts`), pembagian di fungsi murni `suggestBudgets()` (`lib/budget-suggestion.ts`):
-
-1. **Dasar:** `income` dari query jika ada (`basisSource = "input"`), selain itu total income bulan sebelum `period` (`"previous_month"`). Bulan berjalan tidak dipakai karena income-nya belum lengkap.
-2. **Pool:** `needs = floor(basis × 0,5)`, `wants = floor(basis × 0,3)`, `saving = basis − needs − wants`. Pool saving hanya ditampilkan sebagai acuan (keputusan #1).
-3. **Bobot:** rata-rata expense per kategori spending aktif selama 3 bulan penuh sebelum `period`. Jika semua bobot dalam satu grup 0, pool dibagi rata ke kategori grup itu.
-4. **Pembulatan:** satuan Rp1.000. Pool dibulatkan ke bawah ke kelipatan 1.000, lalu dibagi dengan metode sisa terbesar (largest remainder), seri diputus berdasarkan `categoryId`. Jumlah `items` per grup = pool grup yang sudah dibulatkan.
-5. `current` = budget aktif kategori itu di `period`, supaya UI bisa menandai baris yang akan ditimpa.
-6. `basis = 0` → `items` kosong. Grup tanpa kategori aktif → tidak ada item untuk grup itu.
+**Invarian (dites):** `summary.total.spent = transactionTotals(userId, { from, to }).expense` untuk bulan yang sama, termasuk saat sebuah kategori pindah budget di bulan berikutnya.
 
 ### Kontrak untuk modul lain
 
-- **`dashboard`:** pakai `useBudgets(period)` (key `"/api/budgets?period=YYYY-MM"`), jadi cache dibagi dengan halaman Budget. Server component yang butuh data langsung memanggil `budgetUsage(userId, period)`. Tautan dari Budget Summary ke daftar: `/transactions?period=YYYY-MM&type=expense&categoryId=<uuid>`.
-- **Revalidasi:** `revalidateBudgets()` me-revalidate semua key berawalan `/api/budgets`. Matcher ini ditambahkan di `revalidateTransactions()` (sesuai kontrak transactions), dan dipanggil juga oleh mutasi kategori (`archive`, `restore`) karena baris usage bergantung pada status kategori.
-- **`pwa-offline`:** `PUT /api/budgets` sudah idempoten (keputusan #5). `DELETE`/`restore` idempoten.
+- **`dashboard`:** pakai `useBudgetUsage(period)`, key `apiKey("budgets", { path: "usage", query: { period } })` = `"/api/budgets/usage?period=YYYY-MM"`, jadi cache dibagi dengan `/budget`. Urutan sorotan memakai `compareByAttention` (Melebihi → Hampir habis → Aman, lalu persen turun, lalu nama). Baris Budget Summary menaut ke `/budget?period=YYYY-MM`. Server component yang butuh data langsung memanggil `budgetUsage(userId, period)`.
+- **Drill-down ke transaksi** tanpa mengubah kontrak transactions: sheet budget berisi rincian per kategori, masing-masing ke `/transactions?period=YYYY-MM&type=expense&categoryId=<uuid>`.
+- **Revalidasi:** resource `budgets` (base `/api/budgets`) sudah mencakup `/api/budgets/usage`. `AFFECTS` tidak berubah: `transactions → budgets`, `categories → budgets` (status arsip mengubah pilihan di form). Setiap mutasi budget memanggil `invalidate("budgets")`.
+- **`pwa-offline`:** budget tidak diantre offline (keputusan #6 pwa-offline). `GET /api/budgets/usage` ikut cache NetworkFirst `/api/*`, jadi `/budget` yang pernah dibuka tampil offline.
+
+## Migrasi dan cutover
+
+1. **T121:** migrasi kustom `drizzle-kit generate --custom --name budget_versions_backfill`, SQL saja, sekali jalan, tercatat di journal. Di-commit tetapi **belum dijalankan**. M = bulan `now()` di Asia/Jakarta saat migrasi dijalankan.
+2. **Aturan backfill**, per `(user, kategori)` dengan baris `budgets` aktif ≤ M:
+   - satu `budget_id` baru; nama = nama kategori; jenis = jenis kategori;
+   - satu versi per baris lama aktif (`category_ids = {kategori}`, `amount` dan `created_at` lama);
+   - bila bulan sesudah sebuah baris tidak punya baris aktif dan ≤ M → versi akhir (`deleted_at = now()`) di bulan itu;
+   - bila baris terakhir tepat di M → versi M diakhiri (keputusan #8);
+   - baris sesudah M dan baris yang sudah di-soft-delete tidak disalin.
+3. **T122:** merge dan deploy dulu (kode baru mengabaikan `budgets`), cadangkan `budgets`, `db:migrate` backfill, verifikasi total Needs/Wants/Total dua bulan lalu terhadap screenshot sebelum cutover, lalu hapus tabel di `db/schema.ts` → `generate --explain` hanya `DROP TABLE "budgets"` → `db:migrate`. Setiap langkah tulis berhenti untuk persetujuan Yogi.
 
 ## Deliverables
 
 ### 1. Server
 
-- Migrasi `budgets.deleted_at` di `db/schema.ts` dan `drizzle/` (`pnpm db:generate`).
-- `lib/schemas/budget.ts`: tipe, `budgetPeriodSchema`, `budgetSetSchema`, `budgetCopySchema`, `budgetSuggestionQuerySchema`. `periodToYearMonth` / `yearMonthToPeriod` / `monthRange` ada di `lib/period.ts`.
-- `lib/budget-status.ts` (murni): `budgetStatus(budget, spent)` → `{ remaining, percent, status }`.
-- `lib/budget-suggestion.ts` (murni): `suggestBudgets({ basis, categories, history, current })`.
-- `lib/server/budgets.ts`: `setBudgets`, `softDeleteBudget`, `restoreBudget`, `copyBudgets`.
-- `lib/server/queries/budget-usage.ts`: `budgetUsage(userId, period)`. `lib/server/queries/budget-history.ts`: income bulan sebelumnya dan expense 3 bulan per kategori.
-- `lib/api/errors.ts`: `budgetNotFound()`.
-- Route: `app/api/budgets/route.ts`, `[id]/route.ts`, `[id]/restore/route.ts`, `copy/route.ts`, `suggestion/route.ts`.
+- `db/schema.ts`: `budgetVersions`; migrasi `drizzle/<timestamp>_budget_versions/` (T110), backfill (T121), drop `budgets` (T122).
+- `lib/schemas/budget.ts`: `budgetName`, `budgetCreateSchema`, `budgetUpdateSchema`, `BudgetVersion`. `lib/schemas/budget-usage.ts`: tipe baca dan `budgetUsageQuerySchema`.
+- `lib/budget-status.ts` (murni): `budgetStatus`, `summarizeBudgetUsage`, `compareByAttention`.
+- `lib/server/budgets.ts`: `createBudget`, `updateBudget`, `endBudget`, `restoreBudget`.
+- `lib/server/queries/budget-usage.ts`: `budgetUsage(userId, period)`.
+- `lib/api/errors.ts`: `budgetNameTaken()`, `budgetRestoreConflict()` (`budgetNotFound()` sudah ada).
+- Route: `app/api/budgets/route.ts` (`POST`), `usage/route.ts`, `[id]/route.ts` (`PATCH`, `DELETE`), `[id]/restore/route.ts`.
 
 ### 2. Client
 
-- `hooks/use-budgets.ts`: `useBudgets(period)`, `useBudgetSuggestion(period, income?)` (hanya fetch saat panel saran dibuka), `revalidateBudgets()`, mutasi `setBudgets`, `deleteBudget` (optimistic: `budget` di item dikosongkan, rollback + revalidasi jika gagal), `restoreBudget`, `copyBudgets`. Mutasi melempar `ApiError`.
-- Tambah matcher `/api/budgets` di `revalidateTransactions()`, dan panggil `revalidateBudgets()` di mutasi arsip/pulihkan kategori.
-- Tidak ada data budget di Zustand. Form budget dibuka dengan state lokal halaman (`categoryId` saja).
+- `hooks/use-budgets.ts`: `useBudgetUsage(period)`, mutasi `createBudget`, `updateBudget`, `deleteBudget` (optimistic `endBudgetInUsage`, rollback lewat `removeOptimistically`), `restoreBudget`. Mutasi memanggil `invalidate("budgets")` dan melempar `ApiError`.
+- `lib/budget-cache.ts` (murni): `endBudgetInUsage(usage, budgetId)`: item keluar, pengeluaran kategorinya pindah ke `unbudgeted`, `summary` dihitung ulang dengan `summarizeBudgetUsage`.
+- Pilihan kategori dari fungsi murni `budgetCategoryOptions({ categories, usage, budgetId, spendingType })`: hanya jenis terpilih, status `free` / `own` / `taken` (dengan nama budget pemiliknya), terarsip hanya bila `own`.
+- Tidak ada data budget di Zustand.
 
 ### 3. UI
 
-- **`app/(app)/budget/page.tsx`** menggantikan placeholder, dibungkus `<Suspense>` karena memakai `useSearchParams`. Isi di `components/budgets/budget-view.tsx`.
-  - **Header:** stepper bulan (mode bulan saja, maks bulan depan), periode ditulis ke URL lewat `router.replace`.
-  - **Ringkasan:** kartu Total, Needs, Wants. Masing-masing: terpakai dari budget, sisa, progress bar, dan "Rp… tanpa budget" jika `unbudgetedSpent > 0`. `hideAmounts` menyamarkan nominal.
-  - **Daftar** dikelompokkan Needs / Wants. Baris: nama kategori (+ "(arsip)"), "Rp terpakai dari Rp budget · 85%", sisa atau "Lebih Rp…", progress bar. Warna: `--budget` untuk `warning`, `--expense` untuk `over`. Status juga tertulis sebagai teks ("Hampir habis", "Melebihi budget"), tidak hanya lewat warna. Kategori tanpa budget menampilkan tombol "Atur budget".
-  - Tap baris → `components/forms/budget-form.tsx` di `ResponsiveModal`: `MoneyInput` (tanpa tombol ±), Simpan, dan "Hapus budget" untuk budget yang ada. Hapus → toast "Budget dihapus · Urungkan" (6 detik).
-  - Tombol "Lihat transaksi" di form → `/transactions?period=…&type=expense&categoryId=…`.
-  - **Aksi bulan:** menu dengan "Salin dari {bulan lalu}" (toast "{n} budget disalin" atau "Bulan lalu belum punya budget") dan "Saran 50/30/20".
-  - **Panel saran** (`components/budgets/suggestion-panel.tsx`, `ResponsiveModal`): field income dasar (default dari server, bisa diubah, refetch dengan debounce), pool Needs / Wants / Saving, daftar kategori dengan nominal saran, checkbox per baris (default: tercentang untuk kategori tanpa budget, tidak tercentang untuk yang akan ditimpa, ditandai "Ganti Rp…"). "Terapkan" → satu `PUT` berisi baris tercentang.
-  - Empty state: tanpa kategori spending aktif → tombol "Tambah kategori" (`open("manageCategories", { kind: "spending" })`). Bulan tanpa budget → CTA salin dan saran di tengah layar. Skeleton saat memuat, error SWR dengan "Coba lagi".
-- Mobile: target sentuh ≥ 44×44 px, input 16 px, tanpa horizontal scroll di 360 px, kontras ≥ 4.5:1. Progress bar memakai `role="progressbar"` dengan `aria-valuenow` (dibatasi 100) dan label teks.
+- **`app/(app)/budget/page.tsx`**, di dalam `<Suspense>` karena memakai `useSearchParams`. Isi di `components/budgets/budget-view.tsx`.
+  - **Header:** stepper bulan, maks bulan berjalan, periode di URL lewat `router.replace`. Tombol "Tambah budget" hanya di bulan berjalan.
+  - **Ringkasan:** kartu Total, Needs, Wants (bentuk `BudgetGroup` sama dengan model lama). `hideAmounts` menyamarkan nominal.
+  - **Daftar** urut `compareByAttention`. Baris: nama budget, jenis, "Rp terpakai dari Rp budget · 85%", sisa atau "Lebih Rp…", progress bar, teks status ("Hampir habis", "Melebihi budget"). Warna `--budget` untuk `warning`, `--expense` untuk `over`.
+  - **Tanpa budget:** satu baris di bawah daftar, "Rp… tanpa budget · Kesehatan, Hadiah" (dari `unbudgeted`).
+  - **Form** `components/forms/budget-form.tsx` di `ResponsiveModal`, urutan field: Nama, Nominal per bulan (`MoneyInput`), Needs/Wants (`ToggleGroup` seperti `category-form.tsx`, terkunci saat edit), Kategori (checkbox; kategori milik budget lain disabled dengan teks "di {nama}"). Ganti jenis saat membuat → pilihan dikosongkan. Galat server dipasang lewat `applyServerErrors`.
+  - **Sheet budget** (tap baris): rincian per kategori dengan tautan drill-down, lalu form edit dan "Hapus budget" (bulan berjalan saja). Bulan lalu: rincian saja, tanpa field dan tombol. Hapus → toast "Budget dihapus · Urungkan".
+  - Empty state: tanpa kategori spending aktif → "Tambah kategori" (`open("manageCategories", { kind: "spending" })`). Bulan tanpa budget → "Belum ada budget untuk {bulan}." plus tombol tambah di bulan berjalan. Skeleton saat memuat, error SWR dengan "Coba lagi".
+- Mobile: target sentuh ≥ 44×44 px, input 16 px, tanpa horizontal scroll di 360 px, kontras ≥ 4.5:1, footer `FormActions` sticky supaya daftar kategori panjang tidak menutupi Simpan. Progress bar `role="progressbar"` dengan `aria-valuenow` (dibatasi 100) dan label teks.
 
 ## Acceptance criteria
 
 **API**
 
-- [x] `PUT { period: "2026-10", items: [{ categoryId: <Makan>, amount: 1500000 }] }` → 200, `GET ?period=2026-10` memuat item Makan `budget = 1500000`. `PUT` kedua dengan 1.200.000 → id sama, `amount` berubah, tidak ada baris baru.
-- [x] Dengan expense 1.300.000 di Makan bulan itu (termasuk satu biaya admin transfer): `spent = 1300000`, `remaining = 200000`, `percent = 86`, `status = "warning"`. Expense di bulan lain, expense terhapus, transfer, saving, dan adjustment tidak ikut.
-- [x] Status: 79% → `ok`, 80% → `warning`, 99,99% (sisa > 0) → `warning`, 100% (sisa 0) → `over`, 101% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`, tanpa budget → `none`.
-- [x] `summary.total.spent` sama dengan `GET /api/transactions/totals?from=…&to=…` `expense` untuk bulan yang sama, termasuk pengeluaran di kategori tanpa budget dan kategori terarsip. `unbudgetedSpent` benar per grup.
-- [x] Kategori terarsip dengan budget atau pengeluaran di bulan itu tetap muncul. Kategori terarsip tanpa keduanya tidak muncul.
-- [x] `PUT` dengan kategori income/saving, terarsip, milik user lain, atau tidak ada → 400 `fields.items`, dan **tidak ada baris** yang tertulis, termasuk untuk item lain yang valid. `categoryId` ganda, `items` kosong atau > 100, `amount` −1, 1.5, `"100"`, atau > 1e12 → 400. `period` `2026-13`, `1999-12`, atau dua bulan ke depan → 400 `fields.period`. Bulan depan → 200.
-- [x] `DELETE` mengisi `deleted_at`, item usage kembali `budget = null`, `status = "none"`. `restore` mengembalikannya. Keduanya idempoten. `PUT` pada kategori + bulan yang budget-nya terhapus menghidupkan baris yang sama dengan nominal baru.
-- [x] `copy { to: "2026-11" }` dengan Oktober berisi Makan, Hiburan, dan satu kategori terarsip, dan November sudah berisi Makan → `copied = 1` (Hiburan saja), Makan November tidak berubah, kategori terarsip dilewati. Diulang → `copied = 0`. Oktober kosong → `copied = 0`.
-- [x] `suggestion` dengan income bulan lalu 10.000.000 → `basis = 10000000`, `pools = { needs: 5000000, wants: 3000000, saving: 2000000 }`, jumlah item needs = 5.000.000 dan wants = 3.000.000, semua kelipatan 1.000, proporsional dengan riwayat 3 bulan. `income=7777777` → `basisSource = "input"`, pool dibulatkan ke 1.000. Tanpa income → `items` kosong. `suggestion` tidak menulis baris apa pun.
-- [x] **Isolasi:** user B mendapat 404 untuk `DELETE`/`restore` budget A, `GET`/`suggestion` B tidak pernah memuat budget, kategori, atau pengeluaran A, `copy` B tidak menyalin budget A, dan B tidak bisa `PUT` ke kategori A.
-- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.
+- [ ] `POST { name: "Jajan & Hiburan", spendingType: "wants", amount: 800000, categoryIds: [Jajan, Hiburan] }` → 201 dengan `period` bulan berjalan. `budgetUsage` bulan ini memuatnya, bulan lalu tidak.
+- [ ] Versi Sep (Rp1.000.000, {Makan}) dan Nov (Rp1.200.000, {Makan, Jajan}): Agustus tidak tampil; Okt memakai versi Sep; Des memakai versi Nov. Versi Des dengan `deleted_at` → Des dan Jan tidak tampil, Nov tetap. Budget yang versi pertamanya Nov tidak tampil di Okt.
+- [ ] `spent` budget = jumlah expense kategorinya di bulan itu (tanggal 1 dan hari terakhir ikut, Februari kabisat dites; transfer, saving, adjustment, terhapus, dan bulan lain tidak). `unbudgeted` benar, termasuk kategori terarsip. Invarian terhadap `transactionTotals` berlaku, juga saat kategori pindah budget.
+- [ ] Status: 79% → `ok`, 80% → `warning`, 99,99% → `warning`, 100% → `over`, budget 0 + spent 0 → `ok`, budget 0 + spent > 0 → `over`.
+- [ ] Kategori needs di budget wants, income/saving, terarsip, milik B, atau tidak ada → 400 `fields.categoryIds` "Kategori tidak valid", nol baris tertulis. Kategori milik budget lain bulan ini → 400 "Kategori sudah dipakai budget lain". Nama sama dengan beda huruf besar → 409 `BUDGET_NAME_TAKEN`. Body tidak valid, `userId` atau `period` di body → 400.
+- [ ] Dua `POST` paralel yang mengklaim kategori yang sama → tepat satu 201 dan satu 400.
+- [ ] `PATCH { amount }` pada budget dengan versi bulan lalu → versi baru di bulan berjalan, bulan lalu tetap nominal, nama, dan kategori lama. `PATCH` kedua di bulan yang sama → tetap satu versi bulan ini. Kategori terarsip yang sudah ada boleh tetap, yang baru ditolak. `spendingType` atau body kosong → 400.
+- [ ] `DELETE` → budget tidak tampil di bulan ini dan sesudahnya, bulan lalu tetap. Diulang → 200 tanpa perubahan. `restore` mengembalikannya. Kategori atau nama sudah dipakai budget lain → 409 `BUDGET_RESTORE_CONFLICT`. Budget yang dibuat dan dihapus di bulan yang sama tidak tampil di bulan mana pun.
+- [ ] `period` hilang, `2026-13`, `1999-12`, atau bulan depan → 400 `fields.period`.
+- [ ] **Isolasi:** B mendapat 404 untuk `PATCH`/`DELETE`/`restore` budget A, `GET` B tidak pernah memuat budget, kategori, atau pengeluaran A, dan B tidak bisa memakai kategori A.
+- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`.
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [x] Bulan baru: "Salin dari September" mengisi daftar tanpa reload. "Saran 50/30/20" menampilkan pratinjau, baris yang akan menimpa tidak tercentang, "Terapkan" menulis hanya baris tercentang.
-- [x] Mencatat expense dari **+** lalu kembali ke `/budget` memperbarui terpakai dan status tanpa reload.
-- [x] Hapus budget → baris langsung kembali "Atur budget", "Urungkan" mengembalikannya. `DELETE` gagal mengembalikan baris dan menampilkan toast error.
-- [x] `/budget?period=2026-10` bertahan setelah refresh. Stepper tidak bisa melewati bulan depan.
-- [x] Status terbaca tanpa warna (teks "Hampir habis" / "Melebihi budget"), layout benar di 360 px, target sentuh ≥ 44 px, input 16 px.
-- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [ ] Tambah "Jajan & Hiburan" Rp800.000 (Jajan, Hiburan) → catat expense Jajan 700.000 dari **+** → kembali ke `/budget`: "Hampir habis" 87% tanpa reload, dan budget itu naik ke atas.
+- [ ] Kategori yang sudah dipakai tampil disabled di form budget lain. Needs/Wants memfilter pilihan kategori.
+- [ ] Ubah nominal di bulan berjalan → bulan lalu tidak berubah. Bulan lalu tidak bisa diedit, stepper berhenti di bulan berjalan.
+- [ ] Hapus budget → hilang dari bulan ini, bulan lalu tetap. "Urungkan" mengembalikannya. `DELETE` gagal mengembalikan baris dan menampilkan toast error.
+- [ ] Status terbaca tanpa warna, layout benar di 360 px, target sentuh ≥ 44 px, input 16 px.
+- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+
+**Cutover**
+
+- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total Needs/Wants/Total yang sama dengan sebelum cutover. Bulan berjalan bisa diisi budget bernama.
 
 ## Tes
 
 - **Unit (`tests/unit/`):**
-  - `budget-schema.spec.ts`: format dan rentang `period` (hari ini lewat fake timer, termasuk Desember → Januari tahun depan), `amount`, `items` unik/batas, `strictObject`.
-  - `budget-status.spec.ts`: batas 80% dan 100%, budget 0, `percent` dibulatkan ke bawah.
-  - `budget-suggestion.spec.ts`: pool 50/30/20, sisa terbesar dengan jumlah tepat, seri deterministik, bobot nol → bagi rata, basis 0, grup kosong.
-  - `use-budgets.spec.ts`: key, matcher `revalidateBudgets` dari `revalidateTransactions`, optimistic delete dan rollback.
+  - `budget-schema.spec.ts`: `budgetName`, `amount`, `categoryIds` unik/batas, `strictObject` (`userId`, `period`, `spendingType` di `PATCH`), `PATCH` kosong.
+  - `budget-status.spec.ts`: batas 80% dan 100%, budget 0, `summarizeBudgetUsage`, `compareByAttention`.
+  - `budget-cache.spec.ts`: `endBudgetInUsage` (pengeluaran pindah ke `unbudgeted`, summary sama dengan hasil server).
+  - `budget-format.spec.ts`: `budgetCategoryOptions` (jenis, `free`/`own`/`taken`, terarsip).
+  - `use-budgets.spec.ts`: key, optimistic delete dan rollback.
 - **API (`tests/api/`, Supabase sungguhan, user `test-<uuid>`):**
-  - `budgets.spec.ts`: upsert, soft delete/restore, hidup lagi lewat `PUT`, validasi kategori (atomik), 404 untuk id bukan UUID, isolasi A/B, 401.
-  - `budget-usage.spec.ts`: terpakai per kategori, batas tanggal awal/akhir bulan, kategori terarsip, invarian terhadap `transactionTotals`.
-  - `budget-copy.spec.ts` dan `budget-suggestion.spec.ts`: skenario di Acceptance criteria.
+  - `db-constraints.spec.ts`: constraint `budget_versions` dan cascade.
+  - `budget-usage.spec.ts`: versi efektif, batas bulan, `unbudgeted`, kategori terarsip, invarian, validasi `period`, isolasi, 401.
+  - `budgets.spec.ts`: `POST`/`PATCH`/`DELETE`/`restore`, validasi kategori, nama unik, paralel, isolasi, 401.
+  - `budget-backfill.spec.ts` (T121): aturan backfill di dalam transaksi yang di-rollback.
 - **E2E:** tetap ditunda (SPEC.md Open question #2).
 
 ## Struktur file
 
 ```
-app/api/budgets/{route.ts, copy/route.ts, suggestion/route.ts, [id]/route.ts, [id]/restore/route.ts}
-app/(app)/budget/page.tsx                 # ganti placeholder
-components/budgets/                       # budget-view, budget-summary, budget-row, suggestion-panel, month-actions
+app/api/budgets/{route.ts, usage/route.ts, [id]/route.ts, [id]/restore/route.ts}
+app/(app)/budget/page.tsx
+components/budgets/                       # budget-view, budget-summary, budget-row, budget-sheet, month-stepper
 components/forms/budget-form.tsx
 hooks/use-budgets.ts
-lib/schemas/budget.ts, lib/budget-status.ts, lib/budget-suggestion.ts
-lib/server/budgets.ts, lib/server/queries/{budget-usage.ts, budget-history.ts}
-db/schema.ts, drizzle/<timestamp>_budget_deleted_at/
+lib/schemas/{budget.ts, budget-usage.ts}, lib/budget-status.ts, lib/budget-cache.ts, lib/budget-format.ts
+lib/server/budgets.ts, lib/server/queries/budget-usage.ts
+db/schema.ts, drizzle/<timestamp>_budget_versions/, drizzle/<timestamp>_budget_versions_backfill/
 tests/unit/*.spec.ts, tests/api/*.spec.ts
 ```
 
@@ -240,24 +262,21 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md). Menjalankan 
 
 ## Boundaries (khusus modul ini)
 
-- **Always:** pakai `findOwnedCategory` (atau varian banyak id) untuk setiap `categoryId`, upsert pada kunci unik (bukan cek-lalu-insert), hitung terpakai di DB, satu `budgetStatus()` untuk server dan client, panggil `revalidateBudgets()` setelah setiap mutasi budget.
-- **Ask first:** budget untuk saving/income, index parsial atau index baru, kolom selain `deleted_at` (mis. `updated_at`, `rollover`), mengubah ambang 80%, persentase 50/30/20 yang bisa diatur pengguna.
-- **Never:** hard delete budget, menerima `userId` dari body, menghitung terpakai dari transaksi di client, menyalin budget ke Zustand, memakai server action, `suggestion` yang menulis data.
+- **Always:** advisory lock per user di setiap tulisan budget, bulan tulisan dari server, upsert pada kunci unik (bukan cek-lalu-insert), hitung terpakai di DB, satu `budgetStatus()` dan satu `summarizeBudgetUsage()` untuk server dan client, `invalidate("budgets")` setelah setiap mutasi, `generate --explain` dan baca `migration.sql` sebelum setiap `db:migrate`.
+- **Ask first:** budget untuk saving/income, budget campuran Needs + Wants, index baru, kolom baru di `budget_versions`, mengubah ambang 80%, tulisan ke bulan selain bulan berjalan, menjalankan backfill atau drop `budgets` di DB bersama.
+- **Never:** hard delete versi budget (selain cascade user), menerima `userId` atau `period` dari body, mengubah versi bulan lalu, menghitung terpakai dari transaksi di client, menyalin budget ke Zustand, memakai server action.
 
 ## Risiko
 
-- **Zona waktu bulan:** batas bulan dihitung dari string `YYYY-MM` (`YYYY-MM-01` sampai hari terakhir), bukan `Date` lokal. Februari kabisat dites.
-- **Saran dari data tipis:** pengguna baru tanpa riwayat mendapat pembagian rata, dan tanpa income bulan lalu mendapat saran kosong. Field income di panel menutup kasus ini.
-- **Upsert menghidupkan budget terhapus:** salin bisa menghidupkan budget yang sengaja dihapus bulan ini. Diterima karena keputusan #3 menganggap budget terhapus sama dengan kosong. Toast menyebut jumlah yang disalin.
-- **Revalidasi lintas modul:** lupa matcher `/api/budgets` di `revalidateTransactions()` membuat halaman Budget basi setelah mencatat expense. Dites di `use-budgets.spec.ts`.
-- **`cacheComponents`:** `useSearchParams` di `/budget` wajib di dalam `<Suspense>`. Baca `node_modules/next/dist/docs/` sebelum menulis page.
+- **SQL versi efektif salah** (versi lama/baru, budget berakhir, batas bulan): tes merah dulu di T111 dengan versi di beberapa bulan dan baris akhir.
+- **Kategori terhitung di dua budget** (tap ganda, dua tab): advisory lock + tes paralel, invarian dites.
+- **Migrasi di DB bersama:** expand additive, backfill di cutover, drop terakhir, cadangan `budgets` sebelum drop.
+- **Backfill membawa budget melewati bulan kosong:** versi akhir di bulan sesudah celah, dites di transaksi yang di-rollback.
+- **Zona waktu bulan:** batas bulan dari string `YYYY-MM` lewat `monthRange`, bukan `Date` lokal.
+- **`cacheComponents`:** `useSearchParams` di `/budget` wajib di dalam `<Suspense>`.
 
 ## Open questions
 
-1. ~~Kategori yang bisa diberi budget~~ **Diputuskan:** spending saja (keputusan 1).
-2. ~~Hapus budget~~ **Diputuskan:** soft delete dengan kolom `deleted_at` (keputusan 2).
-3. ~~Salin dari bulan lalu~~ **Diputuskan:** hanya mengisi yang kosong (keputusan 3).
-4. ~~Saran 50/30/20~~ **Diputuskan:** saran nominal otomatis (keputusan 4).
-5. **Dasar saran = income bulan lalu, bobot = rata-rata 3 bulan:** setuju, atau pakai rata-rata income 3 bulan juga?
-6. **Ambang `warning` 80%** (keputusan 8): setuju, atau bandingkan dengan hari berjalan di bulan itu (mis. 60% terpakai di tanggal 10 sudah peringatan)?
-7. **Budget bulan depan diizinkan** (keputusan 6): setuju, atau batasi ke bulan berjalan dan sebelumnya?
+1. ~~Budget lama per kategori saat cutover~~ **Diputuskan 2026-10-31:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (keputusan #8).
+2. ~~Nama budget unik~~ **Diputuskan 2026-10-31:** unik tanpa beda huruf besar di antara budget yang tampil di bulan berjalan, 409 `BUDGET_NAME_TAKEN` (keputusan #5).
+3. ~~"Berlaku mulai bulan depan"~~ **Diputuskan 2026-10-31:** tidak ada. Perubahan di hari terakhir bulan ikut mengubah bulan itu (keputusan #3).

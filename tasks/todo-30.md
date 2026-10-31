@@ -30,9 +30,9 @@ type BudgetUsage = { period: BudgetPeriod; items: BudgetUsageItem[]; unbudgeted:
 
 **Acceptance criteria:**
 
-- [ ] SPEC-budgets.md memuat kontrak di atas, aturan tulis (bulan berjalan dari server, satu kategori satu budget per bulan, jenis kategori = jenis budget, kategori terarsip hanya boleh tetap bila sudah ada di versi efektif, nama unik), definisi versi efektif, dan langkah cutover
-- [ ] SPEC.md, SPEC-dashboard.md, SPEC-foundation.md konsisten dengan SPEC-budgets.md (tidak ada lagi "salin", "saran 50/30/20", "bulan depan", atau "budget per kategori" sebagai perilaku berjalan)
-- [ ] Yogi menyetujui perubahan skema dan capability map, dan menjawab Open questions 1–3 di plan.md
+- [x] SPEC-budgets.md memuat kontrak di atas, aturan tulis (bulan berjalan dari server, satu kategori satu budget per bulan, jenis kategori = jenis budget, kategori terarsip hanya boleh tetap bila sudah ada di versi efektif, nama unik), definisi versi efektif, dan langkah cutover
+- [x] SPEC.md, SPEC-dashboard.md, SPEC-foundation.md konsisten dengan SPEC-budgets.md (tidak ada lagi "salin", "saran 50/30/20", "bulan depan", atau "budget per kategori" sebagai perilaku berjalan)
+- [ ] Yogi menyetujui perubahan skema dan capability map, dan menjawab Open questions 1–3 di plan.md (Open questions dijawab 2026-10-31; persetujuan spec menunggu)
 
 **Verification:**
 

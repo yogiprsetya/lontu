@@ -14,7 +14,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `pwa-offline`         | [SPEC-pwa-offline.md](../SPEC-pwa-offline.md)                 | 19–21 | T66–T76 | Selesai (T66–T76). JS tambahan +6–7 KB gzip (lihat Catatan ukuran pwa-offline) |
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
-| Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | Direncanakan (menunggu review plan) |
+| Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | Plan disetujui 2026-10-31. T107 spec ditulis, menunggu review Yogi |
 
 ---
 
@@ -691,6 +691,6 @@ Phase 34  T121 Migrasi data lama (file + dry run) ─► T122 Cutover produksi +
 
 ## Open questions
 
-1. **Budget lama per kategori saat cutover:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (bulan berjalan mulai kosong, pemilik membuat budget bernama baru), atau tetap aktif sebagai budget satu kategori yang lalu digabung manual? (Default: berakhir di bulan cutover. Baris lama untuk bulan depan diabaikan.)
-2. **Nama budget unik** (tanpa beda huruf besar) di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN`. Setuju?
-3. **Tanpa "berlaku mulai bulan depan".** Mengubah budget tanggal 31 ikut mengubah bulan itu. Setuju?
+1. **Budget lama per kategori saat cutover:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (bulan berjalan mulai kosong, pemilik membuat budget bernama baru), atau tetap aktif sebagai budget satu kategori yang lalu digabung manual? (Default: berakhir di bulan cutover. Baris lama untuk bulan depan diabaikan.) **Dijawab 2026-10-31: berakhir di bulan cutover.**
+2. **Nama budget unik** (tanpa beda huruf besar) di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN`. Setuju? **Dijawab 2026-10-31: setuju.**
+3. **Tanpa "berlaku mulai bulan depan".** Mengubah budget tanggal 31 ikut mengubah bulan itu. Setuju? **Dijawab 2026-10-31: setuju.**

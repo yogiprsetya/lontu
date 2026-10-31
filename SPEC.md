@@ -7,7 +7,7 @@ File ini berisi **capability map** (indeks modul) dan aturan yang berlaku untuk 
 
 ## Objective
 
-Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan per kategori, dan dashboard ringkasan.
+Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan bernama (satu budget mencakup beberapa kategori), dan dashboard ringkasan.
 
 - **Pengguna:** hanya pemilik (login Google dengan allowlist email). Model data tetap multi-user (`user_id` di setiap tabel), jadi membuka pendaftaran nanti tidak butuh migrasi data.
 - **Sukses berarti:** mencatat transaksi dari ponsel cukup beberapa tap, saldo setiap akun selalu benar, budget yang hampir habis terlihat sebelum akhir bulan, dan data terakhir tetap bisa dilihat saat offline.
@@ -19,7 +19,7 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, theme, manifest | — |
 | `accounts-categories` | CRUD akun & kategori, modal Manage Accounts / Manage Categories, seed kategori default, saldo dari view `account_balances`, halaman Settings | foundation |
 | `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
-| `budgets` | CRUD budget per kategori/bulan, salin dari bulan lalu, query `budgetUsage`, ringkasan Needs/Wants | accounts-categories, transactions |
+| `budgets` | Budget bernama berversi (beberapa kategori, satu jenis Needs/Wants, berlaku sampai diubah), akhiri + urungkan, query `budgetUsage`, ringkasan Needs/Wants | accounts-categories, transactions |
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 | `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
@@ -39,7 +39,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 5. **Transfer digabung ke modul `transactions`:** tabel, daftar, dan cache SWR-nya sama.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
-8. **6 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27.
+8. **6 tabel** (`users`, `accounts`, `categories`, `transactions`, `budget_versions`, `recurring_rules`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `budget_versions` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
 
 ## Tech stack
 
@@ -223,6 +223,6 @@ Scan struk (OCR) dan upload receipt, multi-currency, pendaftaran terbuka (tanpa 
 1. ~~DB untuk tes API~~ **Diputuskan:** Supabase lewat `DATABASE_URL`, tanpa DBMS lokal. Lihat Testing strategy.
 2. ~~Login di E2E~~ **Ditunda:** E2E tidak dikerjakan di foundation. Usulan provider Credentials khusus tes (`E2E_AUTH=1`, bukan production) dibahas lagi saat E2E dijadwalkan.
 3. ~~Saldo tidak cukup saat transfer/expense~~ **Diputuskan 2026-10-21:** peringatan non-blokir di form, server tidak menolak. Lihat [SPEC-transactions.md](SPEC-transactions.md).
-4. ~~Biaya admin transfer~~ **Diputuskan 2026-10-21:** masuk MVP sebagai expense terpisah tanpa tautan ke transfer. **Saran 50/30/20** di Budget: **diputuskan 2026-10-23**, saran nominal otomatis per kategori. Lihat [SPEC-budgets.md](SPEC-budgets.md).
+4. ~~Biaya admin transfer~~ **Diputuskan 2026-10-21:** masuk MVP sebagai expense terpisah tanpa tautan ke transfer. **Saran 50/30/20** di Budget: diputuskan 2026-10-23 sebagai saran nominal otomatis per kategori, lalu **dihapus 2026-10-31** bersama model per kategori. Lihat [SPEC-budgets.md](SPEC-budgets.md).
 5. ~~Halaman Expenses vs `/transactions?type=expense`~~ **Diputuskan 2026-10-21:** `/expenses` menjadi preset filter dari komponen daftar yang sama.
 6. ~~Nama package~~ **Diputuskan:** `lontu`.

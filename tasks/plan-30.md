@@ -18,6 +18,7 @@ Urutan: T107 dulu. T108 dan T109 bebas urutan, satu commit masing-masing.
 
 - **T107 adalah gerbang Ask first:** tabel baru `budget_versions`, drop `budgets` di T122, baris `budgets` di capability map, keputusan terkunci #8, dan penghapusan fitur. Tanpa persetujuan, phase 31 tidak dimulai.
 - **Penghapusan per fitur, bukan per lapisan.** Satu fitur = route + lib + hook + UI + tesnya dalam satu commit, supaya tidak ada kode mati di antara commit.
+- **Plan disetujui dan Open questions 1–3 dijawab Yogi 2026-10-31** (semua sesuai default, dicatat di SPEC-budgets.md keputusan #3, #5, #8). Persetujuan spec T107: menunggu.
 - **Model lama tetap jalan di branch** setelah T108/T109: budget per kategori masih bisa diatur, hanya tanpa salin dan saran.
 
 ## Risiko

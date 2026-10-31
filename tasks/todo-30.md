@@ -32,12 +32,12 @@ type BudgetUsage = { period: BudgetPeriod; items: BudgetUsageItem[]; unbudgeted:
 
 - [x] SPEC-budgets.md memuat kontrak di atas, aturan tulis (bulan berjalan dari server, satu kategori satu budget per bulan, jenis kategori = jenis budget, kategori terarsip hanya boleh tetap bila sudah ada di versi efektif, nama unik), definisi versi efektif, dan langkah cutover
 - [x] SPEC.md, SPEC-dashboard.md, SPEC-foundation.md konsisten dengan SPEC-budgets.md (tidak ada lagi "salin", "saran 50/30/20", "bulan depan", atau "budget per kategori" sebagai perilaku berjalan)
-- [ ] Yogi menyetujui perubahan skema dan capability map, dan menjawab Open questions 1–3 di plan.md (Open questions dijawab 2026-10-31; persetujuan spec menunggu)
+- [x] Yogi menyetujui perubahan skema dan capability map, dan menjawab Open questions 1–3 di plan.md (Open questions dijawab 2026-10-31; spec disetujui 2026-10-31)
 
 **Verification:**
 
-- [ ] `pnpm format:check` hijau
-- [ ] Review dokumen bersama Yogi (tanpa perubahan kode)
+- [x] `pnpm format:check` hijau
+- [x] Review dokumen bersama Yogi (tanpa perubahan kode)
 
 **Dependencies:** None
 
@@ -53,14 +53,14 @@ type BudgetUsage = { period: BudgetPeriod; items: BudgetUsageItem[]; unbudgeted:
 
 **Acceptance criteria:**
 
-- [ ] `rg -n "suggestBudgets|budgetHistory|historyWindow|BudgetSuggestion|useBudgetSuggestion|SuggestionPanel|50/30/20" app components hooks lib tests` kosong
-- [ ] Menu aksi bulan hanya berisi "Salin dari {bulan lalu}"; prompt bulan kosong hanya tombol salin
-- [ ] Tes yang hilang hanya tes saran (jumlah dicatat di commit body)
+- [x] `rg -n "suggestBudgets|budgetHistory|historyWindow|BudgetSuggestion|useBudgetSuggestion|SuggestionPanel|50/30/20" app components hooks lib tests` kosong
+- [x] Menu aksi bulan hanya berisi "Salin dari {bulan lalu}"; prompt bulan kosong hanya tombol salin
+- [x] Tes yang hilang hanya tes saran (jumlah dicatat di commit body)
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: `/budget` tanpa "Saran 50/30/20", atur budget per kategori tetap jalan
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): `/budget` tanpa "Saran 50/30/20", atur budget per kategori tetap jalan
 
 **Dependencies:** T107
 

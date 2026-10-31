@@ -25,9 +25,6 @@ import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
 import { useUIStore } from "@/stores/ui";
 
 // Loaded when first opened, not with the page.
-const SuggestionPanel = lazy(() =>
-  import("@/components/budgets/suggestion-panel").then((m) => ({ default: m.SuggestionPanel })),
-);
 const BudgetForm = lazy(() =>
   import("@/components/forms/budget-form").then((m) => ({ default: m.BudgetForm })),
 );
@@ -43,18 +40,13 @@ function ViewSkeleton() {
   );
 }
 
-function NoBudgetsPrompt({ period, onSuggest }: { period: BudgetPeriod; onSuggest: () => void }) {
+function NoBudgetsPrompt({ period }: { period: BudgetPeriod }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
       <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
-      <div className="flex flex-wrap justify-center gap-2">
-        <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
-          Salin dari {previousMonthLabel(period)}
-        </Button>
-        <Button variant="outline" className="h-11 text-base" onClick={onSuggest}>
-          Saran 50/30/20
-        </Button>
-      </div>
+      <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
+        Salin dari {previousMonthLabel(period)}
+      </Button>
     </div>
   );
 }
@@ -104,10 +96,6 @@ export function BudgetView() {
   const categories = useCategories({ includeArchived: true });
   // Only the category id: the row itself always comes from the SWR cache.
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
-  // Kept mounted after the first opening so the panel's close animation plays.
-  const [suggestedOnce, setSuggestedOnce] = useState(false);
-  if (suggesting && !suggestedOnce) setSuggestedOnce(true);
   const editing = usage.data?.items.find((i) => i.categoryId === editingId);
 
   const names = useMemo(
@@ -155,9 +143,7 @@ export function BudgetView() {
     const { items, summary } = usage.data;
     content = (
       <>
-        {items.every((i) => i.budget === null) && (
-          <NoBudgetsPrompt period={period} onSuggest={() => setSuggesting(true)} />
-        )}
+        {items.every((i) => i.budget === null) && <NoBudgetsPrompt period={period} />}
         <BudgetSummary summary={summary} />
         <BudgetGroups items={items} names={names} archived={archived} onEdit={setEditingId} />
       </>
@@ -168,7 +154,7 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
-        <MonthActions period={period} onSuggest={() => setSuggesting(true)} />
+        <MonthActions period={period} />
       </div>
       {content}
       <ResponsiveModal
@@ -189,16 +175,6 @@ export function BudgetView() {
           </Suspense>
         )}
       </ResponsiveModal>
-      {suggestedOnce && (
-        <Suspense fallback={null}>
-          <SuggestionPanel
-            period={period}
-            open={suggesting}
-            onOpenChange={setSuggesting}
-            names={names}
-          />
-        </Suspense>
-      )}
     </>
   );
 }

@@ -36,19 +36,6 @@ export type BudgetUsage = {
   summary: { needs: BudgetGroup; wants: BudgetGroup; total: BudgetGroup };
 };
 
-export type BudgetSuggestion = {
-  period: BudgetPeriod;
-  basis: number;
-  basisSource: "previous_month" | "input";
-  pools: { needs: number; wants: number; saving: number };
-  items: {
-    categoryId: string;
-    spendingType: SpendingType;
-    amount: number;
-    current: number | null;
-  }[];
-};
-
 export const BUDGET_PERIOD_FORMAT = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /** Next month: budgets can be prepared before the month starts. */
@@ -90,13 +77,3 @@ export const budgetSetSchema = z.strictObject({
 export type BudgetSetInput = z.infer<typeof budgetSetSchema>;
 
 export const budgetCopySchema = z.strictObject({ to: budgetPeriodSchema });
-
-export const budgetSuggestionQuerySchema = z.object({
-  period: budgetPeriodSchema,
-  income: z.coerce
-    .number("Income tidak valid")
-    .int("Income harus bilangan bulat rupiah")
-    .min(0, "Income minimal Rp0")
-    .max(1e12, "Maksimal 1 triliun")
-    .optional(),
-});

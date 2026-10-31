@@ -14,7 +14,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 - [x] `compareByAttention` dites murni: over sebelum warning sebelum ok, persen turun, seri diputus nama
 - [x] `budgetPeriodFromParam("2026-12", "2026-11-15")` → `2026-11`; stepper tidak bisa maju melewati bulan berjalan
-- [x] Halaman memakai `useBudgetUsage` saja (`rg -n "useBudgets\(" components` kosong); status tetap terbaca tanpa warna; progress `role="progressbar"`
+- [x] Halaman memakai `useBudgetUsage` saja (`rg -n "useBudgets\(" components/budgets` kosong; dashboard pindah di T119); status tetap terbaca tanpa warna; progress `role="progressbar"`
 
 **Verification:**
 
@@ -35,14 +35,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`, c
 
 **Acceptance criteria:**
 
-- [ ] `budgetCategoryOptions` dites murni: filter jenis, `taken` membawa nama budget pemilik, terarsip hanya bila `own`, urut nama
-- [ ] Galat server tampil di field: 409 → Nama, 400 `categoryIds` → Kategori; galat jaringan → toast
-- [ ] Input 16 px, target sentuh ≥ 44 px, tidak ada scroll horizontal di 360 px
+- [x] `budgetCategoryOptions` dites murni: filter jenis, `taken` membawa nama budget pemilik, terarsip hanya bila `own`, urut nama
+- [x] Galat server tampil di field: 409 → Nama, 400 `categoryIds` → Kategori; galat jaringan → toast
+- [ ] Input 16 px, target sentuh ≥ 44 px, tidak ada scroll horizontal di 360 px (kode: `inputClass`, `h-11`/`min-h-11`, `size-14`; cek visual tertunda: sesi tanpa browser)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/use-budgets.spec.ts` hijau
-- [ ] Manual: buat dua budget wants; kategori budget pertama disabled "di {nama}" di form kedua
+- [x] `pnpm vitest run tests/unit/budget-format.spec.ts tests/unit/use-budgets.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): buat dua budget wants; kategori budget pertama disabled "di {nama}" di form kedua
 
 **Dependencies:** T112, T114
 

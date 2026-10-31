@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PlusIcon } from "lucide-react";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
 import { MonthStepper } from "@/components/budgets/month-stepper";
+import { FormActions } from "@/components/layout/form-actions";
+import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +22,11 @@ import { formatPeriodLabel } from "@/lib/period";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
 import type { BudgetUsage } from "@/lib/schemas/budget-usage";
 import { useUIStore } from "@/stores/ui";
+
+// Loaded when first opened, not with the page.
+const BudgetForm = lazy(() =>
+  import("@/components/forms/budget-form").then((m) => ({ default: m.BudgetForm })),
+);
 
 function ViewSkeleton() {
   return (
@@ -68,7 +76,11 @@ export function BudgetView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const period = budgetPeriodFromParam(searchParams.get("period"), todayInJakarta());
+  const today = todayInJakarta();
+  const period = budgetPeriodFromParam(searchParams.get("period"), today);
+  // Budgets change only in the current month; earlier months are read-only.
+  const isCurrent = period === today.slice(0, 7);
+  const [adding, setAdding] = useState(false);
   const openModal = useUIStore((s) => s.open);
   const usage = useBudgetUsage(period);
   const categories = useCategories({ includeArchived: true });
@@ -117,9 +129,16 @@ export function BudgetView() {
       <>
         <BudgetSummary summary={usage.data.summary} />
         {usage.data.items.length === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed px-6 py-8 text-center text-muted-foreground">
-            Belum ada budget untuk {formatPeriodLabel(period)}.
-          </p>
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
+            <p className="text-muted-foreground">
+              Belum ada budget untuk {formatPeriodLabel(period)}.
+            </p>
+            {isCurrent && (
+              <Button className="h-11 text-base" onClick={() => setAdding(true)}>
+                Tambah budget
+              </Button>
+            )}
+          </div>
         ) : (
           <BudgetList usage={usage.data} names={names} />
         )}
@@ -132,8 +151,35 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
+        {isCurrent && (
+          <Button
+            aria-label="Tambah budget"
+            className="size-14 shrink-0 rounded-2xl"
+            disabled={!usage.data || !categories.data}
+            onClick={() => setAdding(true)}
+          >
+            <PlusIcon className="size-6" aria-hidden />
+          </Button>
+        )}
       </div>
       {content}
+      <ResponsiveModal
+        open={adding}
+        onOpenChange={setAdding}
+        title="Tambah budget"
+        description={`Mulai ${formatPeriodLabel(period)}`}
+        footer={<FormActions form="budget-form" onCancel={() => setAdding(false)} />}
+      >
+        {adding && usage.data && categories.data && (
+          <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+            <BudgetForm
+              categories={categories.data}
+              usage={usage.data}
+              onDone={() => setAdding(false)}
+            />
+          </Suspense>
+        )}
+      </ResponsiveModal>
     </>
   );
 }

@@ -4,7 +4,14 @@ import useSWR from "swr";
 import { removeBudgetFromUsage } from "@/lib/budget-cache";
 import { apiKey, invalidate, removeOptimistically } from "@/lib/cache-invalidation";
 import { sendJSON } from "@/lib/fetcher";
-import type { Budget, BudgetPeriod, BudgetSetInput, BudgetUsage } from "@/lib/schemas/budget";
+import type {
+  Budget,
+  BudgetCreateInput,
+  BudgetPeriod,
+  BudgetSetInput,
+  BudgetUsage,
+  BudgetVersion,
+} from "@/lib/schemas/budget";
 import type { BudgetUsage as NamedBudgetUsage } from "@/lib/schemas/budget-usage";
 
 export function budgetsKey(period: BudgetPeriod) {
@@ -43,4 +50,10 @@ export async function restoreBudget(id: string) {
   const restored = await sendJSON<Budget>(`/api/budgets/${id}/restore`, "POST");
   await invalidate("budgets");
   return restored;
+}
+
+export async function createBudget(input: BudgetCreateInput) {
+  const created = await sendJSON<BudgetVersion>("/api/budgets", "POST", input);
+  await invalidate("budgets");
+  return created;
 }

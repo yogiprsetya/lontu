@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  budgetCategoryOptions,
   budgetPeriodFromParam,
   budgetTransactionsHref,
   groupStatus,
@@ -68,5 +69,70 @@ describe("budgetTransactionsHref", () => {
     expect(budgetTransactionsHref("2026-10", "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b")).toBe(
       "/transactions?period=2026-10&type=expense&categoryId=1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b",
     );
+  });
+});
+
+describe("budgetCategoryOptions", () => {
+  const category = (
+    id: string,
+    name: string,
+    spendingType: "needs" | "wants" | null,
+    archived = false,
+  ) => ({
+    id,
+    name,
+    kind: spendingType ? ("spending" as const) : ("income" as const),
+    spendingType,
+    archivedAt: archived ? "2026-10-01T00:00:00.000Z" : null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  });
+  const categories = [
+    category("jajan", "jajan", "wants"),
+    category("hiburan", "Hiburan", "wants"),
+    category("hobi", "Hobi", "wants"),
+    category("lama", "Lama", "wants", true),
+    category("buku", "Buku", "wants", true),
+    category("makan", "Makan", "needs"),
+    category("gaji", "Gaji", null),
+  ];
+  const usage = {
+    items: [
+      { budgetId: "senang", name: "Senang-senang", categories: [{ categoryId: "hiburan" }] },
+      {
+        budgetId: "mine",
+        name: "Punyaku",
+        categories: [{ categoryId: "jajan" }, { categoryId: "lama" }],
+      },
+    ],
+  };
+
+  it("lists the type's categories by name, marking free, own and taken ones", () => {
+    expect(
+      budgetCategoryOptions({ categories, usage, budgetId: "mine", spendingType: "wants" }),
+    ).toEqual([
+      { id: "hiburan", name: "Hiburan", status: "taken", takenBy: "Senang-senang" },
+      { id: "hobi", name: "Hobi", status: "free" },
+      { id: "jajan", name: "jajan", status: "own" },
+      { id: "lama", name: "Lama (arsip)", status: "own" },
+    ]);
+  });
+
+  it("treats every used category as taken for a new budget and hides archived ones", () => {
+    expect(
+      budgetCategoryOptions({ categories, usage, spendingType: "wants" }).map((o) => [
+        o.id,
+        o.status,
+      ]),
+    ).toEqual([
+      ["hiburan", "taken"],
+      ["hobi", "free"],
+      ["jajan", "taken"],
+    ]);
+  });
+
+  it("shows only the chosen type", () => {
+    expect(budgetCategoryOptions({ categories, usage, spendingType: "needs" })).toEqual([
+      { id: "makan", name: "Makan", status: "free" },
+    ]);
   });
 });

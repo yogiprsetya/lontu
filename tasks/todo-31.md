@@ -79,13 +79,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Budget dengan versi bulan lalu, di-`PATCH { amount }` → versi baru di bulan berjalan; bulan lalu tetap nominal, nama, dan kategori lama. `PATCH` kedua di bulan yang sama → tetap satu versi bulan ini
-- [ ] Kategori terarsip yang sudah ada boleh tetap, yang baru ditolak. Menambah kategori budget lain → 400. Ganti nama ke nama budget lain → 409; ke nama sendiri dengan huruf beda → 200
-- [ ] Id bukan UUID, tidak ada, milik B, atau budget yang sudah berakhir → 404 `BUDGET_NOT_FOUND`. Body kosong atau `spendingType` → 400. Tanpa session → 401
+- [x] Budget dengan versi bulan lalu, di-`PATCH { amount }` → versi baru di bulan berjalan; bulan lalu tetap nominal, nama, dan kategori lama. `PATCH` kedua di bulan yang sama → tetap satu versi bulan ini
+- [x] Kategori terarsip yang sudah ada boleh tetap, yang baru ditolak. Menambah kategori budget lain → 400. Ganti nama ke nama budget lain → 409; ke nama sendiri dengan huruf beda → 200
+- [x] Id bukan UUID, tidak ada, milik B, atau budget yang sudah berakhir → 404 `BUDGET_NOT_FOUND`. Body kosong atau `spendingType` → 400. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budgets.spec.ts tests/unit/budget-schema.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budgets.spec.ts tests/unit/budget-schema.spec.ts` hijau
 
 **Dependencies:** T112
 

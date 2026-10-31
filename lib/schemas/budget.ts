@@ -110,3 +110,14 @@ export const budgetCreateSchema = z.strictObject({
 });
 
 export type BudgetCreateInput = z.infer<typeof budgetCreateSchema>;
+
+// The type is fixed at creation, so spendingType is not accepted here.
+export const budgetUpdateSchema = z
+  .strictObject({
+    name: budgetName.optional(),
+    amount: budgetAmount.optional(),
+    categoryIds: budgetCategoryIds.optional(),
+  })
+  .refine((input) => Object.values(input).some((v) => v !== undefined), "Tidak ada perubahan");
+
+export type BudgetUpdateInput = z.infer<typeof budgetUpdateSchema>;

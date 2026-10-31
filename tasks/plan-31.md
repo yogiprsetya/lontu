@@ -11,7 +11,7 @@ Server budget bernama siap dan terkunci tes: tabel `budget_versions`, query pema
 - [x] T110: Tabel `budget_versions` (M, migrasi additive di DB bersama)
 - [x] T111: `budgetUsage` berversi + `GET /api/budgets/usage` (M, risiko tinggi)
 - [x] T112: `POST /api/budgets` buat budget (M, risiko tinggi: eksklusivitas)
-- [ ] T113: `PATCH /api/budgets/[id]` ubah mulai bulan ini (M)
+- [x] T113: `PATCH /api/budgets/[id]` ubah mulai bulan ini (M)
 
 Urutan: T110 dulu. T111 dan T112 bebas urutan. T113 butuh T112.
 

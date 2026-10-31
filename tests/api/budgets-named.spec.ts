@@ -10,6 +10,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
 const route = await import("@/app/api/budgets/route");
+const item = await import("@/app/api/budgets/[id]/route");
 const { budgetUsage } = await import("@/lib/server/queries/budget-usage");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
@@ -26,6 +27,16 @@ function post(body: unknown) {
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
     noParams,
+  );
+}
+
+function patch(id: string, body: unknown) {
+  return item.PATCH(
+    new Request(`http://localhost/api/budgets/${id}`, {
+      method: "PATCH",
+      body: typeof body === "string" ? body : JSON.stringify(body),
+    }),
+    { params: Promise.resolve({ id }) },
   );
 }
 
@@ -211,5 +222,146 @@ describe("POST /api/budgets", () => {
   it("returns 401 without a session", async () => {
     signInAs(null);
     expect((await post(jajanHiburan())).status).toBe(401);
+  });
+});
+
+describe("PATCH /api/budgets/[id]", () => {
+  const budgetId = randomUUID();
+
+  /** A budget set up in September, so October has no version of its own yet. */
+  async function septemberBudget(overrides: Partial<typeof budgetVersions.$inferInsert> = {}) {
+    await db.insert(budgetVersions).values({
+      userId: userA,
+      budgetId,
+      name: "Jajan & Hiburan",
+      spendingType: "wants",
+      year: 2026,
+      month: 9,
+      amount: 800_000,
+      categoryIds: [cat.Jajan, cat.Hiburan],
+      ...overrides,
+    });
+  }
+
+  it("writes a version for the current month and leaves last month as it was", async () => {
+    await septemberBudget();
+    signInAs(userA);
+    const res = await patch(budgetId, { amount: 1_000_000 });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      id: budgetId,
+      name: "Jajan & Hiburan",
+      spendingType: "wants",
+      amount: 1_000_000,
+      categoryIds: [cat.Jajan, cat.Hiburan],
+      period: "2026-10",
+      deletedAt: null,
+    });
+    const sep = await budgetUsage(userA, "2026-09");
+    expect(sep.items).toMatchObject([{ budgetId, budget: 800_000, name: "Jajan & Hiburan" }]);
+    const oct = await budgetUsage(userA, "2026-10");
+    expect(oct.items).toMatchObject([{ budgetId, budget: 1_000_000 }]);
+  });
+
+  it("keeps one version per month when saved twice", async () => {
+    await septemberBudget();
+    signInAs(userA);
+    await patch(budgetId, { amount: 1_000_000 });
+    const res = await patch(budgetId, { name: "Hura-hura", categoryIds: [cat.Hobi] });
+    expect(await res.json()).toMatchObject({
+      name: "Hura-hura",
+      amount: 1_000_000,
+      categoryIds: [cat.Hobi],
+    });
+    expect(await versionsOf(userA)).toHaveLength(2);
+  });
+
+  it("keeps an archived category the budget already has, but does not add one", async () => {
+    await septemberBudget({ categoryIds: [cat.Jajan, cat.Lama] });
+    signInAs(userA);
+    expect((await patch(budgetId, { categoryIds: [cat.Lama, cat.Hobi] })).status).toBe(200);
+
+    await db.delete(budgetVersions).where(eq(budgetVersions.userId, userA));
+    await septemberBudget();
+    const res = await patch(budgetId, { categoryIds: [cat.Jajan, cat.Lama] });
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as ErrorBody).error.fields).toEqual({
+      categoryIds: ["Kategori tidak valid"],
+    });
+  });
+
+  it.each(["Makan", "Gaji", "foreign"])("rejects category %s", async (name) => {
+    await septemberBudget();
+    signInAs(userA);
+    const res = await patch(budgetId, { categoryIds: [name === "foreign" ? catB : cat[name]] });
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects a category of another budget and the name of another budget", async () => {
+    await septemberBudget();
+    signInAs(userA);
+    await post({ name: "Hobi", spendingType: "wants", amount: 1, categoryIds: [cat.Hobi] });
+    const taken = await patch(budgetId, { categoryIds: [cat.Jajan, cat.Hobi] });
+    expect(taken.status).toBe(400);
+    expect(((await taken.json()) as ErrorBody).error.fields).toEqual({
+      categoryIds: ["Kategori sudah dipakai budget lain"],
+    });
+    const named = await patch(budgetId, { name: "hobi" });
+    expect(named.status).toBe(409);
+    expect(((await named.json()) as ErrorBody).error.code).toBe("BUDGET_NAME_TAKEN");
+  });
+
+  it("allows renaming to its own name in other letter case", async () => {
+    await septemberBudget();
+    signInAs(userA);
+    const res = await patch(budgetId, { name: "JAJAN & HIBURAN" });
+    expect(res.status).toBe(200);
+  });
+
+  it.each([
+    {},
+    { spendingType: "needs" },
+    { amount: -1 },
+    { name: "" },
+    { categoryIds: [] },
+    { period: "2026-09" },
+  ])("rejects an invalid body %j", async (body) => {
+    await septemberBudget();
+    signInAs(userA);
+    const res = await patch(budgetId, body);
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects a body that is not JSON", async () => {
+    await septemberBudget();
+    signInAs(userA);
+    expect((await patch(budgetId, "{")).status).toBe(400);
+  });
+
+  it.each(["not-a-uuid", "unknown", "ended", "foreign", "future"])(
+    "returns 404 BUDGET_NOT_FOUND for a %s budget",
+    async (kind) => {
+      if (kind === "ended") await septemberBudget({ deletedAt: new Date() });
+      if (kind === "foreign") await septemberBudget({ userId: userB, categoryIds: [catB] });
+      if (kind === "future") await septemberBudget({ month: 11 });
+      signInAs(userA);
+      const id =
+        kind === "not-a-uuid" ? "not-a-uuid" : kind === "unknown" ? randomUUID() : budgetId;
+      const res = await patch(id, { amount: 1 });
+      expect(res.status).toBe(404);
+      expect(((await res.json()) as ErrorBody).error.code).toBe("BUDGET_NOT_FOUND");
+    },
+  );
+
+  it("leaves user A's budget alone when user B patches it", async () => {
+    await septemberBudget();
+    signInAs(userB);
+    expect((await patch(budgetId, { amount: 1 })).status).toBe(404);
+    expect(await versionsOf(userA)).toHaveLength(1);
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    expect((await patch(budgetId, { amount: 1 })).status).toBe(401);
   });
 });

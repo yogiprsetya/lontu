@@ -9,6 +9,7 @@ import type {
   Budget,
   BudgetCreateInput,
   BudgetSetInput,
+  BudgetUpdateInput,
   BudgetVersion,
 } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
@@ -129,12 +130,13 @@ async function effectiveVersions(tx: Tx, userId: string, period: string) {
  * (already in the budget's effective version). One message for every failure, so nothing leaks.
  */
 async function checkCategories(
+  executor: typeof db | Tx,
   userId: string,
   ids: string[],
   spendingType: SpendingType,
   kept: ReadonlySet<string> = new Set(),
 ) {
-  const rows = await db
+  const rows = await executor
     .select({
       id: categories.id,
       kind: categories.kind,
@@ -176,7 +178,7 @@ export async function createBudget(
   input: BudgetCreateInput,
 ): Promise<BudgetWriteResult> {
   const period = currentPeriod();
-  const invalid = await checkCategories(userId, input.categoryIds, input.spendingType);
+  const invalid = await checkCategories(db, userId, input.categoryIds, input.spendingType);
   if (invalid) return invalid;
 
   return db.transaction(async (tx) => {
@@ -187,6 +189,55 @@ export async function createBudget(
     const [row] = await tx
       .insert(budgetVersions)
       .values({ userId, budgetId: crypto.randomUUID(), ...periodToYearMonth(period), ...input })
+      .returning();
+    return toBudgetVersion(row);
+  });
+}
+
+/**
+ * Writes the current month's version from the effective one plus `input`. Saving twice in a
+ * month updates that month's version, so earlier months keep what they showed.
+ */
+export async function updateBudget(
+  userId: string,
+  id: string,
+  input: BudgetUpdateInput,
+): Promise<BudgetWriteResult | undefined> {
+  if (!z.uuid().safeParse(id).success) return undefined;
+  const period = currentPeriod();
+
+  return db.transaction(async (tx) => {
+    await lockBudgets(tx, userId);
+    const shown = await effectiveVersions(tx, userId, period);
+    const current = shown.find((v) => v.budgetId === id);
+    if (!current || current.deletedAt) return undefined;
+
+    const next = {
+      name: input.name ?? current.name,
+      amount: input.amount ?? current.amount,
+      categoryIds: input.categoryIds ?? current.categoryIds,
+    };
+    const spendingType = current.spendingType as SpendingType;
+    if (input.categoryIds) {
+      const kept = new Set(current.categoryIds);
+      const invalid = await checkCategories(tx, userId, input.categoryIds, spendingType, kept);
+      if (invalid) return invalid;
+    }
+    const rejected = clash(shown, next, id);
+    if (rejected) return rejected;
+
+    const [row] = await tx
+      .insert(budgetVersions)
+      .values({ userId, budgetId: id, spendingType, ...periodToYearMonth(period), ...next })
+      .onConflictDoUpdate({
+        target: [
+          budgetVersions.userId,
+          budgetVersions.budgetId,
+          budgetVersions.year,
+          budgetVersions.month,
+        ],
+        set: next,
+      })
       .returning();
     return toBudgetVersion(row);
   });

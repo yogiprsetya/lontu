@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AddMenu } from "./add-menu";
+import { FabAddMenu } from "./add-menu";
 import {
   budgetItem,
   dashboardItem,
@@ -61,7 +61,7 @@ export function BottomNav() {
         <NavLink item={dashboardItem} pathname={pathname} />
         <NavLink item={transactionsItem} pathname={pathname} />
         <div className="flex w-14 shrink-0 justify-center">
-          <AddMenu variant="fab" />
+          <FabAddMenu />
         </div>
         <NavLink item={budgetItem} pathname={pathname} />
         <DropdownMenu>

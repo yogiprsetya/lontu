@@ -7,7 +7,6 @@ import {
   groupStatus,
   statusLabel,
 } from "@/lib/budget-format";
-import { maxBudgetPeriod } from "@/lib/schemas/budget";
 
 const today = "2026-10-23";
 
@@ -26,13 +25,6 @@ describe("budgetPeriodFromParam", () => {
   it("stops at the current month, across a year boundary", () => {
     expect(budgetPeriodFromParam("2026-12", "2026-11-15")).toBe("2026-11");
     expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2026-12");
-  });
-});
-
-describe("maxBudgetPeriod", () => {
-  it("is next month, across a year boundary", () => {
-    expect(maxBudgetPeriod(today)).toBe("2026-11");
-    expect(maxBudgetPeriod("2026-12-01")).toBe("2027-01");
   });
 });
 

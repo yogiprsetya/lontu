@@ -12,7 +12,7 @@ const { deleteTransaction, transactionKey, transactionsPageKey, transactionsTota
   await import("@/hooks/use-transactions");
 const { accountsKey, updateAccount } = await import("@/hooks/use-accounts");
 const { categoriesKey } = await import("@/hooks/use-categories");
-const { budgetsKey } = await import("@/hooks/use-budgets");
+const { budgetUsageKey } = await import("@/hooks/use-budgets");
 const { dashboardKey } = await import("@/hooks/use-dashboard");
 const { archiveRule, recurringKey } = await import("@/hooks/use-recurring");
 
@@ -183,7 +183,7 @@ describe("every key a hook builds matches its resource and no other", () => {
     ["accounts", accountsKey({ includeArchived: true })],
     ["categories", categoriesKey()],
     ["categories", categoriesKey({ includeArchived: true })],
-    ["budgets", budgetsKey("2026-10")],
+    ["budgets", budgetUsageKey("2026-10")],
     ["dashboard", dashboardKey("2026-10")],
     ["dashboard", dashboardKey("2026")],
     ["recurring", recurringKey()],

@@ -80,13 +80,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `rg -n "legacyBudgetUsage|setBudgets|budgetSetSchema|budgetPeriodSchema|maxBudgetPeriod|summarizeBudgets\b|removeBudgetFromUsage|budgetsKey|useBudgets\(" app components hooks lib tests` kosong
-- [ ] `GET /api/budgets` dan `PUT /api/budgets` → 405
-- [ ] Tes yang hilang hanya untuk perilaku lama yang dihapus (daftar di commit body)
+- [x] `rg -n "legacyBudgetUsage|setBudgets|budgetSetSchema|budgetPeriodSchema|maxBudgetPeriod|summarizeBudgets\b|removeBudgetFromUsage|budgetsKey|useBudgets\(" app components hooks lib tests` kosong
+- [x] `GET /api/budgets` dan `PUT /api/budgets` → 405
+- [x] Tes yang hilang hanya untuk perilaku lama yang dihapus (daftar di commit body)
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 
 **Dependencies:** T114–T119
 

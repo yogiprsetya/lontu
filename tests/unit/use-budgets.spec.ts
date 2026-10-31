@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BudgetUsage as NamedBudgetUsage } from "@/lib/schemas/budget-usage";
+import type { BudgetUsage as BudgetUsage } from "@/lib/schemas/budget-usage";
 
 vi.mock("swr", async (importOriginal) => ({
   ...(await importOriginal<typeof import("swr")>()),
@@ -7,20 +7,13 @@ vi.mock("swr", async (importOriginal) => ({
 }));
 
 const { mutate } = await import("swr");
-const {
-  budgetUsageKey,
-  budgetsKey,
-  createBudget,
-  deleteBudget,
-  restoreBudget,
-  setBudgets,
-  updateBudget,
-} = await import("@/hooks/use-budgets");
+const { budgetUsageKey, createBudget, deleteBudget, restoreBudget, updateBudget } =
+  await import("@/hooks/use-budgets");
 const { invalidate, isResourceKey } = await import("@/lib/cache-invalidation");
 const { archiveCategory, restoreCategory } = await import("@/hooks/use-categories");
 
 const mockedMutate = vi.mocked(mutate);
-const budgetKey = "/api/budgets?period=2026-10";
+const budgetKey = "/api/budgets/usage?period=2026-10";
 
 /** True when some mutate call received a matcher that accepts `key`. */
 function revalidated(key: string) {
@@ -42,21 +35,14 @@ afterEach(() => {
 });
 
 describe("budgets SWR keys", () => {
-  it("builds the contract key", () => {
-    expect(budgetsKey("2026-10")).toBe(budgetKey);
-  });
-
   it("builds the usage key under the budgets resource", () => {
     expect(budgetUsageKey("2026-10")).toBe("/api/budgets/usage?period=2026-10");
     expect(isResourceKey("budgets", budgetUsageKey("2026-10"))).toBe(true);
   });
 
-  it.each([budgetKey, "/api/budgets/suggestion?period=2026-10&income=100", "/api/budgets"])(
-    "matches %s",
-    (key) => {
-      expect(isResourceKey("budgets", key)).toBe(true);
-    },
-  );
+  it.each([budgetKey, "/api/budgets?period=2026-10", "/api/budgets"])("matches %s", (key) => {
+    expect(isResourceKey("budgets", key)).toBe(true);
+  });
 
   it.each([["/api/budgetsx"], ["/api/transactions"], [undefined], [[budgetKey]]])(
     "does not match %j",
@@ -86,24 +72,11 @@ describe("cross-module revalidation", () => {
     await action("1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b");
     expect(revalidated(budgetKey)).toBe(true);
   });
-
-  it("setBudgets sends one PUT and refreshes budget usage", async () => {
-    const input = {
-      period: "2026-10",
-      items: [{ categoryId: "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b", amount: 1 }],
-    };
-    await setBudgets(input);
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/budgets",
-      expect.objectContaining({ method: "PUT", body: JSON.stringify(input) }),
-    );
-    expect(revalidated(budgetKey)).toBe(true);
-  });
 });
 
 describe("deleteBudget", () => {
   const usageKey = "/api/budgets/usage?period=2026-10";
-  const usage: NamedBudgetUsage = {
+  const usage: BudgetUsage = {
     period: "2026-10",
     items: [
       {
@@ -130,7 +103,7 @@ describe("deleteBudget", () => {
     const call = mockedMutate.mock.calls.find(([key]) => key === usageKey);
     expect(call, "the month's usage should be updated before the request").toBeDefined();
     expect(call![2]).toEqual({ revalidate: false });
-    return call![1] as (current?: NamedBudgetUsage) => NamedBudgetUsage | undefined;
+    return call![1] as (current?: BudgetUsage) => BudgetUsage | undefined;
   }
 
   it("ends the budget in the month's cache at once, sends DELETE, then revalidates", async () => {

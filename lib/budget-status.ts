@@ -1,9 +1,5 @@
-import type { BudgetGroup, BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget";
-import type {
-  BudgetUsage as NamedBudgetUsage,
-  BudgetUsageItem as NamedBudgetUsageItem,
-  UnbudgetedSpending,
-} from "@/lib/schemas/budget-usage";
+import type { BudgetGroup } from "@/lib/schemas/budget";
+import type { BudgetUsage, BudgetUsageItem, UnbudgetedSpending } from "@/lib/schemas/budget-usage";
 
 export type BudgetStatus = "none" | "ok" | "warning" | "over";
 
@@ -23,24 +19,11 @@ export function budgetStatus(budget: number | null, spent: number) {
 
 const emptyGroup = (): BudgetGroup => ({ budget: 0, spent: 0, unbudgetedSpent: 0 });
 
-/** Sums dozens of already-aggregated rows; shared so an optimistic summary equals the server's. */
-export function summarizeBudgets(items: BudgetUsageItem[]): BudgetUsage["summary"] {
-  const summary = { needs: emptyGroup(), wants: emptyGroup(), total: emptyGroup() };
-  for (const item of items) {
-    for (const group of [summary[item.spendingType], summary.total]) {
-      group.budget += item.budget ?? 0;
-      group.spent += item.spent;
-      if (item.budget === null) group.unbudgetedSpent += item.spent;
-    }
-  }
-  return summary;
-}
-
 /** Shared by the usage query and optimistic updates, so both give the same summary. */
 export function summarizeBudgetUsage(
-  items: NamedBudgetUsageItem[],
+  items: BudgetUsageItem[],
   unbudgeted: UnbudgetedSpending[],
-): NamedBudgetUsage["summary"] {
+): BudgetUsage["summary"] {
   const summary = { needs: emptyGroup(), wants: emptyGroup(), total: emptyGroup() };
   for (const item of items) {
     for (const group of [summary[item.spendingType], summary.total]) {
@@ -59,7 +42,7 @@ export function summarizeBudgetUsage(
 
 const ATTENTION: Record<BudgetStatus, number> = { over: 0, warning: 1, ok: 2, none: 3 };
 
-type Ranked = Pick<NamedBudgetUsageItem, "name" | "status" | "percent">;
+type Ranked = Pick<BudgetUsageItem, "name" | "status" | "percent">;
 
 // A zero budget has no percent: spent, it is the fullest of all; unspent, the emptiest.
 const fullness = ({ percent, status }: Ranked) =>

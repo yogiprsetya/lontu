@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
 import { accounts, categories, transactions } from "@/db/schema";
 import type { DashboardSummary } from "@/lib/schemas/dashboard";
-import { budgetUsage } from "@/lib/server/queries/budget-usage";
+import { legacyBudgetUsage } from "@/lib/server/queries/legacy-budget-usage";
 import { dashboardSummary } from "@/lib/server/queries/dashboard-summary";
 import { createTestUsers } from "../setup/db";
 
@@ -123,7 +123,7 @@ describe("dashboardSummary", () => {
 
   it("matches the budget page's spending for the same month", async () => {
     const summary = await dashboardSummary(userA, "2026-10", "2026-11-15");
-    const usage = await budgetUsage(userA, "2026-10");
+    const usage = await legacyBudgetUsage(userA, "2026-10");
     expect(summary.totals.expense).toBe(usage.summary.total.spent);
   });
 

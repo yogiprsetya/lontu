@@ -34,14 +34,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Budget dengan versi Sep (Rp1.000.000, {Makan}) dan Nov (Rp1.200.000, {Makan, Jajan}): Agustus tidak tampil; Okt pakai versi Sep; Des pakai versi Nov. Versi Des dengan `deleted_at` → Des dan Jan tidak tampil, Nov tetap. Budget yang versi pertamanya Nov tidak tampil di Okt
-- [ ] `spent` budget = jumlah expense kategorinya di bulan itu (tanggal 1 dan hari terakhir ikut; transfer, saving, adjustment, terhapus, bulan lain tidak). `unbudgeted` benar, termasuk kategori terarsip. `summary.total.spent = transactionTotals({ from, to }).expense`, juga saat sebuah kategori pindah budget di bulan berikutnya
-- [ ] `period` hilang, `2026-13`, `1999-12`, atau bulan depan → 400 `fields.period`. Isolasi: B tidak melihat budget, kategori, atau pengeluaran A. Tanpa session → 401
-- [ ] `summarizeBudgetUsage` dites murni (unit), dan tes lama untuk `legacyBudgetUsage` tetap hijau
+- [x] Budget dengan versi Sep (Rp1.000.000, {Makan}) dan Nov (Rp1.200.000, {Makan, Jajan}): Agustus tidak tampil; Okt pakai versi Sep; Des pakai versi Nov. Versi Des dengan `deleted_at` → Des dan Jan tidak tampil, Nov tetap. Budget yang versi pertamanya Nov tidak tampil di Okt
+- [x] `spent` budget = jumlah expense kategorinya di bulan itu (tanggal 1 dan hari terakhir ikut; transfer, saving, adjustment, terhapus, bulan lain tidak). `unbudgeted` benar, termasuk kategori terarsip. `summary.total.spent = transactionTotals({ from, to }).expense`, juga saat sebuah kategori pindah budget di bulan berikutnya
+- [x] `period` hilang, `2026-13`, `1999-12`, atau bulan depan → 400 `fields.period`. Isolasi: B tidak melihat budget, kategori, atau pengeluaran A. Tanpa session → 401
+- [x] `summarizeBudgetUsage` dites murni (unit), dan tes lama untuk `legacyBudgetUsage` tetap hijau
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budget-usage.spec.ts tests/unit/budget-status.spec.ts tests/api/dashboard.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budget-usage.spec.ts tests/unit/budget-status.spec.ts tests/api/dashboard.spec.ts` hijau
 
 **Dependencies:** T110
 

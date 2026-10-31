@@ -12,7 +12,7 @@ const { auth } = await import("@/lib/auth");
 const route = await import("@/app/api/budgets/route");
 const item = await import("@/app/api/budgets/[id]/route");
 const restoreRoute = await import("@/app/api/budgets/[id]/restore/route");
-const { budgetUsage } = await import("@/lib/server/queries/budget-usage");
+const { legacyBudgetUsage } = await import("@/lib/server/queries/legacy-budget-usage");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const noParams = { params: Promise.resolve({}) };
@@ -247,7 +247,7 @@ describe("DELETE /api/budgets/[id] and restore", () => {
 
     const [row] = await db.select().from(budgets).where(eq(budgets.id, budget.id));
     expect(row.deletedAt).not.toBeNull();
-    const usage = await budgetUsage(userA, "2026-06");
+    const usage = await legacyBudgetUsage(userA, "2026-06");
     expect(usage.items.find((i) => i.categoryId === cat.Transport)).toMatchObject({
       budgetId: null,
       budget: null,

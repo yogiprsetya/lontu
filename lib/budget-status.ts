@@ -1,4 +1,9 @@
 import type { BudgetGroup, BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget";
+import type {
+  BudgetUsage as NamedBudgetUsage,
+  BudgetUsageItem as NamedBudgetUsageItem,
+  UnbudgetedSpending,
+} from "@/lib/schemas/budget-usage";
 
 export type BudgetStatus = "none" | "ok" | "warning" | "over";
 
@@ -26,6 +31,27 @@ export function summarizeBudgets(items: BudgetUsageItem[]): BudgetUsage["summary
       group.budget += item.budget ?? 0;
       group.spent += item.spent;
       if (item.budget === null) group.unbudgetedSpent += item.spent;
+    }
+  }
+  return summary;
+}
+
+/** Shared by the usage query and optimistic updates, so both give the same summary. */
+export function summarizeBudgetUsage(
+  items: NamedBudgetUsageItem[],
+  unbudgeted: UnbudgetedSpending[],
+): NamedBudgetUsage["summary"] {
+  const summary = { needs: emptyGroup(), wants: emptyGroup(), total: emptyGroup() };
+  for (const item of items) {
+    for (const group of [summary[item.spendingType], summary.total]) {
+      group.budget += item.budget;
+      group.spent += item.spent;
+    }
+  }
+  for (const row of unbudgeted) {
+    for (const group of [summary[row.spendingType], summary.total]) {
+      group.spent += row.spent;
+      group.unbudgetedSpent += row.spent;
     }
   }
   return summary;

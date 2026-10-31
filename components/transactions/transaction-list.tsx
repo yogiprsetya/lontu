@@ -29,7 +29,8 @@ import { cn } from "@/lib/utils";
 function Row({ t, accounts, categories }: { t: Transaction; accounts: Names; categories: Names }) {
   const money = useAmountFormat();
   return (
-    <li>
+    // Off-screen rows skip layout and paint; the list grows with every "Muat lebih banyak".
+    <li className="[contain-intrinsic-size:auto_4rem] [content-visibility:auto]">
       <Link href={`/transactions/${t.id}`} className="flex min-h-16 items-center gap-3 py-3">
         <TypeChip type={t.type} />
         <div className="min-w-0 flex-1">

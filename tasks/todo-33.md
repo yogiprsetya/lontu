@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Budget dengan versi bulan lalu → `DELETE` → tidak tampil bulan ini, bulan lalu tetap. `DELETE` kedua → 200, `deletedAt` sama. `restore` → tampil lagi; kedua kali → 200
-- [ ] Budget dibuat bulan ini lalu `DELETE` → tidak tampil di bulan mana pun. Setelah `DELETE`, nama dan kategorinya bisa dipakai budget baru; `restore` budget lama → 409 `BUDGET_RESTORE_CONFLICT`
-- [ ] Id bukan UUID, tidak ada, milik B → 404. Tanpa session → 401
+- [x] Budget dengan versi bulan lalu → `DELETE` → tidak tampil bulan ini, bulan lalu tetap. `DELETE` kedua → 200, `deletedAt` sama. `restore` → tampil lagi; kedua kali → 200
+- [x] Budget dibuat bulan ini lalu `DELETE` → tidak tampil di bulan mana pun. Setelah `DELETE`, nama dan kategorinya bisa dipakai budget baru; `restore` budget lama → 409 `BUDGET_RESTORE_CONFLICT`
+- [x] Id bukan UUID, tidak ada, milik B → 404. Tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/budgets.spec.ts tests/api/budget-usage.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/budgets.spec.ts tests/api/budget-usage.spec.ts` hijau
 
 **Dependencies:** T112, T114
 

@@ -61,25 +61,6 @@ export async function setBudgets(
   return items.map((i) => toBudget(byCategory.get(i.categoryId)!));
 }
 
-// coalesce keeps the first deleted_at, so repeating a delete changes nothing.
-async function setDeleted(
-  userId: string,
-  id: string,
-  deleted: boolean,
-): Promise<Budget | undefined> {
-  if (!z.uuid().safeParse(id).success) return undefined;
-  const [row] = await db
-    .update(budgets)
-    .set({ deletedAt: deleted ? sql`coalesce(${budgets.deletedAt}, now())` : null })
-    .where(and(eq(budgets.id, id), eq(budgets.userId, userId)))
-    .returning();
-  return row && toBudget(row);
-}
-
-export const softDeleteBudget = (userId: string, id: string) => setDeleted(userId, id, true);
-// Allowed even when the category is archived: it brings back an old budget, not a new one.
-export const restoreBudget = (userId: string, id: string) => setDeleted(userId, id, false);
-
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type VersionRow = typeof budgetVersions.$inferSelect;
 
@@ -238,6 +219,78 @@ export async function updateBudget(
         ],
         set: next,
       })
+      .returning();
+    return toBudgetVersion(row);
+  });
+}
+
+/** The budget's effective version this month, under the write lock; undefined for a bad id. */
+async function lockedCurrent(tx: Tx, userId: string, id: string, period: string) {
+  await lockBudgets(tx, userId);
+  const shown = await effectiveVersions(tx, userId, period);
+  const current = shown.find((v) => v.budgetId === id);
+  const { year, month } = periodToYearMonth(period);
+  const inPeriod = !!current && current.year === year && current.month === month;
+  return { shown, current, inPeriod };
+}
+
+/**
+ * Ends a budget from the current month: earlier months keep their versions. coalesce keeps the
+ * first deleted_at, so ending twice changes nothing; a budget ended before this month is 404.
+ */
+export async function endBudget(userId: string, id: string): Promise<BudgetVersion | undefined> {
+  if (!z.uuid().safeParse(id).success) return undefined;
+  const period = currentPeriod();
+
+  return db.transaction(async (tx) => {
+    const { current, inPeriod } = await lockedCurrent(tx, userId, id, period);
+    if (!current || (current.deletedAt && !inPeriod)) return undefined;
+
+    const [row] = inPeriod
+      ? await tx
+          .update(budgetVersions)
+          .set({ deletedAt: sql`coalesce(${budgetVersions.deletedAt}, now())` })
+          .where(eq(budgetVersions.id, current.id))
+          .returning()
+      : await tx
+          .insert(budgetVersions)
+          .values({
+            userId,
+            budgetId: id,
+            name: current.name,
+            spendingType: current.spendingType,
+            amount: current.amount,
+            categoryIds: current.categoryIds,
+            ...periodToYearMonth(period),
+            deletedAt: sql`now()`,
+          })
+          .returning();
+    return toBudgetVersion(row);
+  });
+}
+
+/**
+ * Undoes an end made this month. Its name or categories may have gone to another budget since,
+ * which is a conflict rather than a second owner.
+ */
+export async function restoreBudget(
+  userId: string,
+  id: string,
+): Promise<BudgetVersion | { restoreConflict: true } | undefined> {
+  if (!z.uuid().safeParse(id).success) return undefined;
+  const period = currentPeriod();
+
+  return db.transaction(async (tx) => {
+    const { shown, current, inPeriod } = await lockedCurrent(tx, userId, id, period);
+    if (!current) return undefined;
+    if (!current.deletedAt) return toBudgetVersion(current);
+    if (!inPeriod) return undefined;
+    if (clash(shown, current, id)) return { restoreConflict: true as const };
+
+    const [row] = await tx
+      .update(budgetVersions)
+      .set({ deletedAt: null })
+      .where(eq(budgetVersions.id, current.id))
       .returning();
     return toBudgetVersion(row);
   });

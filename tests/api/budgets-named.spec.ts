@@ -11,6 +11,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 const { auth } = await import("@/lib/auth");
 const route = await import("@/app/api/budgets/route");
 const item = await import("@/app/api/budgets/[id]/route");
+const restoreRoute = await import("@/app/api/budgets/[id]/restore/route");
 const { budgetUsage } = await import("@/lib/server/queries/budget-usage");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
@@ -36,6 +37,19 @@ function patch(id: string, body: unknown) {
       method: "PATCH",
       body: typeof body === "string" ? body : JSON.stringify(body),
     }),
+    { params: Promise.resolve({ id }) },
+  );
+}
+
+function del(id: string) {
+  return item.DELETE(new Request(`http://localhost/api/budgets/${id}`, { method: "DELETE" }), {
+    params: Promise.resolve({ id }),
+  });
+}
+
+function restore(id: string) {
+  return restoreRoute.POST(
+    new Request(`http://localhost/api/budgets/${id}/restore`, { method: "POST" }),
     { params: Promise.resolve({ id }) },
   );
 }
@@ -363,5 +377,140 @@ describe("PATCH /api/budgets/[id]", () => {
   it("returns 401 without a session", async () => {
     signInAs(null);
     expect((await patch(budgetId, { amount: 1 })).status).toBe(401);
+  });
+});
+
+describe("DELETE /api/budgets/[id] and restore", () => {
+  const budgetId = randomUUID();
+
+  async function budgetFrom(
+    month: number,
+    overrides: Partial<typeof budgetVersions.$inferInsert> = {},
+  ) {
+    await db.insert(budgetVersions).values({
+      userId: userA,
+      budgetId,
+      name: "Jajan & Hiburan",
+      spendingType: "wants",
+      year: 2026,
+      month,
+      amount: 800_000,
+      categoryIds: [cat.Jajan, cat.Hiburan],
+      ...overrides,
+    });
+  }
+
+  const shownIn = async (period: string) =>
+    (await budgetUsage(userA, period)).items.map((i) => i.budgetId);
+
+  it("ends a budget from this month and keeps last month", async () => {
+    await budgetFrom(9);
+    signInAs(userA);
+    const res = await del(budgetId);
+    expect(res.status).toBe(200);
+    const ended = (await res.json()) as BudgetVersion;
+    expect(ended).toMatchObject({ id: budgetId, period: "2026-10", amount: 800_000 });
+    expect(ended.deletedAt).toEqual(expect.any(String));
+    expect(await shownIn("2026-10")).toEqual([]);
+    expect(await shownIn("2026-11")).toEqual([]);
+    expect(await shownIn("2026-09")).toEqual([budgetId]);
+  });
+
+  it("ends this month's version in place when the budget already has one", async () => {
+    await budgetFrom(9);
+    await budgetFrom(10, { amount: 900_000 });
+    signInAs(userA);
+    expect((await del(budgetId)).status).toBe(200);
+    expect(await versionsOf(userA)).toHaveLength(2);
+    expect(await shownIn("2026-09")).toEqual([budgetId]);
+  });
+
+  it("is idempotent: a second delete keeps the first deletedAt", async () => {
+    await budgetFrom(9);
+    signInAs(userA);
+    const first = (await (await del(budgetId)).json()) as BudgetVersion;
+    const res = await del(budgetId);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as BudgetVersion).deletedAt).toBe(first.deletedAt);
+  });
+
+  it("restores an ended budget, idempotently", async () => {
+    await budgetFrom(9);
+    signInAs(userA);
+    await del(budgetId);
+    const res = await restore(budgetId);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as BudgetVersion).deletedAt).toBeNull();
+    expect(await shownIn("2026-10")).toEqual([budgetId]);
+    expect((await restore(budgetId)).status).toBe(200);
+    expect(await shownIn("2026-10")).toEqual([budgetId]);
+  });
+
+  it("removes a budget created and ended this month from every month", async () => {
+    signInAs(userA);
+    const created = (await (
+      await post({
+        name: "Jajan & Hiburan",
+        spendingType: "wants",
+        amount: 800_000,
+        categoryIds: [cat.Jajan],
+      })
+    ).json()) as BudgetVersion;
+    await del(created.id);
+    expect((await budgetUsage(userA, "2026-10")).items).toEqual([]);
+    expect((await budgetUsage(userA, "2026-09")).items).toEqual([]);
+  });
+
+  it("frees the name and categories, so restoring after they are reused conflicts", async () => {
+    await budgetFrom(9);
+    signInAs(userA);
+    await del(budgetId);
+    const reused = await post({
+      name: "Jajan & Hiburan",
+      spendingType: "wants",
+      amount: 1,
+      categoryIds: [cat.Jajan],
+    });
+    expect(reused.status).toBe(201);
+    const res = await restore(budgetId);
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as ErrorBody).error.code).toBe("BUDGET_RESTORE_CONFLICT");
+    expect(await shownIn("2026-10")).toEqual([((await reused.json()) as BudgetVersion).id]);
+  });
+
+  it("returns 404 for a budget that ended before this month, for delete and restore", async () => {
+    await budgetFrom(8);
+    await budgetFrom(9, { deletedAt: new Date() });
+    signInAs(userA);
+    expect((await del(budgetId)).status).toBe(404);
+    expect((await restore(budgetId)).status).toBe(404);
+  });
+
+  it.each(["not-a-uuid", "unknown", "foreign", "future"])(
+    "returns 404 BUDGET_NOT_FOUND for a %s budget",
+    async (kind) => {
+      if (kind === "foreign") await budgetFrom(9, { userId: userB, categoryIds: [catB] });
+      if (kind === "future") await budgetFrom(11);
+      signInAs(userA);
+      const id =
+        kind === "not-a-uuid" ? "not-a-uuid" : kind === "unknown" ? randomUUID() : budgetId;
+      for (const res of [await del(id), await restore(id)]) {
+        expect(res.status).toBe(404);
+        expect(((await res.json()) as ErrorBody).error.code).toBe("BUDGET_NOT_FOUND");
+      }
+    },
+  );
+
+  it("leaves user A's budget alone when user B deletes it", async () => {
+    await budgetFrom(9);
+    signInAs(userB);
+    expect((await del(budgetId)).status).toBe(404);
+    expect(await shownIn("2026-10")).toEqual([budgetId]);
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    expect((await del(budgetId)).status).toBe(401);
+    expect((await restore(budgetId)).status).toBe(401);
   });
 });

@@ -8,7 +8,7 @@ Server budget bernama siap dan terkunci tes: tabel `budget_versions`, query pema
 
 ## Task
 
-- [ ] T110: Tabel `budget_versions` (M, migrasi additive di DB bersama)
+- [x] T110: Tabel `budget_versions` (M, migrasi additive di DB bersama)
 - [ ] T111: `budgetUsage` berversi + `GET /api/budgets/usage` (M, risiko tinggi)
 - [ ] T112: `POST /api/budgets` buat budget (M, risiko tinggi: eksklusivitas)
 - [ ] T113: `PATCH /api/budgets/[id]` ubah mulai bulan ini (M)

@@ -12,13 +12,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `migration.sql` hanya berisi `CREATE TABLE "budget_versions"`, `ENABLE ROW LEVEL SECURITY`, index unik, dan FK `user_id` cascade
-- [ ] Ditolak Postgres dengan nama constraint: `month` 0/13, `amount` −1, `spending_type 'saving'`, `category_ids '{}'`, baris ganda `(user_id, budget_id, year, month)`. Hapus user → versinya ikut terhapus
-- [ ] Semua tes lama hijau tanpa diedit
+- [x] `migration.sql` hanya berisi `CREATE TABLE "budget_versions"`, `ENABLE ROW LEVEL SECURITY`, index unik, dan FK `user_id` cascade
+- [x] Ditolak Postgres dengan nama constraint: `month` 0/13, `amount` −1, `spending_type 'saving'`, `category_ids '{}'`, baris ganda `(user_id, budget_id, year, month)`. Hapus user → versinya ikut terhapus
+- [x] Semua tes lama hijau tanpa diedit
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/db-constraints.spec.ts` hijau
+- [x] `pnpm vitest run tests/api/db-constraints.spec.ts` hijau
 
 **Dependencies:** T107
 

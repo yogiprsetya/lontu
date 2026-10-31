@@ -59,14 +59,17 @@ export function summarizeBudgetUsage(
 
 const ATTENTION: Record<BudgetStatus, number> = { over: 0, warning: 1, ok: 2, none: 3 };
 
+type Ranked = Pick<NamedBudgetUsageItem, "name" | "status" | "percent">;
+
+// A zero budget has no percent: spent, it is the fullest of all; unspent, the emptiest.
+const fullness = ({ percent, status }: Ranked) =>
+  percent ?? (status === "over" ? Number.MAX_SAFE_INTEGER : -1);
+
 /** Over, then warning, then ok; within a status the fullest first, then by name. */
-export function compareByAttention(
-  a: Pick<NamedBudgetUsageItem, "name" | "status" | "percent">,
-  b: Pick<NamedBudgetUsageItem, "name" | "status" | "percent">,
-) {
+export function compareByAttention(a: Ranked, b: Ranked) {
   return (
     ATTENTION[a.status] - ATTENTION[b.status] ||
-    (b.percent ?? -1) - (a.percent ?? -1) ||
+    fullness(b) - fullness(a) ||
     a.name.localeCompare(b.name, "id", { sensitivity: "base" })
   );
 }

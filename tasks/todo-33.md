@@ -57,14 +57,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `budgetHighlights` dites: hanya over/warning, maks 3, urutan `compareByAttention`
-- [ ] Invarian `totals.expense = budgetUsage(userId, period).summary.total.spent` hijau dengan budget bernama dan pengeluaran tanpa budget
-- [ ] Bulan tanpa budget → CTA "Atur budget" ke `/budget?period=…`; mode tahun tidak berubah
+- [x] `budgetHighlights` dites: hanya over/warning, maks 3, urutan `compareByAttention`
+- [x] Invarian `totals.expense = budgetUsage(userId, period).summary.total.spent` hijau dengan budget bernama dan pengeluaran tanpa budget
+- [x] Bulan tanpa budget → CTA "Atur budget" ke `/budget?period=…`; mode tahun tidak berubah
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/dashboard-format.spec.ts tests/api/dashboard.spec.ts` hijau
-- [ ] Manual: dashboard dan `/budget` menunjukkan angka yang sama setelah mencatat expense
+- [x] `pnpm vitest run tests/unit/dashboard-format.spec.ts tests/api/dashboard.spec.ts` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): dashboard dan `/budget` menunjukkan angka yang sama setelah mencatat expense
 
 **Dependencies:** T111, T114
 

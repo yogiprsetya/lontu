@@ -10,7 +10,7 @@ Fitur budget bernama setara dengan modul lama: hapus (mengakhiri mulai bulan ini
 
 - [x] T117: `DELETE` / `restore` = akhiri mulai bulan ini (M)
 - [x] T118: Hapus budget + Urungkan di UI (M)
-- [ ] T119: Budget Summary dashboard per budget (M)
+- [x] T119: Budget Summary dashboard per budget (M)
 - [ ] T120: Hapus jalur lama per kategori (M, hanya penghapusan)
 
 Urutan: T117 → T118. T119 bebas setelah T111. T120 terakhir.

@@ -132,7 +132,7 @@ Hanya membaca. Param lain diabaikan.
 - [x] Mode tahun: pada 2028-02-29, `period=2028` → `range = 2028-01-01..2028-02-29`, `previous.range = 2027-01-01..2027-02-28`. `period=2025` → pembanding 2024 penuh.
 - [x] `activity` mode bulan: satu bucket per hari dari tanggal 1 sampai `range.to` (25 bucket pada 25 Okt, 30 untuk September penuh, 29 untuk Februari 2028), hari tanpa expense bernilai 0, expense tanggal 1 dan hari terakhir masuk bucket yang benar. Mode tahun: bucket `YYYY-MM`, tidak melewati bulan berjalan.
 - [x] `categories` berisi setiap kategori dengan expense > 0 di `range` (termasuk terarsip), urut `amount desc`, dan tidak memuat kategori tanpa expense.
-- [ ] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets/usage?period=…` `summary.total.spent` (direvisi 2026-10-31, diverifikasi ulang di T119).
+- [x] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets/usage?period=…` `summary.total.spent` (direvisi 2026-10-31, diverifikasi ulang di T119).
 - [x] Periode tanpa transaksi → semua total 0, `categories` kosong, `activity` berisi bucket 0.
 - [x] `period` kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, atau tahun depan → 400 `fields.period`.
 - [x] **Isolasi:** respons user B tidak pernah memuat transaksi atau kategori A (total, aktivitas, dan kategori B tetap 0 walau A punya data di periode yang sama).

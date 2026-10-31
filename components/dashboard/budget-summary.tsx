@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { WalletIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
@@ -9,10 +8,8 @@ import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { useBudgets } from "@/hooks/use-budgets";
-import { useCategories } from "@/hooks/use-categories";
-import { archiveLabel } from "@/lib/archived";
-import { budgetTransactionsHref, groupStatus, statusLabel } from "@/lib/budget-format";
+import { useBudgetUsage } from "@/hooks/use-budgets";
+import { groupStatus, statusLabel } from "@/lib/budget-format";
 import { budgetHighlights } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
@@ -24,12 +21,7 @@ const LINK_CLASS =
 
 function MonthBudget({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
-  const usage = useBudgets(period);
-  const categories = useCategories({ includeArchived: true });
-  const names = useMemo(
-    () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
-    [categories.data],
-  );
+  const usage = useBudgetUsage(period);
   const budgetHref = `/budget?period=${period}`;
 
   if (usage.error)
@@ -71,12 +63,12 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
       ) : (
         <ul className="divide-y" aria-label="Budget yang perlu diperhatikan">
           {highlights.map((item) => (
-            <li key={item.categoryId}>
+            <li key={item.budgetId}>
               <Link
-                href={budgetTransactionsHref(period, item.categoryId)}
+                href={budgetHref}
                 className="flex min-h-11 items-center justify-between gap-3 py-2"
               >
-                <span className="min-w-0 truncate">{names.get(item.categoryId) ?? "Kategori"}</span>
+                <span className="min-w-0 truncate">{item.name}</span>
                 <span
                   className={cn(
                     "shrink-0 text-sm tabular-nums",

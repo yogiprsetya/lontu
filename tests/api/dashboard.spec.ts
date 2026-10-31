@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { accounts, categories, transactions } from "@/db/schema";
+import { accounts, budgetVersions, categories, transactions } from "@/db/schema";
 import type { DashboardSummary } from "@/lib/schemas/dashboard";
-import { legacyBudgetUsage } from "@/lib/server/queries/legacy-budget-usage";
+import { budgetUsage } from "@/lib/server/queries/budget-usage";
 import { dashboardSummary } from "@/lib/server/queries/dashboard-summary";
 import { createTestUsers } from "../setup/db";
 
@@ -121,9 +121,21 @@ describe("dashboardSummary", () => {
     expect(summary.previousTotals.expense).toBe(1_000_000);
   });
 
-  it("matches the budget page's spending for the same month", async () => {
+  it("matches the budget page's spending for the same month, budgeted or not", async () => {
+    await db.insert(budgetVersions).values({
+      userId: userA,
+      budgetId: crypto.randomUUID(),
+      name: "Makan",
+      spendingType: "needs",
+      year: 2026,
+      month: 9,
+      amount: 1_000_000,
+      categoryIds: [cat.Makan],
+    });
     const summary = await dashboardSummary(userA, "2026-10", "2026-11-15");
-    const usage = await legacyBudgetUsage(userA, "2026-10");
+    const usage = await budgetUsage(userA, "2026-10");
+    expect(usage.items).toHaveLength(1);
+    expect(usage.unbudgeted.length).toBeGreaterThan(0);
     expect(summary.totals.expense).toBe(usage.summary.total.spent);
   });
 

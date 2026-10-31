@@ -103,9 +103,14 @@ describe("compareByAttention", () => {
     expect(rows.sort(compareByAttention).map((r) => r.name)).toEqual(["B", "C", "A"]);
   });
 
-  it("puts a zero budget (no percent) last within its status", () => {
-    const rows = [row("Nol", "over", null), row("Lebih", "over", 101)];
-    expect(rows.sort(compareByAttention).map((r) => r.name)).toEqual(["Lebih", "Nol"]);
+  it("puts a spent zero budget (no percent) first among over budgets", () => {
+    const rows = [row("Lebih", "over", 101), row("Nol", "over", null)];
+    expect(rows.sort(compareByAttention).map((r) => r.name)).toEqual(["Nol", "Lebih"]);
+  });
+
+  it("puts an unspent zero budget last among ok budgets", () => {
+    const rows = [row("Nol", "ok", null), row("Sedikit", "ok", 0)];
+    expect(rows.sort(compareByAttention).map((r) => r.name)).toEqual(["Sedikit", "Nol"]);
   });
 
   it("breaks ties by name, ignoring case", () => {

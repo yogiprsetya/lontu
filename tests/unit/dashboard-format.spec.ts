@@ -11,7 +11,7 @@ import {
   topCategories,
 } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
-import type { BudgetUsageItem } from "@/lib/schemas/budget";
+import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
 
 function account(overrides: Partial<Account>): Account {
   return {
@@ -161,40 +161,29 @@ describe("topCategories", () => {
 });
 
 describe("budgetHighlights", () => {
-  function item(
-    categoryId: string,
-    status: BudgetUsageItem["status"],
-    percent: number | null,
-  ): BudgetUsageItem {
-    return {
-      categoryId,
-      spendingType: "needs",
-      budgetId: null,
-      budget: null,
-      spent: 0,
-      remaining: null,
-      percent,
-      status,
-    };
+  function item(name: string, status: BudgetUsageItem["status"], percent: number | null) {
+    return { name, status, percent } as BudgetUsageItem;
   }
 
-  it("puts over-budget categories first, then warnings, each by percent descending", () => {
+  it("puts over-budget budgets first, then warnings, each by percent descending", () => {
     const result = budgetHighlights([
       item("ok", "ok", 50),
       item("warn-85", "warning", 85),
       item("over-110", "over", 110),
-      item("none", "none", null),
       item("warn-95", "warning", 95),
       item("over-150", "over", 150),
     ]);
-    expect(result.map((i) => i.categoryId)).toEqual(["over-150", "over-110", "warn-95"]);
+    expect(result.map((i) => i.name)).toEqual(["over-150", "over-110", "warn-95"]);
+  });
+
+  it("puts a spent zero budget first", () => {
+    const result = budgetHighlights([item("over-150", "over", 150), item("nol", "over", null)]);
+    expect(result.map((i) => i.name)).toEqual(["nol", "over-150"]);
   });
 
   it("returns fewer when fewer need attention", () => {
     expect(
-      budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map(
-        (i) => i.categoryId,
-      ),
+      budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map((i) => i.name),
     ).toEqual(["warn"]);
     expect(budgetHighlights([item("ok", "ok", 10)])).toEqual([]);
   });

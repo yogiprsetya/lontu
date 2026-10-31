@@ -1,5 +1,6 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
-import type { BudgetUsageItem } from "@/lib/schemas/budget";
+import { compareByAttention } from "@/lib/budget-status";
+import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import type {
   DashboardPeriod,
   DashboardSummary,
@@ -91,14 +92,10 @@ export function topCategories(rows: DashboardSummary["categories"], n = 5): Cate
   return slices;
 }
 
-const fullness = (item: BudgetUsageItem) => item.percent ?? Number.MAX_SAFE_INTEGER;
-
-const ATTENTION: Partial<Record<BudgetUsageItem["status"], number>> = { over: 0, warning: 1 };
-
-/** Budgets that need a look: over first, then nearly used up, fullest first. A zero budget that was spent has no percent and leads. */
+/** Budgets that need a look, in the same order as /budget: over, then nearly used up. */
 export function budgetHighlights(items: BudgetUsageItem[], n = 3) {
   return items
-    .filter((item) => ATTENTION[item.status] !== undefined)
-    .sort((a, b) => ATTENTION[a.status]! - ATTENTION[b.status]! || fullness(b) - fullness(a))
+    .filter((item) => item.status === "over" || item.status === "warning")
+    .sort(compareByAttention)
     .slice(0, n);
 }

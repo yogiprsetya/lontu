@@ -33,7 +33,7 @@ Urutan: T117 → T118. T119 bebas setelah T111. T120 terakhir.
 
 ## Checkpoint AF
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum T107 dan sesudah T120 dicatat dengan daftar tes yang dihapus beserta perilakunya
-- [ ] Ukuran JS `/budget` dan `/dashboard` diukur dengan metode § Catatan ukuran; `/dashboard` ≤ +0,5 KB gzip
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum T107 dan sesudah T120 dicatat dengan daftar tes yang dihapus beserta perilakunya. 1299 → 1308; daftar per task di commit body T108, T109, T117, T118, T120
+- [x] Ukuran JS `/budget` dan `/dashboard` diukur dengan metode § Catatan ukuran; `/dashboard` ≤ +0,5 KB gzip. 2026-11-01, chunk yang dirujuk HTML prerender (gzip): `/dashboard` 349,5 → 349,7 KB (+0,2), `/budget` 328,9 → 328,4 KB (−0,5), dibanding `02c3865` (sebelum T107)
 - [ ] Manual 360×800 dan 1024: hapus budget bulan ini → hilang, bulan lalu tetap; Urungkan mengembalikannya. Dashboard menampilkan budget yang hampir habis dan tautannya ke `/budget`. Mode offline (`pnpm build && pnpm start`): `/budget` yang pernah dibuka tampil
 - [ ] Review dengan Yogi sebelum PR

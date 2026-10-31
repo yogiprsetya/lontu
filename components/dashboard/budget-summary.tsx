@@ -38,6 +38,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
   const total = usage.data.summary.total;
   const { budgetedSpent, percent, status } = groupStatus(total);
+
   if (total.budget === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
@@ -51,6 +52,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
 
   const highlights = budgetHighlights(usage.data.items);
   const totalText = statusLabel(status);
+
   return (
     <>
       <div className="flex flex-col gap-2">

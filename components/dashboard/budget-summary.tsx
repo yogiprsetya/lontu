@@ -9,8 +9,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useBudgetUsage } from "@/hooks/use-budgets";
-import { groupStatus, statusLabel } from "@/lib/budget-format";
-import { budgetHighlights } from "@/lib/dashboard-format";
+import { statusLabel } from "@/lib/budget-format";
+import { dashboardBudget } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { formatPeriodLabel } from "@/lib/period";
@@ -28,10 +28,9 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
     return <LoadError message="Gagal memuat budget." onRetry={() => void usage.mutate()} />;
   if (!usage.data) return <Skeleton className="h-44 w-full" />;
 
-  const total = usage.data.summary.total;
-  const { budgetedSpent, percent, status } = groupStatus(total);
+  const card = dashboardBudget(usage.data);
 
-  if (total.budget === 0) {
+  if (!card) {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
@@ -42,7 +41,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
     );
   }
 
-  const highlights = budgetHighlights(usage.data.items);
+  const { budget, budgetedSpent, percent, status, highlights } = card;
   const totalText = statusLabel(status);
 
   return (
@@ -50,7 +49,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
       <div className="flex flex-col gap-2">
         <p className="truncate font-semibold tabular-nums">
           {money(budgetedSpent)}{" "}
-          <span className="font-normal text-muted-foreground">dari {money(total.budget)}</span>
+          <span className="font-normal text-muted-foreground">dari {money(budget)}</span>
         </p>
         <BudgetProgress
           percent={percent}

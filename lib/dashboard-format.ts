@@ -1,6 +1,6 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
-import { compareByAttention } from "@/lib/budget-status";
-import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
+import { budgetStatus, compareByAttention } from "@/lib/budget-status";
+import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import type {
   DashboardPeriod,
   DashboardSummary,
@@ -98,4 +98,20 @@ export function budgetHighlights(items: BudgetUsageItem[], n = 3) {
     .filter((item) => item.status === "over" || item.status === "warning")
     .sort(compareByAttention)
     .slice(0, n);
+}
+
+/**
+ * The Budget Summary card, or null when the month has no budget. A Rp0 budget is still a budget
+ * ("do not spend"), so emptiness is about the list, and spending against Rp0 is over.
+ */
+export function dashboardBudget(usage: BudgetUsage) {
+  if (usage.items.length === 0) return null;
+  const { budget, spent, unbudgetedSpent } = usage.summary.total;
+  const budgetedSpent = spent - unbudgetedSpent;
+  return {
+    budget,
+    budgetedSpent,
+    ...budgetStatus(budget, budgetedSpent),
+    highlights: budgetHighlights(usage.items),
+  };
 }

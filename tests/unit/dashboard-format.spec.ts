@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activityPeak,
   budgetHighlights,
+  dashboardBudget,
   changeTone,
   formatBucket,
   formatRangeLabel,
@@ -11,7 +12,7 @@ import {
   topCategories,
 } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
-import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
+import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 
 function account(overrides: Partial<Account>): Account {
   return {
@@ -186,5 +187,43 @@ describe("budgetHighlights", () => {
       budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map((i) => i.name),
     ).toEqual(["warn"]);
     expect(budgetHighlights([item("ok", "ok", 10)])).toEqual([]);
+  });
+});
+
+describe("dashboardBudget", () => {
+  const group = (budget: number, spent: number, unbudgetedSpent = 0) => ({
+    budget,
+    spent,
+    unbudgetedSpent,
+  });
+  function usage(items: Partial<BudgetUsageItem>[], total: ReturnType<typeof group>): BudgetUsage {
+    return {
+      period: "2026-11",
+      items: items as BudgetUsageItem[],
+      unbudgeted: [],
+      summary: { needs: total, wants: group(0, 0), total },
+    };
+  }
+
+  it("is null for a month without budgets, even with spending", () => {
+    expect(dashboardBudget(usage([], group(0, 50_000, 50_000)))).toBeNull();
+  });
+
+  it("keeps a month whose only budget is Rp0, spent, as over and highlighted", () => {
+    const nol = { budgetId: "nol", name: "Nol", status: "over" as const, percent: null };
+    const result = dashboardBudget(usage([nol], group(0, 20_000)));
+    expect(result).toMatchObject({ budget: 0, budgetedSpent: 20_000, status: "over" });
+    expect(result!.highlights.map((i) => i.name)).toEqual(["Nol"]);
+  });
+
+  it("measures the bar on budgeted spending only", () => {
+    const makan = { budgetId: "m", name: "Makan", status: "ok" as const, percent: 50 };
+    expect(dashboardBudget(usage([makan], group(1_000_000, 700_000, 200_000)))).toMatchObject({
+      budget: 1_000_000,
+      budgetedSpent: 500_000,
+      percent: 50,
+      status: "ok",
+      highlights: [],
+    });
   });
 });

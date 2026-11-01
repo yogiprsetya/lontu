@@ -121,6 +121,7 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
               <span id="budget-type-label" className="text-base font-semibold">
                 Kebutuhan atau keinginan
               </span>
+
               <ToggleGroup
                 variant="outline"
                 spacing={0}

@@ -8,7 +8,7 @@ Produksi pindah ke budget bernama tanpa kehilangan riwayat: setiap bulan lalu ta
 
 ## Task
 
-- [ ] T121: Migrasi data lama ke `budget_versions` (M, risiko tinggi, berhenti untuk Yogi)
+- [x] T121: Migrasi data lama ke `budget_versions` (M, risiko tinggi, berhenti untuk Yogi)
 - [ ] T122: Cutover produksi + drop `budgets` (S, berhenti untuk Yogi di setiap langkah tulis)
 
 Urutan berantai: T121 → T122.
@@ -20,6 +20,19 @@ Urutan berantai: T121 → T122.
 - **Urutan cutover:** merge + deploy dulu (kode baru mengabaikan `budgets`), lalu `db:migrate` backfill, verifikasi, baru drop. Jendela singkat bulan berjalan kosong sebelum backfill diterima (satu pengguna).
 - **Drop `budgets`** lewat penghapusan tabel di `db/schema.ts` + `generate --explain` → hanya `DROP TABLE "budgets"`, dengan hint `confirm_data_loss` bila diminta.
 
+## Hasil dry run T121 (2026-11-01)
+
+SQL backfill dijalankan untuk data pemilik di dalam transaksi yang di-rollback (skrip sekali pakai di scratchpad, tidak di-commit). M = 2026-11.
+
+| Bulan   | Budget lama aktif       | Budget hasil backfill yang tampil | Cocok |
+| ------- | ----------------------- | --------------------------------- | ----- |
+| 2026-10 | 2 baris, Rp62.000       | 2 budget, Rp62.000                | Ya    |
+| 2026-11 | 0 baris                 | 0 (semua hasil migrasi berakhir)  | Ya    |
+
+Di 2026-11 juga tampil "Konsumsi" (Needs, Rp2.000.000, 4 kategori), budget bernama yang dibuat pemilik lewat UI baru pada 2026-11-01. Baris itu sudah ada sebelum dry run dan tidak bentrok: budget hasil migrasi berakhir di 2026-11, Konsumsi mulai 2026-11. Setelah rollback, baris pemilik di `budget_versions` tetap 1 (Konsumsi).
+
+Catatan untuk T122: karena `budget_versions` ada di DB bersama, budget yang dibuat lewat preview branch sudah tersimpan untuk produksi.
+
 ## Risiko
 
 | Risiko                                           | Dampak | Mitigasi                                                                                                  |
@@ -30,6 +43,6 @@ Urutan berantai: T121 → T122.
 
 ## Checkpoint AG (modul selesai)
 
-- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total Needs/Wants/Total sama dengan screenshot sebelum cutover; bulan berjalan bisa diisi budget bernama
+- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total budget dan nominal per budget sama dengan screenshot sebelum cutover; bulan berjalan bisa diisi budget bernama
 - [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau setelah drop; tes constraint `budgets` lama ikut terhapus bersama tabelnya
 - [ ] SPEC-budgets.md status "selesai", plan.md indeks diperbarui

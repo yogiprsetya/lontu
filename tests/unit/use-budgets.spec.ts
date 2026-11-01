@@ -93,8 +93,6 @@ describe("deleteBudget", () => {
     ],
     unbudgeted: [],
     summary: {
-      needs: { budget: 0, spent: 0, unbudgetedSpent: 0 },
-      wants: { budget: 100, spent: 50, unbudgetedSpent: 0 },
       total: { budget: 100, spent: 50, unbudgetedSpent: 0 },
     },
   };

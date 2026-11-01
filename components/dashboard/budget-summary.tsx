@@ -9,7 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useBudgetUsage } from "@/hooks/use-budgets";
-import { emptyBudgetMessage, statusLabel } from "@/lib/budget-format";
+import { emptyBudgetMessage, statusLabel, usedPercent } from "@/lib/budget-format";
 import { todayInJakarta } from "@/lib/date";
 import { dashboardBudget } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
@@ -42,6 +42,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
   }
 
   const { budget, budgetedSpent, percent, status, highlights } = card;
+  const used = usedPercent(budgetedSpent, percent);
   const totalText = statusLabel(status);
 
   return (
@@ -52,9 +53,9 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
           <span className="font-normal text-muted-foreground">dari {money(budget)}</span>
         </p>
         <BudgetProgress
-          percent={percent}
+          percent={used.bar}
           status={status}
-          label={`Total budget: ${percent ?? 0}% terpakai${totalText ? `, ${totalText}` : ""}`}
+          label={`Total budget: ${used.text ?? "0%"} terpakai${totalText ? `, ${totalText}` : ""}`}
         />
       </div>
       {highlights.length === 0 ? (

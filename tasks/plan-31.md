@@ -35,7 +35,7 @@ Urutan: T110 dulu. T111 dan T112 bebas urutan. T113 butuh T112.
 
 ## Checkpoint AD
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau; jumlah tes dicatat
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau; jumlah tes dicatat
 - [ ] Migrasi T110 sudah diterapkan dan `/budget` produksi (model lama) tetap normal
-- [ ] Invarian `summary.total.spent = transactionTotals.expense` hijau untuk bulan dengan budget berpindah kategori
+- [x] Invarian `summary.total.spent = transactionTotals.expense` hijau untuk bulan dengan budget berpindah kategori
 - [ ] Review dengan Yogi

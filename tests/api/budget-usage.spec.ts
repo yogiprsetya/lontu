@@ -184,8 +184,6 @@ describe("budgetUsage", () => {
       { categoryId: cat.Jajan, spendingType: "wants", spent: 50_000 },
     ]);
     expect(usage.summary).toEqual({
-      needs: { budget: 1_100_000, spent: 1_380_000, unbudgetedSpent: 100_000 },
-      wants: { budget: 0, spent: 50_000, unbudgetedSpent: 50_000 },
       total: { budget: 1_100_000, spent: 1_430_000, unbudgetedSpent: 150_000 },
     });
   });

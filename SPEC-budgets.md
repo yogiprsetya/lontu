@@ -104,7 +104,7 @@ type BudgetUsage = {
   period: BudgetPeriod;
   items: BudgetUsageItem[];
   unbudgeted: { categoryId: string; spendingType: SpendingType; spent: number }[];
-  summary: { needs: BudgetGroup; wants: BudgetGroup; total: BudgetGroup };
+  summary: { total: BudgetGroup }; // dashboard; /budget tidak menampilkan ringkasan
 };
 ```
 
@@ -167,7 +167,7 @@ Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hash
    - bila bulan sesudah sebuah baris tidak punya baris aktif dan ≤ M → versi akhir (`deleted_at = now()`) di bulan itu;
    - bila baris terakhir tepat di M → versi M diakhiri (keputusan #8);
    - baris sesudah M dan baris yang sudah di-soft-delete tidak disalin.
-3. **T122:** merge dan deploy dulu (kode baru mengabaikan `budgets`), cadangkan `budgets`, `db:migrate` backfill, verifikasi total Needs/Wants/Total dua bulan lalu terhadap screenshot sebelum cutover, lalu hapus tabel di `db/schema.ts` → `generate --explain` hanya `DROP TABLE "budgets"` → `db:migrate`. Setiap langkah tulis berhenti untuk persetujuan Yogi.
+3. **T122:** merge dan deploy dulu (kode baru mengabaikan `budgets`), cadangkan `budgets`, `db:migrate` backfill, verifikasi total budget dan nominal per budget dua bulan lalu terhadap screenshot sebelum cutover, lalu hapus tabel di `db/schema.ts` → `generate --explain` hanya `DROP TABLE "budgets"` → `db:migrate`. Setiap langkah tulis berhenti untuk persetujuan Yogi.
 
 ## Deliverables
 
@@ -192,8 +192,8 @@ Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hash
 
 - **`app/(app)/budget/page.tsx`**, di dalam `<Suspense>` karena memakai `useSearchParams`. Isi di `components/budgets/budget-view.tsx`.
   - **Header:** stepper bulan, maks bulan berjalan, periode di URL lewat `router.replace`. Tombol "Tambah budget" hanya di bulan berjalan.
-  - **Ringkasan:** kartu Total, Needs, Wants (bentuk `BudgetGroup` sama dengan model lama). `hideAmounts` menyamarkan nominal.
-  - **Daftar** urut `compareByAttention`. Baris: nama budget, jenis, "Rp terpakai dari Rp budget · 85%", sisa atau "Lebih Rp…", progress bar, teks status ("Hampir habis", "Melebihi budget"). Warna `--budget` untuk `warning`, `--expense` untuk `over`.
+  - **Tanpa kartu ringkasan** (diputuskan Yogi 2026-11-01): budget tidak dibagi per Needs/Wants, jadi halaman langsung ke daftar budget. Total terpakai dari budget hanya tampil di Budget Summary dashboard. `hideAmounts` menyamarkan nominal.
+  - **Daftar** urut `compareByAttention`. Baris: nama budget, jenis, "Rp terpakai dari Rp budget · 85%", sisa atau "Lebih Rp…", progress bar, teks status ("Hampir habis", "Melebihi budget"). Warna `--budget` untuk `warning`, `--expense` untuk `over`. `percent` tetap dibulatkan ke bawah di API, tetapi tampilan memakai `usedPercent`: pengeluaran > 0 yang dibulatkan jadi 0% tampil "<1%" dengan bar 1%, supaya budget yang sudah terpakai tidak terlihat kosong (juga progress total di dashboard).
   - **Tanpa budget:** satu baris di bawah daftar, "Rp… tanpa budget · Kesehatan, Hadiah" (dari `unbudgeted`).
   - **Form** `components/forms/budget-form.tsx` di `ResponsiveModal`, urutan field: Nama, Nominal per bulan (`MoneyInput`), Needs/Wants (`ToggleGroup` seperti `category-form.tsx`, terkunci saat edit), Kategori (checkbox; kategori milik budget lain disabled dengan teks "di {nama}"). Ganti jenis saat membuat → pilihan dikosongkan. Galat server dipasang lewat `applyServerErrors`.
   - **Sheet budget** (tap baris): rincian per kategori dengan tautan drill-down, lalu form edit dan "Hapus budget" (bulan berjalan saja). Bulan lalu: rincian saja, tanpa field dan tombol. Hapus → toast "Budget dihapus · Urungkan".
@@ -227,7 +227,7 @@ Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hash
 
 **Cutover**
 
-- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total Needs/Wants/Total yang sama dengan sebelum cutover. Bulan berjalan bisa diisi budget bernama.
+- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total budget dan nominal per budget yang sama dengan sebelum cutover. Bulan berjalan bisa diisi budget bernama.
 
 ## Tes
 
@@ -249,7 +249,7 @@ Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hash
 ```
 app/api/budgets/{route.ts, usage/route.ts, [id]/route.ts, [id]/restore/route.ts}
 app/(app)/budget/page.tsx
-components/budgets/                       # budget-view, budget-summary, budget-row, budget-sheet, month-stepper
+components/budgets/                       # budget-view, budget-row, budget-sheet, month-stepper
 components/forms/budget-form.tsx
 hooks/use-budgets.ts
 lib/schemas/{budget.ts, budget-usage.ts}, lib/budget-status.ts, lib/budget-cache.ts, lib/budget-format.ts

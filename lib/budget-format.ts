@@ -25,6 +25,12 @@ export function emptyBudgetMessage(period: BudgetPeriod, today: string) {
     : `Tidak ada budget yang berlaku di ${formatPeriodLabel(period)}.`;
 }
 
+/** `percent` rounds down, so a little spending would read as an empty 0%; show "<1%" and a sliver. */
+export function usedPercent(spent: number, percent: number | null) {
+  if (spent > 0 && percent === 0) return { bar: 1, text: "<1%" };
+  return { bar: percent, text: percent === null ? null : `${percent}%` };
+}
+
 export function statusLabel(status: BudgetStatus) {
   return STATUS_LABEL[status];
 }

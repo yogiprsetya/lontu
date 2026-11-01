@@ -12,14 +12,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Yogi menyetujui perubahan skema (tabel `goals`, constraint `transactions`, view) dan capability map; persetujuan bertanggal dicatat di SPEC-goals.md § Keputusan dan plan-35 § Keputusan
-- [ ] Open questions 1–5 dijawab di SPEC-goals.md dan plan.md § Modul `goals`; jika #1 berubah, plan-37 direvisi sebelum checkpoint AH
-- [ ] SPEC.md, SPEC-transactions.md, SPEC-accounts-categories.md tidak bertentangan dengan SPEC-goals.md (`rg -n "6 tabel|adjustment" SPEC*.md` diperiksa satu per satu)
+- [x] Yogi menyetujui perubahan skema (tabel `goals`, constraint `transactions`, view) dan capability map; persetujuan bertanggal dicatat di SPEC-goals.md § Keputusan dan plan-35 § Keputusan
+- [x] Open questions 1–5 dijawab di SPEC-goals.md dan plan.md § Modul `goals`; jika #1 berubah, plan-37 direvisi sebelum checkpoint AH
+- [x] SPEC.md, SPEC-transactions.md, SPEC-accounts-categories.md tidak bertentangan dengan SPEC-goals.md (`rg -n "6 tabel|adjustment" SPEC*.md` diperiksa satu per satu)
 
 **Verification:**
 
-- [ ] `pnpm format:check` hijau
-- [ ] Review dokumen bersama Yogi (tanpa perubahan kode)
+- [x] `pnpm format:check` hijau
+- [x] Review dokumen bersama Yogi (tanpa perubahan kode)
 
 **Dependencies:** None
 

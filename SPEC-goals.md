@@ -1,6 +1,6 @@
 # Spec module: `goals`
 
-Status: draft · 2026-11-01 · @Yogi
+Status: disetujui · 2026-11-01 · @Yogi
 Bergantung pada: `accounts-categories`, `transactions` · Dipakai oleh: — · Indeks: [SPEC.md](SPEC.md)
 Asal: sesi idea-refine 2026-11-01 ("Net Worth Targets", referensi: fitur Net Worth Tracker Monsy).
 
@@ -21,7 +21,7 @@ Di luar cakupan: harga otomatis (saham, emas, kripto, NAB), saham, kuantitas (gr
 
 ## Keputusan
 
-Nomor 1–3 diputuskan Yogi pada 2026-11-01 (sesi idea-refine). Sisanya usulan untuk direview.
+Nomor 1–3 diputuskan Yogi pada 2026-11-01 (sesi idea-refine). Sisanya, perubahan skema, dan capability map disetujui Yogi pada 2026-11-01 (T123), termasuk menjalankan kedua migrasi di DB bersama setelah SQL `--explain` dibaca.
 
 1. **Nilai diperbarui manual.** Fase ini fokus pada akun reksadana dan emas fisik. Saham dan harga otomatis menyusul di fase lain, jadi tidak ada dependency atau layanan eksternal baru.
 2. **Pertanyaan utama = progres ke target,** bukan grafik net worth. Total net worth saat ini sudah ada di kartu Account Balance dashboard dan tidak berubah.
@@ -318,8 +318,8 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md).
 
 ## Open questions
 
-1. **Satu akun, satu target** (keputusan #10): setuju? Jika satu akun reksadana harus mendanai dua target, alternatifnya akun terpisah per target, bukan alokasi persen (Ask first).
-2. **Laju dari 3 bulan penuh** (keputusan #12): setuju, atau ikut bulan berjalan (lebih cepat bereaksi, tetapi turun-naik di awal bulan)?
-3. **Kartu Saving di dashboard** hanya menghitung tipe `saving`, padahal pemilik menabung lewat transfer (keputusan #3), jadi kartu itu mendekati 0. Ini keputusan modul `dashboard`, bukan modul ini: dibiarkan, atau Saving ikut menghitung transfer ke akun yang ada di target?
-4. **Ambang basi 35 hari** (keputusan #16): setuju?
-5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`?
+1. ~~Satu akun, satu target (keputusan #10)~~ **Dijawab 2026-11-01: setuju.** Jika satu akun reksadana harus mendanai dua target, alternatifnya akun terpisah per target, bukan alokasi persen (Ask first).
+2. ~~Laju dari 3 bulan penuh (keputusan #12)~~ **Dijawab 2026-11-01: setuju,** bulan berjalan tidak dihitung.
+3. **Kartu Saving di dashboard** hanya menghitung tipe `saving`, padahal pemilik menabung lewat transfer (keputusan #3), jadi kartu itu mendekati 0. Ini keputusan modul `dashboard`, bukan modul ini. **Dijawab 2026-11-01: dibiarkan,** di luar cakupan modul ini.
+4. ~~Ambang basi 35 hari (keputusan #16)~~ **Dijawab 2026-11-01: setuju.**
+5. ~~Subtype `gold` (keputusan #19)~~ **Dijawab 2026-11-01: ditambahkan.**

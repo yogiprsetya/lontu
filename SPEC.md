@@ -7,7 +7,7 @@ File ini berisi **capability map** (indeks modul) dan aturan yang berlaku untuk 
 
 ## Objective
 
-Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan bernama (satu budget mencakup beberapa kategori), dan dashboard ringkasan.
+Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan bernama (satu budget mencakup beberapa kategori), dashboard ringkasan, dan progres ke target net worth bernama.
 
 - **Pengguna:** hanya pemilik (login Google dengan allowlist email). Model data tetap multi-user (`user_id` di setiap tabel), jadi membuka pendaftaran nanti tidak butuh migrasi data.
 - **Sukses berarti:** mencatat transaksi dari ponsel cukup beberapa tap, saldo setiap akun selalu benar, budget yang hampir habis terlihat sebelum akhir bulan, dan data terakhir tetap bisa dilihat saat offline.
@@ -23,8 +23,9 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 | `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
+| `goals` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/goals`), query `goalProgress`, proyeksi `goalProjection`, halaman `/goals` | accounts-categories, transactions |
 
-**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya)
+**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → goals (Fase 2, ditambahkan 2026-11-01)
 
 Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET /api/accounts` ditulis di `SPEC-accounts-categories.md`.
 
@@ -39,7 +40,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 5. **Transfer digabung ke modul `transactions`:** tabel, daftar, dan cache SWR-nya sama.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
-8. **6 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
+8. **7 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`, `goals`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `goals` ditambahkan modul `goals` (Fase 2), bersama tipe transaksi `revaluation` (constraint + view), disetujui 2026-11-01 ([SPEC-goals.md](SPEC-goals.md) § Perubahan skema). `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
 
 ## Tech stack
 

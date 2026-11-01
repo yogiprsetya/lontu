@@ -15,7 +15,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
-| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Direncanakan. Menunggu persetujuan spec (T123) |
+| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Spec disetujui 2026-11-01 (T123). T124–T134 berjalan |
 
 ---
 
@@ -774,8 +774,8 @@ Phase 38  T132 Kartu target + buat target (butuh T127, T130) ─► T133 Edit, a
 
 Dibawa dari SPEC-goals § Open questions, dijawab di T123:
 
-1. **Satu akun, satu target** (keputusan #10): setuju?
-2. **Laju dari 3 bulan penuh** (keputusan #12), atau ikut bulan berjalan?
-3. **Kartu Saving di dashboard** tidak menghitung transfer ke akun target: dibiarkan (di luar modul ini), atau masuk backlog `dashboard`?
-4. **Ambang basi 35 hari** (keputusan #16): setuju?
-5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`?
+1. **Satu akun, satu target** (keputusan #10): setuju? **Dijawab 2026-11-01: setuju.**
+2. **Laju dari 3 bulan penuh** (keputusan #12), atau ikut bulan berjalan? **Dijawab 2026-11-01: 3 bulan penuh.**
+3. **Kartu Saving di dashboard** tidak menghitung transfer ke akun target: dibiarkan (di luar modul ini), atau masuk backlog `dashboard`? **Dijawab 2026-11-01: dibiarkan.**
+4. **Ambang basi 35 hari** (keputusan #16): setuju? **Dijawab 2026-11-01: setuju.**
+5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`? **Dijawab 2026-11-01: tambahkan.**

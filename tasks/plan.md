@@ -15,6 +15,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
+| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Direncanakan. Menunggu persetujuan spec (T123) |
 
 ---
 
@@ -694,3 +695,87 @@ Phase 34  T121 Migrasi data lama (file + dry run) ─► T122 Cutover produksi +
 1. **Budget lama per kategori saat cutover:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (bulan berjalan mulai kosong, pemilik membuat budget bernama baru), atau tetap aktif sebagai budget satu kategori yang lalu digabung manual? (Default: berakhir di bulan cutover. Baris lama untuk bulan depan diabaikan.) **Dijawab 2026-10-31: berakhir di bulan cutover.**
 2. **Nama budget unik** (tanpa beda huruf besar) di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN`. Setuju? **Dijawab 2026-10-31: setuju.**
 3. **Tanpa "berlaku mulai bulan depan".** Mengubah budget tanggal 31 ikut mengubah bulan itu. Setuju? **Dijawab 2026-10-31: setuju.**
+
+---
+
+# Modul `goals`
+
+Sumber: sesi idea-refine + `/plan` 2026-11-01 ("Net Worth Targets", referensi fitur Net Worth Tracker Monsy) · Spec: [SPEC-goals.md](../SPEC-goals.md) (draft) · 2026-11-01
+
+## Overview
+
+Pemilik melihat seberapa dekat ia dengan setiap target ("DP Rumah 150 jt"), dengan porsi setoran dan porsi pasar terpisah. Dua bagian, dibangun berurutan: **revaluasi** (tipe transaksi `revaluation` dari sheet "Perbarui nilai" untuk akun reksadana dan emas fisik) lalu **target** (nama, nominal, bulan target opsional, akun-akun yang dihitung, perkiraan dari laju setoran 3 bulan). Harga otomatis, saham, kuantitas, grafik net worth, dan kartu dashboard tidak dikerjakan.
+
+## Kondisi repo saat ini
+
+- Akun `type` `transaction | asset`, `subtype` hanya divalidasi Zod (`lib/schemas/account.ts`), tanpa check constraint di DB, jadi `gold` tidak butuh migrasi.
+- `adjustment` sudah menjadi precedent tipe transaksi sistem bertanda: constraint `transactions_*_check`, satu baris di view `account_balances`, `updateTransaction` menolak edit (`lib/server/transactions.ts`), label dan tanda di `lib/transaction-format.ts`, `type-styles.ts`, `filter-panel.tsx`, `lib/transaction-filters.ts`, kartu `adjustment-card.tsx`. `transactionTotals`, `dashboardSummary`, `budgetUsage` hanya menghitung income/expense/saving.
+- Pola lock: `updateAccount` (`select … for update` + query terpisah sesudah lock), budget (`pg_advisory_xact_lock(hashtext(user_id))` + array id tanpa FK).
+- **DB dipakai bersama oleh tes dan produksi.** Kedua migrasi modul ini hanya memperluas: constraint baru adalah superset yang lama, view baru identik untuk tipe yang ada, tabel `goals` baru. Kode produksi lama tidak pernah menulis `revaluation`.
+- Phase 29 (T104–T106) belum selesai dan menyentuh `lib/server/transactions.ts`. T124 hanya mengubah satu cabang `adjustment` di file itu: konflik kecil, rebase biasa. Butir `[ ]` di todo-34 tampaknya sudah dikerjakan (commit `drop budgets`, `rename budget to budgets`) dan perlu dicentang Yogi.
+- Tidak ada komponen `progress` shadcn; `components/budgets/budget-progress.tsx` adalah bar kustom.
+- 732 kasus tes (`it`/`test`) per 2026-11-01.
+
+## Dependency graph
+
+```
+Phase 35  T123 Spec + persetujuan (Yogi) ──────────────────────────────┐
+Phase 36  T124 Tipe revaluation (migrasi + API transaksi) ─┬─► T125 API check-in /api/valuations ─┐
+                                                           └─► T126 Revaluasi di UI transaksi       │
+          T127 Halaman /goals: nilai aset + sheet Perbarui nilai (butuh T125) ◄────────────────────┘
+Phase 37  T128 goalProjection (murni, hanya butuh T123)
+          T129 Tabel goals + query goalProgress (butuh T124, T128) ─► T130 POST/GET /api/goals
+                                                               └─► T131 PATCH/DELETE/restore
+Phase 38  T132 Kartu target + buat target (butuh T127, T130) ─► T133 Edit, arsip, Urungkan (butuh T131)
+          T134 Verifikasi akhir, ukuran bundle, status spec (butuh T126, T133)
+```
+
+## Phases
+
+| Phase                         | Plan                     | Todo                     | Task      | Checkpoint |
+| ----------------------------- | ------------------------ | ------------------------ | --------- | ---------- |
+| 35. Spec dan persetujuan      | [plan-35.md](plan-35.md) | [todo-35.md](todo-35.md) | T123      | AH         |
+| 36. Revaluasi                 | [plan-36.md](plan-36.md) | [todo-36.md](todo-36.md) | T124–T127 | AI         |
+| 37. Target: model dan API     | [plan-37.md](plan-37.md) | [todo-37.md](todo-37.md) | T128–T131 | AJ         |
+| 38. Target: UI dan penutupan  | [plan-38.md](plan-38.md) | [todo-38.md](todo-38.md) | T132–T134 | AK         |
+
+## Aturan lintas phase
+
+- **Branch `feat/goals`** dari master. Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
+- **Revaluasi dulu, target kemudian.** Nilai yang jujur adalah prasyarat persen target. Sesudah phase 36, `/goals` sudah berguna sendiri (nilai aset, disetor vs pasar, check-in), jadi phase 37–38 bisa berhenti tanpa meninggalkan fitur setengah jadi.
+- **Setiap migrasi didahului `drizzle-kit generate --explain`** dan membaca `migration.sql`. Hanya objek yang tertulis di SPEC-goals § Perubahan skema. Tidak ada `ALTER`/`DROP` kolom.
+- **Satu daftar tipe sistem.** T124 menambah `SYSTEM_TRANSACTION_TYPES = ["adjustment", "revaluation"]` di `lib/transaction-types.ts` dan mengganti cek `type === "adjustment"` yang berarti "tipe sistem bertanda" dengan helper itu, supaya tipe ketiga nanti tidak perlu memburu cabang lagi. Cek yang memang khusus adjustment (saldo awal efektif) tetap.
+- **TDD untuk logika baru:** T125, T128, T129 menulis tes merah dulu dengan angka skenario dasar SPEC-goals § Acceptance criteria.
+- Setiap resource baru punya tes isolasi A/B dan 401. Tes lama tidak diubah; jumlah tes dicatat di tiap checkpoint.
+- Tidak ada dependency npm baru dan tidak ada komponen shadcn baru.
+
+## Keputusan perencanaan (2026-11-01)
+
+1. **T123 adalah gerbang Ask first:** tabel ke-7 (`goals`), perubahan constraint `transactions` dan view, baris `goals` di capability map, keputusan terkunci #8, subtype `gold`. Tanpa persetujuan, phase 36 tidak dimulai.
+2. **Dua migrasi, bukan satu.** `revaluation` (T124) dan tabel `goals` (T129) terpisah, supaya phase 36 bisa tayang dan dipakai sebelum ada tabel target.
+3. **`/goals` lahir di T127 sebagai halaman nilai aset,** dengan nav "Goals". Kartu target ditambahkan di T132 di halaman yang sama. Tidak ada halaman sementara di Settings.
+4. **Check-in idempoten tanpa id dari client:** delta dihitung ulang terhadap saldo, jadi ulangan memberi delta 0 (SPEC-goals § Aturan tulis).
+5. **`goalProgress` dites lewat baris yang ditulis langsung ke DB** di T129 (seperti T111), sebelum route ada, supaya SQL laju dan pembagi dikunci tes lebih dulu.
+6. **Bar progres target memakai ulang `budget-progress.tsx`** jika API-nya cukup (nilai, maksimum, label teks); jika butuh status budget, buat bar kecil sendiri di `components/goals/` tanpa mengubah komponen budget.
+
+## Risiko modul
+
+| Risiko                                                                 | Dampak | Mitigasi                                                                                                              |
+| ---------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| Migrasi constraint `transactions` di DB bersama menolak baris produksi | Tinggi | Constraint baru superset lama; `--explain` + baca SQL; tes semua tipe yang ada hijau tanpa diubah (T124)              |
+| Saldo per tanggal salah (adjustment, transfer dua sisi, revaluasi lama) | Tinggi | T125 tes merah dulu: skenario dasar, adjustment hari ini + check-in kemarin, urutan tanggal, ulangan                  |
+| SQL laju salah (transfer internal, antar target, akun terarsip, pembagi) | Tinggi | T129 tes merah dulu dengan baris langsung di DB, invarian `current` = jumlah `GET /api/accounts`                      |
+| Dua tulisan paralel mengklaim akun yang sama                          | Sedang | Advisory lock per user, tes `Promise.all` (T130)                                                                      |
+| Cabang `adjustment` terlewat sehingga revaluasi bisa diedit atau salah tanda | Sedang | `SYSTEM_TRANSACTION_TYPES` + `rg -n '"adjustment"'` di T124 dan T126, tes edit ditolak                                |
+| Konflik dengan phase 29 di `lib/server/transactions.ts`                | Rendah | Perubahan T124 satu cabang; rebase setelah T104–T106 jika selesai lebih dulu                                          |
+| Bundle `/goals` membengkak                                            | Rendah | Halaman baru tanpa grafik; ukur di T134, target < 200 KB gzip first load                                              |
+
+## Open questions
+
+Dibawa dari SPEC-goals § Open questions, dijawab di T123:
+
+1. **Satu akun, satu target** (keputusan #10): setuju?
+2. **Laju dari 3 bulan penuh** (keputusan #12), atau ikut bulan berjalan?
+3. **Kartu Saving di dashboard** tidak menghitung transfer ke akun target: dibiarkan (di luar modul ini), atau masuk backlog `dashboard`?
+4. **Ambang basi 35 hari** (keputusan #16): setuju?
+5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`?

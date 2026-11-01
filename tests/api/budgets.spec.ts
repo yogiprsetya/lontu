@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { budgetVersions, categories } from "@/db/schema";
+import { budgets, categories } from "@/db/schema";
 import type { BudgetVersion } from "@/lib/schemas/budget";
 import { createTestUsers } from "../setup/db";
 
@@ -63,7 +63,7 @@ let cat: Record<string, string>;
 let catB: string;
 
 function versionsOf(userId: string) {
-  return db.select().from(budgetVersions).where(eq(budgetVersions.userId, userId));
+  return db.select().from(budgets).where(eq(budgets.userId, userId));
 }
 
 const jajanHiburan = () => ({
@@ -104,8 +104,8 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.delete(budgetVersions).where(eq(budgetVersions.userId, userA));
-  await db.delete(budgetVersions).where(eq(budgetVersions.userId, userB));
+  await db.delete(budgets).where(eq(budgets.userId, userA));
+  await db.delete(budgets).where(eq(budgets.userId, userB));
 });
 
 afterAll(async () => {
@@ -177,7 +177,7 @@ describe("POST /api/budgets", () => {
 
   it("frees the name and categories of a budget that has ended", async () => {
     signInAs(userA);
-    await db.insert(budgetVersions).values({
+    await db.insert(budgets).values({
       userId: userA,
       budgetId: randomUUID(),
       name: "Jajan & Hiburan",
@@ -249,8 +249,8 @@ describe("PATCH /api/budgets/[id]", () => {
   const budgetId = randomUUID();
 
   /** A budget set up in September, so October has no version of its own yet. */
-  async function septemberBudget(overrides: Partial<typeof budgetVersions.$inferInsert> = {}) {
-    await db.insert(budgetVersions).values({
+  async function septemberBudget(overrides: Partial<typeof budgets.$inferInsert> = {}) {
+    await db.insert(budgets).values({
       userId: userA,
       budgetId,
       name: "Jajan & Hiburan",
@@ -301,7 +301,7 @@ describe("PATCH /api/budgets/[id]", () => {
     signInAs(userA);
     expect((await patch(budgetId, { categoryIds: [cat.Lama, cat.Hobi] })).status).toBe(200);
 
-    await db.delete(budgetVersions).where(eq(budgetVersions.userId, userA));
+    await db.delete(budgets).where(eq(budgets.userId, userA));
     await septemberBudget();
     const res = await patch(budgetId, { categoryIds: [cat.Jajan, cat.Lama] });
     expect(res.status).toBe(400);
@@ -389,11 +389,8 @@ describe("PATCH /api/budgets/[id]", () => {
 describe("DELETE /api/budgets/[id] and restore", () => {
   const budgetId = randomUUID();
 
-  async function budgetFrom(
-    month: number,
-    overrides: Partial<typeof budgetVersions.$inferInsert> = {},
-  ) {
-    await db.insert(budgetVersions).values({
+  async function budgetFrom(month: number, overrides: Partial<typeof budgets.$inferInsert> = {}) {
+    await db.insert(budgets).values({
       userId: userA,
       budgetId,
       name: "Jajan & Hiburan",

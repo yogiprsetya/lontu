@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
+import { budgets } from "@/db/schema";
 import { budgetStatus, summarizeBudgetUsage } from "@/lib/budget-status";
 import { monthRange, periodToYearMonth } from "@/lib/period";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
@@ -23,7 +24,7 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
   const [row] = await db.execute<Row>(sql`
     with effective as (
       select distinct on (budget_id) budget_id, name, spending_type, amount, category_ids, deleted_at
-      from budget_versions
+      from ${budgets}
       where user_id = ${userId} and (year, month) <= (${year}::int, ${month}::int)
       order by budget_id, year desc, month desc
     ),

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { accounts, budgetVersions, categories, transactions } from "@/db/schema";
+import { accounts, budgets, categories, transactions } from "@/db/schema";
 import type { DashboardSummary } from "@/lib/schemas/dashboard";
 import { budgetUsage } from "@/lib/server/queries/budget-usage";
 import { dashboardSummary } from "@/lib/server/queries/dashboard-summary";
@@ -122,7 +122,7 @@ describe("dashboardSummary", () => {
   });
 
   it("matches the budget page's spending for the same month, budgeted or not", async () => {
-    await db.insert(budgetVersions).values({
+    await db.insert(budgets).values({
       userId: userA,
       budgetId: crypto.randomUUID(),
       name: "Makan",

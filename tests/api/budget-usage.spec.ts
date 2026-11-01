@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { accounts, budgetVersions, categories, transactions } from "@/db/schema";
+import { accounts, budgets, categories, transactions } from "@/db/schema";
 import type { BudgetUsage } from "@/lib/schemas/budget-usage";
 import { budgetUsage } from "@/lib/server/queries/budget-usage";
 import { transactionTotals } from "@/lib/server/queries/transaction-totals";
@@ -130,7 +130,7 @@ beforeAll(async () => {
     deletedAt: ended ? new Date() : null,
   });
   await db
-    .insert(budgetVersions)
+    .insert(budgets)
     .values([
       v(makan, "Makan", "needs", "2026-09", 1_000_000, [cat.Makan]),
       v(makan, "Makan & Sehat", "needs", "2026-11", 1_200_000, [cat.Makan, cat.kesehatan]),

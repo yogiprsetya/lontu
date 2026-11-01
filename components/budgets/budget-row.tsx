@@ -1,6 +1,6 @@
 import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { statusLabel } from "@/lib/budget-format";
+import { statusLabel, usedPercent } from "@/lib/budget-format";
 import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ type Props = { item: BudgetUsageItem; categoryNames: string; onOpen?: () => void
 export function BudgetRow({ item, categoryNames, onOpen }: Props) {
   const money = useAmountFormat();
   const text = statusLabel(item.status);
+  const used = usedPercent(item.spent, item.percent);
 
   return (
     <li>
@@ -41,14 +42,14 @@ export function BudgetRow({ item, categoryNames, onOpen }: Props) {
           {TYPE_LABEL[item.spendingType]} · {categoryNames}
         </span>
         <BudgetProgress
-          percent={item.percent}
+          percent={used.bar}
           status={item.status}
-          label={`${item.percent ?? 0}% terpakai${text ? `, ${text}` : ""}`}
+          label={`${used.text ?? "0%"} terpakai${text ? `, ${text}` : ""}`}
         />
         <span className="flex w-full flex-wrap justify-between gap-x-3 text-sm text-muted-foreground tabular-nums">
           <span>
             {money(item.spent)} dari {money(item.budget)}
-            {item.percent !== null && ` · ${item.percent}%`}
+            {used.text && ` · ${used.text}`}
           </span>
           {text && (
             <span

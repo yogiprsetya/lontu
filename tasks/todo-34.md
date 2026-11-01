@@ -14,7 +14,7 @@ Langkah yang menulis ke DB produksi (backfill, drop) hanya dijalankan setelah Yo
 
 - [x] Tes backfill: M−3 dan M−2 tampil dengan nominal lama; M−1 tidak tampil (celah); M tidak tampil (diakhiri); baris soft-deleted dan M+1 tidak disalin; satu `budget_id` per kategori
 - [x] Dry run pemilik: untuk setiap bulan < M yang punya baris lama, `summary.total.budget` sama dengan jumlah baris lama aktif, dan setiap budget hasil migrasi bernominal sama dengan baris lamanya; bulan M = 0. Hasil dicatat di plan-34
-- [ ] Cadangan baris `budgets` pemilik diekspor (CSV Supabase atau JSON lokal) sebelum T122
+- [x] Cadangan baris `budgets` pemilik diekspor (CSV Supabase atau JSON lokal) sebelum T122
 
 **Verification:**
 

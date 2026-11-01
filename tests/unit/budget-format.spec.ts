@@ -5,6 +5,7 @@ import {
   budgetPeriodFromParam,
   budgetTransactionsHref,
   emptyBudgetMessage,
+  usedPercent,
   groupStatus,
   statusLabel,
 } from "@/lib/budget-format";
@@ -158,5 +159,20 @@ describe("emptyBudgetMessage", () => {
     expect(emptyBudgetMessage("2026-09", "2026-11-01")).toBe(
       "Tidak ada budget yang berlaku di September 2026.",
     );
+  });
+});
+
+describe("usedPercent", () => {
+  it("shows a sliver and <1% when some spending rounds down to 0%", () => {
+    expect(usedPercent(10_000, 0)).toEqual({ bar: 1, text: "<1%" });
+  });
+
+  it("keeps the rounded percent otherwise", () => {
+    expect(usedPercent(0, 0)).toEqual({ bar: 0, text: "0%" });
+    expect(usedPercent(1_700_000, 85)).toEqual({ bar: 85, text: "85%" });
+  });
+
+  it("has no text for a zero budget", () => {
+    expect(usedPercent(5_000, null)).toEqual({ bar: null, text: null });
   });
 });

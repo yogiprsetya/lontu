@@ -36,7 +36,7 @@ Langkah yang menulis ke DB produksi (backfill, drop) hanya dijalankan setelah Yo
 **Acceptance criteria:**
 
 - [ ] Butir verifikasi (4) dicentang Yogi sebelum langkah (5)
-- [ ] Migrasi drop hanya berisi `DROP TABLE "budgets"` (dan constraint/FK-nya)
+- [x] Migrasi drop hanya berisi `DROP TABLE "budgets"` (dan constraint/FK-nya)
 - [ ] Setelah drop: `rg -n "\bbudgets\b" db/schema.ts` hanya rujukan nama di komentar atau tidak ada; semua tes hijau
 
 **Verification:**

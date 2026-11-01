@@ -116,27 +116,6 @@ export const transactions = pgTable.withRLS(
   ],
 );
 
-export const budgets = pgTable.withRLS(
-  "budgets",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: userId(),
-    categoryId: uuid("category_id")
-      .notNull()
-      .references(() => categories.id),
-    year: integer("year").notNull(),
-    month: integer("month").notNull(),
-    amount: money("amount").notNull(),
-    createdAt: createdAt(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  },
-  (t) => [
-    check("budgets_month_check", sql`${t.month} between 1 and 12`),
-    check("budgets_amount_check", sql`${t.amount} >= 0`),
-    uniqueIndex("budgets_user_category_period_unique").on(t.userId, t.categoryId, t.year, t.month),
-  ],
-);
-
 // One row = one version of a named budget, in effect from (year, month) until a later version.
 // category_ids has no FK: ownership and kind are checked on write, and categories are never hard-deleted.
 export const budgetVersions = pgTable.withRLS(

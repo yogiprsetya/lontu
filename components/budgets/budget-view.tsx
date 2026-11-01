@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PlusIcon } from "lucide-react";
 import { BudgetBreakdown } from "@/components/budgets/budget-breakdown";
 import { BudgetRow } from "@/components/budgets/budget-row";
-import { BudgetSummary } from "@/components/budgets/budget-summary";
 import { MonthStepper } from "@/components/budgets/month-stepper";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
@@ -136,7 +135,6 @@ export function BudgetView() {
   } else {
     content = (
       <>
-        <BudgetSummary summary={usage.data.summary} />
         {usage.data.items.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
             <p className="text-muted-foreground">{emptyBudgetMessage(period, today)}</p>

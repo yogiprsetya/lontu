@@ -30,6 +30,6 @@ Urutan berantai: T121 → T122.
 
 ## Checkpoint AG (modul selesai)
 
-- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total Needs/Wants/Total sama dengan screenshot sebelum cutover; bulan berjalan bisa diisi budget bernama
+- [ ] Produksi: dua bulan lalu yang punya budget lama menampilkan total budget dan nominal per budget sama dengan screenshot sebelum cutover; bulan berjalan bisa diisi budget bernama
 - [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau setelah drop; tes constraint `budgets` lama ikut terhapus bersama tabelnya
 - [ ] SPEC-budgets.md status "selesai", plan.md indeks diperbarui

@@ -30,6 +30,6 @@ Urutan: T107 dulu. T108 dan T109 bebas urutan, satu commit masing-masing.
 
 ## Checkpoint AC
 
-- [ ] Yogi menyetujui spec dan menjawab Open questions 1–3 (dicatat di § Keputusan di atas)
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum/sesudah dicatat
+- [x] Yogi menyetujui spec dan menjawab Open questions 1–3 (dicatat di § Keputusan di atas)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum/sesudah dicatat
 - [ ] Manual: `/budget` tanpa menu aksi bulan; atur budget per kategori masih jalan

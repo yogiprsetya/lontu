@@ -201,7 +201,7 @@ describe("dashboardBudget", () => {
       period: "2026-11",
       items: items as BudgetUsageItem[],
       unbudgeted: [],
-      summary: { needs: total, wants: group(0, 0), total },
+      summary: { total },
     };
   }
 

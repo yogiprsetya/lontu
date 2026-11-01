@@ -8,12 +8,12 @@ Langkah yang menulis ke DB produksi (backfill, drop) hanya dijalankan setelah Yo
 
 ### T121: Migrasi data lama ke `budget_versions`
 
-**Description:** Buat migrasi kustom backfill sesuai plan-34 § Keputusan. Tes otomatis `tests/api/budget-backfill.spec.ts`: user tes dengan baris `budgets` lama di M−3, M−2 (celah di M−1), dan M, plus satu baris soft-deleted dan satu di M+1; jalankan SQL berkas migrasi di dalam `db.transaction` yang selalu di-rollback, lalu periksa versi user tes itu sebelum rollback. Dry run manual untuk data pemilik dengan cara yang sama (transaksi + rollback): banding jumlah budget Needs/Wants per bulan antara `budgets` lama dan `budgetUsage` baru. **Jangan jalankan `pnpm db:migrate`.**
+**Description:** Buat migrasi kustom backfill sesuai plan-34 § Keputusan. Tes otomatis `tests/api/budget-backfill.spec.ts`: user tes dengan baris `budgets` lama di M−3, M−2 (celah di M−1), dan M, plus satu baris soft-deleted dan satu di M+1; jalankan SQL berkas migrasi di dalam `db.transaction` yang selalu di-rollback, lalu periksa versi user tes itu sebelum rollback. Dry run manual untuk data pemilik dengan cara yang sama (transaksi + rollback): banding total budget dan nominal per budget per bulan antara `budgets` lama dan `budgetUsage` baru. **Jangan jalankan `pnpm db:migrate`.**
 
 **Acceptance criteria:**
 
 - [ ] Tes backfill: M−3 dan M−2 tampil dengan nominal lama; M−1 tidak tampil (celah); M tidak tampil (diakhiri); baris soft-deleted dan M+1 tidak disalin; satu `budget_id` per kategori
-- [ ] Dry run pemilik: untuk setiap bulan < M yang punya baris lama, total `summary.needs/wants/total.budget` sama dengan jumlah baris lama aktif per jenis; bulan M = 0. Hasil dicatat di plan-34
+- [ ] Dry run pemilik: untuk setiap bulan < M yang punya baris lama, `summary.total.budget` sama dengan jumlah baris lama aktif, dan setiap budget hasil migrasi bernominal sama dengan baris lamanya; bulan M = 0. Hasil dicatat di plan-34
 - [ ] Cadangan baris `budgets` pemilik diekspor (CSV Supabase atau JSON lokal) sebelum T122
 
 **Verification:**

@@ -33,7 +33,7 @@ Urutan berantai: T114 → T115 → T116.
 
 ## Checkpoint AE
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [ ] Manual 360×800 dan 1024 (preview branch): tambah "Jajan & Hiburan" Rp800.000 (Jajan, Hiburan) → catat expense Jajan 700.000 → status "Hampir habis" 87% tanpa reload, budget itu naik ke atas. Kategori yang dipakai tampil disabled di form budget lain
 - [ ] Ubah nominal di bulan berjalan → bulan lalu tidak berubah. Bulan lalu tidak bisa diedit, stepper berhenti di bulan berjalan
 - [ ] Review dengan Yogi

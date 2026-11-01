@@ -61,7 +61,7 @@ describe("summarizeBudgetUsage", () => {
     categories: [],
   });
 
-  it("adds budgets and spending per group and counts unbudgeted spending in spent", () => {
+  it("adds every budget and its spending, and counts unbudgeted spending in spent", () => {
     const summary = summarizeBudgetUsage(
       [
         item("needs", 1_000_000, 700_000),
@@ -74,15 +74,13 @@ describe("summarizeBudgetUsage", () => {
       ],
     );
     expect(summary).toEqual({
-      needs: { budget: 1_500_000, spent: 800_000, unbudgetedSpent: 100_000 },
-      wants: { budget: 800_000, spent: 950_000, unbudgetedSpent: 50_000 },
       total: { budget: 2_300_000, spent: 1_750_000, unbudgetedSpent: 150_000 },
     });
   });
 
   it("is all zero for a month without budgets or spending", () => {
     const zero = { budget: 0, spent: 0, unbudgetedSpent: 0 };
-    expect(summarizeBudgetUsage([], [])).toEqual({ needs: zero, wants: zero, total: zero });
+    expect(summarizeBudgetUsage([], [])).toEqual({ total: zero });
   });
 });
 

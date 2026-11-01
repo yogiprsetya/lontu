@@ -38,19 +38,16 @@ export function summarizeBudgetUsage(
   items: BudgetUsageItem[],
   unbudgeted: UnbudgetedSpending[],
 ): BudgetUsage["summary"] {
-  const summary = { needs: emptyGroup(), wants: emptyGroup(), total: emptyGroup() };
+  const total = emptyGroup();
   for (const item of items) {
-    for (const group of [summary[item.spendingType], summary.total]) {
-      group.budget += item.budget;
-      group.spent += item.spent;
-    }
+    total.budget += item.budget;
+    total.spent += item.spent;
   }
   for (const row of unbudgeted) {
-    for (const group of [summary[row.spendingType], summary.total]) {
-      group.spent += row.spent;
-      group.unbudgetedSpent += row.spent;
-    }
+    total.spent += row.spent;
+    total.unbudgetedSpent += row.spent;
   }
+  const summary = { total };
   return summary;
 }
 

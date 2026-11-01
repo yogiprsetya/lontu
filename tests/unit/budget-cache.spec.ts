@@ -35,8 +35,6 @@ describe("endBudgetInUsage", () => {
     ],
     unbudgeted: [{ categoryId: "kesehatan", spendingType: "needs", spent: 100_000 }],
     summary: {
-      needs: { budget: 1_000_000, spent: 700_000, unbudgetedSpent: 100_000 },
-      wants: { budget: 800_000, spent: 700_000, unbudgetedSpent: 0 },
       total: { budget: 1_800_000, spent: 1_400_000, unbudgetedSpent: 100_000 },
     },
   };
@@ -48,8 +46,6 @@ describe("endBudgetInUsage", () => {
       { categoryId: "jajan", spendingType: "wants", spent: 700_000 },
     ],
     summary: {
-      needs: { budget: 1_000_000, spent: 700_000, unbudgetedSpent: 100_000 },
-      wants: { budget: 0, spent: 700_000, unbudgetedSpent: 700_000 },
       total: { budget: 1_000_000, spent: 1_400_000, unbudgetedSpent: 800_000 },
     },
   };

@@ -28,7 +28,7 @@ export type BudgetUsage = {
   items: BudgetUsageItem[];
   /** Spending categories with expense this month that no shown budget covers, archived ones included. */
   unbudgeted: UnbudgetedSpending[];
-  summary: { needs: BudgetGroup; wants: BudgetGroup; total: BudgetGroup };
+  summary: { total: BudgetGroup };
 };
 
 // Same-length YYYY-MM strings compare correctly as text. The current month is read at parse

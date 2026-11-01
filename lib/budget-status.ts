@@ -5,9 +5,20 @@ export type BudgetStatus = "none" | "ok" | "warning" | "over";
 
 export const BUDGET_WARNING_PERCENT = 80;
 
+type Measured = {
+  remaining: number;
+  percent: number | null;
+  status: Exclude<BudgetStatus, "none">;
+};
+
 /** Shared by the server usage query and the client's optimistic cache updates. */
+export function budgetStatus(budget: number, spent: number): Measured;
+export function budgetStatus(
+  budget: number | null,
+  spent: number,
+): Measured | { remaining: null; percent: null; status: "none" };
 export function budgetStatus(budget: number | null, spent: number) {
-  if (budget === null) return { remaining: null, percent: null, status: "none" as BudgetStatus };
+  if (budget === null) return { remaining: null, percent: null, status: "none" as const };
   const remaining = budget - spent;
   if (budget === 0)
     return { remaining, percent: null, status: (spent > 0 ? "over" : "ok") as BudgetStatus };

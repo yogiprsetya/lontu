@@ -66,10 +66,10 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
       ) as unbudgeted
   `);
 
-  const items = (row.items ?? []).map(
-    (item): BudgetUsageItem =>
-      ({ ...item, ...budgetStatus(item.budget, item.spent) }) as BudgetUsageItem,
-  );
+  const items = (row.items ?? []).map((item): BudgetUsageItem => ({
+    ...item,
+    ...budgetStatus(item.budget, item.spent),
+  }));
   const unbudgeted = row.unbudgeted ?? [];
   return { period, items, unbudgeted, summary: summarizeBudgetUsage(items, unbudgeted) };
 }

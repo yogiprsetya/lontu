@@ -1,21 +1,25 @@
 import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
-import { TRANSACTION_TYPES, type TransactionType } from "@/lib/transaction-types";
+import {
+  SYSTEM_TRANSACTION_TYPES,
+  TRANSACTION_TYPES,
+  type TransactionType,
+} from "@/lib/transaction-types";
 
-export const LIST_TRANSACTION_TYPES = [...TRANSACTION_TYPES, "adjustment"] as const;
+export const LIST_TRANSACTION_TYPES = [...TRANSACTION_TYPES, ...SYSTEM_TRANSACTION_TYPES] as const;
 
 export type ListTransactionType = (typeof LIST_TRANSACTION_TYPES)[number];
 
 export type Transaction = {
   id: string;
   type: ListTransactionType;
-  /** Integer rupiah; signed only for adjustment. */
+  /** Integer rupiah; signed only for the system types (adjustment, revaluation). */
   amount: number;
   date: string;
   accountId: string;
   /** Non-null exactly when type is "transfer". */
   toAccountId: string | null;
-  /** Null for transfer and adjustment. */
+  /** Null for transfer and the system types. */
   categoryId: string | null;
   description: string | null;
   createdAt: string;
@@ -111,7 +115,7 @@ const transferUpdateSchema = z
 
 /**
  * PATCH body for a stored type: only that type's own fields, at least one. `type` itself is
- * never editable, and an `adjustment` has no schema because it cannot be edited at all.
+ * never editable, and the system types have no schema because they cannot be edited at all.
  */
 export function transactionUpdateSchema(type: TransactionType) {
   return type === "transfer" ? transferUpdateSchema : simpleUpdateSchema;

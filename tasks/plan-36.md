@@ -8,7 +8,7 @@ Pemilik bisa membuka `/goals`, melihat nilai setiap akun aset beserta porsi dise
 
 ## Task
 
-- [ ] T124: Tipe `revaluation` di DB dan API transaksi (M, risiko tinggi: migrasi constraint di DB bersama)
+- [x] T124: Tipe `revaluation` di DB dan API transaksi (M, risiko tinggi: migrasi constraint di DB bersama)
 - [ ] T125: `GET`/`POST /api/valuations` + subtype `gold` (M, risiko tinggi: saldo per tanggal)
 - [ ] T126: Revaluasi di UI transaksi (S)
 - [ ] T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai (M)

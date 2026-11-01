@@ -28,7 +28,7 @@ import {
   TransferCreateInput,
   transactionUpdateSchema,
 } from "@/lib/schemas/transaction";
-import type { TransactionType } from "@/lib/transaction-types";
+import { isSystemTransactionType, type TransactionType } from "@/lib/transaction-types";
 import { decodeCursor, encodeCursor, type CursorKey } from "@/lib/server/transaction-cursor";
 import { findOwnedAccounts, findOwnedCategory } from "@/lib/server/ownership";
 
@@ -323,7 +323,7 @@ export async function updateTransaction(
     .from(transactions)
     .where(ownedLiveRow(userId, id));
   if (!row) return { notFound: true };
-  if (row.type === "adjustment") return { notEditable: true };
+  if (isSystemTransactionType(row.type)) return { notEditable: true };
 
   const parsed = transactionUpdateSchema(row.type as TransactionType).safeParse(body);
   if (!parsed.success) return { validation: parsed.error };

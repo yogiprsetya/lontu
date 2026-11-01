@@ -94,11 +94,11 @@ export const transactions = pgTable.withRLS(
   (t) => [
     check(
       "transactions_type_check",
-      sql`${t.type} in ('income', 'expense', 'saving', 'transfer', 'adjustment')`,
+      sql`${t.type} in ('income', 'expense', 'saving', 'transfer', 'adjustment', 'revaluation')`,
     ),
     check(
       "transactions_amount_check",
-      sql`case when ${t.type} = 'adjustment' then ${t.amount} <> 0 else ${t.amount} > 0 end`,
+      sql`case when ${t.type} in ('adjustment', 'revaluation') then ${t.amount} <> 0 else ${t.amount} > 0 end`,
     ),
     check(
       "transactions_transfer_target_check",
@@ -106,13 +106,14 @@ export const transactions = pgTable.withRLS(
     ),
     check(
       "transactions_category_check",
-      sql`(${t.type} in ('transfer', 'adjustment')) = (${t.categoryId} is null)`,
+      sql`(${t.type} in ('transfer', 'adjustment', 'revaluation')) = (${t.categoryId} is null)`,
     ),
     check("transactions_distinct_accounts_check", sql`${t.toAccountId} <> ${t.accountId}`),
     index("transactions_user_date_idx").on(t.userId, t.date.desc(), t.id.desc()),
     index("transactions_user_account_idx").on(t.userId, t.accountId),
     index("transactions_user_to_account_idx").on(t.userId, t.toAccountId),
     index("transactions_user_category_date_idx").on(t.userId, t.categoryId, t.date),
+    index("transactions_user_account_type_idx").on(t.userId, t.accountId, t.type, t.date),
   ],
 );
 
@@ -182,10 +183,10 @@ export const accountBalances = pgView("account_balances", {
 }).with({ securityInvoker: true }).as(sql`
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
-        when t.type in ('income', 'adjustment')             then t.amount
-        when t.type in ('expense', 'saving')                then -t.amount
-        when t.type = 'transfer' and t.account_id = a.id    then -t.amount
-        when t.type = 'transfer' and t.to_account_id = a.id then t.amount
+        when t.type in ('income', 'adjustment', 'revaluation') then t.amount
+        when t.type in ('expense', 'saving')                   then -t.amount
+        when t.type = 'transfer' and t.account_id = a.id       then -t.amount
+        when t.type = 'transfer' and t.to_account_id = a.id    then t.amount
       end), 0)::bigint as balance
     from accounts a
     left join transactions t

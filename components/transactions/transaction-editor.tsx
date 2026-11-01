@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBackToList } from "@/hooks/use-back-to-list";
 import { deleteTransaction, restoreTransaction, useTransaction } from "@/hooks/use-transactions";
 import { ApiError } from "@/lib/fetcher";
+import { isSystemTransactionType } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 import { failureMessage } from "@/lib/offline/network-error";
 import { undoToast } from "@/lib/undo-toast";
@@ -76,7 +77,7 @@ export function TransactionEditor({ id }: { id: string }) {
     <>
       {data.type === "transfer" ? (
         <EditTransferForm transaction={data} />
-      ) : data.type === "adjustment" ? (
+      ) : isSystemTransactionType(data.type) ? (
         <AdjustmentCard transaction={data} />
       ) : (
         <EditTransactionForm type={data.type} transaction={data} />

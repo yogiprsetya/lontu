@@ -12,21 +12,23 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Baris `revaluation` bertanda (±) menggeser `balance` di `GET /api/accounts`; `amount = 0` atau `category_id` terisi ditolak DB
-- [ ] `PATCH /api/transactions/[id]` revaluasi → 409 `TRANSACTION_NOT_EDITABLE`; `DELETE` dan `restore` menggeser saldo; `POST /api/transactions { type: "revaluation" }` → 400; `GET ?type=revaluation` memfilter
-- [ ] Revaluasi tidak ikut `totals` `/api/transactions`, `dashboardSummary`, `budgetUsage`, dan `Account.initialBalance`
+- [x] Baris `revaluation` bertanda (±) menggeser `balance` di `GET /api/accounts`; `amount = 0` atau `category_id` terisi ditolak DB
+- [x] `PATCH /api/transactions/[id]` revaluasi → 409 `TRANSACTION_NOT_EDITABLE`; `DELETE` dan `restore` menggeser saldo; `POST /api/transactions { type: "revaluation" }` → 400; `GET ?type=revaluation` memfilter
+- [x] Revaluasi tidak ikut `totals` `/api/transactions`, `dashboardSummary`, `budgetUsage`, dan `Account.initialBalance`
 
 **Verification:**
 
-- [ ] `pnpm drizzle-kit generate --explain` dibaca; `migration.sql` hanya berisi objek di atas
-- [ ] `pnpm vitest run tests/api/transactions-revaluation.spec.ts` hijau; semua `tests/api/*.spec.ts` lama hijau tanpa diubah
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm drizzle-kit generate --explain` dibaca; `migration.sql` hanya berisi objek di atas
+- [x] `pnpm vitest run tests/api/transactions-revaluation.spec.ts` hijau; semua `tests/api/*.spec.ts` lama hijau tanpa diubah
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T123
 
 **Files likely touched:** `db/schema.ts`, `drizzle/<timestamp>_revaluation/`, `lib/transaction-types.ts`, `lib/schemas/transaction.ts`, `lib/server/transactions.ts`, `tests/api/transactions-revaluation.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-01):** menambah `revaluation` ke `LIST_TRANSACTION_TYPES` memaksa cabang exhaustive di `transaction-format.ts`, `transaction-filters.ts`, `type-styles.ts`, `filter-panel.tsx`, `transaction-editor.tsx`, jadi bagian itu (helper `isSystemTransactionType`, `transactionTypeLabel`, ikon `TrendingUpIcon`) ikut T124. Label CSV "Revaluasi" juga. Sisa untuk T126: judul baris, kartu detail, filter kategori di panel. Tes: 1324 lulus (78 berkas).
 
 ---
 

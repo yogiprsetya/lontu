@@ -102,3 +102,13 @@ describe("titleOf", () => {
     ).toBe("Tanpa kategori");
   });
 });
+
+describe("revaluation", () => {
+  it.each([
+    [700_000, "+Rp700.000", "income"],
+    [-700_000, "-Rp700.000", "expense"],
+  ] as const)("%i is signed %s with tone %s, like an adjustment", (amount, text, tone) => {
+    expect(formatSignedAmount("revaluation", amount)).toBe(text);
+    expect(amountTone("revaluation", amount)).toBe(tone);
+  });
+});

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { parsePeriod, periodToRange, type Period } from "@/lib/period";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
 import { LIST_TRANSACTION_TYPES, type ListTransactionType } from "@/lib/schemas/transaction";
+import { isSystemTransactionType } from "@/lib/transaction-types";
 
 export type ListFilters = {
   period: Period;
@@ -70,7 +71,7 @@ export function normalizeFilters(
   if (!categoryId || !type) return filters;
   const rest = { ...filters };
   delete rest.categoryId;
-  if (type === "transfer" || type === "adjustment") return rest;
+  if (type === "transfer" || isSystemTransactionType(type)) return rest;
   const kind = categoryKind(categoryId);
   return kind && kind !== CATEGORY_KIND_FOR[type] ? rest : filters;
 }

@@ -27,16 +27,9 @@ import {
   resetFilters,
   type ListFilters,
 } from "@/lib/transaction-filters";
-import {
-  ADJUSTMENT_LABEL,
-  TRANSACTION_TYPE_LABELS,
-  type TransactionType,
-} from "@/lib/transaction-types";
+import { transactionTypeLabel, type TransactionType } from "@/lib/transaction-types";
 
 const ALL = "all";
-
-const typeLabel = (type: ListTransactionType) =>
-  type === "adjustment" ? ADJUSTMENT_LABEL : TRANSACTION_TYPE_LABELS[type];
 
 function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
   return (
@@ -68,7 +61,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
 
   const types = [
     { value: ALL, label: "Semua jenis" },
-    ...LIST_TRANSACTION_TYPES.map((t) => ({ value: t, label: typeLabel(t) })),
+    ...LIST_TRANSACTION_TYPES.map((t) => ({ value: t, label: transactionTypeLabel(t) })),
   ];
   const accountItems = [
     { value: ALL, label: "Semua akun" },

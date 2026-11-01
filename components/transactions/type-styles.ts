@@ -4,6 +4,7 @@ import {
   ArrowUpRightIcon,
   PiggyBankIcon,
   SlidersHorizontalIcon,
+  TrendingUpIcon,
   type LucideIcon,
 } from "lucide-react";
 import type { ListTransactionType } from "@/lib/schemas/transaction";
@@ -35,6 +36,11 @@ export const TYPE_STYLES: Record<
   },
   adjustment: {
     icon: SlidersHorizontalIcon,
+    tile: "bg-muted text-muted-foreground",
+    pop: "bg-muted-foreground text-background",
+  },
+  revaluation: {
+    icon: TrendingUpIcon,
     tile: "bg-muted text-muted-foreground",
     pop: "bg-muted-foreground text-background",
   },

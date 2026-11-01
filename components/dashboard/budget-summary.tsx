@@ -9,11 +9,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useBudgetUsage } from "@/hooks/use-budgets";
-import { statusLabel } from "@/lib/budget-format";
+import { emptyBudgetMessage, statusLabel } from "@/lib/budget-format";
+import { todayInJakarta } from "@/lib/date";
 import { dashboardBudget } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
 
 const LINK_CLASS =
@@ -33,7 +33,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
   if (!card) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
+        <p className="text-muted-foreground">{emptyBudgetMessage(period, todayInJakarta())}</p>
         <Link href={budgetHref} className={cn(buttonVariants(), "h-11 text-base")}>
           Atur budget
         </Link>

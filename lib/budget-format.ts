@@ -1,5 +1,5 @@
 import { budgetStatus } from "@/lib/budget-status";
-import { parsePeriod } from "@/lib/period";
+import { formatPeriodLabel, parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
 import { archiveLabel } from "@/lib/archived";
 import type { BudgetGroup, BudgetPeriod } from "@/lib/schemas/budget";
@@ -17,6 +17,13 @@ const STATUS_LABEL: Record<BudgetStatus, string | null> = {
   warning: "Hampir habis",
   over: "Melebihi budget",
 };
+
+/** Budgets carry over until changed, so only a past month can be empty "for that month". */
+export function emptyBudgetMessage(period: BudgetPeriod, today: string) {
+  return period === today.slice(0, 7)
+    ? "Belum ada budget. Budget yang kamu buat berlaku tiap bulan sampai diubah."
+    : `Tidak ada budget yang berlaku di ${formatPeriodLabel(period)}.`;
+}
 
 export function statusLabel(status: BudgetStatus) {
   return STATUS_LABEL[status];

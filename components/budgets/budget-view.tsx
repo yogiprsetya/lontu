@@ -16,7 +16,7 @@ import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useBudgetUsage } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
-import { budgetPeriodFromParam } from "@/lib/budget-format";
+import { budgetPeriodFromParam, emptyBudgetMessage } from "@/lib/budget-format";
 import { compareByAttention } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/period";
@@ -139,9 +139,7 @@ export function BudgetView() {
         <BudgetSummary summary={usage.data.summary} />
         {usage.data.items.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
-            <p className="text-muted-foreground">
-              Belum ada budget untuk {formatPeriodLabel(period)}.
-            </p>
+            <p className="text-muted-foreground">{emptyBudgetMessage(period, today)}</p>
             {isCurrent && (
               <Button className="h-11 text-base" onClick={() => setAdding(true)}>
                 Tambah budget

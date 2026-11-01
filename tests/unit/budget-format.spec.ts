@@ -4,6 +4,7 @@ import {
   budgetPatch,
   budgetPeriodFromParam,
   budgetTransactionsHref,
+  emptyBudgetMessage,
   groupStatus,
   statusLabel,
 } from "@/lib/budget-format";
@@ -143,5 +144,19 @@ describe("budgetPatch", () => {
     expect(budgetPatch(initial, { ...initial, categoryIds: ["jajan"] })).toEqual({
       categoryIds: ["jajan"],
     });
+  });
+});
+
+describe("emptyBudgetMessage", () => {
+  it("says budgets carry over in the current month", () => {
+    expect(emptyBudgetMessage("2026-11", "2026-11-01")).toBe(
+      "Belum ada budget. Budget yang kamu buat berlaku tiap bulan sampai diubah.",
+    );
+  });
+
+  it("names the month when looking back", () => {
+    expect(emptyBudgetMessage("2026-09", "2026-11-01")).toBe(
+      "Tidak ada budget yang berlaku di September 2026.",
+    );
   });
 });

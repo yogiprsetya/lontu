@@ -27,7 +27,11 @@ import {
   resetFilters,
   type ListFilters,
 } from "@/lib/transaction-filters";
-import { transactionTypeLabel, type TransactionType } from "@/lib/transaction-types";
+import {
+  isSystemTransactionType,
+  transactionTypeLabel,
+  type TransactionType,
+} from "@/lib/transaction-types";
 
 const ALL = "all";
 
@@ -71,7 +75,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
     })),
   ];
   const takesCategory =
-    !filters.type || (filters.type !== "transfer" && filters.type !== "adjustment");
+    !filters.type || (filters.type !== "transfer" && !isSystemTransactionType(filters.type));
   const allowedKind =
     takesCategory && filters.type
       ? CATEGORY_KIND_FOR[filters.type as Exclude<TransactionType, "transfer">]

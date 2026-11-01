@@ -112,3 +112,15 @@ describe("revaluation", () => {
     expect(amountTone("revaluation", amount)).toBe(tone);
   });
 });
+
+describe("titleOf a revaluation", () => {
+  it("is Revaluasi", () => {
+    expect(
+      titleOf(
+        { type: "revaluation", accountId: "a1", categoryId: null },
+        new Map([["a1", "Emas"]]),
+        new Map(),
+      ),
+    ).toBe("Revaluasi");
+  });
+});

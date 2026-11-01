@@ -10,7 +10,7 @@ Pemilik bisa membuka `/goals`, melihat nilai setiap akun aset beserta porsi dise
 
 - [x] T124: Tipe `revaluation` di DB dan API transaksi (M, risiko tinggi: migrasi constraint di DB bersama)
 - [x] T125: `GET`/`POST /api/valuations` + subtype `gold` (M, risiko tinggi: saldo per tanggal)
-- [ ] T126: Revaluasi di UI transaksi (S)
+- [x] T126: Revaluasi di UI transaksi (S)
 - [ ] T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai (M)
 
 Urutan: T124 dulu. T125 dan T126 bebas urutan (keduanya butuh T124). T127 butuh T125.

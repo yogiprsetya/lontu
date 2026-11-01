@@ -63,7 +63,7 @@ export function transactionNotFound() {
 export function transactionNotEditable() {
   return conflict(
     "TRANSACTION_NOT_EDITABLE",
-    "Penyesuaian saldo tidak bisa diubah. Hapus saja jika keliru.",
+    "Penyesuaian dan revaluasi tidak bisa diubah. Hapus saja jika keliru.",
   );
 }
 

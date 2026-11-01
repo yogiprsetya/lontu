@@ -63,21 +63,23 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Baris revaluasi di `/transactions` tampil "Revaluasi · {akun}" dengan nominal bertanda (+ / −) dan warna sesuai tanda; filter "Revaluasi" hanya menampilkan revaluasi
-- [ ] Detail revaluasi hanya-baca; hapus + "Urungkan" memulihkannya
-- [ ] `rg -n '"adjustment"' lib components` hanya menyisakan cek yang memang khusus adjustment (dicatat di commit body)
+- [x] Baris revaluasi di `/transactions` tampil "Revaluasi · {akun}" dengan nominal bertanda (+ / −) dan warna sesuai tanda; filter "Revaluasi" hanya menampilkan revaluasi
+- [x] Detail revaluasi hanya-baca; hapus + "Urungkan" memulihkannya
+- [x] `rg -n '"adjustment"' lib components` hanya menyisakan cek yang memang khusus adjustment (dicatat di commit body)
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/transaction-format.spec.ts tests/unit/transaction-filters.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual (boleh tertunda: sesi tanpa browser): revaluasi yang dibuat lewat API T125 tampil, terfilter, terhapus, dan pulih di 360×800
+- [x] `pnpm vitest run tests/unit/transaction-format.spec.ts tests/unit/transaction-filters.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): revaluasi yang dibuat lewat API T125 tampil, terfilter, terhapus, dan pulih di 360×800
 
 **Dependencies:** T124
 
 **Files likely touched:** `lib/transaction-types.ts`, `lib/transaction-format.ts`, `lib/transaction-filters.ts`, `components/transactions/type-styles.ts`, `components/transactions/filter-panel.tsx`, `components/transactions/adjustment-card.tsx`, `components/transactions/transaction-editor.tsx` (perubahan kecil per file)
 
 **Estimated scope:** S
+
+**Catatan (2026-11-01):** sisa `"adjustment"` di `lib`/`components` memang khusus adjustment: saldo awal efektif dan insert di `lib/server/accounts.ts`, saldo per tanggal di `lib/server/valuations.ts`, entri `TYPE_STYLES`, label di `transaction-types.ts`. Pesan 409 `TRANSACTION_NOT_EDITABLE` kini menyebut revaluasi juga. Tes: 1353 lulus.
 
 ---
 

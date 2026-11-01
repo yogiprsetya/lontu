@@ -89,18 +89,20 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Check-in dari sheet (hanya baris yang diubah dikirim) → nilai, porsi pasar, dan kartu Account Balance dashboard berubah tanpa reload; toast "{n} nilai diperbarui" / "Nilai sama, tidak ada yang dicatat"; error per baris terpasang di barisnya
-- [ ] Tanpa akun aset → teks yang mengajak membuat akun aset di Settings; offline → tombol nonaktif "Butuh koneksi"; `hideAmounts` menyamarkan nominal
-- [ ] "Goals" ada di sidebar (≥ lg) dan menu More (< lg); 360 px tanpa scroll horizontal, input 16 px, target ≥ 44 px
+- [x] Check-in dari sheet (hanya baris yang diubah dikirim) → nilai, porsi pasar, dan kartu Account Balance dashboard berubah tanpa reload; toast "{n} nilai diperbarui" / "Nilai sama, tidak ada yang dicatat"; error per baris terpasang di barisnya
+- [x] Tanpa akun aset → teks yang mengajak membuat akun aset di Settings; offline → tombol nonaktif "Butuh koneksi"; `hideAmounts` menyamarkan nominal
+- [x] "Goals" ada di sidebar (≥ lg) dan menu More (< lg); 360 px tanpa scroll horizontal, input 16 px, target ≥ 44 px
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/cache-invalidation.spec.ts` hijau (edge `valuations`)
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; JS first load `/goals` dicatat
-- [ ] Manual (boleh tertunda: sesi tanpa browser): skenario di atas di 360×800 dan 1024
+- [x] `pnpm vitest run tests/unit/cache-invalidation.spec.ts` hijau (edge `valuations`)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; JS first load `/goals` dicatat
+- [ ] Manual (tertunda: sesi tanpa browser): skenario di atas di 360×800 dan 1024
 
 **Dependencies:** T125
 
 **Files likely touched:** `app/(app)/goals/page.tsx`, `components/goals/goals-view.tsx`, `components/goals/valuation-sheet.tsx`, `hooks/use-valuations.ts`, `lib/cache-invalidation.ts`, `components/layout/nav-items.ts`, `tests/unit/cache-invalidation.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** JS first load `/goals` 329,4 KB gzip (metode Catatan ukuran dashboard), setara `/recurring` 330,4 dan `/settings` 324,6; di atas target 200 KB karena app shell bersama (sudah tercatat). `hideAmounts` di sheet: field mulai kosong (tidak menampilkan saldo) dan hanya akun yang diisi yang dikirim. Wave halaman `lilac`. `cache-invalidation.spec.ts` dan `nav.spec.ts` (yang ada) diperluas untuk `valuations` dan `goalsItem`, seperti rencana SPEC-goals § Tes. Tes: 1373 lulus (81 berkas).

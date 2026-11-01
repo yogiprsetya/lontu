@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isActivePath,
   moreItems,
+  goalsItem,
   recurringItem,
   sidebarItems,
 } from "@/components/layout/nav-items";
@@ -29,5 +30,13 @@ describe("recurring nav item", () => {
     expect(sidebarItems).toContain(recurringItem);
     expect(moreItems).toContain(recurringItem);
     expect(recurringItem).toMatchObject({ href: "/recurring", label: "Recurring" });
+  });
+});
+
+describe("goals nav item", () => {
+  it("is in the sidebar and the bottom nav More menu", () => {
+    expect(sidebarItems).toContain(goalsItem);
+    expect(moreItems).toContain(goalsItem);
+    expect(goalsItem).toMatchObject({ href: "/goals", label: "Goals" });
   });
 });

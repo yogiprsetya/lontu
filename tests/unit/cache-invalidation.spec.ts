@@ -15,6 +15,7 @@ const { categoriesKey } = await import("@/hooks/use-categories");
 const { budgetUsageKey } = await import("@/hooks/use-budgets");
 const { dashboardKey } = await import("@/hooks/use-dashboard");
 const { archiveRule, recurringKey } = await import("@/hooks/use-recurring");
+const { recordValuations, valuationsKey } = await import("@/hooks/use-valuations");
 
 const mockedMutate = vi.mocked(mutate);
 const id = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -26,6 +27,7 @@ const keys = {
   budgets: "/api/budgets?period=2026-10",
   dashboard: "/api/dashboard?period=2026-10",
   recurring: "/api/recurring?includeArchived=true",
+  valuations: "/api/valuations",
 } as const;
 
 /** True when some mutate call received a matcher that accepts `key`. */
@@ -58,6 +60,7 @@ describe("isResourceKey", () => {
     ["dashboard", "/api/dashboard?period=2026-10"],
     ["recurring", "/api/recurring"],
     ["recurring", "/api/recurring?includeArchived=true"],
+    ["valuations", "/api/valuations"],
   ] as const)("%s matches %s", (resource, key) => {
     expect(isResourceKey(resource, key)).toBe(true);
   });
@@ -69,6 +72,7 @@ describe("isResourceKey", () => {
     ["dashboard", "/api/dashboards"],
     ["recurring", "/api/recurringx"],
     ["recurring", "/api/transactions"],
+    ["valuations", "/api/valuationsx"],
     ["transactions", undefined],
     ["transactions", ["/api/transactions"]],
   ] as const)("%s does not match %j", (resource, key) => {
@@ -78,12 +82,16 @@ describe("isResourceKey", () => {
 
 describe("affectedBy", () => {
   it.each([
-    ["transactions", ["transactions", "accounts", "budgets", "dashboard", "recurring"]],
-    ["accounts", ["accounts", "transactions", "recurring"]],
+    [
+      "transactions",
+      ["transactions", "accounts", "budgets", "dashboard", "recurring", "valuations"],
+    ],
+    ["accounts", ["accounts", "transactions", "recurring", "valuations"]],
     ["categories", ["categories", "budgets"]],
     ["budgets", ["budgets"]],
     ["dashboard", ["dashboard"]],
     ["recurring", ["recurring"]],
+    ["valuations", ["valuations"]],
   ] as const)("a %s change refreshes %j", (resource, expected) => {
     expect(affectedBy(resource)).toEqual(expected);
   });
@@ -120,6 +128,24 @@ describe("recurring edges", () => {
     expect(revalidated(keys.recurring)).toBe(true);
     expect(revalidated(keys.transactions)).toBe(false);
     expect(revalidated(keys.accounts)).toBe(false);
+  });
+});
+
+describe("valuations edges", () => {
+  it("a transaction or account change refreshes the asset values", async () => {
+    await invalidate("transactions");
+    expect(revalidated(keys.valuations)).toBe(true);
+    mockedMutate.mockReset();
+    await invalidate("accounts");
+    expect(revalidated(keys.valuations)).toBe(true);
+  });
+
+  it("a check-in writes transactions, so it refreshes balances, the dashboard and the values", async () => {
+    await recordValuations({ date: "2026-10-31", items: [{ accountId: id, value: 1 }] });
+    expect(revalidated(keys.valuations)).toBe(true);
+    expect(revalidated(keys.accounts)).toBe(true);
+    expect(revalidated(keys.dashboard)).toBe(true);
+    expect(revalidated(keys.transactions)).toBe(true);
   });
 });
 
@@ -194,6 +220,7 @@ describe("every key a hook builds matches its resource and no other", () => {
     ["transactions", transactionsPageKey(1, { items: [], nextCursor: "abc" }, filters)!],
     ["transactions", transactionsTotalsKey(filters)],
     ["transactions", transactionKey(id)],
+    ["valuations", valuationsKey()],
   ] as const;
   const resources = [
     "accounts",
@@ -202,6 +229,7 @@ describe("every key a hook builds matches its resource and no other", () => {
     "budgets",
     "dashboard",
     "recurring",
+    "valuations",
   ] as const;
 
   it.each(built)("%s: %s", (resource, key) => {

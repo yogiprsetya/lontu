@@ -11,7 +11,7 @@ Pemilik bisa membuka `/goals`, melihat nilai setiap akun aset beserta porsi dise
 - [x] T124: Tipe `revaluation` di DB dan API transaksi (M, risiko tinggi: migrasi constraint di DB bersama)
 - [x] T125: `GET`/`POST /api/valuations` + subtype `gold` (M, risiko tinggi: saldo per tanggal)
 - [x] T126: Revaluasi di UI transaksi (S)
-- [ ] T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai (M)
+- [x] T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai (M)
 
 Urutan: T124 dulu. T125 dan T126 bebas urutan (keduanya butuh T124). T127 butuh T125.
 
@@ -34,8 +34,8 @@ Urutan: T124 dulu. T125 dan T126 bebas urutan (keduanya butuh T124). T127 butuh 
 
 ## Checkpoint AI
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum/sesudah dicatat
-- [ ] Migrasi T124 diterapkan; `/transactions` dan dashboard produksi (kode lama) tetap normal
-- [ ] Skenario dasar SPEC-goals (check-in 2026-10-31) hijau di `tests/api/valuations.spec.ts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum/sesudah dicatat (1324 di T124 → 1373 di T127)
+- [ ] Migrasi T124 diterapkan; `/transactions` dan dashboard produksi (kode lama) tetap normal (migrasi diterapkan 2026-11-01; cek produksi tertunda untuk Yogi)
+- [x] Skenario dasar SPEC-goals (check-in 2026-10-31) hijau di `tests/api/valuations.spec.ts`
 - [ ] Manual (boleh tertunda: sesi tanpa browser): check-in dari `/goals` → saldo di Settings dan dashboard berubah, revaluasi tampil di `/transactions`
 - [ ] Review dengan Yogi sebelum phase 37

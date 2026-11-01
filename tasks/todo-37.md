@@ -12,14 +12,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario dasar: `current 42700000`, target 150.000.000, `targetMonth "2028-12"`, arus 3/4/5 jt, hari ini 2026-11-15 → `monthlyContribution 4000000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`
-- [ ] `reached`, `countedMonths` 0 (laju `null`), laju 0 dan negatif (`etaMonth null`), sisa ≤ laju (tercapai bulan ini), `overdue`, pergantian tahun, tanpa `targetMonth`
-- [ ] `monthlyContribution` dibulatkan ke bawah, `neededPerMonth` dan bulan ETA memakai `ceil`
+- [x] Skenario dasar: `current 42700000`, target 150.000.000, `targetMonth "2028-12"`, arus 3/4/5 jt, hari ini 2026-11-15 → `monthlyContribution 4000000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`
+- [x] `reached`, `countedMonths` 0 (laju `null`), laju 0 dan negatif (`etaMonth null`), sisa ≤ laju (tercapai bulan ini), `overdue`, pergantian tahun, tanpa `targetMonth`
+- [x] `monthlyContribution` dibulatkan ke bawah, `neededPerMonth` dan bulan ETA memakai `ceil`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/goal-projection.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm vitest run tests/unit/goal-projection.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T123
 

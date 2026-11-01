@@ -1,9 +1,9 @@
-import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
+import { budgetStatus } from "@/lib/budget-status";
 import { parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
 import { archiveLabel } from "@/lib/archived";
 import type { BudgetGroup, BudgetPeriod } from "@/lib/schemas/budget";
-import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
+import type { BudgetStatus, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import type { Category, SpendingType } from "@/lib/schemas/category";
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */

@@ -1,7 +1,10 @@
 import type { BudgetGroup } from "@/lib/schemas/budget";
-import type { BudgetUsage, BudgetUsageItem, UnbudgetedSpending } from "@/lib/schemas/budget-usage";
-
-export type BudgetStatus = "none" | "ok" | "warning" | "over";
+import type {
+  BudgetStatus,
+  BudgetUsage,
+  BudgetUsageItem,
+  UnbudgetedSpending,
+} from "@/lib/schemas/budget-usage";
 
 export const BUDGET_WARNING_PERCENT = 80;
 

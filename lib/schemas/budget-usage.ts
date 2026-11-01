@@ -1,9 +1,10 @@
 import { z } from "zod";
-import type { BudgetStatus } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
 import { MIN_PERIOD_YEAR } from "@/lib/period";
 import { BUDGET_PERIOD_FORMAT, type BudgetGroup, type BudgetPeriod } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
+
+export type BudgetStatus = "none" | "ok" | "warning" | "over";
 
 export type BudgetUsageItem = {
   budgetId: string;

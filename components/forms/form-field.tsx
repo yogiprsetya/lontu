@@ -1,3 +1,4 @@
+import { fieldMessageClass } from "@/components/forms/field-styles";
 import { Label } from "@/components/ui/label";
 
 type FormFieldProps = {
@@ -17,14 +18,7 @@ export function FormField({ id, label, error, hint, children }: FormFieldProps) 
       </Label>
       {children}
       {(error || hint) && (
-        <p
-          id={`${id}-message`}
-          className={
-            error
-              ? "text-sm leading-snug font-semibold text-destructive"
-              : "text-sm leading-snug text-muted-foreground"
-          }
-        >
+        <p id={`${id}-message`} className={fieldMessageClass(!!error)}>
           {error ?? hint}
         </p>
       )}

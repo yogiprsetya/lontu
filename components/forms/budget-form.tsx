@@ -3,21 +3,18 @@
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { BudgetCategoryPicker } from "@/components/forms/budget-category-picker";
+import { BudgetDeleteButton } from "@/components/forms/budget-delete-button";
 import { SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { inputClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { createBudget, deleteBudget, restoreBudget, updateBudget } from "@/hooks/use-budgets";
+import { createBudget, updateBudget } from "@/hooks/use-budgets";
 import { budgetCategoryOptions, budgetPatch } from "@/lib/budget-format";
-import { ApiError } from "@/lib/fetcher";
 import { applyServerErrors } from "@/lib/form-errors";
-import { formatPeriodLabel } from "@/lib/period";
 import { failureMessage } from "@/lib/offline/network-error";
-import { undoToast } from "@/lib/undo-toast";
 import { budgetCreateSchema, type BudgetCreateInput } from "@/lib/schemas/budget";
 import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import { SPENDING_TYPES, type Category, type SpendingType } from "@/lib/schemas/category";
@@ -74,25 +71,6 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
         toast.error(failureMessage(err, "Gagal menyimpan budget. Coba lagi."));
     }
   });
-
-  // The budget leaves the list at once (optimistic), so the sheet closes before the server answers.
-  async function onDelete(id: string) {
-    onDone();
-    try {
-      await deleteBudget(usage.period, id);
-      undoToast({
-        message: "Budget dihapus",
-        restore: () =>
-          restoreBudget(id).catch((err: unknown) => {
-            // Its name or categories went to another budget meanwhile; the server says which.
-            if (err instanceof ApiError && err.status === 409) toast.error(err.message);
-            else throw err;
-          }),
-      });
-    } catch (err) {
-      toast.error(failureMessage(err, "Gagal menghapus budget. Coba lagi."));
-    }
-  }
 
   return (
     <form id="budget-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
@@ -171,67 +149,23 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
         control={control}
         name="categoryIds"
         render={({ field }) => (
-          <fieldset aria-describedby="budget-categories-message" className="flex flex-col gap-1">
-            <legend className="mb-1 text-base font-semibold">Kategori</legend>
-            {options.map((option) => {
-              const taken = option.status === "taken";
-              const checked = field.value.includes(option.id);
-              return (
-                <label
-                  key={option.id}
-                  className="flex min-h-11 items-center gap-3 text-base has-disabled:text-muted-foreground"
-                >
-                  <Checkbox
-                    checked={checked}
-                    disabled={taken}
-                    aria-invalid={!!errors.categoryIds}
-                    onCheckedChange={(on) =>
-                      field.onChange(
-                        on
-                          ? [...field.value, option.id]
-                          : field.value.filter((id) => id !== option.id),
-                      )
-                    }
-                  />
-                  <span className="min-w-0 flex-1 truncate">{option.name}</span>
-                  {taken && <span className="shrink-0 truncate text-sm">di {option.takenBy}</span>}
-                </label>
-              );
-            })}
-            {(errors.categoryIds || options.every((o) => o.status === "taken")) && (
-              <p
-                id="budget-categories-message"
-                className={
-                  errors.categoryIds
-                    ? "text-sm leading-snug font-semibold text-destructive"
-                    : "text-sm leading-snug text-muted-foreground"
-                }
-              >
-                {errors.categoryIds?.message ??
-                  (options.length === 0
-                    ? `Belum ada kategori ${label}.`
-                    : `Semua kategori ${label} sudah punya budget.`)}
-              </p>
-            )}
-          </fieldset>
+          <BudgetCategoryPicker
+            options={options}
+            value={field.value}
+            onChange={field.onChange}
+            error={errors.categoryIds?.message}
+            typeLabel={label}
+          />
         )}
       />
 
       {budget && (
-        <div className="flex flex-col gap-2 border-t pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 text-base text-destructive"
-            disabled={isSubmitting}
-            onClick={() => void onDelete(budget.budgetId)}
-          >
-            Hapus budget
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            Berakhir mulai {formatPeriodLabel(usage.period)}. Bulan sebelumnya tetap.
-          </p>
-        </div>
+        <BudgetDeleteButton
+          period={usage.period}
+          budgetId={budget.budgetId}
+          disabled={isSubmitting}
+          onDone={onDone}
+        />
       )}
     </form>
   );

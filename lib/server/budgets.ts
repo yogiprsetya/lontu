@@ -11,8 +11,8 @@ import type { SpendingType } from "@/lib/schemas/category";
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type VersionRow = typeof budgetVersions.$inferSelect;
 
-export type InvalidCategories = { invalid: { field: "categoryIds"; message: string } };
-export type BudgetWriteResult = BudgetVersion | InvalidCategories | { nameTaken: true };
+type InvalidCategories = { invalid: { field: "categoryIds"; message: string } };
+type BudgetWriteResult = BudgetVersion | InvalidCategories | { nameTaken: true };
 
 const invalidCategories = (message: string): InvalidCategories => ({
   invalid: { field: "categoryIds", message },
@@ -101,6 +101,19 @@ function clash(
 
 const currentPeriod = () => todayInJakarta().slice(0, 7);
 
+/**
+ * Takes the write lock, then reads the month's effective versions. `current` is budget `id`'s,
+ * and `inPeriod` says whether that version was written this month.
+ */
+async function lockedCurrent(tx: Tx, userId: string, id: string, period: string) {
+  await lockBudgets(tx, userId);
+  const shown = await effectiveVersions(tx, userId, period);
+  const current = shown.find((v) => v.budgetId === id);
+  const { year, month } = periodToYearMonth(period);
+  const inPeriod = !!current && current.year === year && current.month === month;
+  return { shown, current, inPeriod };
+}
+
 export async function createBudget(
   userId: string,
   input: BudgetCreateInput,
@@ -135,9 +148,7 @@ export async function updateBudget(
   const period = currentPeriod();
 
   return db.transaction(async (tx) => {
-    await lockBudgets(tx, userId);
-    const shown = await effectiveVersions(tx, userId, period);
-    const current = shown.find((v) => v.budgetId === id);
+    const { shown, current } = await lockedCurrent(tx, userId, id, period);
     if (!current || current.deletedAt) return undefined;
 
     const next = {
@@ -169,16 +180,6 @@ export async function updateBudget(
       .returning();
     return toBudgetVersion(row);
   });
-}
-
-/** The budget's effective version this month, under the write lock; undefined for a bad id. */
-async function lockedCurrent(tx: Tx, userId: string, id: string, period: string) {
-  await lockBudgets(tx, userId);
-  const shown = await effectiveVersions(tx, userId, period);
-  const current = shown.find((v) => v.budgetId === id);
-  const { year, month } = periodToYearMonth(period);
-  const inPeriod = !!current && current.year === year && current.month === month;
-  return { shown, current, inPeriod };
 }
 
 /**

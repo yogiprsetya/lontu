@@ -42,10 +42,14 @@ function ViewSkeleton() {
 
 type ListProps = { usage: BudgetUsage; names: Map<string, string> };
 
+/** "Makan, Jajan" for the rows' `categoryId`s, in their order. */
+function categoryNames(names: Map<string, string>, rows: { categoryId: string }[]) {
+  return rows.map((row) => names.get(row.categoryId) ?? "Kategori").join(", ");
+}
+
 function BudgetList({ usage, names, onOpen }: ListProps & { onOpen: (budgetId: string) => void }) {
   // The rows that need attention first; the API orders by type and name.
   const items = useMemo(() => [...usage.items].sort(compareByAttention), [usage.items]);
-  const nameList = (ids: string[]) => ids.map((id) => names.get(id) ?? "Kategori").join(", ");
 
   return (
     <ul className="surface divide-y px-4" aria-label="Daftar budget">
@@ -53,7 +57,7 @@ function BudgetList({ usage, names, onOpen }: ListProps & { onOpen: (budgetId: s
         <BudgetRow
           key={item.budgetId}
           item={item}
-          categoryNames={nameList(item.categories.map((c) => c.categoryId))}
+          categoryNames={categoryNames(names, item.categories)}
           onOpen={() => onOpen(item.budgetId)}
         />
       ))}
@@ -67,8 +71,7 @@ function UnbudgetedLine({ usage, names }: ListProps) {
   const total = usage.unbudgeted.reduce((sum, row) => sum + row.spent, 0);
   return (
     <p className="px-1 text-sm text-muted-foreground tabular-nums">
-      {money(total)} tanpa budget ·{" "}
-      {usage.unbudgeted.map((row) => names.get(row.categoryId) ?? "Kategori").join(", ")}
+      {money(total)} tanpa budget · {categoryNames(names, usage.unbudgeted)}
     </p>
   );
 }

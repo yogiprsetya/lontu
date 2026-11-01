@@ -2,7 +2,14 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { accounts, budgetVersions, categories, recurringRules, transactions } from "@/db/schema";
+import {
+  accounts,
+  budgets,
+  budgetVersions,
+  categories,
+  recurringRules,
+  transactions,
+} from "@/db/schema";
 import { createTestUsers, expectPgError } from "../setup/db";
 
 const CHECK_VIOLATION = "23514";
@@ -252,6 +259,39 @@ describe("accounts constraints", () => {
       db.insert(accounts).values({ userId, name: "Kas", type: "cash" }),
       CHECK_VIOLATION,
       "accounts_type_check",
+    );
+  });
+});
+
+describe("budgets constraints", () => {
+  it.each([0, 13])("rejects month %i", async (month) => {
+    await expectPgError(
+      db.insert(budgets).values({ userId, categoryId: spending, year: 2026, month, amount: 1000 }),
+      CHECK_VIOLATION,
+      "budgets_month_check",
+    );
+  });
+
+  it("rejects a negative amount", async () => {
+    await expectPgError(
+      db
+        .insert(budgets)
+        .values({ userId, categoryId: spending, year: 2026, month: 10, amount: -1 }),
+      CHECK_VIOLATION,
+      "budgets_amount_check",
+    );
+  });
+
+  it("rejects a second budget for the same category and month", async () => {
+    await db
+      .insert(budgets)
+      .values({ userId, categoryId: spending, year: 2026, month: 11, amount: 1000 });
+    await expectPgError(
+      db
+        .insert(budgets)
+        .values({ userId, categoryId: spending, year: 2026, month: 11, amount: 2000 }),
+      UNIQUE_VIOLATION,
+      "budgets_user_category_period_unique",
     );
   });
 });

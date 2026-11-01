@@ -3,7 +3,7 @@
   "dialect": "postgres",
   "id": "07a3a3e4-9b34-400f-b583-75af446ef91a",
   "prevIds": [
-    "68875cb1-1745-490d-95e0-dd7ef6f0145b"
+    "77a80c7f-d9aa-4824-a78c-e82dc1af8804"
   ],
   "ddl": [
     {
@@ -15,12 +15,6 @@
     {
       "isRlsEnabled": true,
       "name": "budget",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": true,
-      "name": "budgets",
       "entityType": "tables",
       "schema": "public"
     },
@@ -294,110 +288,6 @@
       "entityType": "columns",
       "schema": "public",
       "table": "budget"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "category_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "year",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "month",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "bigint",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "amount",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "deleted_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "budgets"
     },
     {
       "type": "uuid",
@@ -1013,48 +903,6 @@
           "opclass": null
         },
         {
-          "value": "category_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "year",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "month",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "budgets_user_category_period_unique",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "nameExplicit": true,
-      "columns": [
-        {
-          "value": "user_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
           "value": "kind",
           "isExpression": false,
           "asc": true,
@@ -1300,40 +1148,6 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "budgets_user_id_users_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "category_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "categories",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "budgets_category_id_categories_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
       "name": "categories_user_id_users_id_fkey",
       "entityType": "fks",
       "schema": "public",
@@ -1483,16 +1297,6 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "budgets_pkey",
-      "schema": "public",
-      "table": "budgets",
-      "entityType": "pks"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
       "name": "categories_pkey",
       "schema": "public",
       "table": "categories",
@@ -1573,20 +1377,6 @@
       "entityType": "checks",
       "schema": "public",
       "table": "budget"
-    },
-    {
-      "value": "\"month\" between 1 and 12",
-      "name": "budgets_month_check",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "budgets"
-    },
-    {
-      "value": "\"amount\" >= 0",
-      "name": "budgets_amount_check",
-      "entityType": "checks",
-      "schema": "public",
-      "table": "budgets"
     },
     {
       "value": "\"kind\" in ('income', 'saving', 'spending')",

@@ -38,20 +38,22 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario dasar: check-in 2026-10-31 Emas 36.500.000 + RD Saham 6.200.000 → `recorded: 2`, revaluasi +500.000 dan +200.000; ulangan → `recorded: 0`; dua request paralel → total tetap dua baris
-- [ ] Tanggal sebelum revaluasi terakhir → 400 `fields.date`; tanggal masa depan, akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]` dan tidak ada item yang tertulis; adjustment hari ini + check-in kemarin → delta sesuai keputusan #7
-- [ ] `GET /api/valuations` → akun aset aktif dengan `contributed + marketGain = balance` dan `lastValuedAt`; `goalId` `null`; isolasi A/B; tanpa session → 401; `subtype: "gold"` diterima `POST /api/accounts`
+- [x] Skenario dasar: check-in 2026-10-31 Emas 36.500.000 + RD Saham 6.200.000 → `recorded: 2`, revaluasi +500.000 dan +200.000; ulangan → `recorded: 0`; dua request paralel → total tetap dua baris
+- [x] Tanggal sebelum revaluasi terakhir → 400 `fields.date`; tanggal masa depan, akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]` dan tidak ada item yang tertulis; adjustment hari ini + check-in kemarin → delta sesuai keputusan #7
+- [x] `GET /api/valuations` → akun aset aktif dengan `contributed + marketGain = balance` dan `lastValuedAt`; `goalId` `null`; isolasi A/B; tanpa session → 401; `subtype: "gold"` diterima `POST /api/accounts`
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/valuations.spec.ts tests/unit/valuation-schema.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm vitest run tests/api/valuations.spec.ts tests/unit/valuation-schema.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T124
 
 **Files likely touched:** `lib/schemas/valuation.ts`, `lib/schemas/account.ts`, `lib/server/valuations.ts`, `lib/server/queries/asset-valuations.ts`, `app/api/valuations/route.ts`, `tests/api/valuations.spec.ts`, `tests/unit/valuation-schema.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-01):** `tests/unit/account-schema.spec.ts` memakai `"gold"` sebagai contoh subtype tak dikenal; diganti `"stock"` karena `gold` kini valid (keputusan #19), maksud tes sama. Tes: 1352 lulus (80 berkas).
 
 ---
 

@@ -7,6 +7,7 @@ export const ACCOUNT_SUBTYPES = [
   "credit_card",
   "investment",
   "crypto",
+  "gold",
   "other",
 ] as const;
 
@@ -23,6 +24,7 @@ export const ACCOUNT_SUBTYPE_LABELS: Record<AccountSubtype, string> = {
   credit_card: "Kartu kredit",
   investment: "Investasi",
   crypto: "Kripto",
+  gold: "Emas",
   other: "Lainnya",
 };
 

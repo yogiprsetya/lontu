@@ -43,6 +43,8 @@ const date = z.iso
   .refine((d) => d >= MIN_TRANSACTION_DATE, "Tanggal minimal 1 Januari 2000")
   .refine((d) => d <= todayInJakarta(), "Tanggal tidak boleh melewati hari ini");
 
+export const transactionDateSchema = date;
+
 const description = z
   .string()
   .trim()

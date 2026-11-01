@@ -48,7 +48,7 @@ describe("accountCreateSchema", () => {
 
   it("rejects an unknown type or subtype", () => {
     const errors = fieldErrors(
-      accountCreateSchema.safeParse({ name: "BCA", type: "cash", subtype: "gold" }),
+      accountCreateSchema.safeParse({ name: "BCA", type: "cash", subtype: "stock" }),
     );
     expect(Object.keys(errors).sort()).toEqual(["subtype", "type"]);
   });

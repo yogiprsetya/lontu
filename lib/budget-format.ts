@@ -1,23 +1,15 @@
-import { budgetStatus, type BudgetStatus } from "@/lib/budget-status";
-import { parsePeriod } from "@/lib/period";
+import { budgetStatus } from "@/lib/budget-status";
+import { formatPeriodLabel, parsePeriod } from "@/lib/period";
 import { filtersToUrl } from "@/lib/transaction-filters";
-import {
-  maxBudgetPeriod,
-  type BudgetGroup,
-  type BudgetPeriod,
-  type BudgetSuggestion,
-} from "@/lib/schemas/budget";
+import { archiveLabel } from "@/lib/archived";
+import type { BudgetGroup, BudgetPeriod } from "@/lib/schemas/budget";
+import type { BudgetStatus, BudgetUsageItem } from "@/lib/schemas/budget-usage";
+import type { Category, SpendingType } from "@/lib/schemas/category";
 
 /** `?period=` from the page URL; anything the API would reject falls back to the current month. */
 export function budgetPeriodFromParam(value: string | null, today: string): BudgetPeriod {
-  return parsePeriod(value, { modes: ["month"], today, max: maxBudgetPeriod(today) });
+  return parsePeriod(value, { modes: ["month"], today, max: today });
 }
-
-/** Spending types that take a budget, in display order. */
-export const BUDGET_GROUPS = [
-  { key: "needs", label: "Needs" },
-  { key: "wants", label: "Wants" },
-] as const;
 
 const STATUS_LABEL: Record<BudgetStatus, string | null> = {
   none: null,
@@ -25,6 +17,13 @@ const STATUS_LABEL: Record<BudgetStatus, string | null> = {
   warning: "Hampir habis",
   over: "Melebihi budget",
 };
+
+/** Budgets carry over until changed, so only a past month can be empty "for that month". */
+export function emptyBudgetMessage(period: BudgetPeriod, today: string) {
+  return period === today.slice(0, 7)
+    ? "Belum ada budget. Budget yang kamu buat berlaku tiap bulan sampai diubah."
+    : `Tidak ada budget yang berlaku di ${formatPeriodLabel(period)}.`;
+}
 
 export function statusLabel(status: BudgetStatus) {
   return STATUS_LABEL[status];
@@ -41,24 +40,59 @@ export function budgetTransactionsHref(period: BudgetPeriod, categoryId: string)
   return `/transactions?${filtersToUrl({ period, type: "expense", categoryId })}`;
 }
 
-/** `copied` alone cannot tell "nothing new to copy" from "the source month was empty". */
-export function copyResultMessage(copied: number, sourceHasBudgets: boolean, sourceLabel: string) {
-  if (copied > 0) return `${copied} budget disalin dari ${sourceLabel}`;
-  return sourceHasBudgets
-    ? "0 budget disalin. Semua kategori sudah punya budget."
-    : `${sourceLabel} belum punya budget`;
+export type BudgetCategoryOption =
+  | { id: string; name: string; status: "free" | "own" }
+  | { id: string; name: string; status: "taken"; takenBy: string };
+
+/**
+ * The categories a budget of `spendingType` can pick this month, by name. `taken` ones belong to
+ * another budget (the server rejects them); archived ones appear only when the budget has them.
+ */
+export function budgetCategoryOptions({
+  categories,
+  usage,
+  budgetId,
+  spendingType,
+}: {
+  categories: Category[];
+  usage: {
+    items: (Pick<BudgetUsageItem, "budgetId" | "name"> & {
+      categories: { categoryId: string }[];
+    })[];
+  };
+  budgetId?: string;
+  spendingType: SpendingType;
+}): BudgetCategoryOption[] {
+  const holderOf = new Map(
+    usage.items.flatMap((item) => item.categories.map((c) => [c.categoryId, item] as const)),
+  );
+  const options: BudgetCategoryOption[] = [];
+  for (const c of categories) {
+    if (c.kind !== "spending" || c.spendingType !== spendingType) continue;
+    const holder = holderOf.get(c.id);
+    if (holder && holder.budgetId === budgetId) {
+      options.push({ id: c.id, name: archiveLabel(c), status: "own" });
+      continue;
+    }
+    if (c.archivedAt) continue;
+    options.push(
+      holder
+        ? { id: c.id, name: c.name, status: "taken", takenBy: holder.name }
+        : { id: c.id, name: c.name, status: "free" },
+    );
+  }
+  return options.sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }));
 }
 
-/** Rows that would replace an existing budget start unchecked. */
-export function defaultSuggestionSelection(items: BudgetSuggestion["items"]) {
-  return new Set(items.filter((i) => i.current === null).map((i) => i.categoryId));
-}
+type BudgetFields = { name: string; amount: number; categoryIds: string[] };
 
-export function selectedSuggestionItems(
-  items: BudgetSuggestion["items"],
-  selected: ReadonlySet<string>,
-) {
-  return items
-    .filter((i) => selected.has(i.categoryId))
-    .map(({ categoryId, amount }) => ({ categoryId, amount }));
+/** The fields an edit changed, so a PATCH never rewrites what the user left alone. */
+export function budgetPatch(initial: BudgetFields, next: BudgetFields): Partial<BudgetFields> {
+  const patch: Partial<BudgetFields> = {};
+  if (next.name.trim() !== initial.name) patch.name = next.name;
+  if (next.amount !== initial.amount) patch.amount = next.amount;
+  const before = new Set(initial.categoryIds);
+  if (next.categoryIds.length !== before.size || next.categoryIds.some((id) => !before.has(id)))
+    patch.categoryIds = next.categoryIds;
+  return patch;
 }

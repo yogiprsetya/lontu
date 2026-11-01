@@ -2,32 +2,29 @@
 
 import { lazy, Suspense, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PlusIcon } from "lucide-react";
+import { BudgetBreakdown } from "@/components/budgets/budget-breakdown";
 import { BudgetRow } from "@/components/budgets/budget-row";
 import { BudgetSummary } from "@/components/budgets/budget-summary";
-import {
-  copyFromPreviousMonth,
-  previousMonthLabel,
-} from "@/components/budgets/copy-from-previous-month";
-import { MonthActions } from "@/components/budgets/month-actions";
 import { MonthStepper } from "@/components/budgets/month-stepper";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBudgets } from "@/hooks/use-budgets";
+import { useAmountFormat } from "@/hooks/use-amount-format";
+import { useBudgetUsage } from "@/hooks/use-budgets";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
-import { BUDGET_GROUPS, budgetPeriodFromParam } from "@/lib/budget-format";
+import { budgetPeriodFromParam, emptyBudgetMessage } from "@/lib/budget-format";
+import { compareByAttention } from "@/lib/budget-status";
 import { todayInJakarta } from "@/lib/date";
 import { formatPeriodLabel } from "@/lib/period";
-import type { BudgetPeriod, BudgetUsageItem } from "@/lib/schemas/budget";
+import type { BudgetPeriod } from "@/lib/schemas/budget";
+import type { BudgetUsage } from "@/lib/schemas/budget-usage";
 import { useUIStore } from "@/stores/ui";
 
 // Loaded when first opened, not with the page.
-const SuggestionPanel = lazy(() =>
-  import("@/components/budgets/suggestion-panel").then((m) => ({ default: m.SuggestionPanel })),
-);
 const BudgetForm = lazy(() =>
   import("@/components/forms/budget-form").then((m) => ({ default: m.BudgetForm })),
 );
@@ -36,61 +33,47 @@ function ViewSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true">
       <Skeleton className="h-28 w-full rounded-2xl" />
-      {Array.from({ length: 5 }, (_, i) => (
-        <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+      {Array.from({ length: 4 }, (_, i) => (
+        <Skeleton key={i} className="h-24 w-full rounded-2xl" />
       ))}
     </div>
   );
 }
 
-function NoBudgetsPrompt({ period, onSuggest }: { period: BudgetPeriod; onSuggest: () => void }) {
+type ListProps = { usage: BudgetUsage; names: Map<string, string> };
+
+/** "Makan, Jajan" for the rows' `categoryId`s, in their order. */
+function categoryNames(names: Map<string, string>, rows: { categoryId: string }[]) {
+  return rows.map((row) => names.get(row.categoryId) ?? "Kategori").join(", ");
+}
+
+function BudgetList({ usage, names, onOpen }: ListProps & { onOpen: (budgetId: string) => void }) {
+  // The rows that need attention first; the API orders by type and name.
+  const items = useMemo(() => [...usage.items].sort(compareByAttention), [usage.items]);
+
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
-      <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
-      <div className="flex flex-wrap justify-center gap-2">
-        <Button className="h-11 text-base" onClick={() => void copyFromPreviousMonth(period)}>
-          Salin dari {previousMonthLabel(period)}
-        </Button>
-        <Button variant="outline" className="h-11 text-base" onClick={onSuggest}>
-          Saran 50/30/20
-        </Button>
-      </div>
-    </div>
+    <ul className="surface divide-y px-4" aria-label="Daftar budget">
+      {items.map((item) => (
+        <BudgetRow
+          key={item.budgetId}
+          item={item}
+          categoryNames={categoryNames(names, item.categories)}
+          onOpen={() => onOpen(item.budgetId)}
+        />
+      ))}
+    </ul>
   );
 }
 
-type BudgetGroupsProps = {
-  items: BudgetUsageItem[];
-  names: Map<string, string>;
-  archived: Set<string>;
-  onEdit: (categoryId: string) => void;
-};
-
-function BudgetGroups({ items, names, archived, onEdit }: BudgetGroupsProps) {
-  return BUDGET_GROUPS.map(({ key, label }) => {
-    const rows = items.filter((i) => i.spendingType === key);
-    if (rows.length === 0) return null;
-    return (
-      <section key={key} aria-labelledby={`budget-${key}`}>
-        <h2
-          id={`budget-${key}`}
-          className="mb-2 px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
-        >
-          {label}
-        </h2>
-        <ul className="surface divide-y px-4">
-          {rows.map((item) => (
-            <BudgetRow
-              key={item.categoryId}
-              item={item}
-              name={names.get(item.categoryId) ?? "Kategori"}
-              onEdit={archived.has(item.categoryId) ? undefined : () => onEdit(item.categoryId)}
-            />
-          ))}
-        </ul>
-      </section>
-    );
-  });
+function UnbudgetedLine({ usage, names }: ListProps) {
+  const money = useAmountFormat();
+  if (usage.unbudgeted.length === 0) return null;
+  const total = usage.unbudgeted.reduce((sum, row) => sum + row.spent, 0);
+  return (
+    <p className="px-1 text-sm text-muted-foreground tabular-nums">
+      {money(total)} tanpa budget · {categoryNames(names, usage.unbudgeted)}
+    </p>
+  );
 }
 
 /** The month lives in the URL so a refresh or a shared link shows the same budget. */
@@ -98,25 +81,21 @@ export function BudgetView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const period = budgetPeriodFromParam(searchParams.get("period"), todayInJakarta());
+  const today = todayInJakarta();
+  const period = budgetPeriodFromParam(searchParams.get("period"), today);
+  // Budgets change only in the current month; earlier months are read-only.
+  const isCurrent = period === today.slice(0, 7);
+  const [adding, setAdding] = useState(false);
+  // Only the id: the budget itself always comes from the SWR cache.
+  const [openId, setOpenId] = useState<string | null>(null);
   const openModal = useUIStore((s) => s.open);
-  const usage = useBudgets(period);
+  const usage = useBudgetUsage(period);
   const categories = useCategories({ includeArchived: true });
-  // Only the category id: the row itself always comes from the SWR cache.
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
-  // Kept mounted after the first opening so the panel's close animation plays.
-  const [suggestedOnce, setSuggestedOnce] = useState(false);
-  if (suggesting && !suggestedOnce) setSuggestedOnce(true);
-  const editing = usage.data?.items.find((i) => i.categoryId === editingId);
+
+  const opened = usage.data?.items.find((i) => i.budgetId === openId);
 
   const names = useMemo(
     () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
-    [categories.data],
-  );
-  // Archived categories cannot take a new budget (the API rejects them), so their rows stay read-only.
-  const archived = useMemo(
-    () => new Set(categories.data?.filter((c) => c.archivedAt).map((c) => c.id)),
     [categories.data],
   );
 
@@ -139,7 +118,10 @@ export function BudgetView() {
     );
   } else if (!usage.data || !categories.data) {
     content = <ViewSkeleton />;
-  } else if (usage.data.items.length === 0) {
+  } else if (
+    usage.data.items.length === 0 &&
+    !categories.data.some((c) => c.kind === "spending" && !c.archivedAt)
+  ) {
     content = (
       <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
         <p className="text-muted-foreground">Belum ada kategori spending untuk diberi budget.</p>
@@ -152,14 +134,22 @@ export function BudgetView() {
       </div>
     );
   } else {
-    const { items, summary } = usage.data;
     content = (
       <>
-        {items.every((i) => i.budget === null) && (
-          <NoBudgetsPrompt period={period} onSuggest={() => setSuggesting(true)} />
+        <BudgetSummary summary={usage.data.summary} />
+        {usage.data.items.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
+            <p className="text-muted-foreground">{emptyBudgetMessage(period, today)}</p>
+            {isCurrent && (
+              <Button className="h-11 text-base" onClick={() => setAdding(true)}>
+                Tambah budget
+              </Button>
+            )}
+          </div>
+        ) : (
+          <BudgetList usage={usage.data} names={names} onOpen={setOpenId} />
         )}
-        <BudgetSummary summary={summary} />
-        <BudgetGroups items={items} names={names} archived={archived} onEdit={setEditingId} />
+        <UnbudgetedLine usage={usage.data} names={names} />
       </>
     );
   }
@@ -168,37 +158,63 @@ export function BudgetView() {
     <>
       <div className="flex items-center gap-2">
         <MonthStepper period={period} onChange={setPeriod} />
-        <MonthActions period={period} onSuggest={() => setSuggesting(true)} />
+        {isCurrent && (
+          <Button
+            aria-label="Tambah budget"
+            className="size-14 shrink-0 rounded-2xl"
+            disabled={!usage.data || !categories.data}
+            onClick={() => setAdding(true)}
+          >
+            <PlusIcon className="size-6" aria-hidden />
+          </Button>
+        )}
       </div>
       {content}
       <ResponsiveModal
-        open={!!editing}
-        onOpenChange={(open) => !open && setEditingId(null)}
-        title={editing ? (names.get(editing.categoryId) ?? "Kategori") : "Budget"}
-        description={formatPeriodLabel(period)}
-        footer={<FormActions form="budget-form" onCancel={() => setEditingId(null)} />}
+        open={adding}
+        onOpenChange={setAdding}
+        title="Tambah budget"
+        description={`Mulai ${formatPeriodLabel(period)}`}
+        footer={<FormActions form="budget-form" onCancel={() => setAdding(false)} />}
       >
-        {editing && (
-          <Suspense fallback={<Skeleton className="h-32 w-full rounded-2xl" />}>
+        {adding && usage.data && categories.data && (
+          <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
             <BudgetForm
-              key={`${period}-${editing.categoryId}`}
-              period={period}
-              item={editing}
-              onDone={() => setEditingId(null)}
+              categories={categories.data}
+              usage={usage.data}
+              onDone={() => setAdding(false)}
             />
           </Suspense>
         )}
       </ResponsiveModal>
-      {suggestedOnce && (
-        <Suspense fallback={null}>
-          <SuggestionPanel
-            period={period}
-            open={suggesting}
-            onOpenChange={setSuggesting}
-            names={names}
-          />
-        </Suspense>
-      )}
+      <ResponsiveModal
+        open={!!opened}
+        onOpenChange={(open) => !open && setOpenId(null)}
+        title={opened?.name ?? "Budget"}
+        description={formatPeriodLabel(period)}
+        footer={
+          isCurrent ? (
+            <FormActions form="budget-form" onCancel={() => setOpenId(null)} />
+          ) : undefined
+        }
+      >
+        {opened && categories.data && (
+          <div className="flex flex-col gap-6">
+            <BudgetBreakdown period={period} item={opened} names={names} />
+            {isCurrent && usage.data && (
+              <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+                <BudgetForm
+                  key={opened.budgetId}
+                  categories={categories.data}
+                  usage={usage.data}
+                  budget={opened}
+                  onDone={() => setOpenId(null)}
+                />
+              </Suspense>
+            )}
+          </div>
+        )}
+      </ResponsiveModal>
     </>
   );
 }

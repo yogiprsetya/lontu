@@ -1,38 +1,31 @@
 import { describe, expect, it } from "vitest";
 import {
+  budgetCategoryOptions,
+  budgetPatch,
   budgetPeriodFromParam,
   budgetTransactionsHref,
-  copyResultMessage,
-  defaultSuggestionSelection,
+  emptyBudgetMessage,
   groupStatus,
-  selectedSuggestionItems,
   statusLabel,
 } from "@/lib/budget-format";
-import { maxBudgetPeriod } from "@/lib/schemas/budget";
 
 const today = "2026-10-23";
 
 describe("budgetPeriodFromParam", () => {
-  it.each(["2026-10", "2026-11", "2000-01", "2024-02"])("keeps %s", (value) => {
+  it.each(["2026-10", "2026-09", "2000-01", "2024-02"])("keeps %s", (value) => {
     expect(budgetPeriodFromParam(value, today)).toBe(value);
   });
 
-  it.each([null, "", "2026-12", "1999-12", "2026-13", "2026", "all"])(
+  it.each([null, "", "2026-11", "2026-12", "1999-12", "2026-13", "2026", "all"])(
     "falls back to the current month for %j",
     (value) => {
       expect(budgetPeriodFromParam(value, today)).toBe("2026-10");
     },
   );
 
-  it("allows January next year in December", () => {
-    expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2027-01");
-  });
-});
-
-describe("maxBudgetPeriod", () => {
-  it("is next month, across a year boundary", () => {
-    expect(maxBudgetPeriod(today)).toBe("2026-11");
-    expect(maxBudgetPeriod("2026-12-01")).toBe("2027-01");
+  it("stops at the current month, across a year boundary", () => {
+    expect(budgetPeriodFromParam("2026-12", "2026-11-15")).toBe("2026-11");
+    expect(budgetPeriodFromParam("2027-01", "2026-12-31")).toBe("2026-12");
   });
 });
 
@@ -73,43 +66,97 @@ describe("budgetTransactionsHref", () => {
   });
 });
 
-describe("copyResultMessage", () => {
-  it("counts what was copied", () => {
-    expect(copyResultMessage(3, true, "September 2026")).toBe(
-      "3 budget disalin dari September 2026",
-    );
+describe("budgetCategoryOptions", () => {
+  const category = (
+    id: string,
+    name: string,
+    spendingType: "needs" | "wants" | null,
+    archived = false,
+  ) => ({
+    id,
+    name,
+    kind: spendingType ? ("spending" as const) : ("income" as const),
+    spendingType,
+    archivedAt: archived ? "2026-10-01T00:00:00.000Z" : null,
+    createdAt: "2026-01-01T00:00:00.000Z",
   });
-
-  it("says 0 when the source had budgets but every category is already set", () => {
-    expect(copyResultMessage(0, true, "September 2026")).toBe(
-      "0 budget disalin. Semua kategori sudah punya budget.",
-    );
-  });
-
-  it("says the source month has no budget", () => {
-    expect(copyResultMessage(0, false, "September 2026")).toBe("September 2026 belum punya budget");
-  });
-});
-
-describe("suggestion selection", () => {
-  const items = [
-    { categoryId: "makan", spendingType: "needs" as const, amount: 3_750_000, current: 1_200_000 },
-    { categoryId: "transport", spendingType: "needs" as const, amount: 1_250_000, current: null },
-    { categoryId: "hiburan", spendingType: "wants" as const, amount: 3_000_000, current: null },
+  const categories = [
+    category("jajan", "jajan", "wants"),
+    category("hiburan", "Hiburan", "wants"),
+    category("hobi", "Hobi", "wants"),
+    category("lama", "Lama", "wants", true),
+    category("buku", "Buku", "wants", true),
+    category("makan", "Makan", "needs"),
+    category("gaji", "Gaji", null),
   ];
+  const usage = {
+    items: [
+      { budgetId: "senang", name: "Senang-senang", categories: [{ categoryId: "hiburan" }] },
+      {
+        budgetId: "mine",
+        name: "Punyaku",
+        categories: [{ categoryId: "jajan" }, { categoryId: "lama" }],
+      },
+    ],
+  };
 
-  it("checks categories without a budget and leaves ones that would be replaced unchecked", () => {
-    expect([...defaultSuggestionSelection(items)]).toEqual(["transport", "hiburan"]);
-  });
-
-  it("sends only checked rows with their suggested amounts, in list order", () => {
-    expect(selectedSuggestionItems(items, new Set(["hiburan", "makan"]))).toEqual([
-      { categoryId: "makan", amount: 3_750_000 },
-      { categoryId: "hiburan", amount: 3_000_000 },
+  it("lists the type's categories by name, marking free, own and taken ones", () => {
+    expect(
+      budgetCategoryOptions({ categories, usage, budgetId: "mine", spendingType: "wants" }),
+    ).toEqual([
+      { id: "hiburan", name: "Hiburan", status: "taken", takenBy: "Senang-senang" },
+      { id: "hobi", name: "Hobi", status: "free" },
+      { id: "jajan", name: "jajan", status: "own" },
+      { id: "lama", name: "Lama (arsip)", status: "own" },
     ]);
   });
 
-  it("ignores checked ids that are no longer suggested", () => {
-    expect(selectedSuggestionItems(items, new Set(["gone"]))).toEqual([]);
+  it("treats every used category as taken for a new budget and hides archived ones", () => {
+    expect(
+      budgetCategoryOptions({ categories, usage, spendingType: "wants" }).map((o) => [
+        o.id,
+        o.status,
+      ]),
+    ).toEqual([
+      ["hiburan", "taken"],
+      ["hobi", "free"],
+      ["jajan", "taken"],
+    ]);
+  });
+
+  it("shows only the chosen type", () => {
+    expect(budgetCategoryOptions({ categories, usage, spendingType: "needs" })).toEqual([
+      { id: "makan", name: "Makan", status: "free" },
+    ]);
+  });
+});
+
+describe("budgetPatch", () => {
+  const initial = { name: "Jajan", amount: 800_000, categoryIds: ["jajan", "hiburan"] };
+
+  it("sends only the fields that changed", () => {
+    expect(budgetPatch(initial, { ...initial, amount: 900_000 })).toEqual({ amount: 900_000 });
+    expect(budgetPatch(initial, { ...initial, name: "Hura" })).toEqual({ name: "Hura" });
+  });
+
+  it("compares categories as a set", () => {
+    expect(budgetPatch(initial, { ...initial, categoryIds: ["hiburan", "jajan"] })).toEqual({});
+    expect(budgetPatch(initial, { ...initial, categoryIds: ["jajan"] })).toEqual({
+      categoryIds: ["jajan"],
+    });
+  });
+});
+
+describe("emptyBudgetMessage", () => {
+  it("says budgets carry over in the current month", () => {
+    expect(emptyBudgetMessage("2026-11", "2026-11-01")).toBe(
+      "Belum ada budget. Budget yang kamu buat berlaku tiap bulan sampai diubah.",
+    );
+  });
+
+  it("names the month when looking back", () => {
+    expect(emptyBudgetMessage("2026-09", "2026-11-01")).toBe(
+      "Tidak ada budget yang berlaku di September 2026.",
+    );
   });
 });

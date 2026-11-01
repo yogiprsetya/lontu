@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   activityPeak,
   budgetHighlights,
+  dashboardBudget,
   changeTone,
   formatBucket,
   formatRangeLabel,
@@ -11,7 +12,7 @@ import {
   topCategories,
 } from "@/lib/dashboard-format";
 import type { Account } from "@/lib/schemas/account";
-import type { BudgetUsageItem } from "@/lib/schemas/budget";
+import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 
 function account(overrides: Partial<Account>): Account {
   return {
@@ -161,41 +162,68 @@ describe("topCategories", () => {
 });
 
 describe("budgetHighlights", () => {
-  function item(
-    categoryId: string,
-    status: BudgetUsageItem["status"],
-    percent: number | null,
-  ): BudgetUsageItem {
-    return {
-      categoryId,
-      spendingType: "needs",
-      budgetId: null,
-      budget: null,
-      spent: 0,
-      remaining: null,
-      percent,
-      status,
-    };
+  function item(name: string, status: BudgetUsageItem["status"], percent: number | null) {
+    return { name, status, percent } as BudgetUsageItem;
   }
 
-  it("puts over-budget categories first, then warnings, each by percent descending", () => {
+  it("puts over-budget budgets first, then warnings, each by percent descending", () => {
     const result = budgetHighlights([
       item("ok", "ok", 50),
       item("warn-85", "warning", 85),
       item("over-110", "over", 110),
-      item("none", "none", null),
       item("warn-95", "warning", 95),
       item("over-150", "over", 150),
     ]);
-    expect(result.map((i) => i.categoryId)).toEqual(["over-150", "over-110", "warn-95"]);
+    expect(result.map((i) => i.name)).toEqual(["over-150", "over-110", "warn-95"]);
+  });
+
+  it("puts a spent zero budget first", () => {
+    const result = budgetHighlights([item("over-150", "over", 150), item("nol", "over", null)]);
+    expect(result.map((i) => i.name)).toEqual(["nol", "over-150"]);
   });
 
   it("returns fewer when fewer need attention", () => {
     expect(
-      budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map(
-        (i) => i.categoryId,
-      ),
+      budgetHighlights([item("ok", "ok", 10), item("warn", "warning", 80)]).map((i) => i.name),
     ).toEqual(["warn"]);
     expect(budgetHighlights([item("ok", "ok", 10)])).toEqual([]);
+  });
+});
+
+describe("dashboardBudget", () => {
+  const group = (budget: number, spent: number, unbudgetedSpent = 0) => ({
+    budget,
+    spent,
+    unbudgetedSpent,
+  });
+  function usage(items: Partial<BudgetUsageItem>[], total: ReturnType<typeof group>): BudgetUsage {
+    return {
+      period: "2026-11",
+      items: items as BudgetUsageItem[],
+      unbudgeted: [],
+      summary: { needs: total, wants: group(0, 0), total },
+    };
+  }
+
+  it("is null for a month without budgets, even with spending", () => {
+    expect(dashboardBudget(usage([], group(0, 50_000, 50_000)))).toBeNull();
+  });
+
+  it("keeps a month whose only budget is Rp0, spent, as over and highlighted", () => {
+    const nol = { budgetId: "nol", name: "Nol", status: "over" as const, percent: null };
+    const result = dashboardBudget(usage([nol], group(0, 20_000)));
+    expect(result).toMatchObject({ budget: 0, budgetedSpent: 20_000, status: "over" });
+    expect(result!.highlights.map((i) => i.name)).toEqual(["Nol"]);
+  });
+
+  it("measures the bar on budgeted spending only", () => {
+    const makan = { budgetId: "m", name: "Makan", status: "ok" as const, percent: 50 };
+    expect(dashboardBudget(usage([makan], group(1_000_000, 700_000, 200_000)))).toMatchObject({
+      budget: 1_000_000,
+      budgetedSpent: 500_000,
+      percent: 50,
+      status: "ok",
+      highlights: [],
+    });
   });
 });

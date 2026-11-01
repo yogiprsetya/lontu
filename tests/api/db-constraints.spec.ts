@@ -1,6 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { accounts, budgets, categories, recurringRules, transactions } from "@/db/schema";
+import {
+  accounts,
+  budgets,
+  budgetVersions,
+  categories,
+  recurringRules,
+  transactions,
+} from "@/db/schema";
 import { createTestUsers, expectPgError } from "../setup/db";
 
 const CHECK_VIOLATION = "23514";
@@ -284,6 +293,86 @@ describe("budgets constraints", () => {
       UNIQUE_VIOLATION,
       "budgets_user_category_period_unique",
     );
+  });
+});
+
+describe("budget_versions constraints", () => {
+  const version = (overrides: Partial<typeof budgetVersions.$inferInsert> = {}) => ({
+    userId,
+    budgetId: randomUUID(),
+    name: "Jajan & Hiburan",
+    spendingType: "wants",
+    year: 2026,
+    month: 10,
+    amount: 800_000,
+    categoryIds: [spending],
+    ...overrides,
+  });
+
+  it("accepts a valid version with several categories and no end", async () => {
+    const [row] = await db
+      .insert(budgetVersions)
+      .values(version({ categoryIds: [spending, randomUUID()] }))
+      .returning();
+    expect(row.categoryIds).toHaveLength(2);
+    expect(row.deletedAt).toBeNull();
+  });
+
+  it.each([0, 13])("rejects month %i", async (month) => {
+    await expectPgError(
+      db.insert(budgetVersions).values(version({ month })),
+      CHECK_VIOLATION,
+      "budget_versions_month_check",
+    );
+  });
+
+  it("rejects a negative amount", async () => {
+    await expectPgError(
+      db.insert(budgetVersions).values(version({ amount: -1 })),
+      CHECK_VIOLATION,
+      "budget_versions_amount_check",
+    );
+  });
+
+  it("rejects a spending type other than needs or wants", async () => {
+    await expectPgError(
+      db.insert(budgetVersions).values(version({ spendingType: "saving" })),
+      CHECK_VIOLATION,
+      "budget_versions_spending_type_check",
+    );
+  });
+
+  it("rejects an empty category list", async () => {
+    await expectPgError(
+      db.insert(budgetVersions).values(version({ categoryIds: [] })),
+      CHECK_VIOLATION,
+      "budget_versions_category_ids_check",
+    );
+  });
+
+  it("rejects a second version of the same budget in the same month", async () => {
+    const budgetId = randomUUID();
+    await db.insert(budgetVersions).values(version({ budgetId, month: 11 }));
+    await expectPgError(
+      db.insert(budgetVersions).values(version({ budgetId, month: 11, amount: 1 })),
+      UNIQUE_VIOLATION,
+      "budget_versions_user_budget_period_unique",
+    );
+  });
+
+  it("deletes a user's versions with the user", async () => {
+    const owner = await createTestUsers(1);
+    const [ownerId] = owner.ids;
+    const [category] = await db
+      .insert(categories)
+      .values({ userId: ownerId, name: "Jajan", kind: "spending", spendingType: "wants" })
+      .returning({ id: categories.id });
+    await db
+      .insert(budgetVersions)
+      .values(version({ userId: ownerId, categoryIds: [category.id] }));
+    await owner.cleanup();
+    const left = await db.select().from(budgetVersions).where(eq(budgetVersions.userId, ownerId));
+    expect(left).toEqual([]);
   });
 });
 

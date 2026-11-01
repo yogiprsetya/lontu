@@ -3,7 +3,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { todayInJakarta } from "@/lib/date";
-import { maxBudgetPeriod, type BudgetPeriod } from "@/lib/schemas/budget";
+import type { BudgetPeriod } from "@/lib/schemas/budget";
 import { formatPeriodLabel, shiftPeriod } from "@/lib/period";
 
 export function MonthStepper({
@@ -37,7 +37,7 @@ export function MonthStepper({
         variant="secondary"
         className="size-11 shrink-0"
         aria-label="Bulan berikutnya"
-        disabled={next > maxBudgetPeriod(todayInJakarta())}
+        disabled={next > todayInJakarta().slice(0, 7)}
         onClick={() => onChange(next)}
       >
         <ChevronRightIcon aria-hidden />

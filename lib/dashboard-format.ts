@@ -1,5 +1,6 @@
 import { ACCOUNT_TYPES, type Account, type AccountType } from "@/lib/schemas/account";
-import type { BudgetUsageItem } from "@/lib/schemas/budget";
+import { budgetStatus, compareByAttention } from "@/lib/budget-status";
+import type { BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import type {
   DashboardPeriod,
   DashboardSummary,
@@ -91,14 +92,26 @@ export function topCategories(rows: DashboardSummary["categories"], n = 5): Cate
   return slices;
 }
 
-const fullness = (item: BudgetUsageItem) => item.percent ?? Number.MAX_SAFE_INTEGER;
-
-const ATTENTION: Partial<Record<BudgetUsageItem["status"], number>> = { over: 0, warning: 1 };
-
-/** Budgets that need a look: over first, then nearly used up, fullest first. A zero budget that was spent has no percent and leads. */
+/** Budgets that need a look, in the same order as /budget: over, then nearly used up. */
 export function budgetHighlights(items: BudgetUsageItem[], n = 3) {
   return items
-    .filter((item) => ATTENTION[item.status] !== undefined)
-    .sort((a, b) => ATTENTION[a.status]! - ATTENTION[b.status]! || fullness(b) - fullness(a))
+    .filter((item) => item.status === "over" || item.status === "warning")
+    .sort(compareByAttention)
     .slice(0, n);
+}
+
+/**
+ * The Budget Summary card, or null when the month has no budget. A Rp0 budget is still a budget
+ * ("do not spend"), so emptiness is about the list, and spending against Rp0 is over.
+ */
+export function dashboardBudget(usage: BudgetUsage) {
+  if (usage.items.length === 0) return null;
+  const { budget, spent, unbudgetedSpent } = usage.summary.total;
+  const budgetedSpent = spent - unbudgetedSpent;
+  return {
+    budget,
+    budgetedSpent,
+    ...budgetStatus(budget, budgetedSpent),
+    highlights: budgetHighlights(usage.items),
+  };
 }

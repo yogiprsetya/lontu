@@ -1,12 +1,27 @@
-import type { BudgetGroup, BudgetUsage, BudgetUsageItem } from "@/lib/schemas/budget";
-
-export type BudgetStatus = "none" | "ok" | "warning" | "over";
+import type { BudgetGroup } from "@/lib/schemas/budget";
+import type {
+  BudgetStatus,
+  BudgetUsage,
+  BudgetUsageItem,
+  UnbudgetedSpending,
+} from "@/lib/schemas/budget-usage";
 
 export const BUDGET_WARNING_PERCENT = 80;
 
+type Measured = {
+  remaining: number;
+  percent: number | null;
+  status: Exclude<BudgetStatus, "none">;
+};
+
 /** Shared by the server usage query and the client's optimistic cache updates. */
+export function budgetStatus(budget: number, spent: number): Measured;
+export function budgetStatus(
+  budget: number | null,
+  spent: number,
+): Measured | { remaining: null; percent: null; status: "none" };
 export function budgetStatus(budget: number | null, spent: number) {
-  if (budget === null) return { remaining: null, percent: null, status: "none" as BudgetStatus };
+  if (budget === null) return { remaining: null, percent: null, status: "none" as const };
   const remaining = budget - spent;
   if (budget === 0)
     return { remaining, percent: null, status: (spent > 0 ? "over" : "ok") as BudgetStatus };
@@ -18,15 +33,40 @@ export function budgetStatus(budget: number | null, spent: number) {
 
 const emptyGroup = (): BudgetGroup => ({ budget: 0, spent: 0, unbudgetedSpent: 0 });
 
-/** Sums dozens of already-aggregated rows; shared so an optimistic summary equals the server's. */
-export function summarizeBudgets(items: BudgetUsageItem[]): BudgetUsage["summary"] {
+/** Shared by the usage query and optimistic updates, so both give the same summary. */
+export function summarizeBudgetUsage(
+  items: BudgetUsageItem[],
+  unbudgeted: UnbudgetedSpending[],
+): BudgetUsage["summary"] {
   const summary = { needs: emptyGroup(), wants: emptyGroup(), total: emptyGroup() };
   for (const item of items) {
     for (const group of [summary[item.spendingType], summary.total]) {
-      group.budget += item.budget ?? 0;
+      group.budget += item.budget;
       group.spent += item.spent;
-      if (item.budget === null) group.unbudgetedSpent += item.spent;
+    }
+  }
+  for (const row of unbudgeted) {
+    for (const group of [summary[row.spendingType], summary.total]) {
+      group.spent += row.spent;
+      group.unbudgetedSpent += row.spent;
     }
   }
   return summary;
+}
+
+const ATTENTION: Record<BudgetStatus, number> = { over: 0, warning: 1, ok: 2, none: 3 };
+
+type Ranked = Pick<BudgetUsageItem, "name" | "status" | "percent">;
+
+// A zero budget has no percent: spent, it is the fullest of all; unspent, the emptiest.
+const fullness = ({ percent, status }: Ranked) =>
+  percent ?? (status === "over" ? Number.MAX_SAFE_INTEGER : -1);
+
+/** Over, then warning, then ok; within a status the fullest first, then by name. */
+export function compareByAttention(a: Ranked, b: Ranked) {
+  return (
+    ATTENTION[a.status] - ATTENTION[b.status] ||
+    fullness(b) - fullness(a) ||
+    a.name.localeCompare(b.name, "id", { sensitivity: "base" })
+  );
 }

@@ -1,47 +1,27 @@
 import { BudgetProgress } from "@/components/budgets/budget-progress";
-import { Button } from "@/components/ui/button";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { statusLabel } from "@/lib/budget-format";
-import type { BudgetUsageItem } from "@/lib/schemas/budget";
+import type { BudgetUsageItem } from "@/lib/schemas/budget-usage";
 import { cn } from "@/lib/utils";
 
-type Props = { item: BudgetUsageItem; name: string; onEdit?: () => void };
+const TYPE_LABEL = { needs: "Needs", wants: "Wants" } as const;
 
-export function BudgetRow({ item, name, onEdit }: Props) {
+type Props = { item: BudgetUsageItem; categoryNames: string; onOpen?: () => void };
+
+export function BudgetRow({ item, categoryNames, onOpen }: Props) {
   const money = useAmountFormat();
   const text = statusLabel(item.status);
-
-  if (item.budget === null) {
-    return (
-      <li className="flex min-h-14 items-center justify-between gap-3 py-2">
-        <div className="min-w-0">
-          <p className="truncate font-bold">{name}</p>
-          <p className="truncate text-sm text-muted-foreground tabular-nums">
-            {money(item.spent)} terpakai
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          className="h-11 shrink-0 text-base"
-          disabled={!onEdit}
-          onClick={onEdit}
-        >
-          Atur budget
-        </Button>
-      </li>
-    );
-  }
 
   return (
     <li>
       <button
         type="button"
-        disabled={!onEdit}
-        onClick={onEdit}
+        disabled={!onOpen}
+        onClick={onOpen}
         className="flex min-h-14 w-full flex-col gap-2 py-3 text-left disabled:cursor-default"
       >
         <span className="flex w-full items-baseline justify-between gap-3">
-          <span className="min-w-0 truncate font-bold">{name}</span>
+          <span className="min-w-0 truncate font-bold">{item.name}</span>
           <span
             className={cn(
               "shrink-0 text-sm tabular-nums",
@@ -52,10 +32,13 @@ export function BudgetRow({ item, name, onEdit }: Props) {
                   : "text-muted-foreground",
             )}
           >
-            {item.remaining! < 0
-              ? `Lebih ${money(-item.remaining!)}`
-              : `Sisa ${money(item.remaining!)}`}
+            {item.remaining < 0
+              ? `Lebih ${money(-item.remaining)}`
+              : `Sisa ${money(item.remaining)}`}
           </span>
+        </span>
+        <span className="w-full truncate text-sm text-muted-foreground">
+          {TYPE_LABEL[item.spendingType]} · {categoryNames}
         </span>
         <BudgetProgress
           percent={item.percent}

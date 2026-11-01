@@ -7,7 +7,7 @@ Bergantung pada: `transactions`, `budgets` (dan `accounts-categories` lewat kedu
 
 Begitu membuka aplikasi, pengguna langsung tahu posisi keuangannya: total saldo semua akun, berapa income, expense, dan saving di periode ini dibanding periode lalu, ke mana uangnya pergi (per hari dan per kategori), dan budget mana yang hampir habis. Setiap angka bisa di-tap untuk membuka daftar transaksi yang menyusunnya.
 
-Modul ini pemilik **kontrak** `GET /api/dashboard`, query `dashboardSummary`, hook `useDashboard`, dan halaman `/dashboard`. Saldo akun memakai kontrak `GET /api/accounts` (`accounts-categories`), Budget Summary memakai `useBudgets` (`budgets`).
+Modul ini pemilik **kontrak** `GET /api/dashboard`, query `dashboardSummary`, hook `useDashboard`, dan halaman `/dashboard`. Saldo akun memakai kontrak `GET /api/accounts` (`accounts-categories`), Budget Summary memakai `useBudgetUsage` (`budgets`).
 
 Di luar cakupan: daftar transaksi terakhir di dashboard, net worth historis (grafik saldo dari waktu ke waktu), rentang tanggal bebas, perbandingan antar tahun dalam satu grafik, grafik income, widget yang bisa diatur ulang, insight/teks otomatis ("pengeluaranmu naik karena…"), notifikasi.
 
@@ -15,7 +15,7 @@ Di luar cakupan: daftar transaksi terakhir di dashboard, net worth historis (gra
 
 Semua usulan untuk direview (lihat [Open questions](#open-questions)).
 
-1. **Periode hidup di URL:** `/dashboard?period=YYYY-MM` atau `YYYY`, default bulan berjalan (Asia/Jakarta). Sama dengan keputusan #10 transactions dan #6 budgets. Mode `all` tidak ada karena tidak punya "periode lalu" untuk dibandingkan. `usePeriodStore` tidak dipakai.
+1. **Periode hidup di URL:** `/dashboard?period=YYYY-MM` atau `YYYY`, default bulan berjalan (Asia/Jakarta). Sama dengan keputusan #10 transactions dan stepper `/budget`. Mode `all` tidak ada karena tidak punya "periode lalu" untuk dibandingkan. `usePeriodStore` tidak dipakai.
 2. **Rentang periode:** bulan `2000-01` sampai bulan berjalan, tahun `2000` sampai tahun berjalan. Periode masa depan ditolak (400) karena transaksi masa depan tidak mungkin ada (keputusan #5 transactions).
 3. **Kartu ringkasan:** Income, Expense, Saving, dan **Sisa** (`income − expense − saving`, boleh negatif). Transfer dan adjustment tidak dihitung, sama dengan `transactionTotals`.
 4. **Pembanding = periode sebelumnya dengan panjang yang sama (period-to-date).** Untuk periode berjalan, periode lalu dipotong di hari yang sama: tanggal 25 Oktober dibandingkan dengan 1–25 September, bukan September penuh, supaya pertengahan bulan tidak selalu terlihat "turun". Hari yang tidak ada di periode lalu dipotong ke hari terakhirnya (31 Okt → 30 Sep, 29 Feb → 28 Feb). Periode yang sudah lewat dibandingkan penuh dengan periode lalu penuh.
@@ -23,10 +23,10 @@ Semua usulan untuk direview (lihat [Open questions](#open-questions)).
 6. **Account Balance dari `useAccounts()`**, dijumlahkan di client. Ini puluhan baris akun yang sudah ada di cache dan saldonya sudah dihitung view `account_balances`, bukan agregasi baris transaksi. Total = jumlah `balance` akun aktif (saldo kartu kredit yang negatif ikut mengurangi), dikelompokkan per `type` (Transaksi, Aset). Saldo selalu saldo **sekarang**, tidak mengikuti periode.
 7. **Expense Activity:** grafik batang expense per hari (mode bulan, 28–31 batang) atau per bulan (mode tahun, 12 batang). Bucket kosong tetap ada dengan nilai 0, dibuat di SQL (`generate_series`). Bucket setelah hari ini tidak dikirim.
 8. **Donut per kategori:** expense per kategori spending di periode itu, 5 terbesar + "Lainnya". Data dari server berisi **semua** kategori yang punya expense (urut nominal), pemotongan top 5 dilakukan di client dari baris yang sudah teragregasi. Kategori terarsip tetap dihitung dan berlabel "(arsip)". Di bawah donut: legenda berisi nama, nominal, dan persen dari total expense.
-9. **Budget Summary hanya di mode bulan**, memakai `useBudgets(period)` (cache dibagi dengan `/budget`). Isi: progress total (terpakai dari budget), lalu sampai 3 kategori dengan status `over` lalu `warning` (urut persen tertinggi). Bulan tanpa budget → CTA "Atur budget" ke `/budget?period=…`. Di mode tahun kartu ini diganti teks "Budget dihitung per bulan" dengan tautan ke `/budget`.
-10. **Satu endpoint, satu query per bagian.** `GET /api/dashboard` mengembalikan kartu, pembanding, aktivitas, dan kategori sekaligus, jadi dashboard butuh tiga request SWR saja (dashboard, accounts, budgets) dan semuanya sudah dipakai halaman lain kecuali yang pertama.
+9. **Budget Summary hanya di mode bulan**, memakai `useBudgetUsage(period)` (cache dibagi dengan `/budget`). Isi: progress total (terpakai dari budget), lalu sampai 3 budget bernama dengan status `over` atau `warning`, diurut `compareByAttention` (kontrak budgets), dengan nama dari respons. Bulan tanpa budget → CTA "Atur budget" ke `/budget?period=…`. Di mode tahun kartu ini diganti teks "Budget dihitung per bulan" dengan tautan ke `/budget`. Direvisi 2026-10-31 (budget bernama, T119).
+10. **Satu endpoint, satu query per bagian.** `GET /api/dashboard` mengembalikan kartu, pembanding, aktivitas, dan kategori sekaligus, jadi dashboard butuh tiga request SWR saja (dashboard, accounts, budget usage) dan semuanya sudah dipakai halaman lain kecuali yang pertama.
 11. **Respons memakai id**, nama kategori di-resolve di client dari `useCategories({ includeArchived: true })`, sama dengan keputusan #8 transactions.
-12. **Drill-down** ke `/transactions` dengan URL lengkap (kontrak transactions): kartu Income/Expense/Saving → `?period=…&type=…`, irisan/legenda donut → `?period=…&type=expense&categoryId=…`, baris akun → `?period=…&accountId=…`, baris Budget Summary → kontrak budgets (`?period=…&type=expense&categoryId=…`). Batang aktivitas tidak bisa di-tap karena daftar tidak punya filter per hari.
+12. **Drill-down** ke `/transactions` dengan URL lengkap (kontrak transactions): kartu Income/Expense/Saving → `?period=…&type=…`, irisan/legenda donut → `?period=…&type=expense&categoryId=…`, baris akun → `?period=…&accountId=…`, baris Budget Summary → `/budget?period=…` (kontrak budgets, direvisi 2026-10-31: satu budget bisa mencakup beberapa kategori, rinciannya ada di sheet budget). Batang aktivitas tidak bisa di-tap karena daftar tidak punya filter per hari.
 
 Tidak ada perubahan skema, tidak ada migrasi, tidak ada index baru.
 
@@ -132,7 +132,7 @@ Hanya membaca. Param lain diabaikan.
 - [x] Mode tahun: pada 2028-02-29, `period=2028` → `range = 2028-01-01..2028-02-29`, `previous.range = 2027-01-01..2027-02-28`. `period=2025` → pembanding 2024 penuh.
 - [x] `activity` mode bulan: satu bucket per hari dari tanggal 1 sampai `range.to` (25 bucket pada 25 Okt, 30 untuk September penuh, 29 untuk Februari 2028), hari tanpa expense bernilai 0, expense tanggal 1 dan hari terakhir masuk bucket yang benar. Mode tahun: bucket `YYYY-MM`, tidak melewati bulan berjalan.
 - [x] `categories` berisi setiap kategori dengan expense > 0 di `range` (termasuk terarsip), urut `amount desc`, dan tidak memuat kategori tanpa expense.
-- [x] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets?period=…` `summary.total.spent`.
+- [x] Invarian: `sum(activity) = totals.expense = sum(categories.amount)`, dan untuk mode bulan sama dengan `GET /api/budgets/usage?period=…` `summary.total.spent` (direvisi 2026-10-31, diverifikasi ulang di T119).
 - [x] Periode tanpa transaksi → semua total 0, `categories` kosong, `activity` berisi bucket 0.
 - [x] `period` kosong, `2026-13`, `26-10`, `1999`, `1999-12`, bulan depan, atau tahun depan → 400 `fields.period`.
 - [x] **Isolasi:** respons user B tidak pernah memuat transaksi atau kategori A (total, aktivitas, dan kategori B tetap 0 walau A punya data di periode yang sama).
@@ -148,7 +148,8 @@ Hanya membaca. Param lain diabaikan.
 
 - [x] `/dashboard` tanpa query menampilkan bulan berjalan. `/dashboard?period=2026` bertahan setelah refresh. Stepper tidak bisa maju melewati periode berjalan, dan mode tahun menyembunyikan Budget Summary dengan teks penggantinya.
 - [x] Mencatat expense dari **+** lalu kembali ke `/dashboard` memperbarui kartu, grafik, donut, saldo, dan Budget Summary tanpa reload.
-- [x] Tap kartu Expense, irisan donut, baris akun, dan baris budget membuka `/transactions` dengan filter yang benar, dan totalnya sama dengan angka di dashboard.
+- [x] Tap kartu Expense, irisan donut, dan baris akun membuka `/transactions` dengan filter yang benar, dan totalnya sama dengan angka di dashboard.
+- [ ] Tap baris Budget Summary membuka `/budget?period=…` di bulan yang sama (direvisi 2026-10-31, T119).
 - [x] `hideAmounts` menyamarkan semua nominal di dashboard, termasuk tooltip dan sumbu grafik.
 - [x] Tanpa akun: CTA "Tambah akun" membuka modal. Bulan tanpa expense: teks + tombol "Catat expense".
 - [x] Perubahan vs periode lalu terbaca tanpa warna (ikon + teks), layout benar di 360 px tanpa horizontal scroll, target sentuh ≥ 44 px.

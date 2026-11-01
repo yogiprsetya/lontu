@@ -1,4 +1,4 @@
-import type { BudgetStatus } from "@/lib/budget-status";
+import type { BudgetStatus } from "@/lib/schemas/budget-usage";
 import { cn } from "@/lib/utils";
 
 const FILL: Record<BudgetStatus, string> = {

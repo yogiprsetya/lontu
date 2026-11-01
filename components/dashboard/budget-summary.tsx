@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { WalletIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
@@ -9,14 +8,12 @@ import { LoadError } from "@/components/settings/load-error";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { useBudgets } from "@/hooks/use-budgets";
-import { useCategories } from "@/hooks/use-categories";
-import { archiveLabel } from "@/lib/archived";
-import { budgetTransactionsHref, groupStatus, statusLabel } from "@/lib/budget-format";
-import { budgetHighlights } from "@/lib/dashboard-format";
+import { useBudgetUsage } from "@/hooks/use-budgets";
+import { emptyBudgetMessage, statusLabel } from "@/lib/budget-format";
+import { todayInJakarta } from "@/lib/date";
+import { dashboardBudget } from "@/lib/dashboard-format";
 import { dashboardMode } from "@/lib/dashboard-period";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
-import { formatPeriodLabel } from "@/lib/period";
 import { cn } from "@/lib/utils";
 
 const LINK_CLASS =
@@ -24,25 +21,19 @@ const LINK_CLASS =
 
 function MonthBudget({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
-  const usage = useBudgets(period);
-  const categories = useCategories({ includeArchived: true });
-  const names = useMemo(
-    () => new Map(categories.data?.map((c) => [c.id, archiveLabel(c)])),
-    [categories.data],
-  );
+  const usage = useBudgetUsage(period);
   const budgetHref = `/budget?period=${period}`;
 
   if (usage.error)
     return <LoadError message="Gagal memuat budget." onRetry={() => void usage.mutate()} />;
   if (!usage.data) return <Skeleton className="h-44 w-full" />;
 
-  const total = usage.data.summary.total;
-  const { budgetedSpent, percent, status } = groupStatus(total);
+  const card = dashboardBudget(usage.data);
 
-  if (total.budget === 0) {
+  if (!card) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-muted-foreground">Belum ada budget untuk {formatPeriodLabel(period)}.</p>
+        <p className="text-muted-foreground">{emptyBudgetMessage(period, todayInJakarta())}</p>
         <Link href={budgetHref} className={cn(buttonVariants(), "h-11 text-base")}>
           Atur budget
         </Link>
@@ -50,7 +41,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
     );
   }
 
-  const highlights = budgetHighlights(usage.data.items);
+  const { budget, budgetedSpent, percent, status, highlights } = card;
   const totalText = statusLabel(status);
 
   return (
@@ -58,7 +49,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
       <div className="flex flex-col gap-2">
         <p className="truncate font-semibold tabular-nums">
           {money(budgetedSpent)}{" "}
-          <span className="font-normal text-muted-foreground">dari {money(total.budget)}</span>
+          <span className="font-normal text-muted-foreground">dari {money(budget)}</span>
         </p>
         <BudgetProgress
           percent={percent}
@@ -71,12 +62,12 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
       ) : (
         <ul className="divide-y" aria-label="Budget yang perlu diperhatikan">
           {highlights.map((item) => (
-            <li key={item.categoryId}>
+            <li key={item.budgetId}>
               <Link
-                href={budgetTransactionsHref(period, item.categoryId)}
+                href={budgetHref}
                 className="flex min-h-11 items-center justify-between gap-3 py-2"
               >
-                <span className="min-w-0 truncate">{names.get(item.categoryId) ?? "Kategori"}</span>
+                <span className="min-w-0 truncate">{item.name}</span>
                 <span
                   className={cn(
                     "shrink-0 text-sm tabular-nums",

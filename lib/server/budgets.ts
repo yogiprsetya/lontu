@@ -2,14 +2,14 @@ import "server-only";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { budgetVersions, categories } from "@/db/schema";
+import { budgets, categories } from "@/db/schema";
 import { todayInJakarta } from "@/lib/date";
 import { periodToYearMonth, yearMonthToPeriod } from "@/lib/period";
 import type { BudgetCreateInput, BudgetUpdateInput, BudgetVersion } from "@/lib/schemas/budget";
 import type { SpendingType } from "@/lib/schemas/category";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-type VersionRow = typeof budgetVersions.$inferSelect;
+type VersionRow = typeof budgets.$inferSelect;
 
 type InvalidCategories = { invalid: { field: "categoryIds"; message: string } };
 type BudgetWriteResult = BudgetVersion | InvalidCategories | { nameTaken: true };
@@ -42,15 +42,15 @@ async function lockBudgets(tx: Tx, userId: string) {
 async function effectiveVersions(tx: Tx, userId: string, period: string) {
   const { year, month } = periodToYearMonth(period);
   return tx
-    .selectDistinctOn([budgetVersions.budgetId])
-    .from(budgetVersions)
+    .selectDistinctOn([budgets.budgetId])
+    .from(budgets)
     .where(
       and(
-        eq(budgetVersions.userId, userId),
-        sql`(${budgetVersions.year}, ${budgetVersions.month}) <= (${year}::int, ${month}::int)`,
+        eq(budgets.userId, userId),
+        sql`(${budgets.year}, ${budgets.month}) <= (${year}::int, ${month}::int)`,
       ),
     )
-    .orderBy(budgetVersions.budgetId, desc(budgetVersions.year), desc(budgetVersions.month));
+    .orderBy(budgets.budgetId, desc(budgets.year), desc(budgets.month));
 }
 
 /**
@@ -128,7 +128,7 @@ export async function createBudget(
     if (rejected) return rejected;
 
     const [row] = await tx
-      .insert(budgetVersions)
+      .insert(budgets)
       .values({ userId, budgetId: crypto.randomUUID(), ...periodToYearMonth(period), ...input })
       .returning();
     return toBudgetVersion(row);
@@ -166,15 +166,10 @@ export async function updateBudget(
     if (rejected) return rejected;
 
     const [row] = await tx
-      .insert(budgetVersions)
+      .insert(budgets)
       .values({ userId, budgetId: id, spendingType, ...periodToYearMonth(period), ...next })
       .onConflictDoUpdate({
-        target: [
-          budgetVersions.userId,
-          budgetVersions.budgetId,
-          budgetVersions.year,
-          budgetVersions.month,
-        ],
+        target: [budgets.userId, budgets.budgetId, budgets.year, budgets.month],
         set: next,
       })
       .returning();
@@ -196,12 +191,12 @@ export async function endBudget(userId: string, id: string): Promise<BudgetVersi
 
     const [row] = inPeriod
       ? await tx
-          .update(budgetVersions)
-          .set({ deletedAt: sql`coalesce(${budgetVersions.deletedAt}, now())` })
-          .where(eq(budgetVersions.id, current.id))
+          .update(budgets)
+          .set({ deletedAt: sql`coalesce(${budgets.deletedAt}, now())` })
+          .where(eq(budgets.id, current.id))
           .returning()
       : await tx
-          .insert(budgetVersions)
+          .insert(budgets)
           .values({
             userId,
             budgetId: id,
@@ -236,9 +231,9 @@ export async function restoreBudget(
     if (clash(shown, current, id)) return { restoreConflict: true as const };
 
     const [row] = await tx
-      .update(budgetVersions)
+      .update(budgets)
       .set({ deletedAt: null })
-      .where(eq(budgetVersions.id, current.id))
+      .where(eq(budgets.id, current.id))
       .returning();
     return toBudgetVersion(row);
   });

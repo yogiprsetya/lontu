@@ -56,23 +56,25 @@ export function budgetCategoryOptions({
   budgetId?: string;
   spendingType: SpendingType;
 }): BudgetCategoryOption[] {
-  const owner = new Map(
+  const holderOf = new Map(
     usage.items.flatMap((item) => item.categories.map((c) => [c.categoryId, item] as const)),
   );
-  return categories
-    .filter((c) => c.kind === "spending" && c.spendingType === spendingType)
-    .flatMap((c): BudgetCategoryOption[] => {
-      const by = owner.get(c.id);
-      if (by && by.budgetId === budgetId)
-        return [{ id: c.id, name: archiveLabel(c), status: "own" }];
-      if (c.archivedAt) return [];
-      return [
-        by
-          ? { id: c.id, name: c.name, status: "taken", takenBy: by.name }
-          : { id: c.id, name: c.name, status: "free" },
-      ];
-    })
-    .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }));
+  const options: BudgetCategoryOption[] = [];
+  for (const c of categories) {
+    if (c.kind !== "spending" || c.spendingType !== spendingType) continue;
+    const holder = holderOf.get(c.id);
+    if (holder && holder.budgetId === budgetId) {
+      options.push({ id: c.id, name: archiveLabel(c), status: "own" });
+      continue;
+    }
+    if (c.archivedAt) continue;
+    options.push(
+      holder
+        ? { id: c.id, name: c.name, status: "taken", takenBy: holder.name }
+        : { id: c.id, name: c.name, status: "free" },
+    );
+  }
+  return options.sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }));
 }
 
 type BudgetFields = { name: string; amount: number; categoryIds: string[] };

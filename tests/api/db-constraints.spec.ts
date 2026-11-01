@@ -296,7 +296,7 @@ describe("budgets constraints", () => {
   });
 });
 
-describe("budget_versions constraints", () => {
+describe("budget constraints", () => {
   const version = (overrides: Partial<typeof budgetVersions.$inferInsert> = {}) => ({
     userId,
     budgetId: randomUUID(),
@@ -322,7 +322,7 @@ describe("budget_versions constraints", () => {
     await expectPgError(
       db.insert(budgetVersions).values(version({ month })),
       CHECK_VIOLATION,
-      "budget_versions_month_check",
+      "budget_month_check",
     );
   });
 
@@ -330,7 +330,7 @@ describe("budget_versions constraints", () => {
     await expectPgError(
       db.insert(budgetVersions).values(version({ amount: -1 })),
       CHECK_VIOLATION,
-      "budget_versions_amount_check",
+      "budget_amount_check",
     );
   });
 
@@ -338,7 +338,7 @@ describe("budget_versions constraints", () => {
     await expectPgError(
       db.insert(budgetVersions).values(version({ spendingType: "saving" })),
       CHECK_VIOLATION,
-      "budget_versions_spending_type_check",
+      "budget_spending_type_check",
     );
   });
 
@@ -346,7 +346,7 @@ describe("budget_versions constraints", () => {
     await expectPgError(
       db.insert(budgetVersions).values(version({ categoryIds: [] })),
       CHECK_VIOLATION,
-      "budget_versions_category_ids_check",
+      "budget_category_ids_check",
     );
   });
 
@@ -356,7 +356,7 @@ describe("budget_versions constraints", () => {
     await expectPgError(
       db.insert(budgetVersions).values(version({ budgetId, month: 11, amount: 1 })),
       UNIQUE_VIOLATION,
-      "budget_versions_user_budget_period_unique",
+      "budget_user_budget_period_unique",
     );
   });
 

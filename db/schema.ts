@@ -140,7 +140,7 @@ export const budgets = pgTable.withRLS(
 // One row = one version of a named budget, in effect from (year, month) until a later version.
 // category_ids has no FK: ownership and kind are checked on write, and categories are never hard-deleted.
 export const budgetVersions = pgTable.withRLS(
-  "budget_versions",
+  "budget",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: userId(),
@@ -155,16 +155,11 @@ export const budgetVersions = pgTable.withRLS(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (t) => [
-    check("budget_versions_spending_type_check", sql`${t.spendingType} in ('needs', 'wants')`),
-    check("budget_versions_month_check", sql`${t.month} between 1 and 12`),
-    check("budget_versions_amount_check", sql`${t.amount} >= 0`),
-    check("budget_versions_category_ids_check", sql`cardinality(${t.categoryIds}) >= 1`),
-    uniqueIndex("budget_versions_user_budget_period_unique").on(
-      t.userId,
-      t.budgetId,
-      t.year,
-      t.month,
-    ),
+    check("budget_spending_type_check", sql`${t.spendingType} in ('needs', 'wants')`),
+    check("budget_month_check", sql`${t.month} between 1 and 12`),
+    check("budget_amount_check", sql`${t.amount} >= 0`),
+    check("budget_category_ids_check", sql`cardinality(${t.categoryIds}) >= 1`),
+    uniqueIndex("budget_user_budget_period_unique").on(t.userId, t.budgetId, t.year, t.month),
   ],
 );
 

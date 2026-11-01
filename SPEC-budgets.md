@@ -16,7 +16,7 @@ Di luar cakupan: budget mingguan atau tahunan, rollover sisa ke bulan berikutnya
 
 Nomor 1–8 diputuskan Yogi pada 2026-10-31 (plan.md § Budget bernama, Keputusan perencanaan dan Open questions 1–3). Nomor 9–13 dibawa dari model lama tanpa perubahan.
 
-1. **Budget bernama, berversi.** Satu baris tabel `budget_versions` = satu versi budget yang berlaku mulai `(year, month)` sampai ada versi yang lebih baru. `budget_id` adalah identitas lintas versi. Nama, jenis, nominal, dan kategori ikut versi, jadi bulan lalu tampil persis seperti saat itu.
+1. **Budget bernama, berversi.** Satu baris tabel `budget` (dulu `budget_versions`, diganti nama 2026-11-01 lewat migrasi `rename_budget_versions_to_budget`) = satu versi budget yang berlaku mulai `(year, month)` sampai ada versi yang lebih baru. `budget_id` adalah identitas lintas versi. Nama, jenis, nominal, dan kategori ikut versi, jadi bulan lalu tampil persis seperti saat itu.
 2. **Satu jenis per budget.** `spending_type` (needs/wants) dipilih saat membuat dan terkunci. Semua kategori di budget harus `kind = spending` dengan `spending_type` yang sama. Pemilih kategori di form hanya menampilkan jenis terpilih.
 3. **Semua tulisan berlaku di bulan berjalan** (Asia/Jakarta, dihitung server dengan `todayInJakarta()`). Client tidak pernah mengirim `period` untuk tulisan. Bulan lalu hanya-baca, dan tidak ada bulan depan. Mengubah budget di hari terakhir bulan ikut mengubah bulan itu (diterima, Open question 3).
 4. **Satu kategori di paling banyak satu budget per bulan.** Dicek server di dalam transaksi DB yang memegang `pg_advisory_xact_lock(hashtext(user_id))`, jadi dua tulisan paralel tidak bisa mengklaim kategori yang sama. Invarian `summary.total.spent = expense bulan itu` bergantung pada aturan ini.
@@ -36,11 +36,11 @@ Disetujui lewat T107. Expand → switch → contract, karena DB dipakai bersama 
 
 | Langkah                  | Objek                                     | Isi                                                                                                       |
 | ------------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Expand (T110, additive)  | tabel baru `budget_versions`              | lihat di bawah. `budgets` tidak disentuh, kode produksi lama tetap jalan                                    |
-| Backfill (T121, kustom)  | `budget_versions`                         | salin baris `budgets` aktif ≤ bulan cutover, lihat [Migrasi dan cutover](#migrasi-dan-cutover)              |
+| Expand (T110, additive)  | tabel baru `budget`              | lihat di bawah. `budgets` tidak disentuh, kode produksi lama tetap jalan                                    |
+| Backfill (T121, kustom)  | `budget`                         | salin baris `budgets` aktif ≤ bulan cutover, lihat [Migrasi dan cutover](#migrasi-dan-cutover)              |
 | Contract (T122)          | tabel `budgets`                           | `DROP TABLE "budgets"` setelah produksi terverifikasi                                                     |
 
-**`budget_versions`** (`pgTable.withRLS`, RLS deny-all seperti tabel lain):
+**`budget`** (`pgTable.withRLS`, RLS deny-all seperti tabel lain):
 
 | Kolom           | Tipe                                                                        |
 | --------------- | --------------------------------------------------------------------------- |
@@ -238,7 +238,7 @@ Setiap tulisan berjalan dalam satu `db.transaction`: `pg_advisory_xact_lock(hash
   - `budget-format.spec.ts`: `budgetCategoryOptions` (jenis, `free`/`own`/`taken`, terarsip).
   - `use-budgets.spec.ts`: key, optimistic delete dan rollback.
 - **API (`tests/api/`, Supabase sungguhan, user `test-<uuid>`):**
-  - `db-constraints.spec.ts`: constraint `budget_versions` dan cascade.
+  - `db-constraints.spec.ts`: constraint `budget` dan cascade.
   - `budget-usage.spec.ts`: versi efektif, batas bulan, `unbudgeted`, kategori terarsip, invarian, validasi `period`, isolasi, 401.
   - `budgets.spec.ts`: `POST`/`PATCH`/`DELETE`/`restore`, validasi kategori, nama unik, paralel, isolasi, 401.
   - `budget-backfill.spec.ts` (T121): aturan backfill di dalam transaksi yang di-rollback.
@@ -263,7 +263,7 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md). Menjalankan 
 ## Boundaries (khusus modul ini)
 
 - **Always:** advisory lock per user di setiap tulisan budget, bulan tulisan dari server, upsert pada kunci unik (bukan cek-lalu-insert), hitung terpakai di DB, satu `budgetStatus()` dan satu `summarizeBudgetUsage()` untuk server dan client, `invalidate("budgets")` setelah setiap mutasi, `generate --explain` dan baca `migration.sql` sebelum setiap `db:migrate`.
-- **Ask first:** budget untuk saving/income, budget campuran Needs + Wants, index baru, kolom baru di `budget_versions`, mengubah ambang 80%, tulisan ke bulan selain bulan berjalan, menjalankan backfill atau drop `budgets` di DB bersama.
+- **Ask first:** budget untuk saving/income, budget campuran Needs + Wants, index baru, kolom baru di `budget`, mengubah ambang 80%, tulisan ke bulan selain bulan berjalan, menjalankan backfill atau drop `budgets` di DB bersama.
 - **Never:** hard delete versi budget (selain cascade user), menerima `userId` atau `period` dari body, mengubah versi bulan lalu, menghitung terpakai dari transaksi di client, menyalin budget ke Zustand, memakai server action.
 
 ## Risiko

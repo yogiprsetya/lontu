@@ -58,13 +58,13 @@ async function effectiveVersions(tx: Tx, userId: string, period: string) {
  * (already in the budget's effective version). One message for every failure, so nothing leaks.
  */
 async function checkCategories(
-  executor: typeof db | Tx,
+  tx: Tx,
   userId: string,
   ids: string[],
   spendingType: SpendingType,
   kept: ReadonlySet<string> = new Set(),
 ) {
-  const rows = await executor
+  const rows = await tx
     .select({
       id: categories.id,
       kind: categories.kind,
@@ -119,11 +119,11 @@ export async function createBudget(
   input: BudgetCreateInput,
 ): Promise<BudgetWriteResult> {
   const period = currentPeriod();
-  const invalid = await checkCategories(db, userId, input.categoryIds, input.spendingType);
-  if (invalid) return invalid;
 
   return db.transaction(async (tx) => {
     await lockBudgets(tx, userId);
+    const invalid = await checkCategories(tx, userId, input.categoryIds, input.spendingType);
+    if (invalid) return invalid;
     const rejected = clash(await effectiveVersions(tx, userId, period), input);
     if (rejected) return rejected;
 

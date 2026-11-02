@@ -1,3 +1,7 @@
+import { z } from "zod";
+import { todayInJakarta } from "@/lib/date";
+import { isPeriod, periodMode } from "@/lib/period";
+
 export type Goal = {
   id: string;
   name: string;
@@ -39,3 +43,47 @@ export type GoalProgress = Goal & {
   staleAccountIds: string[];
   projection: GoalProjection;
 };
+
+const name = z
+  .string("Nama wajib diisi")
+  .trim()
+  .min(1, "Nama wajib diisi")
+  .max(60, "Maksimal 60 karakter");
+
+const targetAmount = z
+  .int("Nominal harus bilangan bulat rupiah")
+  .min(1, "Nominal minimal Rp1")
+  .max(1e12, "Maksimal 1 triliun");
+
+// YYYY-MM strings compare correctly as text. The current month is read at parse time,
+// so a long-lived schema never goes stale across a month boundary.
+const targetMonth = z
+  .string("Bulan target tidak valid")
+  .refine((m) => isPeriod(m) && periodMode(m) === "month", {
+    error: "Bulan target tidak valid",
+    abort: true,
+  })
+  .refine((m) => m >= todayInJakarta().slice(0, 7), "Bulan target minimal bulan ini")
+  .nullable();
+
+const accountIds = z
+  .array(z.uuid("Akun tidak valid"), "Pilih akun")
+  .min(1, "Pilih minimal satu akun")
+  .max(20, "Maksimal 20 akun")
+  .refine((ids) => new Set(ids).size === ids.length, "Akun tidak boleh ganda");
+
+export const goalCreateSchema = z.strictObject({
+  name,
+  targetAmount,
+  targetMonth: targetMonth.default(null),
+  accountIds,
+});
+
+export type GoalCreateInput = z.infer<typeof goalCreateSchema>;
+
+export const goalUpdateSchema = z
+  .strictObject({ name, targetAmount, targetMonth, accountIds })
+  .partial()
+  .refine((input) => Object.keys(input).length > 0, "Tidak ada perubahan");
+
+export type GoalUpdateInput = z.infer<typeof goalUpdateSchema>;

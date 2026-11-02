@@ -61,20 +61,22 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `POST` valid → 201 dengan progres; nama sama beda huruf besar → 409 `GOAL_NAME_TAKEN`; `targetMonth` lampau → 400
-- [ ] Akun dipakai target aktif lain, kartu kredit, terarsip, milik user lain, atau duplikat → 400 `fields.accountIds`; dua `POST` paralel dengan akun sama → tepat satu 201
-- [ ] `GET` hanya target user sendiri, urut `created_at`; body dengan `userId` → 400; tanpa session → 401
+- [x] `POST` valid → 201 dengan progres; nama sama beda huruf besar → 409 `GOAL_NAME_TAKEN`; `targetMonth` lampau → 400
+- [x] Akun dipakai target aktif lain, kartu kredit, terarsip, milik user lain, atau duplikat → 400 `fields.accountIds`; dua `POST` paralel dengan akun sama → tepat satu 201
+- [x] `GET` hanya target user sendiri, urut `created_at`; body dengan `userId` → 400; tanpa session → 401
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/goals.spec.ts tests/unit/goal-schema.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm vitest run tests/api/goals.spec.ts tests/unit/goal-schema.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T129
 
 **Files likely touched:** `lib/schemas/goal.ts`, `lib/server/goals.ts`, `app/api/goals/route.ts`, `lib/api/errors.ts`, `tests/api/goals.spec.ts`, `tests/unit/goal-schema.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** cek akun dulu (400), lalu nama (409), seperti budget. Run penuh kadang gagal di tes API lama karena hook menunggu koneksi pooler (lihat komentar `vitest.config.ts`); ulangan hijau 1434 lulus (85 berkas).
 
 ---
 

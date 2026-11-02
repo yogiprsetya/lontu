@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   STALE_AFTER_DAYS,
-  changedItems,
   checkInMessage,
   formatMarketGain,
   isStale,
@@ -41,36 +40,11 @@ describe("formatMarketGain", () => {
   });
 });
 
-describe("changedItems", () => {
-  const assets = [
-    { accountId: "a", balance: 100 },
-    { accountId: "b", balance: 200 },
-    { accountId: "c", balance: 300 },
-  ];
-
-  it("sends only the rows whose value differs from the balance, in list order", () => {
-    const values = new Map([
-      ["c", 350],
-      ["a", 100],
-      ["b", 0],
-    ]);
-    expect(changedItems(assets, values)).toEqual([
-      { accountId: "b", value: 0 },
-      { accountId: "c", value: 350 },
-    ]);
-  });
-
-  it("is empty when nothing was edited", () => {
-    expect(changedItems(assets, new Map())).toEqual([]);
-  });
-});
-
 describe("checkInMessage", () => {
   it.each([
     [0, "Nilai sama, tidak ada yang dicatat"],
-    [1, "1 nilai diperbarui"],
-    [3, "3 nilai diperbarui"],
+    [1, "Nilai Emas diperbarui"],
   ])("%i → %s", (recorded, text) => {
-    expect(checkInMessage(recorded)).toBe(text);
+    expect(checkInMessage(recorded, "Emas")).toBe(text);
   });
 });

@@ -10,7 +10,7 @@ Pemilik tahu **seberapa dekat ia dengan setiap targetnya** (mis. "Dana Darurat 3
 
 Dua bagian yang saling bergantung:
 
-1. **Revaluasi.** Tipe transaksi baru `revaluation`. Dari sheet "Perbarui nilai", pemilik mengetik nilai terkini akun aset (reksadana dari aplikasinya, emas fisik di harga buyback), dan server mencatat selisihnya sebagai satu baris bertanda. Perubahan nilai pasar menjadi kejadian bertanggal dengan label yang benar, bukan "Penyesuaian saldo awal".
+1. **Revaluasi.** Tipe transaksi baru `revaluation`. Dari sheet "Perbarui nilai" sebuah akun aset, pemilik mengetik nilai terkininya (reksadana dari aplikasinya, emas fisik di harga buyback), dan server mencatat selisihnya sebagai satu baris bertanda. Perubahan nilai pasar menjadi kejadian bertanggal dengan label yang benar, bukan "Penyesuaian saldo awal".
 2. **Target.** Satu target = nama, nominal, bulan target opsional, dan akun-akun yang dihitung. Kartu target menampilkan progres, porsi setoran vs pasar, perkiraan bulan tercapai dari laju setoran 3 bulan terakhir, dan setoran per bulan yang dibutuhkan jika ada bulan target.
 
 Modul ini pemilik **kontrak** `/api/goals*` dan `/api/valuations`, query `goalProgress` dan `assetValuations`, fungsi murni `goalProjection`, hook SWR-nya, dan halaman `/goals`.
@@ -26,9 +26,9 @@ Nomor 1–3 diputuskan Yogi pada 2026-11-01 (sesi idea-refine). Sisanya, perubah
 1. **Nilai diperbarui manual.** Fase ini fokus pada akun reksadana dan emas fisik. Saham dan harga otomatis menyusul di fase lain, jadi tidak ada dependency atau layanan eksternal baru.
 2. **Pertanyaan utama = progres ke target,** bukan grafik net worth. Total net worth saat ini sudah ada di kartu Account Balance dashboard dan tidak berubah.
 3. **Setoran tercatat sebagai transfer** dari akun transaksi ke akun aset (cara pemilik menabung saat ini). Tipe `saving` tidak dipakai modul ini.
-4. **Revaluasi = tipe transaksi, bukan tabel nilai.** Satu baris `revaluation` bertanda per akun per check-in, `amount = nilai baru − saldo per tanggal itu`. Karena semua perubahan saldo tetap berupa transaksi bertanggal, view `account_balances` cukup ditambah satu baris dan riwayat nilai bisa diturunkan nanti tanpa snapshot. Selisih 0 tidak membuat baris (sama dengan adjustment).
+4. **Revaluasi = tipe transaksi, bukan tabel nilai.** Paling banyak satu baris `revaluation` hidup per akun per tanggal (keputusan #6), `amount = nilai baru − saldo per tanggal itu`. Karena semua perubahan saldo tetap berupa transaksi bertanggal, view `account_balances` cukup ditambah satu baris dan riwayat nilai bisa diturunkan nanti tanpa snapshot. Selisih 0 tidak membuat baris (sama dengan adjustment).
 5. **Revaluasi hanya untuk akun aktif dengan `type = "asset"`.** Akun transaksi berubah lewat transaksi biasa.
-6. **Check-in boleh mundur tanggal, tapi tidak mendahului revaluasi terakhir.** `date` mengikuti aturan transaksi (`2000-01-01 ≤ date ≤ hari ini`) dan harus ≥ tanggal revaluasi hidup terakhir akun itu. Check-in tanggal 2 untuk nilai akhir bulan lalu tetap bisa. Menyisipkan nilai lama di antara nilai yang lebih baru akan menggeser nilai terbaru diam-diam, jadi ditolak.
+6. **Check-in boleh mundur tanggal, tapi sekali sehari dan tidak mendahului revaluasi terakhir.** `date` mengikuti aturan transaksi (`2000-01-01 ≤ date ≤ hari ini`). Item yang nilainya berubah (delta ≠ 0) harus bertanggal **sesudah** revaluasi hidup terakhir akun itu. Check-in tanggal 2 untuk nilai akhir bulan lalu tetap bisa. Menyisipkan nilai lama di antara nilai yang lebih baru akan menggeser nilai terbaru diam-diam, dan nilai kedua di tanggal yang sama membuat dua baris untuk satu hari, jadi keduanya ditolak. Item dengan delta 0 tidak menulis apa pun, jadi tidak dicek (ulangan request tetap `recorded: 0`). Menghapus revaluasi hari itu membuka tanggalnya lagi. (Diubah 2026-11-02 dari "≥ revaluasi terakhir", hasil uji manual.)
 7. **Saldo per tanggal D** = `initial_balance` + **semua** adjustment hidup (tanpa melihat tanggalnya, karena adjustment adalah koreksi saldo awal) + transaksi hidup lain bertanggal ≤ D. Dipakai untuk menghitung selisih revaluasi.
 8. **Revaluasi tidak bisa diedit, boleh dihapus** (soft delete + Urungkan, sama dengan adjustment). Menghapusnya menggeser saldo kembali. Tidak ada aturan urutan untuk hapus (lihat [Risiko](#risiko)).
 9. **Setoran vs pasar adalah identitas, bukan tebakan.** Per akun: `marketGain` = jumlah revaluasi hidup, `contributed = balance − marketGain`. Saldo awal dan adjustment termasuk `contributed` (anggap saldo awal sebagai modal; isi saldo awal emas dengan harga beli supaya angka pasarnya bermakna).
@@ -158,15 +158,16 @@ Target terarsip ikut `GET` dengan `includeArchived`, dihitung dengan aturan yang
 - `name`: trim, 1..60. `targetAmount`: `z.int()`, 1..1e12. `targetMonth`: `YYYY-MM` valid (`isPeriod` mode bulan), ≥ bulan berjalan, atau `null`.
 - `accountIds`: `z.uuid()`, 1..20, tanpa duplikat. Setiap id milik user, aktif (kecuali yang sudah ada di target saat `PATCH`), bukan `credit_card`, dan tidak dipakai target aktif lain → 400 `fields.accountIds` dengan pesan yang menyebut akun pertama yang bermasalah. Id asing dan id tidak ada memakai pesan yang sama.
 - `date`: aturan tanggal transaksi. `items`: 1..50, `accountId` unik. `value`: `z.int()`, 0..1e12.
-- Setiap `items[i].accountId` milik user, aktif, `type = "asset"`, dan `date` ≥ revaluasi terakhirnya → selain itu 400 dengan `fields["items.<i>"]` (atau `fields.date` untuk keputusan #6, pesan "Sudah ada nilai tanggal 31 Okt. Pilih tanggal itu atau sesudahnya.").
+- Setiap `items[i].accountId` milik user, aktif, dan `type = "asset"` → selain itu 400 dengan `fields["items.<i>"]`.
+- Keputusan #6, dicek per item yang delta-nya ≠ 0 → 400 `fields.date`: `date` sebelum revaluasi terakhir → "Sudah ada nilai tanggal 31 Okt. Pilih tanggal sesudahnya."; `date` sama → "Nilai sudah diperbarui tanggal 31 Okt. Revaluasi hanya sekali sehari."
 
 ### Aturan tulis
 
 - **Target** (`POST`, `PATCH`, `restore`): satu transaksi DB dengan `pg_advisory_xact_lock(hashtext(user_id))`, lalu cek nama unik dan akun (keputusan #10, #17), lalu tulis. `PATCH` yang tidak mengubah `accountIds` tidak mengecek ulang akun. `DELETE` mengisi `archived_at` dengan `coalesce` (sama dengan arsip akun).
 - **Check-in** (`POST /api/valuations`), dalam **satu transaksi DB**:
   1. `select … from accounts where user_id and id in (…) order by id for update` (urutan tetap mencegah deadlock antar check-in paralel).
-  2. Per item, query terpisah sesudah lock (snapshot baru di READ COMMITTED, sama dengan `updateAccount`): revaluasi terakhir dan saldo per `date` (keputusan #7).
-  3. `delta = value − saldoPerTanggal`. `delta ≠ 0` → insert `{ type: "revaluation", amount: delta, date, accountId, description: "Pembaruan nilai" }`. `recorded` = jumlah baris yang ditulis.
+  2. Per item, query terpisah sesudah lock (snapshot baru di READ COMMITTED, sama dengan `updateAccount`): tanggal revaluasi terakhir per akun dan saldo per `date` (keputusan #7).
+  3. `delta = value − saldoPerTanggal`. `delta ≠ 0` dan `date` tidak sesudah revaluasi terakhir akun itu → 400 tanpa baris (keputusan #6). Selain itu `delta ≠ 0` → insert `{ type: "revaluation", amount: delta, date, accountId, description: "Pembaruan nilai" }`. `recorded` = jumlah baris yang ditulis.
   - Ulangi request yang sama setelah respons hilang → semua delta 0, `recorded: 0`. Idempoten tanpa id dari client.
 - **`revaluation` di API transaksi:** tidak masuk `TRANSACTION_TYPES`, jadi tidak bisa dibuat lewat `POST /api/transactions`. `PATCH` → 409 `TRANSACTION_NOT_EDITABLE` (jalur adjustment yang sudah ada). `DELETE` dan `restore` seperti adjustment.
 
@@ -216,17 +217,18 @@ Target terarsip ikut `GET` dengan `includeArchived`, dihitung dengan aturan yang
 ### 3. UI
 
 - **`app/(app)/goals/page.tsx`**, isi di `components/goals/goals-view.tsx`.
-  - Header: judul + tombol **Perbarui nilai** (≥ 44 px) dan "Tambah target".
+  - Header: judul + tombol "Tambah target".
+  - Daftar "Nilai aset": setiap baris akun punya tombol **Perbarui** (≥ 44 px) yang membuka sheet untuk akun itu saja. (Diubah 2026-11-02: sebelumnya satu tombol Perbarui nilai di header membuka semua akun aset.)
   - **`goal-card.tsx`** per target aktif: nama, `current` dari `targetAmount` dengan progress bar dan persen sebagai teks, baris "Disetor Rp… · Pasar +Rp…" (pasar negatif ditulis "−Rp…", bukan hanya warna), lalu satu kalimat proyeksi:
     - `reached` → "Tercapai".
     - dengan `targetMonth`: "Butuh Rp4,1 jt/bulan sampai Des 2028", ditambah "Dengan laju sekarang: Jan 2029 (terlambat 1 bulan)" atau "…: tepat waktu". `overdue` → "Bulan target sudah lewat · kurang Rp…".
     - tanpa `targetMonth`: "Dengan laju Rp4 jt/bulan, tercapai sekitar Jan 2029".
     - laju `null` → "Perkiraan muncul setelah satu bulan penuh". Laju ≤ 0 → "Belum ada setoran 3 bulan terakhir".
-  - `staleAccountIds` tidak kosong → baris "Nilai Emas belum diperbarui 47 hari" dengan tautan ke sheet.
+  - `staleAccountIds` tidak kosong → baris "Nilai Emas belum diperbarui 47 hari" dengan tombol "Perbarui" yang membuka sheet akun itu.
   - Tombol ikon "Ubah" di kartu (bukan tap seluruh kartu, karena kartu memuat tombol "Perbarui" untuk nilai basi; diubah saat T133) → `components/forms/goal-form.tsx` di `ResponsiveModal`: nama, `MoneyInput` nominal, bulan target opsional (`<input type="month">`, font 16 px, dengan tombol hapus), daftar centang akun (akun aktif bukan kartu kredit; akun milik target lain tampil nonaktif dengan teks "Dipakai {target}"), saldo setiap akun di sebelah namanya.
   - Arsip dari menu kartu → toast "Target diarsipkan · Urungkan" (6 detik). "Lihat arsip" menampilkan target terarsip dengan tombol Pulihkan.
   - Empty state: satu kalimat + "Tambah target". Tanpa akun aset → teks yang mengajak membuat akun aset di Settings.
-- **`components/goals/valuation-sheet.tsx`** di `ResponsiveModal`: input tanggal (default hari ini), lalu satu baris per akun aset aktif: nama, subtype, "diperbarui 12 Okt" / "belum pernah", `MoneyInput` berisi `balance` sekarang. Hanya baris yang diubah yang dikirim. Simpan → toast "{n} nilai diperbarui" (atau "Nilai sama, tidak ada yang dicatat"). Error `fields["items.<i>"]` dipasang di baris yang bersangkutan.
+- **`components/goals/valuation-sheet.tsx`** di `ResponsiveModal`, untuk **satu** akun aset: input tanggal (default hari ini), lalu satu field berlabel nama akun dengan subtype, "diperbarui 12 Okt" / "belum pernah", dan `MoneyInput` berisi `balance` sekarang. Nilai yang tidak diubah tidak dikirim. Simpan → toast "Nilai Emas diperbarui" (atau "Nilai sama, tidak ada yang dicatat"). `fields.date` dipasang di bawah tanggal, `fields["items.0"]` di bawah field nilai. API tetap menerima banyak item.
 - `hideAmounts` menyamarkan semua nominal di kartu dan sheet.
 - Offline (`useOnlineStatus`): tombol simpan, Perbarui nilai, arsip, dan pulihkan dinonaktifkan dengan teks "Butuh koneksi".
 - Mobile: layout benar di 360 px, target sentuh ≥ 44×44 px, input 16 px, kontras ≥ 4.5:1. Ikuti [DESIGN.md](DESIGN.md).
@@ -239,7 +241,7 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 
 - [x] `POST /api/valuations { date: "2026-10-31", items: [{ Emas, 36500000 }, { RD Saham, 6200000 }] }` → `recorded: 2`, revaluasi +500.000 (Emas) dan +200.000 (RD Saham) bertanggal 2026-10-31. `GET /api/accounts` → Emas 36.500.000, RD Saham 6.200.000. Request yang sama diulang → `recorded: 0`, tanpa baris baru.
 - [x] `GET /api/goals` → DP Rumah `current 42700000`, `marketGain 700000`, `contributed 42000000`, `monthlyContribution 4000000` (Agt 3 jt, Sep 4 jt, Okt 5 jt; transfer RD Saham → Emas bernilai 0), `remaining 107300000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`, `overdue false`.
-- [x] Check-in Emas `date "2026-10-15"` setelah revaluasi 2026-10-31 → 400 `fields.date`, tanpa baris. `date` masa depan → 400. Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**.
+- [x] Check-in Emas `date "2026-10-15"` setelah revaluasi 2026-10-31 → 400 `fields.date`, tanpa baris. Nilai baru di `date "2026-10-31"` lagi → 400 `fields.date` "…sekali sehari", tanpa baris. Nilai sama di tanggal itu → `recorded: 0`. `date` masa depan → 400. Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**.
 - [x] Saldo awal akun aset 10.000.000 diubah ke 11.000.000 hari ini (adjustment +1.000.000), lalu check-in kemarin bernilai 12.000.000 → revaluasi +1.000.000, saldo 12.000.000 (keputusan #7).
 - [x] Revaluasi tidak muncul di `totals` `/api/transactions`, `dashboardSummary`, maupun `budgetUsage`. `PATCH /api/transactions/[id]` revaluasi → 409. `DELETE` → saldo kembali, `marketGain` turun. `POST /api/transactions { type: "revaluation" }` → 400.
 - [x] `POST /api/goals` dengan akun yang sudah dipakai target aktif lain, akun kartu kredit, akun terarsip, akun user lain, atau `accountIds` duplikat → 400 `fields.accountIds`. Dua `POST` paralel (`Promise.all`) yang mengklaim akun sama → tepat satu 201.
@@ -255,7 +257,7 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Buat target dari `/goals`, check-in dua akun lewat Perbarui nilai → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
+- [ ] Buat target dari `/goals`, check-in dua akun lewat tombol Perbarui di setiap baris → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
 - [ ] Revaluasi tampil "Revaluasi" di `/transactions`, bisa difilter, tidak bisa diedit, hapus + Urungkan memulihkannya. (tertunda: sesi tanpa browser)
 - [ ] Akun yang dipakai target lain tampil nonaktif dengan teks di form target. (tertunda: sesi tanpa browser)
 - [ ] Status basi, terlambat, dan pasar negatif terbaca tanpa warna. `hideAmounts` menyamarkan nominal. (tertunda: sesi tanpa browser)

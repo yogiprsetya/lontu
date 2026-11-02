@@ -18,51 +18,50 @@ import { failureMessage } from "@/lib/offline/network-error";
 import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
 import { MIN_TRANSACTION_DATE } from "@/lib/schemas/transaction";
 import type { AssetValuation } from "@/lib/schemas/valuation";
-import { changedItems, checkInMessage, valuedLabel } from "@/lib/valuation-format";
+import { checkInMessage, valuedLabel } from "@/lib/valuation-format";
 
-type Errors = { date?: string; form?: string; rows: Record<string, string> };
-
-const NO_ERRORS: Errors = { rows: {} };
+type Errors = { date?: string; value?: string; form?: string };
 
 type FormProps = {
-  assets: AssetValuation[];
-  accounts: Map<string, Account>;
+  asset: AssetValuation;
+  account: Account | undefined;
   onSubmitting: (submitting: boolean) => void;
   onDone: () => void;
 };
 
-function ValuationForm({ assets, accounts, onSubmitting, onDone }: FormProps) {
+function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   const today = todayInJakarta();
   const hidden = useAmountsHidden();
   const money = useAmountFormat();
   const [date, setDate] = useState(today);
-  // Only rows the owner touched; while amounts are hidden the fields start empty instead of showing the balance.
-  const [values, setValues] = useState<ReadonlyMap<string, number>>(new Map());
-  const [errors, setErrors] = useState<Errors>(NO_ERRORS);
+  // Unset until the owner types; while amounts are hidden the field starts empty instead of showing the balance.
+  const [value, setValue] = useState<number>();
+  const [errors, setErrors] = useState<Errors>({});
+  const name = account?.name ?? "Akun";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const items = changedItems(assets, values);
-    if (items.length === 0) {
-      toast.success(checkInMessage(0));
+    if (value === undefined || value === asset.balance) {
+      toast.success(checkInMessage(0, name));
       onDone();
       return;
     }
-    setErrors(NO_ERRORS);
+    setErrors({});
     onSubmitting(true);
     try {
-      const { recorded } = await recordValuations({ date, items });
-      toast.success(checkInMessage(recorded));
+      const { recorded } = await recordValuations({
+        date,
+        items: [{ accountId: asset.accountId, value }],
+      });
+      toast.success(checkInMessage(recorded, name));
       onDone();
     } catch (err) {
       if (err instanceof ApiError && err.fields) {
-        const rows: Record<string, string> = {};
-        // `items.<i>` indexes the rows that were sent, not the whole list.
-        items.forEach(({ accountId }, i) => {
-          const message = err.fields?.[`items.${i}`]?.[0];
-          if (message) rows[accountId] = message;
+        setErrors({
+          date: err.fields.date?.[0],
+          value: err.fields["items.0"]?.[0],
+          form: err.fields.items?.[0],
         });
-        setErrors({ date: err.fields.date?.[0], form: err.fields.items?.[0], rows });
       } else {
         toast.error(failureMessage(err, "Gagal menyimpan nilai. Coba lagi."));
       }
@@ -70,6 +69,16 @@ function ValuationForm({ assets, accounts, onSubmitting, onDone }: FormProps) {
       onSubmitting(false);
     }
   }
+
+  const id = `valuation-${asset.accountId}`;
+  const subtype = account?.subtype ? ACCOUNT_SUBTYPE_LABELS[account.subtype] : "Aset";
+  const hint = [
+    `${subtype} · ${valuedLabel(asset.lastValuedAt, today)}`,
+    `Saat ini ${money(asset.balance)}`,
+    account?.subtype === "gold" && "Pakai harga buyback hari ini",
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   return (
     <form id="valuation-form" onSubmit={submit} noValidate className="flex flex-col gap-5 pb-2">
@@ -88,7 +97,7 @@ function ValuationForm({ assets, accounts, onSubmitting, onDone }: FormProps) {
       </FormField>
       {hidden && (
         <p className="text-sm text-muted-foreground">
-          Nominal disembunyikan. Isi nilai baru hanya untuk akun yang berubah.
+          Nominal disembunyikan. Isi nilai baru jika nilainya berubah.
         </p>
       )}
       {errors.form && (
@@ -96,58 +105,37 @@ function ValuationForm({ assets, accounts, onSubmitting, onDone }: FormProps) {
           {errors.form}
         </p>
       )}
-      {assets.map((asset) => {
-        const account = accounts.get(asset.accountId);
-        const id = `valuation-${asset.accountId}`;
-        const error = errors.rows[asset.accountId];
-        const subtype = account?.subtype ? ACCOUNT_SUBTYPE_LABELS[account.subtype] : "Aset";
-        const hint = [
-          `${subtype} · ${valuedLabel(asset.lastValuedAt, today)}`,
-          `Saat ini ${money(asset.balance)}`,
-          account?.subtype === "gold" && "Pakai harga buyback hari ini",
-        ]
-          .filter(Boolean)
-          .join(". ");
-        return (
-          <FormField
-            key={asset.accountId}
-            id={id}
-            label={account?.name ?? "Akun"}
-            error={error}
-            hint={hint}
-          >
-            <MoneyInput
-              id={id}
-              value={values.get(asset.accountId) ?? (hidden ? 0 : asset.balance)}
-              onChange={(value) => setValues((prev) => new Map(prev).set(asset.accountId, value))}
-              invalid={!!error}
-              describedBy={`${id}-message`}
-            />
-          </FormField>
-        );
-      })}
+      <FormField id={id} label={name} error={errors.value} hint={hint}>
+        <MoneyInput
+          id={id}
+          value={value ?? (hidden ? 0 : asset.balance)}
+          onChange={setValue}
+          invalid={!!errors.value}
+          describedBy={`${id}-message`}
+        />
+      </FormField>
     </form>
   );
 }
 
 type SheetProps = {
-  open: boolean;
+  /** The asset being valued; the sheet is closed while undefined. */
+  asset: AssetValuation | undefined;
+  account: Account | undefined;
   onClose: () => void;
-  assets: AssetValuation[];
-  accounts: Map<string, Account>;
 };
 
-/** Perbarui nilai: the owner types each asset's value today; the server records the differences. */
-export function ValuationSheet({ open, onClose, assets, accounts }: SheetProps) {
+/** Perbarui nilai: the owner types one asset's value today; the server records the difference. */
+export function ValuationSheet({ asset, account, onClose }: SheetProps) {
   const online = useOnlineStatus();
   const [submitting, setSubmitting] = useState(false);
 
   return (
     <ResponsiveModal
-      open={open}
+      open={!!asset}
       onOpenChange={(next) => !next && !submitting && onClose()}
       title="Perbarui nilai"
-      description="Ketik nilai terkini dari aplikasi investasi atau harga emas. Akun yang tidak diubah tidak dicatat."
+      description="Ketik nilai terkini dari aplikasi investasi atau harga emas. Nilai hanya bisa diperbarui sekali sehari."
       footer={
         <div className="flex flex-col gap-2">
           {!online && (
@@ -178,10 +166,11 @@ export function ValuationSheet({ open, onClose, assets, accounts }: SheetProps) 
         </div>
       }
     >
-      {open && (
+      {asset && (
         <ValuationForm
-          assets={assets}
-          accounts={accounts}
+          key={asset.accountId}
+          asset={asset}
+          account={account}
           onSubmitting={setSubmitting}
           onDone={onClose}
         />

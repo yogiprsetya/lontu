@@ -14,8 +14,8 @@ type GoalCardProps = {
   /** Last value date per asset account, for the stale lines. */
   lastValuedAt: Map<string, string | null>;
   today: string;
-  /** Opens Perbarui nilai; undefined while offline. */
-  onValue?: () => void;
+  /** Opens Perbarui nilai for one account; undefined while offline. */
+  onValue?: (accountId: string) => void;
   /** Actions on the right of the title (edit, menu). */
   children?: React.ReactNode;
 };
@@ -80,7 +80,7 @@ export function GoalCard({
                 {onValue && (
                   <button
                     type="button"
-                    onClick={onValue}
+                    onClick={() => onValue(id)}
                     className="min-h-11 shrink-0 rounded-md px-2 font-bold underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     Perbarui

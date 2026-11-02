@@ -43,6 +43,15 @@ function accountProblem(account: { type: string; archivedAt: Date | null } | und
   if (account.type !== "asset") return "Hanya akun aset yang bisa diperbarui nilainya";
 }
 
+/** SPEC-goals #6: a changed value must come after the account's latest revaluation. */
+function dateProblem(last: string | null | undefined, date: string) {
+  if (!last || date > last) return;
+  const day = formatShortDate(last, date);
+  return date === last
+    ? `Nilai sudah diperbarui tanggal ${day}. Revaluasi hanya sekali sehari.`
+    : `Sudah ada nilai tanggal ${day}. Pilih tanggal sesudahnya.`;
+}
+
 export async function recordValuations(
   userId: string,
   input: ValuationInput,
@@ -64,8 +73,8 @@ export async function recordValuations(
 
     // Separate statements from the lock: under READ COMMITTED they get a fresh snapshot,
     // so they see revaluations committed by whoever held the lock before us.
-    const [{ last }] = await tx
-      .select({ last: max(transactions.date) })
+    const lastRows = await tx
+      .select({ accountId: transactions.accountId, last: max(transactions.date) })
       .from(transactions)
       .where(
         and(
@@ -74,28 +83,26 @@ export async function recordValuations(
           eq(transactions.type, "revaluation"),
           isNull(transactions.deletedAt),
         ),
-      );
-    if (last && input.date < last) {
-      const day = formatShortDate(last, input.date);
-      return {
-        invalid: {
-          field: "date",
-          message: `Sudah ada nilai tanggal ${day}. Pilih tanggal itu atau sesudahnya.`,
-        },
-      };
-    }
+      )
+      .groupBy(transactions.accountId);
+    const lastById = new Map(lastRows.map((r) => [r.accountId, r.last]));
 
     const balances = await balancesOn(tx, userId, ids, input.date);
-    const rows = input.items
+    const changes = input.items
       .map(({ accountId, value }) => ({ accountId, amount: value - balances.get(accountId)! }))
-      .filter((r) => r.amount !== 0)
-      .map((r) => ({
-        ...r,
-        userId,
-        type: "revaluation",
-        date: input.date,
-        description: "Pembaruan nilai",
-      }));
+      .filter((r) => r.amount !== 0);
+    for (const { accountId } of changes) {
+      const message = dateProblem(lastById.get(accountId), input.date);
+      if (message) return { invalid: { field: "date", message } };
+    }
+
+    const rows = changes.map((r) => ({
+      ...r,
+      userId,
+      type: "revaluation",
+      date: input.date,
+      description: "Pembaruan nilai",
+    }));
     if (rows.length > 0) await tx.insert(transactions).values(rows);
     return { recorded: rows.length };
   });

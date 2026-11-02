@@ -22,17 +22,6 @@ export function formatMarketGain(amount: number) {
   return `${amount < 0 ? "−" : "+"}${formatIDR(Math.abs(amount))}`;
 }
 
-/** Rows the owner left at the current balance are not sent. */
-export function changedItems(
-  assets: { accountId: string; balance: number }[],
-  values: ReadonlyMap<string, number>,
-) {
-  return assets.flatMap(({ accountId, balance }) => {
-    const value = values.get(accountId);
-    return value === undefined || value === balance ? [] : [{ accountId, value }];
-  });
-}
-
-export function checkInMessage(recorded: number) {
-  return recorded === 0 ? "Nilai sama, tidak ada yang dicatat" : `${recorded} nilai diperbarui`;
+export function checkInMessage(recorded: number, name: string) {
+  return recorded === 0 ? "Nilai sama, tidak ada yang dicatat" : `Nilai ${name} diperbarui`;
 }

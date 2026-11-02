@@ -148,20 +148,47 @@ describe("POST /api/valuations, base scenario", () => {
     expect(await revaluationsOf(reksadana)).toHaveLength(1);
   });
 
-  it("rejects a date before the latest revaluation, and accepts that same date", async () => {
+  it("rejects a new value dated before the latest revaluation", async () => {
     signInAs(userA);
     const message = await expectFieldError(
       await post({ date: "2026-10-15", items: [{ accountId: emas, value: 1 }] }),
       "date",
     );
-    expect(message).toBe("Sudah ada nilai tanggal 31 Okt. Pilih tanggal itu atau sesudahnya.");
+    expect(message).toBe("Sudah ada nilai tanggal 31 Okt. Pilih tanggal sesudahnya.");
     expect(await revaluationsOf(emas)).toHaveLength(1);
+  });
 
-    const same = await post({
-      date: "2026-10-31",
-      items: [{ accountId: emas, value: 36_400_000 }],
+  it("rejects a second new value on the same date", async () => {
+    signInAs(userA);
+    const message = await expectFieldError(
+      await post({ date: "2026-10-31", items: [{ accountId: emas, value: 36_400_000 }] }),
+      "date",
+    );
+    expect(message).toBe("Nilai sudah diperbarui tanggal 31 Okt. Revaluasi hanya sekali sehari.");
+    expect(await revaluationsOf(emas)).toHaveLength(1);
+    expect(await balanceOf(emas)).toBe(36_500_000);
+  });
+
+  it("checks only the items that change, each against its own account", async () => {
+    signInAs(userA);
+    const fresh = await insertAccount(userA, "Emas Antam", { initialBalance: 1_000 });
+    // Emas held 36.000.000 on 20 Oct, so this item writes nothing and is not held to 31 Oct.
+    const res = await post({
+      date: "2026-10-20",
+      items: [
+        { accountId: emas, value: 36_000_000 },
+        { accountId: fresh, value: 1_500 },
+      ],
     });
-    expect(((await same.json()) as ValuationResult).recorded).toBe(1);
+    expect(((await res.json()) as ValuationResult).recorded).toBe(1);
+    expect(await revaluationsOf(emas)).toHaveLength(1);
+    expect(await revaluationsOf(fresh)).toEqual([{ amount: 500, date: "2026-10-20" }]);
+  });
+
+  it("accepts a new value dated after the latest revaluation", async () => {
+    signInAs(userA);
+    const res = await post({ date: "2026-11-01", items: [{ accountId: emas, value: 36_400_000 }] });
+    expect(((await res.json()) as ValuationResult).recorded).toBe(1);
     expect(await balanceOf(emas)).toBe(36_400_000);
   });
 

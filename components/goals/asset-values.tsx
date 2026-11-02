@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUpIcon } from "lucide-react";
+import { RefreshCwIcon, TrendingUpIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { archiveLabel } from "@/lib/archived";
 import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
@@ -29,26 +29,49 @@ function AssetRow({
   asset,
   account,
   today,
+  online,
+  onValue,
 }: {
   asset: AssetValuation;
   account: Account | undefined;
   today: string;
+  online: boolean;
+  onValue: () => void;
 }) {
   const money = useAmountFormat();
   const stale = isStale(asset.lastValuedAt, today);
   const subtype = account?.subtype ? ACCOUNT_SUBTYPE_LABELS[account.subtype] : "Aset";
+  const name = account ? archiveLabel(account) : "Akun";
   return (
     <li className="flex min-h-16 flex-col gap-1 py-3">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="min-w-0 truncate font-bold">{account ? archiveLabel(account) : "Akun"}</p>
+        <p className="min-w-0 truncate font-bold">{name}</p>
         <p className="shrink-0 font-heading text-lg font-extrabold">{money(asset.balance)}</p>
       </div>
       <p className="text-sm text-muted-foreground">
         Disetor {money(asset.contributed)} · Pasar {money(asset.marketGain, formatMarketGain)}
       </p>
-      <p className={cn("text-sm", stale ? "font-semibold text-expense" : "text-muted-foreground")}>
-        {subtype} · {valuedLabel(asset.lastValuedAt, today)}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p
+          className={cn(
+            "min-w-0 text-sm",
+            stale ? "font-semibold text-expense" : "text-muted-foreground",
+          )}
+        >
+          {subtype} · {valuedLabel(asset.lastValuedAt, today)}
+        </p>
+        <Button
+          variant="outline"
+          className="h-11 shrink-0 text-base"
+          size="xs"
+          disabled={!online}
+          aria-label={`Perbarui nilai ${name}`}
+          onClick={onValue}
+        >
+          <RefreshCwIcon aria-hidden />
+          Perbarui
+        </Button>
+      </div>
     </li>
   );
 }
@@ -57,10 +80,14 @@ export function AssetValues({
   assets,
   accounts,
   today,
+  online,
+  onValue,
 }: {
   assets: AssetValuation[];
   accounts: Map<string, Account>;
   today: string;
+  online: boolean;
+  onValue: (accountId: string) => void;
 }) {
   return (
     <section aria-labelledby="asset-values" className="flex flex-col gap-3 surface px-5 py-5">
@@ -74,6 +101,8 @@ export function AssetValues({
             asset={asset}
             account={accounts.get(asset.accountId)}
             today={today}
+            online={online}
+            onValue={() => onValue(asset.accountId)}
           />
         ))}
       </ul>

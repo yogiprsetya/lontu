@@ -1,7 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useMemo, useState } from "react";
-import { EllipsisVerticalIcon, PencilIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { EllipsisVerticalIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { AssetValues, NoAssets } from "@/components/goals/asset-values";
 import { GoalCard } from "@/components/goals/goal-card";
@@ -148,7 +148,7 @@ type GoalListProps = {
   assets: AssetValuation[];
   today: string;
   online: boolean;
-  onValue?: () => void;
+  onValue?: (accountId: string) => void;
   onEdit: (id: string) => void;
   onArchive: (goal: GoalProgress) => void;
 };
@@ -198,7 +198,7 @@ function GoalList({
 }
 
 export function GoalsView() {
-  const [valuing, setValuing] = useState(false);
+  const [valuingId, setValuingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -214,7 +214,7 @@ export function GoalsView() {
   );
   const today = todayInJakarta();
   const assets = valuations.data;
-  const canValue = online && !!assets?.length;
+  const valuing = assets?.find((a) => a.accountId === valuingId);
   const visibleGoals = goals.data?.filter((g) => !archiving.has(g.id));
   const editing = visibleGoals?.find((g) => g.id === editingId && !g.archivedAt);
   const formOpen = creating || !!editing;
@@ -266,7 +266,7 @@ export function GoalsView() {
             assets={assets}
             today={today}
             online={online}
-            onValue={canValue ? () => setValuing(true) : undefined}
+            onValue={online ? setValuingId : undefined}
             onEdit={setEditingId}
             onArchive={(goal) => void archive(goal)}
           />
@@ -274,7 +274,13 @@ export function GoalsView() {
         {assets.length === 0 ? (
           <NoAssets />
         ) : (
-          <AssetValues assets={assets} accounts={accountsById} today={today} />
+          <AssetValues
+            assets={assets}
+            accounts={accountsById}
+            today={today}
+            online={online}
+            onValue={setValuingId}
+          />
         )}
       </>
     );
@@ -287,15 +293,6 @@ export function GoalsView() {
           <Button className="h-11 text-base" onClick={() => setCreating(true)}>
             <PlusIcon aria-hidden />
             Tambah target
-          </Button>
-          <Button
-            variant="outline"
-            className="h-11 text-base"
-            disabled={!canValue}
-            onClick={() => setValuing(true)}
-          >
-            <RefreshCwIcon aria-hidden />
-            Perbarui nilai
           </Button>
         </div>
         <ShowArchivedSwitch
@@ -349,10 +346,9 @@ export function GoalsView() {
         )}
       </ResponsiveModal>
       <ValuationSheet
-        open={valuing}
-        onClose={() => setValuing(false)}
-        assets={assets ?? []}
-        accounts={accountsById}
+        asset={valuing}
+        account={valuing && accountsById.get(valuing.accountId)}
+        onClose={() => setValuingId(null)}
       />
     </>
   );

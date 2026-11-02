@@ -9,7 +9,7 @@ import { STALE_AFTER_DAYS } from "@/lib/valuation-format";
 
 type Options = { today: string; includeArchived?: boolean };
 
-export function toGoal(row: typeof goals.$inferSelect): Goal {
+function toGoal(row: typeof goals.$inferSelect): Goal {
   return {
     id: row.id,
     name: row.name,

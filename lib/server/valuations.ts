@@ -8,7 +8,9 @@ import { assetValuations } from "@/lib/server/queries/asset-valuations";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export type RecordResult = ValuationResult | { invalid: { field: string; message: string } };
+type Invalid = { invalid: { field: string; message: string } };
+
+export type RecordResult = ValuationResult | Invalid;
 
 /**
  * Balance on `date` (SPEC-goals #7): opening balance, every live adjustment whatever its date
@@ -46,7 +48,7 @@ export async function recordValuations(
   input: ValuationInput,
 ): Promise<RecordResult> {
   const ids = input.items.map((i) => i.accountId);
-  const result = await db.transaction(async (tx): Promise<RecordResult> => {
+  const result = await db.transaction(async (tx): Promise<Invalid | { recorded: number }> => {
     // Fixed lock order, so two check-ins over the same accounts cannot deadlock.
     const locked = await tx
       .select({ id: accounts.id, type: accounts.type, archivedAt: accounts.archivedAt })
@@ -95,8 +97,9 @@ export async function recordValuations(
         description: "Pembaruan nilai",
       }));
     if (rows.length > 0) await tx.insert(transactions).values(rows);
-    return { recorded: rows.length, assets: [] };
+    return { recorded: rows.length };
   });
   if ("invalid" in result) return result;
-  return { recorded: result.recorded, assets: await assetValuations(userId) };
+  // Read after commit, so the values include the rows just written.
+  return { ...result, assets: await assetValuations(userId) };
 }

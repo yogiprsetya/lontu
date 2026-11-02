@@ -1,22 +1,15 @@
 "use client";
 
 import { lazy, Suspense, useMemo, useState } from "react";
-import Link from "next/link";
-import {
-  EllipsisVerticalIcon,
-  PencilIcon,
-  PlusIcon,
-  RefreshCwIcon,
-  TrendingUpIcon,
-} from "lucide-react";
+import { EllipsisVerticalIcon, PencilIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
+import { AssetValues, NoAssets } from "@/components/goals/asset-values";
 import { GoalCard } from "@/components/goals/goal-card";
 import { ValuationSheet } from "@/components/goals/valuation-sheet";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import { SectionTitle } from "@/components/layout/section-title";
 import { ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,20 +18,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
-import { useAmountFormat } from "@/hooks/use-amount-format";
 import { archiveGoal, restoreGoal, useGoals } from "@/hooks/use-goals";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useValuations } from "@/hooks/use-valuations";
-import { archiveLabel } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
 import { ApiError } from "@/lib/fetcher";
 import { failureMessage } from "@/lib/offline/network-error";
-import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
+import type { Account } from "@/lib/schemas/account";
 import type { GoalProgress } from "@/lib/schemas/goal";
 import type { AssetValuation } from "@/lib/schemas/valuation";
 import { undoToast } from "@/lib/undo-toast";
-import { cn } from "@/lib/utils";
-import { formatMarketGain, isStale, valuedLabel } from "@/lib/valuation-format";
 
 // Loaded on the first Tambah target or Ubah, not with the page.
 const GoalForm = lazy(() =>
@@ -204,76 +193,6 @@ function GoalList({
           )}
         </GoalCard>
       ))}
-    </section>
-  );
-}
-
-function NoAssets() {
-  return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
-      <p className="text-muted-foreground">
-        Belum ada akun aset. Buat akun aset untuk reksadana atau emas di Settings, lalu perbarui
-        nilainya di sini tiap bulan.
-      </p>
-      <Link href="/settings" className={cn(buttonVariants(), "h-11 text-base")}>
-        Buka Settings
-      </Link>
-    </div>
-  );
-}
-
-function AssetRow({
-  asset,
-  account,
-  today,
-}: {
-  asset: AssetValuation;
-  account: Account | undefined;
-  today: string;
-}) {
-  const money = useAmountFormat();
-  const stale = isStale(asset.lastValuedAt, today);
-  const subtype = account?.subtype ? ACCOUNT_SUBTYPE_LABELS[account.subtype] : "Aset";
-  return (
-    <li className="flex min-h-16 flex-col gap-1 py-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="min-w-0 truncate font-bold">{account ? archiveLabel(account) : "Akun"}</p>
-        <p className="shrink-0 font-heading text-lg font-extrabold">{money(asset.balance)}</p>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Disetor {money(asset.contributed)} · Pasar {money(asset.marketGain, formatMarketGain)}
-      </p>
-      <p className={cn("text-sm", stale ? "font-semibold text-expense" : "text-muted-foreground")}>
-        {subtype} · {valuedLabel(asset.lastValuedAt, today)}
-      </p>
-    </li>
-  );
-}
-
-function AssetValues({
-  assets,
-  accounts,
-  today,
-}: {
-  assets: AssetValuation[];
-  accounts: Map<string, Account>;
-  today: string;
-}) {
-  return (
-    <section aria-labelledby="asset-values" className="flex flex-col gap-3 surface px-5 py-5">
-      <SectionTitle id="asset-values" icon={TrendingUpIcon} tone="mint">
-        Nilai aset
-      </SectionTitle>
-      <ul className="divide-y">
-        {assets.map((asset) => (
-          <AssetRow
-            key={asset.accountId}
-            asset={asset}
-            account={accounts.get(asset.accountId)}
-            today={today}
-          />
-        ))}
-      </ul>
     </section>
   );
 }

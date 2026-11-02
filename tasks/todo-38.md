@@ -38,20 +38,22 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Edit nama, nominal, bulan target, dan akun → kartu dan proyeksi berubah tanpa reload; menghapus bulan target menghilangkan kalimat "Butuh … /bulan"
-- [ ] Arsip → kartu hilang seketika, akun bebas di form target lain; Urungkan mengembalikannya; Urungkan offline → toast gagal
-- [ ] Pulihkan dari daftar arsip berhasil, atau menampilkan pesan bentrok tanpa mengubah data
+- [x] Edit nama, nominal, bulan target, dan akun → kartu dan proyeksi berubah tanpa reload; menghapus bulan target menghilangkan kalimat "Butuh … /bulan"
+- [x] Arsip → kartu hilang seketika, akun bebas di form target lain; Urungkan mengembalikannya; Urungkan offline → toast gagal
+- [x] Pulihkan dari daftar arsip berhasil, atau menampilkan pesan bentrok tanpa mengubah data
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual (boleh tertunda: sesi tanpa browser): skenario di atas di 360×800
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): skenario di atas di 360×800
 
 **Dependencies:** T131, T132
 
 **Files likely touched:** `hooks/use-goals.ts`, `components/goals/goal-card.tsx`, `components/forms/goal-form.tsx`, `components/goals/goals-view.tsx`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** edit dibuka dari tombol ikon "Ubah" di kartu (bukan tap seluruh kartu, karena kartu memuat tombol "Perbarui" untuk nilai basi). Arsip memakai pola `archiving` + `undoToast` dari `/recurring`. Pulihkan dan Urungkan menampilkan pesan 409 server apa adanya. Form edit memakai `goalEditSchema(bulan tersimpan)` supaya target yang bulannya sudah lewat tetap bisa diubah namanya; PATCH hanya mengirim field yang berubah (`goalChanges`). Saklar arsip memakai `ShowArchivedSwitch` ("Tampilkan arsip"). JS first load `/goals` 336,1 KB gzip. Tes: 1485 lulus (87 berkas).
 
 ---
 

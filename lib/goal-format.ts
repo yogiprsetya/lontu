@@ -2,7 +2,7 @@ import { archiveLabel } from "@/lib/archived";
 import { abbreviateIDR, formatIDR } from "@/lib/money";
 import { periodToYearMonth } from "@/lib/period";
 import type { Account } from "@/lib/schemas/account";
-import type { Goal, GoalProgress } from "@/lib/schemas/goal";
+import type { Goal, GoalCreateInput, GoalProgress, GoalUpdateInput } from "@/lib/schemas/goal";
 
 /** The screen's amount formatter (`useAmountFormat`), so hidden amounts stay hidden. */
 type Money = (amount: number, format: (amount: number) => string) => string;
@@ -96,4 +96,16 @@ export function goalAccountOptions(
       balance: a.balance,
       takenBy: owner.get(a.id) ?? null,
     }));
+}
+
+type Editable = Pick<Goal, "name" | "targetAmount" | "targetMonth" | "accountIds">;
+
+/** The PATCH body for an edit: only changed fields, so untouched accounts are not rechecked. */
+export function goalChanges(goal: Editable, input: GoalCreateInput): GoalUpdateInput {
+  const changes: GoalUpdateInput = {};
+  if (input.name !== goal.name) changes.name = input.name;
+  if (input.targetAmount !== goal.targetAmount) changes.targetAmount = input.targetAmount;
+  if (input.targetMonth !== goal.targetMonth) changes.targetMonth = input.targetMonth;
+  if (input.accountIds.join() !== goal.accountIds.join()) changes.accountIds = input.accountIds;
+  return changes;
 }

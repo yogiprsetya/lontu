@@ -56,15 +56,22 @@ const targetAmount = z
   .max(1e12, "Maksimal 1 triliun");
 
 // YYYY-MM strings compare correctly as text. The current month is read at parse time,
-// so a long-lived schema never goes stale across a month boundary.
-const targetMonth = z
-  .string("Bulan target tidak valid")
-  .refine((m) => isPeriod(m) && periodMode(m) === "month", {
-    error: "Bulan target tidak valid",
-    abort: true,
-  })
-  .refine((m) => m >= todayInJakarta().slice(0, 7), "Bulan target minimal bulan ini")
-  .nullable();
+// so a long-lived schema never goes stale across a month boundary. `kept` is a goal's own
+// stored month, which an edit may leave in place after it has passed.
+const targetMonthSchema = (kept: string | null = null) =>
+  z
+    .string("Bulan target tidak valid")
+    .refine((m) => isPeriod(m) && periodMode(m) === "month", {
+      error: "Bulan target tidak valid",
+      abort: true,
+    })
+    .refine(
+      (m) => m === kept || m >= todayInJakarta().slice(0, 7),
+      "Bulan target minimal bulan ini",
+    )
+    .nullable();
+
+const targetMonth = targetMonthSchema();
 
 const accountIds = z
   .array(z.uuid("Akun tidak valid"), "Pilih akun")
@@ -80,6 +87,10 @@ export const goalCreateSchema = z.strictObject({
 });
 
 export type GoalCreateInput = z.infer<typeof goalCreateSchema>;
+
+/** The edit form's schema; the PATCH body only carries the fields that changed. */
+export const goalEditSchema = (storedMonth: string | null) =>
+  goalCreateSchema.extend({ targetMonth: targetMonthSchema(storedMonth).default(null) });
 
 export const goalUpdateSchema = z
   .strictObject({ name, targetAmount, targetMonth, accountIds })

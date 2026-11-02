@@ -16,7 +16,8 @@ const { budgetUsageKey } = await import("@/hooks/use-budgets");
 const { dashboardKey } = await import("@/hooks/use-dashboard");
 const { archiveRule, recurringKey } = await import("@/hooks/use-recurring");
 const { recordValuations, valuationsKey } = await import("@/hooks/use-valuations");
-const { createGoal, goalsKey } = await import("@/hooks/use-goals");
+const { archiveGoal, createGoal, goalsKey, restoreGoal, updateGoal } =
+  await import("@/hooks/use-goals");
 
 const mockedMutate = vi.mocked(mutate);
 const id = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -170,6 +171,17 @@ describe("goals edges", () => {
     expect(revalidated(keys.valuations)).toBe(true);
     expect(revalidated(keys.accounts)).toBe(false);
     expect(revalidated(keys.transactions)).toBe(false);
+  });
+
+  it.each([
+    ["editing", () => updateGoal(id, { name: "Rumah" })],
+    ["archiving", () => archiveGoal(id)],
+    ["restoring", () => restoreGoal(id)],
+  ])("%s a goal refreshes goals and asset values", async (_, mutation) => {
+    await mutation();
+    expect(revalidated(keys.goals)).toBe(true);
+    expect(revalidated(keys.valuations)).toBe(true);
+    expect(revalidated(keys.dashboard)).toBe(false);
   });
 });
 

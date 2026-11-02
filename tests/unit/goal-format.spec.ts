@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatTargetMonth,
   goalAccountOptions,
+  goalChanges,
   goalPercent,
   goalProjectionText,
 } from "@/lib/goal-format";
@@ -144,5 +145,31 @@ describe("goalAccountOptions", () => {
       { id: "rd", name: "RD", balance: 1_000, takenBy: null },
       { id: "lama", name: "LAMA (arsip)", balance: 1_000, takenBy: null },
     ]);
+  });
+});
+
+describe("goalChanges", () => {
+  const goal = {
+    name: "DP Rumah",
+    targetAmount: 150_000_000,
+    targetMonth: "2028-12",
+    accountIds: ["emas", "rd"],
+  };
+
+  it("is empty when nothing changed", () => {
+    expect(goalChanges(goal, { ...goal, accountIds: ["emas", "rd"] })).toEqual({});
+  });
+
+  it("sends only the fields that changed, clearing the month with null", () => {
+    expect(goalChanges(goal, { ...goal, name: "Rumah", targetMonth: null })).toEqual({
+      name: "Rumah",
+      targetMonth: null,
+    });
+  });
+
+  it("treats a new account order as a change", () => {
+    expect(goalChanges(goal, { ...goal, accountIds: ["rd", "emas"] })).toEqual({
+      accountIds: ["rd", "emas"],
+    });
   });
 });

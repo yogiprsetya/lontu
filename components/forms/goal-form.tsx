@@ -13,12 +13,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { createGoal, useGoals } from "@/hooks/use-goals";
+import { createGoal, updateGoal, useGoals } from "@/hooks/use-goals";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
-import { goalAccountOptions, type GoalAccountOption } from "@/lib/goal-format";
+import { goalAccountOptions, goalChanges, type GoalAccountOption } from "@/lib/goal-format";
 import { failureMessage } from "@/lib/offline/network-error";
-import { type GoalCreateInput, goalCreateSchema } from "@/lib/schemas/goal";
+import {
+  type Goal,
+  type GoalCreateInput,
+  goalCreateSchema,
+  goalEditSchema,
+} from "@/lib/schemas/goal";
 
 type FormValues = z.input<typeof goalCreateSchema>;
 
@@ -75,8 +80,15 @@ function AccountChecklist({
   );
 }
 
-export function GoalForm({ onDone }: { onDone: () => void }) {
-  const accounts = useAccounts();
+type GoalFormProps = {
+  /** Edit this goal; omit to create one. */
+  goal?: Goal;
+  onDone: () => void;
+};
+
+export function GoalForm({ goal, onDone }: GoalFormProps) {
+  // Archived accounts the goal already counts stay listed (SPEC-goals #15).
+  const accounts = useAccounts({ includeArchived: true });
   const goals = useGoals();
   const thisMonth = todayInJakarta().slice(0, 7);
   const {
@@ -86,14 +98,29 @@ export function GoalForm({ onDone }: { onDone: () => void }) {
     setError,
     formState: { errors },
   } = useForm<FormValues, unknown, GoalCreateInput>({
-    resolver: zodResolver(goalCreateSchema),
-    defaultValues: { name: "", targetAmount: 0, targetMonth: null, accountIds: [] },
+    resolver: zodResolver(goal ? goalEditSchema(goal.targetMonth) : goalCreateSchema),
+    defaultValues: goal
+      ? {
+          name: goal.name,
+          targetAmount: goal.targetAmount,
+          targetMonth: goal.targetMonth,
+          accountIds: goal.accountIds,
+        }
+      : { name: "", targetAmount: 0, targetMonth: null, accountIds: [] },
   });
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      await createGoal(input);
-      toast.success("Target ditambahkan");
+      if (goal) {
+        const changes = goalChanges(goal, input);
+        if (Object.keys(changes).length > 0) {
+          await updateGoal(goal.id, changes);
+          toast.success("Target diperbarui");
+        }
+      } else {
+        await createGoal(input);
+        toast.success("Target ditambahkan");
+      }
       onDone();
     } catch (err) {
       if (!applyServerErrors(err, setError))
@@ -101,7 +128,7 @@ export function GoalForm({ onDone }: { onDone: () => void }) {
     }
   });
 
-  const options = goalAccountOptions(accounts.data ?? [], goals.data ?? []);
+  const options = goalAccountOptions(accounts.data ?? [], goals.data ?? [], goal);
 
   return (
     <form id="goal-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-2">

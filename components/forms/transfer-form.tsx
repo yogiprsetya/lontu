@@ -18,6 +18,7 @@ import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
 import { useShortBalanceWarning } from "@/components/forms/balance-warning";
 import { CategoryPicker } from "@/components/forms/category-picker";
+import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { StickySubmit } from "@/components/forms/sticky-submit";
@@ -325,18 +326,24 @@ function TransferFields({
         )}
       />
 
-      <FormField id="transfer-date" label="Tanggal" error={errors.date?.message}>
-        <Input
-          id="transfer-date"
-          type="date"
-          className={inputClass}
-          min={MIN_TRANSACTION_DATE}
-          max={today}
-          aria-invalid={!!errors.date}
-          aria-describedby="transfer-date-message"
-          {...register("date")}
-        />
-      </FormField>
+      <Controller
+        control={control}
+        name="date"
+        render={({ field }) => (
+          <FormField id="transfer-date" label="Tanggal" error={errors.date?.message}>
+            <DateField
+              ref={field.ref}
+              id="transfer-date"
+              value={field.value}
+              onChange={field.onChange}
+              min={MIN_TRANSACTION_DATE}
+              max={today}
+              invalid={!!errors.date}
+              describedBy="transfer-date-message"
+            />
+          </FormField>
+        )}
+      />
 
       <FormField
         id="transfer-description"

@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
-import { inputClass } from "@/components/forms/field-styles";
 import { MoneyInput } from "@/components/forms/money-input";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { recordValuations } from "@/hooks/use-valuations";
@@ -83,16 +82,14 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   return (
     <form id="valuation-form" onSubmit={submit} noValidate className="flex flex-col gap-5 pb-2">
       <FormField id="valuation-date" label="Tanggal nilai" error={errors.date}>
-        <Input
+        <DateField
           id="valuation-date"
-          type="date"
-          className={inputClass}
+          value={date}
+          onChange={setDate}
           min={MIN_TRANSACTION_DATE}
           max={today}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          aria-invalid={!!errors.date}
-          aria-describedby="valuation-date-message"
+          invalid={!!errors.date}
+          describedBy="valuation-date-message"
         />
       </FormField>
       {hidden && (

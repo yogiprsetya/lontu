@@ -18,6 +18,7 @@ import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
 import { useShortBalanceWarning } from "@/components/forms/balance-warning";
 import { CategoryPicker } from "@/components/forms/category-picker";
+import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
 import { StickySubmit } from "@/components/forms/sticky-submit";
 import { MoneyInput } from "@/components/forms/money-input";
@@ -279,18 +280,24 @@ function TransactionFields({
         )}
       />
 
-      <FormField id="transaction-date" label="Tanggal" error={errors.date?.message}>
-        <Input
-          id="transaction-date"
-          type="date"
-          className={inputClass}
-          min={MIN_TRANSACTION_DATE}
-          max={today}
-          aria-invalid={!!errors.date}
-          aria-describedby="transaction-date-message"
-          {...register("date")}
-        />
-      </FormField>
+      <Controller
+        control={control}
+        name="date"
+        render={({ field }) => (
+          <FormField id="transaction-date" label="Tanggal" error={errors.date?.message}>
+            <DateField
+              ref={field.ref}
+              id="transaction-date"
+              value={field.value}
+              onChange={field.onChange}
+              min={MIN_TRANSACTION_DATE}
+              max={today}
+              invalid={!!errors.date}
+              describedBy="transaction-date-message"
+            />
+          </FormField>
+        )}
+      />
 
       <FormField
         id="transaction-description"

@@ -15,7 +15,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
-| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Selesai (T123–T134). Cek UI manual dan produksi tertunda (lihat Temuan verifikasi T134) |
+| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–39 | T123–T138 | T123–T134 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134). T135–T138 (check-in hari ini + deskripsi) direncanakan |
 
 ---
 
@@ -738,6 +738,7 @@ Phase 38  T132 Kartu target + buat target (butuh T127, T130) ─► T133 Edit, a
 | 36. Revaluasi                 | [plan-36.md](plan-36.md) | [todo-36.md](todo-36.md) | T124–T127 | AI         |
 | 37. Target: model dan API     | [plan-37.md](plan-37.md) | [todo-37.md](todo-37.md) | T128–T131 | AJ         |
 | 38. Target: UI dan penutupan  | [plan-38.md](plan-38.md) | [todo-38.md](todo-38.md) | T132–T134 | AK         |
+| 39. Check-in hari ini + deskripsi | [plan-39.md](plan-39.md) | [todo-39.md](todo-39.md) | T135–T138 | AL         |
 
 ## Aturan lintas phase
 

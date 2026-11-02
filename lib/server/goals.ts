@@ -1,16 +1,22 @@
 import "server-only";
 import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
 import { accounts, goals } from "@/db/schema";
 import { todayInJakarta } from "@/lib/date";
 import { periodToYearMonth } from "@/lib/period";
-import type { GoalCreateInput, GoalProgress } from "@/lib/schemas/goal";
+import type { GoalCreateInput, GoalProgress, GoalUpdateInput } from "@/lib/schemas/goal";
 import { goalProgress } from "@/lib/server/queries/goal-progress";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 type InvalidAccounts = { invalid: { field: "accountIds"; message: string } };
-export type GoalWriteResult = GoalProgress | InvalidAccounts | { nameTaken: true };
+type Refused =
+  InvalidAccounts | { nameTaken: true } | { notFound: true } | { restoreConflict: true };
+export type GoalWriteResult = GoalProgress | Refused;
+
+const isUuid = (id: string) => z.uuid().safeParse(id).success;
+const owned = (userId: string, id: string) => and(eq(goals.userId, userId), eq(goals.id, id));
 
 /**
  * Serializes every goal write of one user until commit, so two requests cannot both pass the
@@ -88,7 +94,7 @@ export async function getGoalProgress(userId: string, id: string) {
   return all.find((g) => g.id === id);
 }
 
-type Written = InvalidAccounts | { nameTaken: true } | { id: string };
+type Written = Refused | { id: string };
 
 /** The write ran in a transaction; the progress is read after commit so it sees the new row. */
 async function afterWrite(userId: string, written: Written): Promise<GoalWriteResult> {
@@ -114,6 +120,71 @@ export async function createGoal(userId: string, input: GoalCreateInput): Promis
       })
       .returning({ id: goals.id });
     return { id: row.id };
+  });
+  return afterWrite(userId, written);
+}
+
+/** A name or account change is checked against the other active goals; untouched fields are not. */
+export async function updateGoal(
+  userId: string,
+  id: string,
+  input: GoalUpdateInput,
+): Promise<GoalWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const written = await db.transaction(async (tx): Promise<Written> => {
+    await lockGoals(tx, userId);
+    const [goal] = await tx
+      .select({ accountIds: goals.accountIds })
+      .from(goals)
+      .where(and(owned(userId, id), isNull(goals.archivedAt)));
+    if (!goal) return { notFound: true };
+    const others = await otherActiveGoals(tx, userId, id);
+    if (input.accountIds) {
+      // An account archived after it was linked may stay (SPEC-goals #15).
+      const kept = new Set(goal.accountIds);
+      const invalid = await checkAccounts(tx, userId, input.accountIds, others, kept);
+      if (invalid) return invalid;
+    }
+    if (input.name !== undefined && nameClash(others, input.name)) return { nameTaken: true };
+    const { targetMonth, ...fields } = input;
+    await tx
+      .update(goals)
+      .set({
+        ...fields,
+        ...(targetMonth !== undefined && targetColumns(targetMonth)),
+        updatedAt: sql`now()`,
+      })
+      .where(owned(userId, id));
+    return { id };
+  });
+  return afterWrite(userId, written);
+}
+
+export async function archiveGoal(userId: string, id: string): Promise<GoalWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const [row] = await db
+    .update(goals)
+    // coalesce keeps the original timestamp when archiving twice.
+    .set({ archivedAt: sql`coalesce(${goals.archivedAt}, now())` })
+    .where(owned(userId, id))
+    .returning({ id: goals.id });
+  return afterWrite(userId, row ?? { notFound: true });
+}
+
+/** Rechecks the name and every account, since another goal may have taken them meanwhile. */
+export async function restoreGoal(userId: string, id: string): Promise<GoalWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const written = await db.transaction(async (tx): Promise<Written> => {
+    await lockGoals(tx, userId);
+    const [goal] = await tx.select().from(goals).where(owned(userId, id));
+    if (!goal) return { notFound: true };
+    if (!goal.archivedAt) return { id };
+    const others = await otherActiveGoals(tx, userId, id);
+    const taken = new Set(others.flatMap((g) => g.accountIds));
+    if (nameClash(others, goal.name) || goal.accountIds.some((a) => taken.has(a)))
+      return { restoreConflict: true };
+    await tx.update(goals).set({ archivedAt: null }).where(owned(userId, id));
+    return { id };
   });
   return afterWrite(userId, written);
 }

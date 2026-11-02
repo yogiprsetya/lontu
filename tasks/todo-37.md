@@ -86,17 +86,19 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `PATCH { name }` pada target dengan akun terarsip → 200; `PATCH { accountIds }` yang menambah akun terarsip atau akun target lain → 400; `PATCH` target terarsip → 404; body kosong → 400
-- [ ] `DELETE` dua kali → 200, `archivedAt` tidak berubah; arsip A, buat B dengan akun A, restore A → 409 `GOAL_RESTORE_CONFLICT`; restore target aktif → 200 tanpa perubahan
-- [ ] Isolasi: user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` target A; id bukan UUID → 404
+- [x] `PATCH { name }` pada target dengan akun terarsip → 200; `PATCH { accountIds }` yang menambah akun terarsip atau akun target lain → 400; `PATCH` target terarsip → 404; body kosong → 400
+- [x] `DELETE` dua kali → 200, `archivedAt` tidak berubah; arsip A, buat B dengan akun A, restore A → 409 `GOAL_RESTORE_CONFLICT`; restore target aktif → 200 tanpa perubahan
+- [x] Isolasi: user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` target A; id bukan UUID → 404
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/api/goals.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm vitest run tests/api/goals.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T130
 
 **Files likely touched:** `lib/schemas/goal.ts`, `lib/server/goals.ts`, `app/api/goals/[id]/route.ts`, `app/api/goals/[id]/restore/route.ts`, `lib/api/errors.ts`, `tests/api/goals.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** tes route item di `tests/api/goals-item.spec.ts` (precedent `transactions-item.spec.ts`), bukan `goals.spec.ts`. Tes: 1450 lulus (86 berkas).

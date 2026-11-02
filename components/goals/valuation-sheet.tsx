@@ -147,16 +147,17 @@ export function ValuationSheet({ asset, account, onClose }: SheetProps) {
             <Button
               type="button"
               variant="outline"
-              className="h-11 flex-1 text-base"
+              className="flex-1 text-base"
               disabled={submitting}
               onClick={onClose}
             >
               Batal
             </Button>
+
             <Button
               type="submit"
               form="valuation-form"
-              className="h-11 flex-1 text-base"
+              className="flex-1 text-base"
               disabled={!online || submitting}
             >
               {submitting && <Loader2Icon className="animate-spin" aria-hidden />}

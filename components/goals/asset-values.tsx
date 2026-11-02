@@ -62,8 +62,8 @@ function AssetRow({
         </p>
         <Button
           variant="outline"
-          className="h-11 shrink-0 text-base"
-          size="xs"
+          className="shrink-0 text-base"
+          size="sm"
           disabled={!online}
           aria-label={`Perbarui nilai ${name}`}
           onClick={onValue}

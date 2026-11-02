@@ -1,14 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { accountCreateSchema } from "@/lib/schemas/account";
 import { valuationSchema } from "@/lib/schemas/valuation";
 
 const emas = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
 const reksadana = "3a4b5c6d-7e8f-4a0b-9c2d-3e4f5a6b7c8d";
-
-afterEach(() => {
-  vi.useRealTimers();
-});
 
 const fieldsOf = (body: unknown) => {
   const result = valuationSchema.safeParse(body);
@@ -17,7 +13,6 @@ const fieldsOf = (body: unknown) => {
 
 describe("valuationSchema", () => {
   const body = {
-    date: "2026-10-31",
     items: [
       { accountId: emas, value: 36_500_000 },
       { accountId: reksadana, value: 0 },
@@ -28,17 +23,12 @@ describe("valuationSchema", () => {
     expect(valuationSchema.parse(body)).toEqual(body);
   });
 
-  it("rejects a date after today in Jakarta", () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    // 17:30 UTC on 31 October is already 1 November in Jakarta.
-    vi.setSystemTime(new Date("2026-10-31T17:30:00Z"));
-    expect(valuationSchema.safeParse({ ...body, date: "2026-11-01" }).success).toBe(true);
-    expect(fieldsOf({ ...body, date: "2026-11-02" })).toEqual(["date"]);
-  });
-
-  it.each(["1999-12-31", "2026-02-30", "31-10-2026"])("rejects date %j", (date) => {
-    expect(fieldsOf({ ...body, date })).toEqual(["date"]);
-  });
+  it.each(["2026-10-31", "1999-12-31", "not a date"])(
+    "rejects date %j, the server dates every check-in",
+    (date) => {
+      expect(valuationSchema.safeParse({ ...body, date }).success).toBe(false);
+    },
+  );
 
   it.each([
     ["negative", -1],

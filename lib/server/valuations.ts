@@ -1,39 +1,14 @@
 import "server-only";
-import { and, eq, inArray, isNull, max, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, max } from "drizzle-orm";
 import { db } from "@/db";
-import { accounts, transactions } from "@/db/schema";
-import { formatShortDate } from "@/lib/recurring-format";
+import { accountBalances, accounts, transactions } from "@/db/schema";
+import { todayInJakarta } from "@/lib/date";
 import type { ValuationInput, ValuationResult } from "@/lib/schemas/valuation";
 import { assetValuations } from "@/lib/server/queries/asset-valuations";
-
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 type Invalid = { invalid: { field: string; message: string } };
 
 export type RecordResult = ValuationResult | Invalid;
-
-/**
- * Balance on `date` (SPEC-goals #7): opening balance, every live adjustment whatever its date
- * (an adjustment corrects the opening balance), and every other live transaction up to `date`.
- */
-async function balancesOn(tx: Tx, userId: string, ids: string[], date: string) {
-  const rows = await tx.execute<{ id: string; balance: string }>(sql`
-    select a.id, (a.initial_balance + coalesce(sum(case
-        when t.type = 'adjustment'                          then t.amount
-        when t.date > ${date}                               then 0
-        when t.type in ('income', 'revaluation')            then t.amount
-        when t.type in ('expense', 'saving')                then -t.amount
-        when t.type = 'transfer' and t.account_id = a.id    then -t.amount
-        when t.type = 'transfer' and t.to_account_id = a.id then t.amount
-      end), 0))::bigint as balance
-    from accounts a
-    left join transactions t
-      on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)
-    where a.user_id = ${userId} and a.id in ${ids}
-    group by a.id
-  `);
-  return new Map(rows.map((r) => [r.id, Number(r.balance)]));
-}
 
 /** Why `account` cannot be valued, or undefined when it can. */
 function accountProblem(account: { type: string; archivedAt: Date | null } | undefined) {
@@ -43,13 +18,10 @@ function accountProblem(account: { type: string; archivedAt: Date | null } | und
   if (account.type !== "asset") return "Hanya akun aset yang bisa diperbarui nilainya";
 }
 
-/** SPEC-goals #6: a changed value must come after the account's latest revaluation. */
-function dateProblem(last: string | null | undefined, date: string) {
-  if (!last || date > last) return;
-  const day = formatShortDate(last, date);
-  return date === last
-    ? `Nilai sudah diperbarui tanggal ${day}. Revaluasi hanya sekali sehari.`
-    : `Sudah ada nilai tanggal ${day}. Pilih tanggal sesudahnya.`;
+/** SPEC-goals #6: one changed value per account per day. `>=` also holds back any future-dated row. */
+function dateProblem(last: string | null | undefined, today: string) {
+  if (last && last >= today)
+    return "Nilai sudah diperbarui hari ini. Revaluasi hanya sekali sehari.";
 }
 
 export async function recordValuations(
@@ -57,6 +29,7 @@ export async function recordValuations(
   input: ValuationInput,
 ): Promise<RecordResult> {
   const ids = input.items.map((i) => i.accountId);
+  const today = todayInJakarta();
   const result = await db.transaction(async (tx): Promise<Invalid | { recorded: number }> => {
     // Fixed lock order, so two check-ins over the same accounts cannot deadlock.
     const locked = await tx
@@ -87,20 +60,29 @@ export async function recordValuations(
       .groupBy(transactions.accountId);
     const lastById = new Map(lastRows.map((r) => [r.accountId, r.last]));
 
-    const balances = await balancesOn(tx, userId, ids, input.date);
+    const balanceRows = await tx
+      .select({ accountId: accountBalances.accountId, balance: accountBalances.balance })
+      .from(accountBalances)
+      .where(and(eq(accountBalances.userId, userId), inArray(accountBalances.accountId, ids)));
+    const balances = new Map(balanceRows.map((r) => [r.accountId, r.balance]));
     const changes = input.items
-      .map(({ accountId, value }) => ({ accountId, amount: value - balances.get(accountId)! }))
+      .map(({ accountId, value }, i) => ({
+        i,
+        accountId,
+        amount: value - balances.get(accountId)!,
+      }))
       .filter((r) => r.amount !== 0);
-    for (const { accountId } of changes) {
-      const message = dateProblem(lastById.get(accountId), input.date);
-      if (message) return { invalid: { field: "date", message } };
+    for (const { i, accountId } of changes) {
+      const message = dateProblem(lastById.get(accountId), today);
+      if (message) return { invalid: { field: `items.${i}`, message } };
     }
 
-    const rows = changes.map((r) => ({
-      ...r,
+    const rows = changes.map(({ accountId, amount }) => ({
+      accountId,
+      amount,
       userId,
       type: "revaluation",
-      date: input.date,
+      date: today,
       description: "Pembaruan nilai",
     }));
     if (rows.length > 0) await tx.insert(transactions).values(rows);

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { transactionDateSchema } from "@/lib/schemas/transaction";
 
 export type AssetValuation = {
   accountId: string;
@@ -24,9 +23,8 @@ const item = z.strictObject({
     .max(1e12, "Maksimal 1 triliun"),
 });
 
-/** The client sends values only; the server works out each revaluation amount. */
+/** The client sends values only; the server works out each revaluation amount and dates it today. */
 export const valuationSchema = z.strictObject({
-  date: transactionDateSchema,
   items: z
     .array(item, "Daftar nilai tidak valid")
     .min(1, "Isi minimal satu nilai")

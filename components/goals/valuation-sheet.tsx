@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
-import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
@@ -14,12 +13,12 @@ import { recordValuations } from "@/hooks/use-valuations";
 import { todayInJakarta } from "@/lib/date";
 import { ApiError } from "@/lib/fetcher";
 import { failureMessage } from "@/lib/offline/network-error";
+import { formatShortDate } from "@/lib/recurring-format";
 import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
-import { MIN_TRANSACTION_DATE } from "@/lib/schemas/transaction";
 import type { AssetValuation } from "@/lib/schemas/valuation";
 import { checkInMessage, valuedLabel } from "@/lib/valuation-format";
 
-type Errors = { date?: string; value?: string; form?: string };
+type Errors = { value?: string; form?: string };
 
 type FormProps = {
   asset: AssetValuation;
@@ -32,7 +31,6 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   const today = todayInJakarta();
   const hidden = useAmountsHidden();
   const money = useAmountFormat();
-  const [date, setDate] = useState(today);
   // Unset until the owner types; while amounts are hidden the field starts empty instead of showing the balance.
   const [value, setValue] = useState<number>();
   const [errors, setErrors] = useState<Errors>({});
@@ -49,7 +47,6 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
     onSubmitting(true);
     try {
       const { recorded } = await recordValuations({
-        date,
         items: [{ accountId: asset.accountId, value }],
       });
       toast.success(checkInMessage(recorded, name));
@@ -57,7 +54,6 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
     } catch (err) {
       if (err instanceof ApiError && err.fields) {
         setErrors({
-          date: err.fields.date?.[0],
           value: err.fields["items.0"]?.[0],
           form: err.fields.items?.[0],
         });
@@ -73,6 +69,7 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   const subtype = account?.subtype ? ACCOUNT_SUBTYPE_LABELS[account.subtype] : "Aset";
   const hint = [
     `${subtype} · ${valuedLabel(asset.lastValuedAt, today)}`,
+    `Dicatat untuk hari ini, ${formatShortDate(today, today)}`,
     `Saat ini ${money(asset.balance)}`,
     account?.subtype === "gold" && "Pakai harga buyback hari ini",
   ]
@@ -81,17 +78,6 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
 
   return (
     <form id="valuation-form" onSubmit={submit} noValidate className="flex flex-col gap-5 pb-2">
-      <FormField id="valuation-date" label="Tanggal nilai" error={errors.date}>
-        <DateField
-          id="valuation-date"
-          value={date}
-          onChange={setDate}
-          min={MIN_TRANSACTION_DATE}
-          max={today}
-          invalid={!!errors.date}
-          describedBy="valuation-date-message"
-        />
-      </FormField>
       {hidden && (
         <p className="text-sm text-muted-foreground">
           Nominal disembunyikan. Isi nilai baru jika nilainya berubah.

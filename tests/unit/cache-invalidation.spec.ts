@@ -148,7 +148,7 @@ describe("valuations edges", () => {
   });
 
   it("a check-in writes transactions, so it refreshes balances, the dashboard and the values", async () => {
-    await recordValuations({ date: "2026-10-31", items: [{ accountId: id, value: 1 }] });
+    await recordValuations({ items: [{ accountId: id, value: 1 }] });
     expect(revalidated(keys.valuations)).toBe(true);
     expect(revalidated(keys.accounts)).toBe(true);
     expect(revalidated(keys.dashboard)).toBe(true);

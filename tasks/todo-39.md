@@ -12,15 +12,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `POST /api/valuations` tanpa `date` → revaluasi bertanggal `todayInJakarta()`; body dengan `date` apa pun → 400; ulangan request → `recorded: 0`
-- [ ] Nilai kedua hari ini → 400 `fields["items.0"]` "Nilai sudah diperbarui hari ini. Revaluasi hanya sekali sehari.", tanpa baris; revaluasi kemarin tidak menghalangi; adjustment hari ini ikut delta (saldo dari view)
-- [ ] Sheet tanpa input tanggal, hint menyebut tanggal hari ini, simpan berhasil dari `/net-worth`
+- [x] `POST /api/valuations` tanpa `date` → revaluasi bertanggal `todayInJakarta()`; body dengan `date` apa pun → 400; ulangan request → `recorded: 0`
+- [x] Nilai kedua hari ini → 400 `fields["items.0"]` "Nilai sudah diperbarui hari ini. Revaluasi hanya sekali sehari.", tanpa baris; revaluasi kemarin tidak menghalangi; adjustment hari ini ikut delta (saldo dari view)
+- [ ] Sheet tanpa input tanggal, hint menyebut tanggal hari ini, simpan berhasil dari `/net-worth` (kode selesai; cek di browser tertunda: sesi tanpa browser)
 
 **Verification:**
 
-- [ ] Merah dulu: `pnpm vitest run tests/unit/valuation-schema.spec.ts tests/api/valuations.spec.ts` gagal pada tes baru sebelum implementasi
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: Perbarui nilai satu akun di 360×800, lalu coba lagi dari tab lain → pesan sekali sehari di bawah field nilai
+- [x] Merah dulu: `pnpm vitest run tests/unit/valuation-schema.spec.ts tests/api/valuations.spec.ts` gagal pada tes baru sebelum implementasi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (`tests/unit/cache-invalidation.spec.ts` ikut: `date` dihapus dari body mock, assertion tidak berubah)
+- [ ] (tertunda: sesi tanpa browser) Manual: Perbarui nilai satu akun di 360×800, lalu coba lagi dari tab lain → pesan sekali sehari di bawah field nilai
 
 **Dependencies:** commit `docs(goals)` spec + plan
 

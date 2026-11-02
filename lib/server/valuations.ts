@@ -33,6 +33,14 @@ async function balancesOn(tx: Tx, userId: string, ids: string[], date: string) {
   return new Map(rows.map((r) => [r.id, Number(r.balance)]));
 }
 
+/** Why `account` cannot be valued, or undefined when it can. */
+function accountProblem(account: { type: string; archivedAt: Date | null } | undefined) {
+  // Same message for a foreign and a missing id, so it never confirms another user's account.
+  if (!account) return "Akun tidak ditemukan";
+  if (account.archivedAt) return "Akun sudah diarsipkan";
+  if (account.type !== "asset") return "Hanya akun aset yang bisa diperbarui nilainya";
+}
+
 export async function recordValuations(
   userId: string,
   input: ValuationInput,
@@ -48,15 +56,7 @@ export async function recordValuations(
       .for("update");
     const byId = new Map(locked.map((a) => [a.id, a]));
     for (const [i, { accountId }] of input.items.entries()) {
-      const account = byId.get(accountId);
-      // Same message for a foreign and a missing id, so it never confirms another user's account.
-      const message = !account
-        ? "Akun tidak ditemukan"
-        : account.archivedAt
-          ? "Akun sudah diarsipkan"
-          : account.type !== "asset"
-            ? "Hanya akun aset yang bisa diperbarui nilainya"
-            : undefined;
+      const message = accountProblem(byId.get(accountId));
       if (message) return { invalid: { field: `items.${i}`, message } };
     }
 

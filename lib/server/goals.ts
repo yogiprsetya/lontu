@@ -44,10 +44,25 @@ type OtherGoal = Awaited<ReturnType<typeof otherActiveGoals>>[number];
 const nameClash = (others: OtherGoal[], name: string) =>
   others.some((g) => g.name.toLowerCase() === name.toLowerCase());
 
+type AccountRow = { name: string; subtype: string | null; archivedAt: Date | null };
+
+/** Why `account` cannot join the goal, or undefined when it can. */
+function accountProblem(
+  account: AccountRow | undefined,
+  kept: boolean,
+  owner: OtherGoal | undefined,
+) {
+  // A foreign and a missing id read the same, so nothing leaks.
+  if (!account) return "Akun tidak valid";
+  if (account.subtype === "credit_card")
+    return `${account.name} adalah kartu kredit dan tidak bisa dipakai target`;
+  if (account.archivedAt && !kept) return `${account.name} sudah diarsipkan`;
+  if (owner) return `${account.name} sudah dipakai ${owner.name}`;
+}
+
 /**
  * Each account must be the user's, not a credit card, active unless `kept` (already in the
- * goal), and in no other active goal. The message names the first account that fails; a
- * foreign and a missing id read the same, so nothing leaks.
+ * goal), and in no other active goal. The message names the first account that fails.
  */
 async function checkAccounts(
   tx: Tx,
@@ -67,17 +82,8 @@ async function checkAccounts(
     .where(and(eq(accounts.userId, userId), inArray(accounts.id, ids)));
   const byId = new Map(rows.map((a) => [a.id, a]));
   for (const id of ids) {
-    const account = byId.get(id);
     const owner = others.find((g) => g.accountIds.includes(id));
-    const message = !account
-      ? "Akun tidak valid"
-      : account.subtype === "credit_card"
-        ? `${account.name} adalah kartu kredit dan tidak bisa dipakai target`
-        : account.archivedAt && !kept.has(id)
-          ? `${account.name} sudah diarsipkan`
-          : owner
-            ? `${account.name} sudah dipakai ${owner.name}`
-            : undefined;
+    const message = accountProblem(byId.get(id), kept.has(id), owner);
     if (message) return { invalid: { field: "accountIds", message } };
   }
 }

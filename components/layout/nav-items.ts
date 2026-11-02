@@ -5,7 +5,7 @@ import {
   ReceiptIcon,
   RepeatIcon,
   SettingsIcon,
-  TargetIcon,
+  TrendingUpIcon,
   WalletIcon,
 } from "lucide-react";
 
@@ -24,7 +24,11 @@ export const transactionsItem: NavItem = {
 export const expensesItem: NavItem = { href: "/expenses", label: "Expenses", icon: ReceiptIcon };
 export const budgetItem: NavItem = { href: "/budget", label: "Budget", icon: WalletIcon };
 export const recurringItem: NavItem = { href: "/recurring", label: "Recurring", icon: RepeatIcon };
-export const goalsItem: NavItem = { href: "/goals", label: "Goals", icon: TargetIcon };
+export const netWorthItem: NavItem = {
+  href: "/net-worth",
+  label: "Net Worth",
+  icon: TrendingUpIcon,
+};
 export const settingsItem: NavItem = { href: "/settings", label: "Settings", icon: SettingsIcon };
 
 export const sidebarItems = [
@@ -33,12 +37,12 @@ export const sidebarItems = [
   expensesItem,
   budgetItem,
   recurringItem,
-  goalsItem,
+  netWorthItem,
   settingsItem,
 ];
 
 /** Sections without a bottom-nav slot of their own. */
-export const moreItems = [expensesItem, recurringItem, goalsItem, settingsItem];
+export const moreItems = [expensesItem, recurringItem, netWorthItem, settingsItem];
 
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);

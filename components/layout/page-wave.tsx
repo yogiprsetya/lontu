@@ -13,7 +13,7 @@ const WAVES: [prefix: string, color: string][] = [
   ["/budget", "text-lilac"],
   ["/settings", "text-mint"],
   ["/recurring", "text-sky"],
-  ["/goals", "text-lilac"],
+  ["/net-worth", "text-lilac"],
 ];
 
 export function PageWave() {

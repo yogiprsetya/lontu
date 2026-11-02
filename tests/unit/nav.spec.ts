@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isActivePath,
   moreItems,
-  goalsItem,
+  netWorthItem,
   recurringItem,
   sidebarItems,
 } from "@/components/layout/nav-items";
@@ -33,10 +33,10 @@ describe("recurring nav item", () => {
   });
 });
 
-describe("goals nav item", () => {
+describe("net worth nav item", () => {
   it("is in the sidebar and the bottom nav More menu", () => {
-    expect(sidebarItems).toContain(goalsItem);
-    expect(moreItems).toContain(goalsItem);
-    expect(goalsItem).toMatchObject({ href: "/goals", label: "Goals" });
+    expect(sidebarItems).toContain(netWorthItem);
+    expect(moreItems).toContain(netWorthItem);
+    expect(netWorthItem).toMatchObject({ href: "/net-worth", label: "Net Worth" });
   });
 });

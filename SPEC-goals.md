@@ -13,7 +13,7 @@ Dua bagian yang saling bergantung:
 1. **Revaluasi.** Tipe transaksi baru `revaluation`. Dari sheet "Perbarui nilai" sebuah akun aset, pemilik mengetik nilai terkininya (reksadana dari aplikasinya, emas fisik di harga buyback), dan server mencatat selisihnya sebagai satu baris bertanda. Perubahan nilai pasar menjadi kejadian bertanggal dengan label yang benar, bukan "Penyesuaian saldo awal".
 2. **Target.** Satu target = nama, nominal, bulan target opsional, dan akun-akun yang dihitung. Kartu target menampilkan progres, porsi setoran vs pasar, perkiraan bulan tercapai dari laju setoran 3 bulan terakhir, dan setoran per bulan yang dibutuhkan jika ada bulan target.
 
-Modul ini pemilik **kontrak** `/api/goals*` dan `/api/valuations`, query `goalProgress` dan `assetValuations`, fungsi murni `goalProjection`, hook SWR-nya, dan halaman `/goals`.
+Modul ini pemilik **kontrak** `/api/goals*` dan `/api/valuations`, query `goalProgress` dan `assetValuations`, fungsi murni `goalProjection`, hook SWR-nya, dan halaman `/net-worth`.
 
 **Sukses berarti:** setelah dua check-in bulanan, pemilik bisa menjawab "kapan DP Rumah tercapai, dan berapa per bulan yang dibutuhkan supaya tepat waktu" dari satu layar, dan `current` setiap target sama persis dengan jumlah nilai yang ia ketik saat check-in ditambah transaksi sesudahnya.
 
@@ -42,7 +42,7 @@ Nomor 1–3 diputuskan Yogi pada 2026-11-01 (sesi idea-refine). Sisanya, perubah
 17. **Nama target unik tanpa beda huruf besar** di antara target aktif → 409 `GOAL_NAME_TAKEN`. Nama target terarsip boleh dipakai lagi.
 18. **Hapus = arsip** dengan Urungkan dan restore. Restore mengecek ulang nama dan akun → 409 `GOAL_RESTORE_CONFLICT` jika bentrok.
 19. **Subtype `gold` ("Emas")** ditambahkan ke `ACCOUNT_SUBTYPES`. Hanya perubahan Zod dan label, karena kolom `subtype` tidak punya check constraint di DB. Mengubah keputusan #4 accounts-categories.
-20. **Halaman `/goals`** (label nav "Goals") di sidebar dan menu More bottom nav, sama dengan `/recurring`. Dashboard tidak berubah di fase ini.
+20. **Halaman `/net-worth`** (label nav "Net Worth"; `/goals` redirect permanen ke `/net-worth`, diubah 2026-11-02) di sidebar dan menu More bottom nav, sama dengan `/recurring`. Dashboard tidak berubah di fase ini.
 21. **Online saja.** Simpan target, check-in, arsip, dan restore dinonaktifkan saat offline ("Butuh koneksi"). `GET` tetap tampil dari cache service worker lewat aturan `GET /api/*` yang sudah ada.
 22. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `revaluation` berlabel "Revaluasi".
 
@@ -210,13 +210,13 @@ Target terarsip ikut `GET` dengan `includeArchived`, dihitung dengan aturan yang
 
 - `hooks/use-goals.ts`: `useGoals({ includeArchived? })`, mutasi `createGoal`, `updateGoal`, `archiveGoal`, `restoreGoal`. `hooks/use-valuations.ts`: `useValuations()`, `recordValuations`. Mutasi melempar `ApiError` dan memanggil `invalidate`. Tanpa optimistic update, kecuali arsip dengan "Urungkan".
 - `lib/cache-invalidation.ts`: resource dan edge di atas.
-- `components/layout/nav-items.ts`: `goalsItem` (`/goals`, "Goals", ikon `TargetIcon`) di `sidebarItems` dan `moreItems`.
+- `components/layout/nav-items.ts`: `netWorthItem` (`/net-worth`, "Net Worth", ikon `TrendingUpIcon`) di `sidebarItems` dan `moreItems`.
 - `lib/transaction-format.ts`, `components/transactions/type-styles.ts`, `filter-panel.tsx`, `transaction-editor.tsx`: tipe `revaluation`.
 - Tidak ada data target atau nilai di Zustand.
 
 ### 3. UI
 
-- **`app/(app)/goals/page.tsx`**, isi di `components/goals/goals-view.tsx`.
+- **`app/(app)/net-worth/page.tsx`**, isi di `components/goals/goals-view.tsx`.
   - Header: judul + tombol "Tambah target".
   - Daftar "Nilai aset": setiap baris akun punya tombol **Perbarui** (≥ 44 px) yang membuka sheet untuk akun itu saja. (Diubah 2026-11-02: sebelumnya satu tombol Perbarui nilai di header membuka semua akun aset.)
   - **`goal-card.tsx`** per target aktif: nama, `current` dari `targetAmount` dengan progress bar dan persen sebagai teks, baris "Disetor Rp… · Pasar +Rp…" (pasar negatif ditulis "−Rp…", bukan hanya warna), lalu satu kalimat proyeksi:
@@ -257,12 +257,12 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Buat target dari `/goals`, check-in dua akun lewat tombol Perbarui di setiap baris → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
+- [ ] Buat target dari `/net-worth`, check-in dua akun lewat tombol Perbarui di setiap baris → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
 - [ ] Revaluasi tampil "Revaluasi" di `/transactions`, bisa difilter, tidak bisa diedit, hapus + Urungkan memulihkannya. (tertunda: sesi tanpa browser)
 - [ ] Akun yang dipakai target lain tampil nonaktif dengan teks di form target. (tertunda: sesi tanpa browser)
 - [ ] Status basi, terlambat, dan pasar negatif terbaca tanpa warna. `hideAmounts` menyamarkan nominal. (tertunda: sesi tanpa browser)
-- [ ] Mode pesawat: `/goals` tampil dari cache, aksi tulis nonaktif dengan teks "Butuh koneksi". (tertunda: sesi tanpa browser)
-- [ ] "Goals" ada di sidebar (≥ lg) dan menu More (< lg). (tertunda: sesi tanpa browser; posisi di `sidebarItems`/`moreItems` dikunci `tests/unit/nav.spec.ts`)
+- [ ] Mode pesawat: `/net-worth` tampil dari cache, aksi tulis nonaktif dengan teks "Butuh koneksi". (tertunda: sesi tanpa browser)
+- [ ] "Net Worth" ada di sidebar (≥ lg) dan menu More (< lg). (tertunda: sesi tanpa browser; posisi di `sidebarItems`/`moreItems` dikunci `tests/unit/nav.spec.ts`)
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
@@ -285,7 +285,8 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 ```
 app/api/goals/{route.ts, [id]/route.ts, [id]/restore/route.ts}
 app/api/valuations/route.ts
-app/(app)/goals/page.tsx
+app/(app)/net-worth/page.tsx
+app/(app)/goals/page.tsx                  # permanentRedirect ke /net-worth
 components/goals/                         # goals-view, goal-card, valuation-sheet
 components/forms/goal-form.tsx
 components/transactions/{type-styles.ts, filter-panel.tsx, transaction-editor.tsx}
@@ -315,8 +316,8 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md).
 - **Spread buyback emas:** check-in pertama di harga buyback langsung menampilkan pasar negatif 5–8%. Itu benar (nilai yang didapat jika dijual). Teks bantuan di sheet: "Pakai harga buyback hari ini".
 - **Mengubah constraint `transactions`:** constraint lama di-drop dan dibuat ulang di migrasi. Mitigasi: tes semua tipe transaksi yang ada tetap hijau, dan migrasi dijalankan di Preview lebih dulu.
 - **Query laju:** join ganda (`account_id` dan `to_account_id`) ke `unnest(account_ids)`. Data satu pemilik kecil, tetapi cek `EXPLAIN` di tes dengan beberapa ribu baris.
-- **Bundle:** halaman baru, tidak menyentuh dashboard. Target first load `/goals` < 200 KB gzip.
-- **`cacheComponents`:** `/goals` memakai session lewat hook client, jadi di dalam `<Suspense>` seperti halaman lain. Baca `node_modules/next/dist/docs/` sebelum menulis page.
+- **Bundle:** halaman baru, tidak menyentuh dashboard. Target first load `/net-worth` < 200 KB gzip.
+- **`cacheComponents`:** `/net-worth` memakai session lewat hook client, jadi di dalam `<Suspense>` seperti halaman lain. Baca `node_modules/next/dist/docs/` sebelum menulis page.
 
 ## Open questions
 

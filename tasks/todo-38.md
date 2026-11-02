@@ -12,21 +12,23 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Buat target dari `/goals` → kartu muncul dengan progres, porsi disetor/pasar, dan kalimat proyeksi tanpa reload; check-in sesudahnya memperbarui kartu
-- [ ] Form: akun milik target lain tampil nonaktif "Dipakai {target}", kartu kredit tidak tampil, saldo tampil di samping nama; error server terpasang lewat `applyServerErrors`
-- [ ] `goalProjectionText` mencakup semua cabang SPEC-goals § UI; status basi, terlambat, dan pasar negatif terbaca tanpa warna; `hideAmounts` menyamarkan nominal; offline → simpan nonaktif
+- [x] Buat target dari `/goals` → kartu muncul dengan progres, porsi disetor/pasar, dan kalimat proyeksi tanpa reload; check-in sesudahnya memperbarui kartu
+- [x] Form: akun milik target lain tampil nonaktif "Dipakai {target}", kartu kredit tidak tampil, saldo tampil di samping nama; error server terpasang lewat `applyServerErrors`
+- [x] `goalProjectionText` mencakup semua cabang SPEC-goals § UI; status basi, terlambat, dan pasar negatif terbaca tanpa warna; `hideAmounts` menyamarkan nominal; offline → simpan nonaktif
 
 **Verification:**
 
-- [ ] `pnpm vitest run tests/unit/goal-format.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual (boleh tertunda: sesi tanpa browser): skenario dasar SPEC-goals dibuat lewat UI di 360×800 dan 1024
+- [x] `pnpm vitest run tests/unit/goal-format.spec.ts tests/unit/cache-invalidation.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual (tertunda: sesi tanpa browser): skenario dasar SPEC-goals dibuat lewat UI di 360×800 dan 1024
 
 **Dependencies:** T127, T130
 
 **Files likely touched:** `hooks/use-goals.ts`, `lib/cache-invalidation.ts`, `lib/goal-format.ts`, `components/goals/goal-card.tsx`, `components/forms/goal-form.tsx`, `components/goals/goals-view.tsx`, `tests/unit/goal-format.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** `AFFECTS.goals = ["valuations"]` (spec menulis `[]`), karena `GET /api/valuations` memuat `goalId` sejak T129. Daftar akun form dari `goalAccountOptions` (diuji unit). Bar memakai ulang `BudgetProgress` dengan status `ok`. JS first load `/goals` 331,2 KB gzip (form lazy). Tes: 1477 lulus (87 berkas).
 
 ---
 

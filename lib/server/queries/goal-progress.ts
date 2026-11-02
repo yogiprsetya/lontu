@@ -3,7 +3,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { goals } from "@/db/schema";
 import { goalProjection } from "@/lib/goal-projection";
-import { addDays, monthRange, shiftPeriod, yearMonthToPeriod } from "@/lib/period";
+import { addDays, addMonths, monthRange, yearMonthToPeriod } from "@/lib/period";
 import type { Goal, GoalProgress } from "@/lib/schemas/goal";
 import { STALE_AFTER_DAYS } from "@/lib/valuation-format";
 
@@ -100,9 +100,7 @@ export async function goalProgress(
   { today, includeArchived = false }: Options,
 ): Promise<GoalProgress[]> {
   // SPEC-goals #12: the three full calendar months before the current one, oldest first.
-  const last = shiftPeriod(today.slice(0, 7), -1);
-  const middle = shiftPeriod(last, -1);
-  const window = [shiftPeriod(middle, -1), middle, last];
+  const window = [3, 2, 1].map((back) => addMonths(today.slice(0, 7), -back));
   const [rows, totalRows, flowRows] = await Promise.all([
     db
       .select()
@@ -110,7 +108,7 @@ export async function goalProgress(
       .where(and(eq(goals.userId, userId), includeArchived ? undefined : isNull(goals.archivedAt)))
       .orderBy(asc(goals.createdAt), asc(goals.id)),
     totals(userId, includeArchived, addDays(today, -STALE_AFTER_DAYS)),
-    flows(userId, includeArchived, monthRange(window[0]).from, monthRange(last).to),
+    flows(userId, includeArchived, monthRange(window[0]).from, monthRange(window[2]).to),
   ]);
   const totalsById = new Map(totalRows.map((r) => [r.goal_id, r]));
 

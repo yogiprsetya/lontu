@@ -1,4 +1,4 @@
-import { periodToYearMonth, yearMonthToPeriod } from "@/lib/period";
+import { addMonths, monthsBetween } from "@/lib/period";
 import type { GoalProjection } from "@/lib/schemas/goal";
 
 type Input = {
@@ -12,16 +12,6 @@ type Input = {
   /** YYYY-MM-DD in Asia/Jakarta. */
   today: string;
 };
-
-function monthIndex(month: string) {
-  const { year, month: m } = periodToYearMonth(month);
-  return year * 12 + m - 1;
-}
-
-function addMonths(month: string, count: number) {
-  const index = monthIndex(month) + count;
-  return yearMonthToPeriod(Math.floor(index / 12), (index % 12) + 1);
-}
 
 /** Contributions only: market gains are never projected forward (SPEC-goals #13). */
 export function goalProjection({
@@ -57,7 +47,7 @@ export function goalProjection({
     };
   }
 
-  const monthsLeft = Math.max(monthIndex(targetMonth) - monthIndex(currentMonth) + 1, 0);
+  const monthsLeft = Math.max(monthsBetween(currentMonth, targetMonth) + 1, 0);
   const overdue = !reached && monthsLeft === 0;
   return {
     remaining,

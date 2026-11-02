@@ -114,6 +114,22 @@ export function yearMonthToPeriod(year: number, month: number): Period {
   return `${year}-${String(month).padStart(2, "0")}`;
 }
 
+function monthIndex(month: MonthPeriod) {
+  const { year, month: m } = periodToYearMonth(month);
+  return year * 12 + m - 1;
+}
+
+/** `count` months forward or back from a `YYYY-MM`, with no floor. */
+export function addMonths(month: MonthPeriod, count: number): MonthPeriod {
+  const index = monthIndex(month) + count;
+  return yearMonthToPeriod(Math.floor(index / 12), (index % 12) + 1);
+}
+
+/** Calendar months from `from` to `to` (`YYYY-MM`); negative when `to` is earlier. */
+export function monthsBetween(from: MonthPeriod, to: MonthPeriod) {
+  return monthIndex(to) - monthIndex(from);
+}
+
 /** First and last day of the month as `YYYY-MM-DD`. */
 export function monthRange(period: Period) {
   const { from, to } = periodToRange(period);

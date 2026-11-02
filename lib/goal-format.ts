@@ -1,6 +1,6 @@
 import { archiveLabel } from "@/lib/archived";
 import { abbreviateIDR, formatIDR } from "@/lib/money";
-import { periodToYearMonth } from "@/lib/period";
+import { monthsBetween } from "@/lib/period";
 import type { Account } from "@/lib/schemas/account";
 import type { Goal, GoalCreateInput, GoalProgress, GoalUpdateInput } from "@/lib/schemas/goal";
 
@@ -20,12 +20,6 @@ const monthYear = new Intl.DateTimeFormat("id-ID", {
 /** "Des 2028". */
 export function formatTargetMonth(month: string) {
   return monthYear.format(new Date(`${month}-01T00:00:00Z`));
-}
-
-function monthsBetween(from: string, to: string) {
-  const a = periodToYearMonth(from);
-  const b = periodToYearMonth(to);
-  return (b.year - a.year) * 12 + b.month - a.month;
 }
 
 /** Current as a share of the target, floored; may pass 100. */

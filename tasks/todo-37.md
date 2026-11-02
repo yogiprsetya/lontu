@@ -35,21 +35,23 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario dasar (setelah revaluasi 2026-10-31) → angka SPEC-goals § Acceptance criteria; transfer RD Saham → Emas bernilai 0; transfer antar dua target memindahkan laju; adjustment dan revaluasi tidak masuk laju
-- [ ] Akun terarsip tidak ikut `current`, `marketGain`, dan laju; akun dibuat 2026-10-01 → pembagi 1; akun dibuat bulan ini → `monthlyContribution null`; `staleAccountIds` sesuai keputusan #16
-- [ ] Invarian `current` = jumlah `balance` `GET /api/accounts` untuk akun aktif target; target user lain tidak pernah terbaca; `GET /api/valuations` mengisi `goalId`
+- [x] Skenario dasar (setelah revaluasi 2026-10-31) → angka SPEC-goals § Acceptance criteria; transfer RD Saham → Emas bernilai 0; transfer antar dua target memindahkan laju; adjustment dan revaluasi tidak masuk laju
+- [x] Akun terarsip tidak ikut `current`, `marketGain`, dan laju; akun dibuat 2026-10-01 → pembagi 1; akun dibuat bulan ini → `monthlyContribution null`; `staleAccountIds` sesuai keputusan #16
+- [x] Invarian `current` = jumlah `balance` `GET /api/accounts` untuk akun aktif target; target user lain tidak pernah terbaca; `GET /api/valuations` mengisi `goalId`
 
 **Verification:**
 
-- [ ] `pnpm drizzle-kit generate --explain` dibaca; `migration.sql` hanya `goals` + index/FK/RLS
-- [ ] `pnpm vitest run tests/api/goal-progress.spec.ts tests/api/valuations.spec.ts` hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] `pnpm drizzle-kit generate --explain` dibaca; `migration.sql` hanya `goals` + index/FK/RLS
+- [x] `pnpm vitest run tests/api/goal-progress.spec.ts tests/api/valuations.spec.ts` hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** T124, T128
 
 **Files likely touched:** `db/schema.ts`, `drizzle/<timestamp>_goals_table/`, `lib/server/queries/goal-progress.ts`, `lib/server/queries/asset-valuations.ts`, `tests/api/goal-progress.spec.ts`
 
 **Estimated scope:** M
+
+**Catatan (2026-11-02):** migrasi `20261101235956_goals_table` diterapkan (hanya tabel `goals`, check, index, FK, RLS). `goalProgress` = tiga query paralel (daftar target, total per target, arus per bulan) lalu `goalProjection`; arus hanya untuk bulan yang dihitung. Satu run penuh pertama gagal 5 tes lama (budgets, recurring, dashboard, seed) karena DB lambat; ulangan file-file itu dan run penuh kedua hijau (1398 lulus, 83 berkas). `EXPLAIN` dengan ribuan baris belum diukur.
 
 ---
 

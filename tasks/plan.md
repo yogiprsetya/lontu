@@ -15,7 +15,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
-| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Spec disetujui 2026-11-01 (T123). T124–T134 berjalan |
+| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–38 | T123–T134 | Selesai (T123–T134). Cek UI manual dan produksi tertunda (lihat Temuan verifikasi T134) |
 
 ---
 
@@ -779,3 +779,26 @@ Dibawa dari SPEC-goals § Open questions, dijawab di T123:
 3. **Kartu Saving di dashboard** tidak menghitung transfer ke akun target: dibiarkan (di luar modul ini), atau masuk backlog `dashboard`? **Dijawab 2026-11-01: dibiarkan.**
 4. **Ambang basi 35 hari** (keputusan #16): setuju? **Dijawab 2026-11-01: setuju.**
 5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`? **Dijawab 2026-11-01: tambahkan.**
+
+## Catatan ukuran goals (2026-11-02)
+
+Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9). Sebelum = `7db9d48` (spec modul, belum ada kode), sesudah = T133.
+
+| Halaman         | Sebelum  | Sesudah  | Selisih |
+| --------------- | -------- | -------- | ------- |
+| `/dashboard`    | 349,8 KB | 350,1 KB | +0,3    |
+| `/transactions` | 343,2 KB | 343,4 KB | +0,2    |
+| `/settings`     | 324,8 KB | 324,6 KB | −0,2    |
+| `/recurring`    | 330,9 KB | 330,9 KB | 0       |
+| `/goals`        | —        | 336,1 KB | baru    |
+
+`/goals` di atas target 200 KB karena app shell bersama, sama dengan halaman lain (lihat Catatan ukuran dashboard). Halaman ini sendiri menambah ±5 KB di atas `/recurring`; form target dimuat lazy.
+
+## Temuan verifikasi T134 (2026-11-02)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build` (tanpa pesan prerender baru), `pnpm test` 1486 lulus (87 berkas). Semua butir API SPEC-goals § Acceptance criteria tercakup tes; "target lama yang bulannya lewat" ditambah di `goal-progress.spec.ts` saat T134.
+- Tes lama: tidak ada `tests/api/*.spec.ts` lama yang diubah. Di unit, `account-schema.spec.ts` mengganti contoh subtype tak dikenal `"gold"` → `"stock"` (gold kini valid), dan baris `affectedBy` di `cache-invalidation.spec.ts` diperluas sesuai SPEC-goals § Tes.
+- Run penuh kadang gagal di berkas API lama yang tidak disentuh (budgets, recurring, dashboard, seed) karena hook menunggu koneksi pooler, seperti di T89; berkas itu lulus sendiri dan run ulang hijau. Dengan 5 berkas API baru, kemungkinan ini naik. Pertimbangkan memangkas round trip di setup tes atau membatasi paralelisme berkas API (Ask first: `vitest.config.ts`).
+- Kedua migrasi (`20261101161218_revaluation`, `20261101235956_goals_table`) diterapkan ke DB bersama. Cek produksi dengan kode lama belum dilakukan.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir UI SPEC-goals dan butir Manual todo-36..38, mode pesawat, kontras di kartu target, layout 360 px dan 1024 px.
+- Keputusan saat build: `AFFECTS.goals = ["valuations"]` (spec diperbarui), edit target lewat tombol "Ubah" (spec diperbarui), `hideAmounts` di sheet Perbarui nilai mengosongkan field alih-alih menampilkan saldo, `EXPLAIN` query laju dengan ribuan baris belum diukur.

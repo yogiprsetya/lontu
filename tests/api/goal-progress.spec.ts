@@ -221,6 +221,17 @@ describe("goalProgress", () => {
     });
   });
 
+  it("marks an old goal whose target month has passed as overdue, needing the whole remainder", async () => {
+    const { userId, dpRumah } = await baseScenario();
+    await db.update(goals).set({ targetYear: 2026, targetMonth: 10 }).where(eq(goals.id, dpRumah));
+    expect((await progressOf(userId, dpRumah)).projection).toMatchObject({
+      overdue: true,
+      monthsLeft: 0,
+      neededPerMonth: 107_300_000,
+      onTrack: false,
+    });
+  });
+
   it("lists asset accounts never valued or valued more than 35 days ago as stale", async () => {
     const userId = await newUser();
     const never = await account(userId, "Belum");

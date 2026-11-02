@@ -1,6 +1,6 @@
 # Spec module: `goals`
 
-Status: disetujui · 2026-11-01 · @Yogi
+Status: diimplementasikan (T123–T134, 2026-11-02; cek UI manual tertunda) · @Yogi
 Bergantung pada: `accounts-categories`, `transactions` · Dipakai oleh: — · Indeks: [SPEC.md](SPEC.md)
 Asal: sesi idea-refine 2026-11-01 ("Net Worth Targets", referensi: fitur Net Worth Tracker Monsy).
 
@@ -188,7 +188,7 @@ Target terarsip ikut `GET` dengan `includeArchived`, dihitung dengan aturan yang
 
 - **`transactions`** (perubahan di modul itu, perlu revisi [SPEC-transactions.md](SPEC-transactions.md)): `LIST_TRANSACTION_TYPES` mendapat `"revaluation"`. Daftar menampilkan "Revaluasi" + nama akun, nominal bertanda seperti adjustment. Filter tipe mendapat "Revaluasi". Detail memakai kartu hanya-baca adjustment dengan label sendiri. `transactionTotals`, `dashboardSummary`, dan `budgetUsage` tidak berubah karena hanya menghitung income/expense/saving. Ekspor CSV menulis nominal bertanda.
 - **`accounts-categories`** (perlu revisi [SPEC-accounts-categories.md](SPEC-accounts-categories.md)): subtype `gold` (keputusan #19), tabel constraint di § Transaksi penyesuaian mendapat baris `revaluation`. Kontrak `GET /api/accounts` tidak berubah.
-- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"goals"` (`/api/goals`) dan `"valuations"` (`/api/valuations`). `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat keduanya (saldo dan arsip akun mengubah progres). `AFFECTS.goals = []`. Check-in menulis transaksi, jadi mutasinya memanggil `invalidate("transactions")`, yang menjangkau saldo, dashboard, recurring, goals, dan valuations. `AFFECTS.valuations = []`.
+- **Revalidasi (`lib/cache-invalidation.ts`):** `Resource` mendapat `"goals"` (`/api/goals`) dan `"valuations"` (`/api/valuations`). `AFFECTS.transactions` dan `AFFECTS.accounts` mendapat keduanya (saldo dan arsip akun mengubah progres). `AFFECTS.goals = ["valuations"]`, karena `GET /api/valuations` memuat `goalId` (diubah saat implementasi T132). Check-in menulis transaksi, jadi mutasinya memanggil `invalidate("transactions")`, yang menjangkau saldo, dashboard, recurring, goals, dan valuations. `AFFECTS.valuations = []`.
 - **`dashboard`, `budgets`, `recurring`:** tidak berubah. Kartu Account Balance otomatis ikut nilai baru karena membaca `balance`.
 - **`pwa-offline`:** tidak berubah. Outbox tetap hanya untuk create transaksi.
 
@@ -223,7 +223,7 @@ Target terarsip ikut `GET` dengan `includeArchived`, dihitung dengan aturan yang
     - tanpa `targetMonth`: "Dengan laju Rp4 jt/bulan, tercapai sekitar Jan 2029".
     - laju `null` → "Perkiraan muncul setelah satu bulan penuh". Laju ≤ 0 → "Belum ada setoran 3 bulan terakhir".
   - `staleAccountIds` tidak kosong → baris "Nilai Emas belum diperbarui 47 hari" dengan tautan ke sheet.
-  - Tap kartu → `components/forms/goal-form.tsx` di `ResponsiveModal`: nama, `MoneyInput` nominal, bulan target opsional (`<input type="month">`, font 16 px, dengan tombol hapus), daftar centang akun (akun aktif bukan kartu kredit; akun milik target lain tampil nonaktif dengan teks "Dipakai {target}"), saldo setiap akun di sebelah namanya.
+  - Tombol ikon "Ubah" di kartu (bukan tap seluruh kartu, karena kartu memuat tombol "Perbarui" untuk nilai basi; diubah saat T133) → `components/forms/goal-form.tsx` di `ResponsiveModal`: nama, `MoneyInput` nominal, bulan target opsional (`<input type="month">`, font 16 px, dengan tombol hapus), daftar centang akun (akun aktif bukan kartu kredit; akun milik target lain tampil nonaktif dengan teks "Dipakai {target}"), saldo setiap akun di sebelah namanya.
   - Arsip dari menu kartu → toast "Target diarsipkan · Urungkan" (6 detik). "Lihat arsip" menampilkan target terarsip dengan tombol Pulihkan.
   - Empty state: satu kalimat + "Tambah target". Tanpa akun aset → teks yang mengajak membuat akun aset di Settings.
 - **`components/goals/valuation-sheet.tsx`** di `ResponsiveModal`: input tanggal (default hari ini), lalu satu baris per akun aset aktif: nama, subtype, "diperbarui 12 Okt" / "belum pernah", `MoneyInput` berisi `balance` sekarang. Hanya baris yang diubah yang dikirim. Simpan → toast "{n} nilai diperbarui" (atau "Nilai sama, tidak ada yang dicatat"). Error `fields["items.<i>"]` dipasang di baris yang bersangkutan.
@@ -237,31 +237,31 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 
 **API**
 
-- [ ] `POST /api/valuations { date: "2026-10-31", items: [{ Emas, 36500000 }, { RD Saham, 6200000 }] }` → `recorded: 2`, revaluasi +500.000 (Emas) dan +200.000 (RD Saham) bertanggal 2026-10-31. `GET /api/accounts` → Emas 36.500.000, RD Saham 6.200.000. Request yang sama diulang → `recorded: 0`, tanpa baris baru.
-- [ ] `GET /api/goals` → DP Rumah `current 42700000`, `marketGain 700000`, `contributed 42000000`, `monthlyContribution 4000000` (Agt 3 jt, Sep 4 jt, Okt 5 jt; transfer RD Saham → Emas bernilai 0), `remaining 107300000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`, `overdue false`.
-- [ ] Check-in Emas `date "2026-10-15"` setelah revaluasi 2026-10-31 → 400 `fields.date`, tanpa baris. `date` masa depan → 400. Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**.
-- [ ] Saldo awal akun aset 10.000.000 diubah ke 11.000.000 hari ini (adjustment +1.000.000), lalu check-in kemarin bernilai 12.000.000 → revaluasi +1.000.000, saldo 12.000.000 (keputusan #7).
-- [ ] Revaluasi tidak muncul di `totals` `/api/transactions`, `dashboardSummary`, maupun `budgetUsage`. `PATCH /api/transactions/[id]` revaluasi → 409. `DELETE` → saldo kembali, `marketGain` turun. `POST /api/transactions { type: "revaluation" }` → 400.
-- [ ] `POST /api/goals` dengan akun yang sudah dipakai target aktif lain, akun kartu kredit, akun terarsip, akun user lain, atau `accountIds` duplikat → 400 `fields.accountIds`. Dua `POST` paralel (`Promise.all`) yang mengklaim akun sama → tepat satu 201.
-- [ ] Nama sama (beda huruf besar) dengan target aktif → 409 `GOAL_NAME_TAKEN`. Arsip A, buat B dengan akun A, restore A → 409 `GOAL_RESTORE_CONFLICT`. `DELETE` dua kali → 200, `archivedAt` tidak berubah.
-- [ ] `targetMonth` sebelum bulan berjalan saat `POST`/`PATCH` → 400. Target lama yang bulan targetnya sudah lewat → `overdue true`, `neededPerMonth = remaining`.
-- [ ] Akun target diarsipkan → tidak ikut `current`, `marketGain`, dan laju. `PATCH { name }` pada target itu → 200 (akun terarsip tetap). `PATCH { accountIds }` yang menambah akun terarsip lain → 400.
-- [ ] Target dengan akun dibuat bulan ini → `monthlyContribution null`, `etaMonth null`. Akun dibuat 2026-10-01 → pembagi 1 bulan (Okt).
-- [ ] `staleAccountIds` memuat akun aset tanpa revaluasi dan akun dengan revaluasi terakhir > 35 hari, tidak memuat akun `transaction`.
-- [ ] Invarian `current` terhadap `GET /api/accounts` dan `contributed + marketGain = balance` di `GET /api/valuations`.
-- [ ] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` target A, `GET` B tidak pernah memuat target, nilai, atau saldo A, dan B tidak bisa menautkan atau check-in akun A.
-- [ ] Tanpa session, semua route → 401 `UNAUTHORIZED`. Body dengan `userId` → 400.
-- [ ] Semua tes `tests/api/*.spec.ts` yang ada tetap hijau tanpa diubah.
+- [x] `POST /api/valuations { date: "2026-10-31", items: [{ Emas, 36500000 }, { RD Saham, 6200000 }] }` → `recorded: 2`, revaluasi +500.000 (Emas) dan +200.000 (RD Saham) bertanggal 2026-10-31. `GET /api/accounts` → Emas 36.500.000, RD Saham 6.200.000. Request yang sama diulang → `recorded: 0`, tanpa baris baru.
+- [x] `GET /api/goals` → DP Rumah `current 42700000`, `marketGain 700000`, `contributed 42000000`, `monthlyContribution 4000000` (Agt 3 jt, Sep 4 jt, Okt 5 jt; transfer RD Saham → Emas bernilai 0), `remaining 107300000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`, `overdue false`.
+- [x] Check-in Emas `date "2026-10-15"` setelah revaluasi 2026-10-31 → 400 `fields.date`, tanpa baris. `date` masa depan → 400. Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**.
+- [x] Saldo awal akun aset 10.000.000 diubah ke 11.000.000 hari ini (adjustment +1.000.000), lalu check-in kemarin bernilai 12.000.000 → revaluasi +1.000.000, saldo 12.000.000 (keputusan #7).
+- [x] Revaluasi tidak muncul di `totals` `/api/transactions`, `dashboardSummary`, maupun `budgetUsage`. `PATCH /api/transactions/[id]` revaluasi → 409. `DELETE` → saldo kembali, `marketGain` turun. `POST /api/transactions { type: "revaluation" }` → 400.
+- [x] `POST /api/goals` dengan akun yang sudah dipakai target aktif lain, akun kartu kredit, akun terarsip, akun user lain, atau `accountIds` duplikat → 400 `fields.accountIds`. Dua `POST` paralel (`Promise.all`) yang mengklaim akun sama → tepat satu 201.
+- [x] Nama sama (beda huruf besar) dengan target aktif → 409 `GOAL_NAME_TAKEN`. Arsip A, buat B dengan akun A, restore A → 409 `GOAL_RESTORE_CONFLICT`. `DELETE` dua kali → 200, `archivedAt` tidak berubah.
+- [x] `targetMonth` sebelum bulan berjalan saat `POST`/`PATCH` → 400. Target lama yang bulan targetnya sudah lewat → `overdue true`, `neededPerMonth = remaining`.
+- [x] Akun target diarsipkan → tidak ikut `current`, `marketGain`, dan laju. `PATCH { name }` pada target itu → 200 (akun terarsip tetap). `PATCH { accountIds }` yang menambah akun terarsip lain → 400.
+- [x] Target dengan akun dibuat bulan ini → `monthlyContribution null`, `etaMonth null`. Akun dibuat 2026-10-01 → pembagi 1 bulan (Okt).
+- [x] `staleAccountIds` memuat akun aset tanpa revaluasi dan akun dengan revaluasi terakhir > 35 hari, tidak memuat akun `transaction`.
+- [x] Invarian `current` terhadap `GET /api/accounts` dan `contributed + marketGain = balance` di `GET /api/valuations`.
+- [x] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` target A, `GET` B tidak pernah memuat target, nilai, atau saldo A, dan B tidak bisa menautkan atau check-in akun A.
+- [x] Tanpa session, semua route → 401 `UNAUTHORIZED`. Body dengan `userId` → 400.
+- [x] Semua tes `tests/api/*.spec.ts` yang ada tetap hijau tanpa diubah.
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Buat target dari `/goals`, check-in dua akun lewat Perbarui nilai → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah.
-- [ ] Revaluasi tampil "Revaluasi" di `/transactions`, bisa difilter, tidak bisa diedit, hapus + Urungkan memulihkannya.
-- [ ] Akun yang dipakai target lain tampil nonaktif dengan teks di form target.
-- [ ] Status basi, terlambat, dan pasar negatif terbaca tanpa warna. `hideAmounts` menyamarkan nominal.
-- [ ] Mode pesawat: `/goals` tampil dari cache, aksi tulis nonaktif dengan teks "Butuh koneksi".
-- [ ] "Goals" ada di sidebar (≥ lg) dan menu More (< lg).
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [ ] Buat target dari `/goals`, check-in dua akun lewat Perbarui nilai → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
+- [ ] Revaluasi tampil "Revaluasi" di `/transactions`, bisa difilter, tidak bisa diedit, hapus + Urungkan memulihkannya. (tertunda: sesi tanpa browser)
+- [ ] Akun yang dipakai target lain tampil nonaktif dengan teks di form target. (tertunda: sesi tanpa browser)
+- [ ] Status basi, terlambat, dan pasar negatif terbaca tanpa warna. `hideAmounts` menyamarkan nominal. (tertunda: sesi tanpa browser)
+- [ ] Mode pesawat: `/goals` tampil dari cache, aksi tulis nonaktif dengan teks "Butuh koneksi". (tertunda: sesi tanpa browser)
+- [ ] "Goals" ada di sidebar (≥ lg) dan menu More (< lg). (tertunda: sesi tanpa browser; posisi di `sidebarItems`/`moreItems` dikunci `tests/unit/nav.spec.ts`)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 
@@ -272,7 +272,7 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
   - `transaction-format.spec.ts` (yang ada): label dan tanda `revaluation`.
 - **API (`tests/api/`, Supabase sungguhan, user `test-<uuid>`):**
   - `valuations.spec.ts`: skenario dasar, idempoten, urutan tanggal, adjustment (keputusan #7), atomik saat satu item invalid, isolasi, 401.
-  - `goals.spec.ts`: CRUD, arsip/restore, konflik nama/akun, klaim paralel, akun terarsip, isolasi, 401.
+  - `goals.spec.ts` (`POST`/`GET`) dan `goals-item.spec.ts` (`PATCH`/`DELETE`/`restore`): CRUD, arsip/restore, konflik nama/akun, klaim paralel, akun terarsip, isolasi, 401.
   - `goal-progress.spec.ts`: angka skenario dasar dengan `today` tetap, transfer internal, transfer antar target, jendela dan pembagi, basi, invarian.
   - `transactions-revaluation.spec.ts`: totals, edit ditolak, hapus/restore, create lewat API transaksi ditolak.
 - **E2E:** tetap ditunda (SPEC.md Open question #2).
@@ -295,7 +295,7 @@ lib/server/{goals.ts, valuations.ts, transactions.ts}
 lib/server/queries/{goal-progress.ts, asset-valuations.ts}
 lib/cache-invalidation.ts, lib/api/errors.ts
 db/schema.ts, drizzle/<timestamp>_revaluation/, drizzle/<timestamp>_goals_table/
-tests/unit/*.spec.ts, tests/api/{goals,valuations,goal-progress,transactions-revaluation}.spec.ts
+tests/unit/*.spec.ts, tests/api/{goals,goals-item,valuations,goal-progress,transactions-revaluation}.spec.ts
 ```
 
 Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md).

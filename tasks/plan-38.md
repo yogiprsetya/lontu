@@ -10,7 +10,7 @@ Pemilik membuat, mengubah, dan mengarsipkan target dari `/goals`, dan setiap kar
 
 - [x] T132: Kartu target dan buat target (M)
 - [x] T133: Edit, arsip, Urungkan, dan daftar arsip (M)
-- [ ] T134: Verifikasi akhir modul `goals` (S)
+- [x] T134: Verifikasi akhir modul `goals` (S)
 
 Urutan: T132 → T133 → T134.
 
@@ -31,8 +31,8 @@ Urutan: T132 → T133 → T134.
 
 ## Checkpoint AK
 
-- [ ] Semua Acceptance criteria SPEC-goals hijau (API) atau dicentang / ditandai tertunda (UI)
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes akhir ≥ jumlah sebelum T124 + tes baru
-- [ ] JS first load `/goals` < 200 KB gzip; `/dashboard` tidak berubah lebih dari +0,5 KB
-- [ ] plan.md status `goals` diperbarui; SPEC-goals.md Status → "diimplementasikan"
+- [x] Semua Acceptance criteria SPEC-goals hijau (API) atau dicentang / ditandai tertunda (UI)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes akhir ≥ jumlah sebelum T124 + tes baru (1486)
+- [ ] JS first load `/goals` < 200 KB gzip; `/dashboard` tidak berubah lebih dari +0,5 KB (`/dashboard` +0,3 KB lulus; `/goals` 336,1 KB tidak lulus, app shell bersama)
+- [x] plan.md status `goals` diperbarui; SPEC-goals.md Status → "diimplementasikan"
 - [ ] Review dengan Yogi

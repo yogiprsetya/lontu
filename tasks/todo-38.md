@@ -63,14 +63,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Setiap butir Acceptance criteria SPEC-goals dicentang atau ditandai "tertunda: sesi tanpa browser" dengan alasan
-- [ ] Tabel ukuran sebelum/sesudah di plan.md; `/goals` < 200 KB gzip, `/dashboard` ≤ +0,5 KB
-- [ ] plan.md baris `goals` → "Selesai (T123–T134)"; SPEC-goals.md Status diperbarui
+- [x] Setiap butir Acceptance criteria SPEC-goals dicentang atau ditandai "tertunda: sesi tanpa browser" dengan alasan
+- [ ] Tabel ukuran sebelum/sesudah di plan.md; `/goals` < 200 KB gzip, `/dashboard` ≤ +0,5 KB (tabel ada; `/dashboard` +0,3 KB lulus; `/goals` 336,1 KB tidak lulus karena app shell bersama)
+- [x] plan.md baris `goals` → "Selesai (T123–T134)"; SPEC-goals.md Status diperbarui
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes akhir dicatat
-- [ ] Review bersama Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes akhir dicatat (1486)
+- [ ] Review bersama Yogi (tertunda)
 
 **Dependencies:** T126, T133
 

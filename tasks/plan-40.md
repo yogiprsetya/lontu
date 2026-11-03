@@ -8,7 +8,7 @@ Section "Histori nilai" di `/net-worth` menjawab "aset saya naik atau turun, dan
 
 ## Task
 
-- [ ] T139: Query `assetHistory` (M)
+- [x] T139: Query `assetHistory` (M)
 - [ ] T140: Route `GET /api/valuations/history` (S)
 - [ ] T141: Section Histori nilai: ringkasan dan tabel (M)
 - [ ] T142: Kontrol rentang dan akun (S)

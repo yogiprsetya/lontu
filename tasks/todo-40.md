@@ -12,14 +12,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Skenario dasar SPEC § Acceptance criteria: tabel gabungan `range=12` (lima bulan, `opening` 0), RD Saham per akun, `range=6` dengan `today = 2027-01-15` (`opening` = Jul), `range=all` = `range=12`
-- [ ] Akun backdate (dibuat 2026-11-01, transfer 2026-09-10) mulai Sep bernilai 3.000.000; revaluasi terhapus tidak dihitung; akun terarsip tidak ikut gabungan dan `accountId`-nya → `null`; BCA, id acak, akun user lain → `null`; user tanpa aset → `months: []`
-- [ ] Invarian: bulan terakhir = jumlah `assetValuations` (gabungan dan per akun), `value = contributed + marketGain` setiap bulan, gabungan = jumlah per akun
+- [x] Skenario dasar SPEC § Acceptance criteria: tabel gabungan `range=12` (lima bulan, `opening` 0), RD Saham per akun, `range=6` dengan `today = 2027-01-15` (`opening` = Jul), `range=all` = `range=12`
+- [x] Akun backdate (dibuat 2026-11-01, transfer 2026-09-10) mulai Sep bernilai 3.000.000; revaluasi terhapus tidak dihitung; akun terarsip tidak ikut gabungan dan `accountId`-nya → `null`; BCA, id acak, akun user lain → `null`; user tanpa aset → `months: []`
+- [x] Invarian: bulan terakhir = jumlah `assetValuations` (gabungan dan per akun), `value = contributed + marketGain` setiap bulan, gabungan = jumlah per akun
 
 **Verification:**
 
-- [ ] Merah dulu: `pnpm vitest run tests/unit/asset-history.spec.ts tests/api/asset-history.spec.ts` gagal sebelum implementasi
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] Merah dulu: `pnpm vitest run tests/unit/asset-history.spec.ts tests/api/asset-history.spec.ts` gagal sebelum implementasi
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
 
 **Dependencies:** commit `docs(asset-history)` spec + plan
 

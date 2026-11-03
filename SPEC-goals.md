@@ -17,7 +17,7 @@ Modul ini pemilik **kontrak** `/api/goals*` dan `/api/valuations`, query `goalPr
 
 **Sukses berarti:** setelah dua check-in bulanan, pemilik bisa menjawab "kapan DP Rumah tercapai, dan berapa per bulan yang dibutuhkan supaya tepat waktu" dari satu layar, dan `current` setiap target sama persis dengan jumlah nilai yang ia ketik saat check-in ditambah transaksi sesudahnya.
 
-Di luar cakupan: harga otomatis (saham, emas, kripto, NAB), saham, kuantitas (gram, unit), liabilitas, grafik net worth dari waktu ke waktu, tabel snapshot atau cron, transfer berulang ke target, satu akun dibagi ke beberapa target, target FI (25× pengeluaran tahunan), kartu target di dashboard, notifikasi atau pengingat check-in.
+Di luar cakupan: harga otomatis (saham, emas, kripto, NAB), saham, kuantitas (gram, unit), liabilitas, grafik net worth dari waktu ke waktu (histori nilai aset kini modul `asset-history`, [SPEC-asset-history.md](SPEC-asset-history.md)), tabel snapshot atau cron, transfer berulang ke target, satu akun dibagi ke beberapa target, target FI (25× pengeluaran tahunan), kartu target di dashboard, notifikasi atau pengingat check-in.
 
 ## Keputusan
 

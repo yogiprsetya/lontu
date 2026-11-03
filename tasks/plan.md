@@ -16,6 +16,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
 | `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–39 | T123–T138 | T123–T138 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134 dan T138) |
+| `asset-history`       | [SPEC-asset-history.md](../SPEC-asset-history.md)             | 40    | T139–T144 | Direncanakan |
 
 ---
 
@@ -813,3 +814,33 @@ Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerende
 - Satu run fokus saat T136 gagal sekali di `valuations.spec.ts` ("opens today again…", 13,7 detik) dan lulus di tiga run ulang. Pola sama dengan tunggu koneksi pooler di Temuan T134; bukan pergantian hari (jam 07.30 WIB).
 - Daftar transaksi menampilkan deskripsi sebagai "{akun} · {deskripsi}" di bawah judul "Revaluasi", dan detail punya baris "Deskripsi" (`adjustment-card.tsx`); tidak ada perubahan di `/transactions`.
 - Belum dicek (butuh login Google di browser sungguhan): butir UI revisi 2026-11-02 dan butir Manual todo-39 (sheet tanpa tanggal, error deskripsi tanpa request, baris "diperbarui hari ini" tanpa tombol sesudah SWR revalidate, layout 360 px dan 1024 px).
+
+---
+
+# Modul `asset-history`
+
+Sumber: sesi idea-refine + `/spec` + `/plan` 2026-11-03 ("histori perubahan aset, tabel standar dan chart yang mudah dipahami") · Spec: [SPEC-asset-history.md](../SPEC-asset-history.md) (draft) · 2026-11-03
+
+## Overview
+
+Section "Histori nilai" di `/net-worth`: kalimat ringkasan, grafik Nilai vs Disetor, dan tabel per bulan (Setoran · Pasar · Nilai), gabungan atau per akun aset, rentang 6/12/Semua. Diturunkan dari `transactions` dengan rumus view `account_balances`. Tanpa skema, migrasi, dependency, atau komponen shadcn baru. Net worth dengan akun transaksi, persen return, dan kartu dashboard tidak dikerjakan.
+
+## Kondisi repo saat ini
+
+- `feat/goals` 30 commit di depan master (modul `goals` belum di-merge). Modul ini bergantung pada `/net-worth`, `assetValuations`, dan tipe `revaluation`, jadi branch `feat/asset-history` dibuat dari `feat/goals`.
+- Pola yang dipakai ulang: `generate_series` + `to_char` (`expenseActivity` di `dashboard-summary.ts`), join dua sisi transfer dan `first_month` Asia/Jakarta (`goal-progress.ts`), query di-parse dari `searchParams` (`app/api/dashboard/route.ts`), grafik `next/dynamic` + `aria-hidden` + `hideAmounts` (`expense-activity-chart.tsx`).
+- Key `/api/valuations/history` sudah cocok dengan regex resource `valuations` di `lib/cache-invalidation.ts`, jadi tidak ada edge baru.
+- Phase 29 (T104–T106) dan cutover T121–T122 masih terbuka, tetapi tidak menyentuh file modul ini.
+- 1512 tes lulus per T138 (2026-11-03).
+
+## Phases
+
+| Phase                   | Plan                     | Todo                     | Task      | Checkpoint |
+| ----------------------- | ------------------------ | ------------------------ | --------- | ---------- |
+| 40. Histori nilai aset  | [plan-40.md](plan-40.md) | [todo-40.md](todo-40.md) | T139–T144 | AM, AN     |
+
+## Aturan lintas phase
+
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
+- TDD: T139, T140, T141 menulis tes merah dulu dengan angka SPEC-asset-history § Acceptance criteria.
+- Tes lama tidak diubah, kecuali tes baru di `cache-invalidation.spec.ts` (T141). Jumlah tes dicatat di setiap checkpoint.

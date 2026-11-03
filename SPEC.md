@@ -24,8 +24,9 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 | `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
 | `goals` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/goals`), query `goalProgress`, proyeksi `goalProjection`, halaman `/goals` | accounts-categories, transactions |
+| `asset-history` | Histori nilai aset per bulan (setoran vs pasar) dari transaksi, `GET /api/valuations/history`, query `assetHistory`, section "Histori nilai" (ringkasan, grafik Nilai vs Disetor, tabel) di `/net-worth` | goals, transactions, accounts-categories |
 
-**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → goals (Fase 2, ditambahkan 2026-11-01)
+**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → goals (Fase 2, ditambahkan 2026-11-01) → asset-history (Fase 2, ditambahkan 2026-11-03)
 
 Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET /api/accounts` ditulis di `SPEC-accounts-categories.md`.
 

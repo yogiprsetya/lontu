@@ -1,12 +1,28 @@
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
 import { accounts, transactions } from "@/db/schema";
 import type { AssetHistory } from "@/lib/schemas/asset-history";
 import { assetHistory } from "@/lib/server/queries/asset-history";
 import { assetValuations } from "@/lib/server/queries/asset-valuations";
 import { createTestUsers } from "../setup/db";
+
+vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
+
+const { auth } = await import("@/lib/auth");
+const route = await import("@/app/api/valuations/history/route");
+const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
+
+function signInAs(userId: string | null) {
+  mockedAuth.mockResolvedValue(userId ? { user: { id: userId } } : null);
+}
+
+function get(query = "") {
+  return route.GET(new Request(`http://localhost/api/valuations/history${query}`), {
+    params: Promise.resolve({}),
+  });
+}
 
 const today = "2026-11-15";
 const cleanups: (() => PromiseLike<unknown>)[] = [];
@@ -266,5 +282,72 @@ describe("assetHistory edge cases", () => {
       opening: zero,
       months: [],
     });
+  });
+});
+
+describe("GET /api/valuations/history", () => {
+  async function expectNotFound(res: Response) {
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe("ACCOUNT_NOT_FOUND");
+  }
+
+  async function expectFieldError(res: Response, field: string) {
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(body.error.fields[field]).toBeDefined();
+  }
+
+  it("defaults to range 12, combined", async () => {
+    const { userId } = await baseScenario();
+    signInAs(userId);
+    const res = await get();
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as AssetHistory;
+    expect(body).toMatchObject({ range: "12", accountId: null });
+    expect(body.months[0]).toMatchObject({ month: "2026-07", value: 30_000_000 });
+  });
+
+  it("filters by an asset account", async () => {
+    const { userId, reksadana } = await baseScenario();
+    signInAs(userId);
+    const res = await get(`?range=all&accountId=${reksadana}`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as AssetHistory;
+    expect(body).toMatchObject({ range: "all", accountId: reksadana });
+    expect(body.months.slice(0, 2).map((m) => m.value)).toEqual([0, 3_000_000]);
+  });
+
+  it("rejects an unknown range or a non-uuid accountId with 400", async () => {
+    signInAs(await newUser());
+    await expectFieldError(await get("?range=24"), "range");
+    await expectFieldError(await get("?accountId=abc"), "accountId");
+  });
+
+  it("answers 404 for a transaction account, an archived asset, or a random id", async () => {
+    const { userId, bca, emas } = await baseScenario();
+    await db.update(accounts).set({ archivedAt: new Date() }).where(eq(accounts.id, emas));
+    signInAs(userId);
+    for (const accountId of [bca, emas, randomUUID()]) {
+      await expectNotFound(await get(`?accountId=${accountId}`));
+    }
+  });
+
+  it("isolates users: B cannot read A's asset, and A's data leaves B's history alone", async () => {
+    const a = await baseScenario();
+    const userB = await newUser();
+    await account(userB, "Tabungan Emas", { initialBalance: 1_000_000 });
+    signInAs(userB);
+    await expectNotFound(await get(`?accountId=${a.emas}`));
+    const body = (await (await get("?range=all")).json()) as AssetHistory;
+    expect(body.months.length).toBeGreaterThan(0);
+    expect(body.months.every((m) => m.value === 1_000_000 && m.marketGain === 0)).toBe(true);
+  });
+
+  it("returns 401 without a session", async () => {
+    signInAs(null);
+    const res = await get();
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe("UNAUTHORIZED");
   });
 });

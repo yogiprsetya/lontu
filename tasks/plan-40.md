@@ -9,7 +9,7 @@ Section "Histori nilai" di `/net-worth` menjawab "aset saya naik atau turun, dan
 ## Task
 
 - [x] T139: Query `assetHistory` (M)
-- [ ] T140: Route `GET /api/valuations/history` (S)
+- [x] T140: Route `GET /api/valuations/history` (S)
 - [ ] T141: Section Histori nilai: ringkasan dan tabel (M)
 - [ ] T142: Kontrol rentang dan akun (S)
 - [ ] T143: Grafik Nilai vs Disetor (S)
@@ -60,9 +60,9 @@ docs(asset-history) spec + plan
 
 ## Checkpoint AM (sesudah T140)
 
-- [ ] Semua butir API/query di SPEC-asset-history § Acceptance criteria hijau
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau, jumlah tes dicatat (sebelumnya 1512)
-- [ ] Tidak ada tes lama yang diubah
+- [x] Semua butir API/query di SPEC-asset-history § Acceptance criteria hijau
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau, jumlah tes dicatat (sebelumnya 1512, sekarang 1543)
+- [x] Tidak ada tes lama yang diubah
 
 ## Checkpoint AN (sesudah T144)
 

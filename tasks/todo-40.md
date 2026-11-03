@@ -35,15 +35,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Tanpa query → 200 dengan `range "12"`, `accountId null`; `range=24` → 400 `fields.range`; `accountId=abc` → 400 `fields.accountId`
-- [ ] `accountId` BCA, akun terarsip, id acak, atau akun aset user lain → 404 `ACCOUNT_NOT_FOUND`; histori gabungan user B tidak berubah oleh data user A
-- [ ] Tanpa session → 401 `UNAUTHORIZED`
+- [x] Tanpa query → 200 dengan `range "12"`, `accountId null`; `range=24` → 400 `fields.range`; `accountId=abc` → 400 `fields.accountId`
+- [x] `accountId` BCA, akun terarsip, id acak, atau akun aset user lain → 404 `ACCOUNT_NOT_FOUND`; histori gabungan user B tidak berubah oleh data user A
+- [x] Tanpa session → 401 `UNAUTHORIZED`
 
 **Verification:**
 
-- [ ] Merah dulu: `pnpm vitest run tests/unit/asset-history-schema.spec.ts tests/api/asset-history.spec.ts`
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` hijau
-- [ ] Checkpoint AM (plan-40)
+- [x] Merah dulu: `pnpm vitest run tests/unit/asset-history-schema.spec.ts tests/api/asset-history.spec.ts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test` hijau
+- [x] Checkpoint AM (plan-40)
 
 **Dependencies:** T139
 

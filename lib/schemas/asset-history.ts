@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const ASSET_HISTORY_RANGES = ["6", "12", "all"] as const;
 
 export type AssetHistoryRange = (typeof ASSET_HISTORY_RANGES)[number];
@@ -32,3 +34,8 @@ export type AssetHistory = {
   /** Oldest first, the last being the current month; empty only without an active asset account. */
   months: AssetHistoryMonth[];
 };
+
+export const assetHistoryQuerySchema = z.object({
+  range: z.enum(ASSET_HISTORY_RANGES, "Rentang tidak valid").default("12"),
+  accountId: z.uuid("Akun tidak valid").optional(),
+});

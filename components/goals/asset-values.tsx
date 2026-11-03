@@ -60,17 +60,20 @@ function AssetRow({
         >
           {subtype} · {valuedLabel(asset.lastValuedAt, today)}
         </p>
-        <Button
-          variant="outline"
-          className="shrink-0 text-base"
-          size="sm"
-          disabled={!online}
-          aria-label={`Perbarui nilai ${name}`}
-          onClick={onValue}
-        >
-          <RefreshCwIcon aria-hidden />
-          Perbarui
-        </Button>
+        {/* SPEC-goals #6: a second value today would be refused, so do not offer one. */}
+        {asset.lastValuedAt !== today && (
+          <Button
+            variant="outline"
+            className="shrink-0 text-base"
+            size="sm"
+            disabled={!online}
+            aria-label={`Perbarui nilai ${name}`}
+            onClick={onValue}
+          >
+            <RefreshCwIcon aria-hidden />
+            Perbarui
+          </Button>
+        )}
       </div>
     </li>
   );

@@ -10,7 +10,7 @@ Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-39.md](todo-39.md) · 
 
 - [x] T135: Check-in bertanggal server (M)
 - [x] T136: Deskripsi opsional di check-in (M)
-- [ ] T137: Baris aset "diperbarui hari ini" (S)
+- [x] T137: Baris aset "diperbarui hari ini" (S)
 - [ ] T138: Verifikasi dan status (S)
 
 Urutan: T135 → T136 → T138. T137 tidak bergantung pada T135/T136 dan boleh dikerjakan kapan saja sebelum T138.

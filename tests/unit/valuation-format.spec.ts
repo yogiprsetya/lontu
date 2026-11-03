@@ -26,6 +26,10 @@ describe("valuedLabel", () => {
     expect(valuedLabel("2025-12-30", "2026-01-10")).toBe("diperbarui 30 Des 2025");
   });
 
+  it("says today when the account was valued today", () => {
+    expect(valuedLabel(today, today)).toBe("diperbarui hari ini");
+  });
+
   it("says never, and spells out a stale age in days", () => {
     expect(valuedLabel(null, today)).toBe("belum pernah diperbarui");
     expect(valuedLabel("2026-09-29", today)).toBe("belum diperbarui 47 hari");

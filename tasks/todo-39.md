@@ -60,14 +60,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `valuedLabel` hari ini → "diperbarui hari ini"; cabang lain (belum pernah, basi, tanggal lain) tidak berubah
-- [ ] Baris aset yang dinilai hari ini tidak punya tombol Perbarui; baris lain tetap punya, ≥ 44 px
+- [x] `valuedLabel` hari ini → "diperbarui hari ini"; cabang lain (belum pernah, basi, tanggal lain) tidak berubah
+- [ ] (kode selesai; cek di browser tertunda: sesi tanpa browser) Baris aset yang dinilai hari ini tidak punya tombol Perbarui; baris lain tetap punya, ≥ 44 px
 
 **Verification:**
 
-- [ ] Merah dulu: `pnpm vitest run tests/unit/valuation-format.spec.ts`
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: sesudah check-in, baris berubah tanpa reload (SWR revalidate) di 360×800
+- [x] Merah dulu: `pnpm vitest run tests/unit/valuation-format.spec.ts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] (tertunda: sesi tanpa browser) Manual: sesudah check-in, baris berubah tanpa reload (SWR revalidate) di 360×800
 
 **Dependencies:** commit `docs(goals)` spec + plan
 

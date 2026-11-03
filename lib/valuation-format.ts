@@ -12,6 +12,7 @@ export function isStale(lastValuedAt: string | null, today: string) {
 /** Stale ages are spelled out, so an untended value is readable without colour. */
 export function valuedLabel(lastValuedAt: string | null, today: string) {
   if (!lastValuedAt) return "belum pernah diperbarui";
+  if (lastValuedAt === today) return "diperbarui hari ini";
   if (isStale(lastValuedAt, today))
     return `belum diperbarui ${daysBetween(lastValuedAt, today)} hari`;
   return `diperbarui ${formatShortDate(lastValuedAt, today)}`;

@@ -1,9 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { HistoryIcon } from "lucide-react";
+import { selectItemClass, selectTriggerClass } from "@/components/forms/field-styles";
 import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { useAssetHistory } from "@/hooks/use-asset-history";
 import {
@@ -14,8 +25,22 @@ import {
 } from "@/lib/asset-history";
 import { formatTargetMonth } from "@/lib/goal-format";
 import { formatIDR } from "@/lib/money";
-import type { AssetHistoryMonth } from "@/lib/schemas/asset-history";
+import type { Account } from "@/lib/schemas/account";
+import {
+  ASSET_HISTORY_RANGES,
+  type AssetHistoryMonth,
+  type AssetHistoryRange,
+} from "@/lib/schemas/asset-history";
+import type { AssetValuation } from "@/lib/schemas/valuation";
 import { formatMarketGain } from "@/lib/valuation-format";
+
+const RANGE_LABELS: Record<AssetHistoryRange, string> = {
+  "6": "6 bln",
+  "12": "12 bln",
+  all: "Semua",
+};
+
+const ALL = "all";
 
 /** Abbreviated below `sm` so four columns fit 360 px; only one span shows, so one number is read. */
 function Amount({
@@ -90,10 +115,27 @@ function HistoryTable({ months }: { months: AssetHistoryMonth[] }) {
   );
 }
 
-/** Section "Histori nilai" on /net-worth (SPEC-asset-history § UI). */
-export function AssetHistory() {
+/** Section "Histori nilai" on /net-worth (SPEC-asset-history § UI). Range and account are local state (#12). */
+export function AssetHistory({
+  assets,
+  accounts,
+}: {
+  assets: AssetValuation[];
+  accounts: Map<string, Account>;
+}) {
   const money = useAmountFormat();
-  const { data, error, mutate } = useAssetHistory({ range: "12", accountId: null });
+  const [range, setRange] = useState<AssetHistoryRange>("12");
+  const [selected, setSelected] = useState(ALL);
+  // An account archived since it was picked is no longer listed: fall back to every asset, not a 404.
+  const accountId = assets.some((a) => a.accountId === selected) ? selected : null;
+  const { data, error, mutate } = useAssetHistory({ range, accountId });
+  const accountItems = [
+    { value: ALL, label: "Semua aset" },
+    ...assets.map((a) => ({
+      value: a.accountId,
+      label: accounts.get(a.accountId)?.name ?? "Akun",
+    })),
+  ];
 
   let content;
   if (error) {
@@ -123,6 +165,45 @@ export function AssetHistory() {
       <SectionTitle id="asset-history" icon={HistoryIcon} tone="sky">
         Histori nilai
       </SectionTitle>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <ToggleGroup
+          variant="outline"
+          spacing={0}
+          className="grid w-full grid-cols-3 sm:w-auto"
+          aria-label="Rentang histori"
+          value={[range]}
+          onValueChange={(next) => next[0] && setRange(next[0] as AssetHistoryRange)}
+        >
+          {ASSET_HISTORY_RANGES.map((r) => (
+            <ToggleGroupItem key={r} value={r} className="h-11 px-4 text-base">
+              {RANGE_LABELS[r]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        {assets.length >= 2 && (
+          <div className="min-w-0 sm:flex-1">
+            <Label htmlFor="asset-history-account" className="sr-only">
+              Akun
+            </Label>
+            <Select
+              items={accountItems}
+              value={accountId ?? ALL}
+              onValueChange={(v) => v && setSelected(v)}
+            >
+              <SelectTrigger id="asset-history-account" className={selectTriggerClass}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {accountItems.map((a) => (
+                  <SelectItem key={a.value} value={a.value} className={selectItemClass}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
       {content}
     </section>
   );

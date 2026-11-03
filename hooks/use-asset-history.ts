@@ -14,6 +14,7 @@ export function assetHistoryKey({ range, accountId }: Options) {
   });
 }
 
+/** Keeps the last combination on screen while another range or account loads. */
 export function useAssetHistory(options: Options) {
-  return useSWR<AssetHistory>(assetHistoryKey(options));
+  return useSWR<AssetHistory>(assetHistoryKey(options), { keepPreviousData: true });
 }

@@ -283,7 +283,7 @@ export function GoalsView() {
               online={online}
               onValue={setValuingId}
             />
-            <AssetHistory />
+            <AssetHistory assets={assets} accounts={accountsById} />
           </>
         )}
       </>

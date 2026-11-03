@@ -83,14 +83,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Ganti rentang atau akun → ringkasan dan tabel berubah bersama (satu request per kombinasi, di-cache SWR)
-- [ ] Filter akun tidak tampil dengan satu akun aset; akun yang dipilih lalu diarsipkan kembali ke "Semua aset" tanpa error 404 di layar
-- [ ] Setiap kontrol ≥ 44 px dan berlabel untuk screen reader
+- [x] Ganti rentang atau akun → ringkasan dan tabel berubah bersama (satu request per kombinasi, di-cache SWR) · dari kode, belum dicek di browser
+- [x] Filter akun tidak tampil dengan satu akun aset; akun yang dipilih lalu diarsipkan kembali ke "Semua aset" tanpa error 404 di layar · dari kode, belum dicek di browser
+- [x] Setiap kontrol ≥ 44 px dan berlabel untuk screen reader · dari kode, belum dicek di browser
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: ketiga rentang × gabungan/per akun di 360×800; mode pesawat → kombinasi yang pernah dibuka tampil dari cache, yang belum → error + "Coba lagi"
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual: ketiga rentang × gabungan/per akun di 360×800; mode pesawat → kombinasi yang pernah dibuka tampil dari cache, yang belum → error + "Coba lagi" · tertunda: sesi tanpa browser
 
 **Dependencies:** T141
 

@@ -38,6 +38,19 @@ describe("valuationSchema", () => {
     expect(fieldsOf({ ...body, items: [{ accountId: emas, value }] })).toEqual(["items"]);
   });
 
+  it("trims a note and turns an empty one into null", () => {
+    const parse = (note: string) =>
+      valuationSchema.parse({ items: [{ accountId: emas, value: 1, note }] }).items[0].note;
+    expect(parse("  NAB naik  ")).toBe("NAB naik");
+    expect(parse("   ")).toBeNull();
+  });
+
+  it("rejects a note over 200 characters on items", () => {
+    expect(fieldsOf({ items: [{ accountId: emas, value: 1, note: "a".repeat(201) }] })).toEqual([
+      "items",
+    ]);
+  });
+
   it("rejects an empty list, more than 50 items, and a repeated account", () => {
     expect(fieldsOf({ ...body, items: [] })).toEqual(["items"]);
     const many = Array.from({ length: 51 }, () => ({ accountId: crypto.randomUUID(), value: 1 }));

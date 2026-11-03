@@ -66,9 +66,10 @@ export async function recordValuations(
       .where(and(eq(accountBalances.userId, userId), inArray(accountBalances.accountId, ids)));
     const balances = new Map(balanceRows.map((r) => [r.accountId, r.balance]));
     const changes = input.items
-      .map(({ accountId, value }, i) => ({
+      .map(({ accountId, value, note }, i) => ({
         i,
         accountId,
+        note,
         amount: value - balances.get(accountId)!,
       }))
       .filter((r) => r.amount !== 0);
@@ -77,13 +78,13 @@ export async function recordValuations(
       if (message) return { invalid: { field: `items.${i}`, message } };
     }
 
-    const rows = changes.map(({ accountId, amount }) => ({
+    const rows = changes.map(({ accountId, amount, note }) => ({
       accountId,
       amount,
       userId,
       type: "revaluation",
       date: today,
-      description: "Pembaruan nilai",
+      description: note ?? null,
     }));
     if (rows.length > 0) await tx.insert(transactions).values(rows);
     return { recorded: rows.length };

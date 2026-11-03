@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { transactionDescriptionSchema } from "@/lib/schemas/transaction";
 
 export type AssetValuation = {
   accountId: string;
@@ -21,6 +22,8 @@ const item = z.strictObject({
     .int("Nilai harus bilangan bulat rupiah")
     .min(0, "Nilai minimal Rp0")
     .max(1e12, "Maksimal 1 triliun"),
+  /** Stored as the revaluation's description; dropped with an unchanged value (SPEC-goals #23). */
+  note: transactionDescriptionSchema.optional(),
 });
 
 /** The client sends values only; the server works out each revaluation amount and dates it today. */

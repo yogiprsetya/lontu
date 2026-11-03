@@ -36,15 +36,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Check-in dengan `note` → `description` baris = note yang sudah di-trim; tanpa `note` atau string kosong → `null`; `note` > 200 → 400 `fields.items`
-- [ ] Ulangan request dengan `note` → `recorded: 0`, tanpa error, deskripsi baris pertama tidak berubah
-- [ ] Sheet: deskripsi + nilai sama → "Deskripsi disimpan bersama nilai baru. Ubah nilainya dulu.", tanpa request; revaluasi berdeskripsi tampil "Revaluasi · {deskripsi}" di `/transactions`
+- [x] Check-in dengan `note` → `description` baris = note yang sudah di-trim; tanpa `note` atau string kosong → `null`; `note` > 200 → 400 `fields.items`
+- [x] Ulangan request dengan `note` → `recorded: 0`, tanpa error, deskripsi baris pertama tidak berubah
+- [ ] (kode selesai; cek di browser tertunda: sesi tanpa browser) Sheet: deskripsi + nilai sama → "Deskripsi disimpan bersama nilai baru. Ubah nilainya dulu.", tanpa request; revaluasi berdeskripsi tampil "Revaluasi · {deskripsi}" di `/transactions`
 
 **Verification:**
 
-- [ ] Merah dulu: tes `note` di `valuation-schema.spec.ts` dan `valuations.spec.ts`
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: kedua cabang sheet di 360×800; detail transaksi revaluasi menampilkan baris "Deskripsi"
+- [x] Merah dulu: tes `note` di `valuation-schema.spec.ts` dan `valuations.spec.ts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] (tertunda: sesi tanpa browser) Manual: kedua cabang sheet di 360×800; detail transaksi revaluasi menampilkan baris "Deskripsi"
 
 **Dependencies:** T135
 

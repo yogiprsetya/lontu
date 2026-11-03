@@ -55,6 +55,14 @@ async function revaluationsOf(accountId: string) {
     .where(and(eq(transactions.accountId, accountId), eq(transactions.type, "revaluation")));
 }
 
+async function descriptionsOf(accountId: string) {
+  const rows = await db
+    .select({ description: transactions.description })
+    .from(transactions)
+    .where(and(eq(transactions.accountId, accountId), eq(transactions.type, "revaluation")));
+  return rows.map((r) => r.description);
+}
+
 function revaluation(accountId: string, amount: number, date: string) {
   return { userId: userA, type: "revaluation", amount, date, accountId };
 }
@@ -117,7 +125,7 @@ describe("POST /api/valuations, base scenario", () => {
   const checkIn = () => ({
     items: [
       { accountId: emas, value: 36_500_000 },
-      { accountId: reksadana, value: 6_200_000 },
+      { accountId: reksadana, value: 6_200_000, note: "  NAB naik " },
     ],
   });
 
@@ -131,6 +139,8 @@ describe("POST /api/valuations, base scenario", () => {
 
     expect(await revaluationsOf(emas)).toEqual([{ amount: 500_000, date: today }]);
     expect(await revaluationsOf(reksadana)).toEqual([{ amount: 200_000, date: today }]);
+    expect(await descriptionsOf(emas)).toEqual([null]);
+    expect(await descriptionsOf(reksadana)).toEqual(["NAB naik"]);
     expect(await balanceOf(emas)).toBe(36_500_000);
     expect(await balanceOf(reksadana)).toBe(6_200_000);
 
@@ -150,6 +160,14 @@ describe("POST /api/valuations, base scenario", () => {
     expect(((await res.json()) as ValuationResult).recorded).toBe(0);
     expect(await revaluationsOf(emas)).toHaveLength(1);
     expect(await revaluationsOf(reksadana)).toHaveLength(1);
+  });
+
+  it("ignores a different note on an unchanged value, without an error", async () => {
+    signInAs(userA);
+    const res = await post({ items: [{ accountId: reksadana, value: 6_200_000, note: "Lain" }] });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as ValuationResult).recorded).toBe(0);
+    expect(await descriptionsOf(reksadana)).toEqual(["NAB naik"]);
   });
 
   it("rejects a second new value today on the item's field", async () => {
@@ -276,6 +294,24 @@ describe("POST /api/valuations, validation", () => {
     });
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
+    expect(await revaluationsOf(account)).toEqual([]);
+  });
+
+  it("stores an empty note as null", async () => {
+    signInAs(userA);
+    const account = await insertAccount(userA, "Catatan kosong", { initialBalance: 100 });
+    const res = await post({ items: [{ accountId: account, value: 200, note: "  " }] });
+    expect(res.status).toBe(200);
+    expect(await descriptionsOf(account)).toEqual([null]);
+  });
+
+  it("rejects a note over 200 characters on items, writing nothing", async () => {
+    signInAs(userA);
+    const account = await insertAccount(userA, "Catatan panjang", { initialBalance: 100 });
+    await expectFieldError(
+      await post({ items: [{ accountId: account, value: 200, note: "a".repeat(201) }] }),
+      "items",
+    );
     expect(await revaluationsOf(account)).toEqual([]);
   });
 

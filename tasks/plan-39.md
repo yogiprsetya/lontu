@@ -9,7 +9,7 @@ Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-39.md](todo-39.md) · 
 ## Task
 
 - [x] T135: Check-in bertanggal server (M)
-- [ ] T136: Deskripsi opsional di check-in (M)
+- [x] T136: Deskripsi opsional di check-in (M)
 - [ ] T137: Baris aset "diperbarui hari ini" (S)
 - [ ] T138: Verifikasi dan status (S)
 

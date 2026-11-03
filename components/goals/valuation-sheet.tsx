@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { inputClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAmountFormat, useAmountsHidden } from "@/hooks/use-amount-format";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { recordValuations } from "@/hooks/use-valuations";
@@ -18,7 +20,7 @@ import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
 import type { AssetValuation } from "@/lib/schemas/valuation";
 import { checkInMessage, valuedLabel } from "@/lib/valuation-format";
 
-type Errors = { value?: string; form?: string };
+type Errors = { value?: string; note?: string; form?: string };
 
 type FormProps = {
   asset: AssetValuation;
@@ -33,12 +35,18 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   const money = useAmountFormat();
   // Unset until the owner types; while amounts are hidden the field starts empty instead of showing the balance.
   const [value, setValue] = useState<number>();
+  const [note, setNote] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const name = account?.name ?? "Akun";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (value === undefined || value === asset.balance) {
+      // The server drops a note on an unchanged value (SPEC-goals #23), so stop it being lost silently.
+      if (note.trim()) {
+        setErrors({ note: "Deskripsi disimpan bersama nilai baru. Ubah nilainya dulu." });
+        return;
+      }
       toast.success(checkInMessage(0, name));
       onDone();
       return;
@@ -47,7 +55,7 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
     onSubmitting(true);
     try {
       const { recorded } = await recordValuations({
-        items: [{ accountId: asset.accountId, value }],
+        items: [{ accountId: asset.accountId, value, note }],
       });
       toast.success(checkInMessage(recorded, name));
       onDone();
@@ -95,6 +103,18 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
           onChange={setValue}
           invalid={!!errors.value}
           describedBy={`${id}-message`}
+        />
+      </FormField>
+      <FormField id={`${id}-note`} label="Deskripsi (opsional)" error={errors.note}>
+        <Input
+          id={`${id}-note`}
+          className={inputClass}
+          autoComplete="off"
+          maxLength={200}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          aria-invalid={!!errors.note}
+          aria-describedby={`${id}-note-message`}
         />
       </FormField>
     </form>

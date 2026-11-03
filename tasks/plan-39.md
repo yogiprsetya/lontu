@@ -69,4 +69,4 @@ docs(goals) spec + plan
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; tidak ada tes di luar `valuations.spec.ts`, `valuation-schema.spec.ts`, `valuation-format.spec.ts` yang diubah (kecuali `cache-invalidation.spec.ts`, lihat Temuan verifikasi T138 di plan.md)
 - [x] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
 - [x] SPEC-goals.md Status dan plan.md baris `goals` diperbarui
-- [ ] Review dengan Yogi
+- [x] Review dengan Yogi (2026-11-03)

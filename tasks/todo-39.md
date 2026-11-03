@@ -90,7 +90,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 **Verification:**
 
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes dicatat (1512)
-- [ ] Review bersama Yogi
+- [x] Review bersama Yogi (2026-11-03)
 
 **Dependencies:** T135, T136, T137
 

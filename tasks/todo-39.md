@@ -83,13 +83,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Setiap butir revisi 2026-11-02 di SPEC-goals dicentang atau ditandai tertunda dengan alasan
-- [ ] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
-- [ ] SPEC-goals.md Status dan plan.md baris `goals` menyebut T135–T138
+- [x] Setiap butir revisi 2026-11-02 di SPEC-goals dicentang atau ditandai tertunda dengan alasan
+- [x] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
+- [x] SPEC-goals.md Status dan plan.md baris `goals` menyebut T135–T138
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes dicatat
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes dicatat (1512)
 - [ ] Review bersama Yogi
 
 **Dependencies:** T135, T136, T137

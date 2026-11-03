@@ -1,6 +1,6 @@
 # Spec module: `goals`
 
-Status: diimplementasikan (T123–T134, 2026-11-02; cek UI manual tertunda). Revisi "check-in hari ini + deskripsi" (keputusan #6, #7, #23; 2026-11-02) belum diimplementasikan · @Yogi
+Status: diimplementasikan (T123–T138, 2026-11-03; cek UI manual tertunda). Revisi "check-in hari ini + deskripsi" (keputusan #6, #7, #23) diimplementasikan di T135–T137 · @Yogi
 Bergantung pada: `accounts-categories`, `transactions` · Dipakai oleh: — · Indeks: [SPEC.md](SPEC.md)
 Asal: sesi idea-refine 2026-11-01 ("Net Worth Targets", referensi: fitur Net Worth Tracker Monsy). Revisi dari sesi idea-refine 2026-11-02 ("Perbarui nilai tidak bisa backdate").
 
@@ -240,10 +240,10 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 
 **API**
 
-- [ ] `POST /api/valuations { items: [{ Emas, 36500000 }, { RD Saham, 6200000, note: "NAB naik" }] }` → `recorded: 2`, revaluasi +500.000 (Emas, `description null`) dan +200.000 (RD Saham, `description "NAB naik"`), keduanya bertanggal `todayInJakarta()`. `GET /api/accounts` → Emas 36.500.000, RD Saham 6.200.000. Request yang sama diulang → `recorded: 0`, tanpa baris baru, deskripsi tidak berubah. (Diubah 2026-11-02: sebelumnya `date` dikirim client.)
+- [x] `POST /api/valuations { items: [{ Emas, 36500000 }, { RD Saham, 6200000, note: "NAB naik" }] }` → `recorded: 2`, revaluasi +500.000 (Emas, `description null`) dan +200.000 (RD Saham, `description "NAB naik"`), keduanya bertanggal `todayInJakarta()`. `GET /api/accounts` → Emas 36.500.000, RD Saham 6.200.000. Request yang sama diulang → `recorded: 0`, tanpa baris baru, deskripsi tidak berubah. (Diubah 2026-11-02: sebelumnya `date` dikirim client.)
 - [x] `GET /api/goals` → DP Rumah `current 42700000`, `marketGain 700000`, `contributed 42000000`, `monthlyContribution 4000000` (Agt 3 jt, Sep 4 jt, Okt 5 jt; transfer RD Saham → Emas bernilai 0), `remaining 107300000`, `etaMonth "2029-01"`, `monthsLeft 26`, `neededPerMonth 4126924`, `onTrack false`, `overdue false`.
-- [ ] Sesudah check-in Emas hari ini, nilai baru untuk Emas → 400 `fields["items.0"]` "…sekali sehari", tanpa baris. Nilai sama → `recorded: 0`. Hapus revaluasi hari ini, lalu nilai baru → 200, `recorded: 1`. Body berisi `date` (berapa pun nilainya) → 400. `note` > 200 karakter → 400 `fields.items` (`flattenError` hanya memberi key tingkat atas). Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**. (Diubah 2026-11-02.)
-- [ ] Saldo awal akun aset 10.000.000 diubah ke 11.000.000 hari ini (adjustment +1.000.000), lalu check-in bernilai 12.000.000 → revaluasi +1.000.000, saldo 12.000.000 (delta dari `balance` view; menggantikan kasus keputusan #7).
+- [x] Sesudah check-in Emas hari ini, nilai baru untuk Emas → 400 `fields["items.0"]` "…sekali sehari", tanpa baris. Nilai sama → `recorded: 0`. Hapus revaluasi hari ini, lalu nilai baru → 200, `recorded: 1`. Body berisi `date` (berapa pun nilainya) → 400. `note` > 200 karakter → 400 `fields.items` (`flattenError` hanya memberi key tingkat atas). Akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]`, dan **tidak ada item lain yang tertulis**. (Diubah 2026-11-02.)
+- [x] Saldo awal akun aset 10.000.000 diubah ke 11.000.000 hari ini (adjustment +1.000.000), lalu check-in bernilai 12.000.000 → revaluasi +1.000.000, saldo 12.000.000 (delta dari `balance` view; menggantikan kasus keputusan #7).
 - [x] Revaluasi tidak muncul di `totals` `/api/transactions`, `dashboardSummary`, maupun `budgetUsage`. `PATCH /api/transactions/[id]` revaluasi → 409. `DELETE` → saldo kembali, `marketGain` turun. `POST /api/transactions { type: "revaluation" }` → 400.
 - [x] `POST /api/goals` dengan akun yang sudah dipakai target aktif lain, akun kartu kredit, akun terarsip, akun user lain, atau `accountIds` duplikat → 400 `fields.accountIds`. Dua `POST` paralel (`Promise.all`) yang mengklaim akun sama → tepat satu 201.
 - [x] Nama sama (beda huruf besar) dengan target aktif → 409 `GOAL_NAME_TAKEN`. Arsip A, buat B dengan akun A, restore A → 409 `GOAL_RESTORE_CONFLICT`. `DELETE` dua kali → 200, `archivedAt` tidak berubah.
@@ -255,13 +255,13 @@ Skenario dasar (hari ini 2026-11-15): akun BCA (`transaction`, debit), Emas (`as
 - [x] **Isolasi:** user B mendapat 404 untuk `PATCH`/`DELETE`/`restore` target A, `GET` B tidak pernah memuat target, nilai, atau saldo A, dan B tidak bisa menautkan atau check-in akun A.
 - [x] Tanpa session, semua route → 401 `UNAUTHORIZED`. Body dengan `userId` → 400.
 - [x] Semua tes `tests/api/*.spec.ts` yang ada tetap hijau tanpa diubah.
-- [ ] Revisi 2026-11-02: hanya `tests/api/valuations.spec.ts` dan `tests/unit/valuation-schema.spec.ts` yang ditulis ulang (kontraknya berubah). Tes kasus yang tidak mungkin lagi (backdate, tanggal masa depan) diganti tes "body berisi `date` → 400", bukan dihapus diam-diam. Tes lain tetap hijau tanpa diubah.
+- [x] Revisi 2026-11-02: hanya `tests/api/valuations.spec.ts` dan `tests/unit/valuation-schema.spec.ts` yang ditulis ulang (kontraknya berubah). Tes kasus yang tidak mungkin lagi (backdate, tanggal masa depan) diganti tes "body berisi `date` → 400", bukan dihapus diam-diam. Tes lain tetap hijau tanpa diubah. (Satu pengecualian: `valuation-format.spec.ts` mendapat tes "hari ini" dari T137, dan `cache-invalidation.spec.ts` kehilangan `date` di body mock `recordValuations` supaya lolos typecheck; assertion-nya tidak berubah.)
 
 **UI (manual di 360 px dan 1024 px)**
 
 - [ ] Buat target dari `/net-worth`, check-in dua akun lewat tombol Perbarui di setiap baris → kartu menampilkan progres, porsi disetor/pasar, dan proyeksi tanpa reload. Kartu Account Balance di dashboard ikut berubah. (tertunda: sesi tanpa browser)
 - [ ] Revaluasi tampil "Revaluasi" di `/transactions`, bisa difilter, tidak bisa diedit, hapus + Urungkan memulihkannya. (tertunda: sesi tanpa browser)
-- [ ] Sheet Perbarui nilai tanpa input tanggal, hint "Dicatat untuk hari ini, …". Deskripsi terisi + nilai sama → error di field deskripsi, tanpa request. Revaluasi berdeskripsi tampil "Revaluasi · {deskripsi}" di `/transactions` dan "Deskripsi" di detail. Sesudah simpan, baris aset tidak menampilkan tombol Perbarui dan berbunyi "diperbarui hari ini". (revisi 2026-11-02)
+- [ ] Sheet Perbarui nilai tanpa input tanggal, hint "Dicatat untuk hari ini, …". Deskripsi terisi + nilai sama → error di field deskripsi, tanpa request. Revaluasi berdeskripsi tampil "Revaluasi · {deskripsi}" di `/transactions` dan "Deskripsi" di detail. Sesudah simpan, baris aset tidak menampilkan tombol Perbarui dan berbunyi "diperbarui hari ini". (revisi 2026-11-02; tertunda: sesi tanpa browser)
 - [ ] Akun yang dipakai target lain tampil nonaktif dengan teks di form target. (tertunda: sesi tanpa browser)
 - [ ] Status basi, terlambat, dan pasar negatif terbaca tanpa warna. `hideAmounts` menyamarkan nominal. (tertunda: sesi tanpa browser)
 - [ ] Mode pesawat: `/net-worth` tampil dari cache, aksi tulis nonaktif dengan teks "Butuh koneksi". (tertunda: sesi tanpa browser)

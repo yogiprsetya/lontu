@@ -11,7 +11,7 @@ Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-39.md](todo-39.md) · 
 - [x] T135: Check-in bertanggal server (M)
 - [x] T136: Deskripsi opsional di check-in (M)
 - [x] T137: Baris aset "diperbarui hari ini" (S)
-- [ ] T138: Verifikasi dan status (S)
+- [x] T138: Verifikasi dan status (S)
 
 Urutan: T135 → T136 → T138. T137 tidak bergantung pada T135/T136 dan boleh dikerjakan kapan saja sebelum T138.
 
@@ -65,8 +65,8 @@ docs(goals) spec + plan
 
 ## Checkpoint AL
 
-- [ ] Butir SPEC-goals § Acceptance criteria yang dibuka lagi (revisi 2026-11-02) hijau (API) atau ditandai tertunda (UI)
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; tidak ada tes di luar `valuations.spec.ts`, `valuation-schema.spec.ts`, `valuation-format.spec.ts` yang diubah
-- [ ] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
-- [ ] SPEC-goals.md Status dan plan.md baris `goals` diperbarui
+- [x] Butir SPEC-goals § Acceptance criteria yang dibuka lagi (revisi 2026-11-02) hijau (API) atau ditandai tertunda (UI)
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; tidak ada tes di luar `valuations.spec.ts`, `valuation-schema.spec.ts`, `valuation-format.spec.ts` yang diubah (kecuali `cache-invalidation.spec.ts`, lihat Temuan verifikasi T138 di plan.md)
+- [x] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
+- [x] SPEC-goals.md Status dan plan.md baris `goals` diperbarui
 - [ ] Review dengan Yogi

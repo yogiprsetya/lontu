@@ -15,7 +15,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
-| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–39 | T123–T138 | T123–T134 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134). T135–T138 (check-in hari ini + deskripsi) direncanakan |
+| `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–39 | T123–T138 | T123–T138 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134 dan T138) |
 
 ---
 
@@ -803,3 +803,13 @@ Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerende
 - Kedua migrasi (`20261101161218_revaluation`, `20261101235956_goals_table`) diterapkan ke DB bersama. Cek produksi dengan kode lama belum dilakukan.
 - Belum dicek (butuh login Google di browser sungguhan): semua butir UI SPEC-goals dan butir Manual todo-36..38, mode pesawat, kontras di kartu target, layout 360 px dan 1024 px.
 - Keputusan saat build: `AFFECTS.goals = ["valuations"]` (spec diperbarui), edit target lewat tombol "Ubah" (spec diperbarui), `hideAmounts` di sheet Perbarui nilai mengosongkan field alih-alih menampilkan saldo, `EXPLAIN` query laju dengan ribuan baris belum diukur.
+
+## Temuan verifikasi T138 (2026-11-03)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` 1512 lulus (87 berkas; +26 dari T134). Butir API revisi 2026-11-02 di SPEC-goals § Acceptance criteria tercakup `valuations.spec.ts` dan `valuation-schema.spec.ts`.
+- `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong.
+- Tes di luar tiga berkas yang direncanakan: `cache-invalidation.spec.ts` kehilangan `date` di body mock `recordValuations` (typecheck gagal tanpanya, assertion tidak berubah). Plan-39 tidak mencantumkannya.
+- `transactionDateSchema` dihapus (pemakai satu-satunya adalah `valuationSchema`); `transactionDescriptionSchema` di-export untuk `note`.
+- Satu run fokus saat T136 gagal sekali di `valuations.spec.ts` ("opens today again…", 13,7 detik) dan lulus di tiga run ulang. Pola sama dengan tunggu koneksi pooler di Temuan T134; bukan pergantian hari (jam 07.30 WIB).
+- Daftar transaksi menampilkan deskripsi sebagai "{akun} · {deskripsi}" di bawah judul "Revaluasi", dan detail punya baris "Deskripsi" (`adjustment-card.tsx`); tidak ada perubahan di `/transactions`.
+- Belum dicek (butuh login Google di browser sungguhan): butir UI revisi 2026-11-02 dan butir Manual todo-39 (sheet tanpa tanggal, error deskripsi tanpa request, baris "diperbarui hari ini" tanpa tombol sesudah SWR revalidate, layout 360 px dan 1024 px).

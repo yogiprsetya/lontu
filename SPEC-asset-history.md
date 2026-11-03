@@ -1,6 +1,6 @@
 # Spec module: `asset-history`
 
-Status: draft · 2026-11-03 · @Yogi
+Status: diimplementasikan (T139–T144, 2026-11-04; cek UI manual tertunda) · @Yogi
 Bergantung pada: `goals`, `transactions`, `accounts-categories` · Dipakai oleh: — · Indeks: [SPEC.md](SPEC.md)
 Asal: sesi idea-refine 2026-11-03 ("histori perubahan aset, tabel standar dan chart yang mudah dipahami").
 
@@ -145,7 +145,7 @@ Skenario dasar (`today = 2026-11-15`, transaksi ditulis langsung dengan tanggal 
 
 **API / query**
 
-- [ ] Gabungan, `range=12` → `opening` 0/0/0, lima bulan (dipotong di Jul):
+- [x] Gabungan, `range=12` → `opening` 0/0/0, lima bulan (dipotong di Jul):
 
   | month   | value      | contributed | marketGain | contributionChange | marketChange |
   | ------- | ---------- | ----------- | ---------- | ------------------ | ------------ |
@@ -156,29 +156,29 @@ Skenario dasar (`today = 2026-11-15`, transaksi ditulis langsung dengan tanggal 
   | 2026-11 | 42.400.000 | 42.000.000  | 400.000    | 0                  | +200.000     |
 
   Transfer RD Saham → Emas bernilai 0 di gabungan.
-- [ ] `accountId = RD Saham`, `range=12` → Jul 0, Agt 3.000.000, Sep 6.700.000 (`marketGain −300.000`), Okt 5.700.000 (`contributionChange −1.000.000`), Nov 5.900.000 (`marketGain −100.000`).
-- [ ] `range=6` dengan `today = 2027-01-15` → enam bulan 2026-08..2027-01, `opening` = Jul (30.000.000 / 30.000.000 / 0). Des dan Jan sama dengan Nov. `assetHistorySummary` → `since "2026-08"`, `change 12.400.000`, `contributed 12.000.000`, `market 400.000`.
-- [ ] `range=all` sama dengan `range=12` di skenario dasar. Tanpa `range` → `"12"`.
-- [ ] Akun aset dibuat 2026-11-01 dengan saldo awal 2.000.000 dan transfer masuk 1.000.000 bertanggal 2026-09-10 → bulan pertama 2026-09 dengan nilai 3.000.000 (bukan 1.000.000), tanpa bulan bernilai negatif.
-- [ ] Revaluasi yang di-soft-delete tidak dihitung. Menghapus revaluasi Emas 2026-10-31 menurunkan `marketGain` Okt dan Nov sebesar 500.000.
-- [ ] Emas diarsipkan → gabungan tidak memuat Emas di bulan mana pun. `accountId = Emas` → 404.
-- [ ] Invarian di bagian Query, untuk gabungan dan per akun.
-- [ ] `range=24` → 400 `fields.range`. `accountId=abc` → 400 `fields.accountId`. `accountId` BCA (`transaction`), id acak, atau akun aset user lain → 404 `ACCOUNT_NOT_FOUND`.
-- [ ] User tanpa akun aset aktif → 200, `months: []`, `opening` 0.
-- [ ] **Isolasi:** user B dengan `accountId` akun aset A → 404. Histori gabungan B tidak berubah oleh akun dan transaksi A.
-- [ ] Tanpa session → 401 `UNAUTHORIZED`.
-- [ ] Semua tes yang ada tetap hijau tanpa diubah.
+- [x] `accountId = RD Saham`, `range=12` → Jul 0, Agt 3.000.000, Sep 6.700.000 (`marketGain −300.000`), Okt 5.700.000 (`contributionChange −1.000.000`), Nov 5.900.000 (`marketGain −100.000`).
+- [x] `range=6` dengan `today = 2027-01-15` → enam bulan 2026-08..2027-01, `opening` = Jul (30.000.000 / 30.000.000 / 0). Des dan Jan sama dengan Nov. `assetHistorySummary` → `since "2026-08"`, `change 12.400.000`, `contributed 12.000.000`, `market 400.000`.
+- [x] `range=all` sama dengan `range=12` di skenario dasar. Tanpa `range` → `"12"`.
+- [x] Akun aset dibuat 2026-11-01 dengan saldo awal 2.000.000 dan transfer masuk 1.000.000 bertanggal 2026-09-10 → bulan pertama 2026-09 dengan nilai 3.000.000 (bukan 1.000.000), tanpa bulan bernilai negatif.
+- [x] Revaluasi yang di-soft-delete tidak dihitung. Menghapus revaluasi Emas 2026-10-31 menurunkan `marketGain` Okt dan Nov sebesar 500.000.
+- [x] Emas diarsipkan → gabungan tidak memuat Emas di bulan mana pun. `accountId = Emas` → 404.
+- [x] Invarian di bagian Query, untuk gabungan dan per akun.
+- [x] `range=24` → 400 `fields.range`. `accountId=abc` → 400 `fields.accountId`. `accountId` BCA (`transaction`), id acak, atau akun aset user lain → 404 `ACCOUNT_NOT_FOUND`.
+- [x] User tanpa akun aset aktif → 200, `months: []`, `opening` 0.
+- [x] **Isolasi:** user B dengan `accountId` akun aset A → 404. Histori gabungan B tidak berubah oleh akun dan transaksi A.
+- [x] Tanpa session → 401 `UNAUTHORIZED`.
+- [x] Semua tes yang ada tetap hijau tanpa diubah.
 
 **UI (manual di 360 px dan 1024 px)**
 
-- [ ] Section "Histori nilai" tampil di bawah "Nilai aset" dengan kalimat ringkasan, grafik dua garis, dan tabel. Check-in baru memperbarui baris bulan berjalan tanpa reload.
-- [ ] Ganti rentang dan akun → ringkasan, grafik, dan tabel berubah bersama. Filter akun tidak tampil dengan satu akun aset.
-- [ ] Empat kolom tabel muat di 360 px tanpa scroll horizontal halaman. Naik/turun terbaca tanpa warna (tanda teks, garis penuh vs putus-putus).
-- [ ] Satu bulan data → teks pengganti grafik, tabel satu baris.
-- [ ] `hideAmounts` menyamarkan ringkasan, tabel, sumbu Y, dan tooltip.
-- [ ] Mode pesawat: kombinasi yang pernah dibuka tampil dari cache, yang belum menampilkan error + "Coba lagi".
-- [ ] First load `/net-worth` < 200 KB gzip (Recharts lewat `next/dynamic`).
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
+- [ ] Section "Histori nilai" tampil di bawah "Nilai aset" dengan kalimat ringkasan, grafik dua garis, dan tabel. Check-in baru memperbarui baris bulan berjalan tanpa reload. · tertunda: sesi tanpa browser
+- [ ] Ganti rentang dan akun → ringkasan, grafik, dan tabel berubah bersama. Filter akun tidak tampil dengan satu akun aset. · tertunda: sesi tanpa browser
+- [ ] Empat kolom tabel muat di 360 px tanpa scroll horizontal halaman. Naik/turun terbaca tanpa warna (tanda teks, garis penuh vs putus-putus). · tertunda: sesi tanpa browser
+- [ ] Satu bulan data → teks pengganti grafik, tabel satu baris. · tertunda: sesi tanpa browser
+- [ ] `hideAmounts` menyamarkan ringkasan, tabel, sumbu Y, dan tooltip. · tertunda: sesi tanpa browser
+- [ ] Mode pesawat: kombinasi yang pernah dibuka tampil dari cache, yang belum menampilkan error + "Coba lagi". · tertunda: sesi tanpa browser
+- [ ] First load `/net-worth` < 200 KB gzip (Recharts lewat `next/dynamic`). **Tidak tercapai:** 361,8 KB (sebelum modul 342,8 KB). Recharts tidak ada di first load; sisanya app shell bersama, sama dengan Catatan ukuran dashboard. Lihat Catatan ukuran asset-history di plan.md.
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
 ## Tes
 

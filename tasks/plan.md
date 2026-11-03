@@ -16,7 +16,7 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
 | `goals`               | [SPEC-goals.md](../SPEC-goals.md)                             | 35–39 | T123–T138 | T123–T138 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134 dan T138) |
-| `asset-history`       | [SPEC-asset-history.md](../SPEC-asset-history.md)             | 40    | T139–T144 | Direncanakan |
+| `asset-history`       | [SPEC-asset-history.md](../SPEC-asset-history.md)             | 40    | T139–T144 | T139–T144 selesai (cek UI manual tertunda, lihat Temuan verifikasi T144). JS `/net-worth` +19,0 KB gzip |
 
 ---
 
@@ -851,7 +851,21 @@ Metode sama dengan Catatan ukuran dashboard: chunk JS yang dirujuk HTML prerende
 
 | Titik                               | `/net-worth` |
 | ----------------------------------- | ------------ |
+| Sebelum modul (`bce018a`)           | 342,8 KB     |
 | Sebelum T143 (T142, tanpa grafik)   | 360,2 KB     |
 | T143 (grafik lewat `next/dynamic`)  | 361,8 KB     |
 
 Recharts ada di satu chunk lazy (97,1 KB gzip) dan tidak ada di 22 chunk first load (dicek dengan string `recharts-wrapper`). Target 200 KB tetap terlewati oleh app shell bersama, sama dengan Catatan ukuran dashboard.
+
+Section dan kontrol (T141–T142) menambah 17,4 KB, grafik (T143) 1,6 KB. Zod sudah ada di `/net-worth` sebelumnya (`valuation-sheet.tsx` mengimpor `lib/schemas/valuation`), jadi tambahan T141–T142 kemungkinan besar dari `Select` dan `ToggleGroup` yang sebelumnya hanya dimuat di form lazy. Tidak dipecah lebih jauh. Jika perlu dikurangi, `Select` akun bisa dimuat lazy (keputusan Yogi).
+
+## Temuan verifikasi T144 (2026-11-04)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` 1552 lulus (90 berkas; +40 dari 1512 per T138). Butir API/query SPEC-asset-history § Acceptance criteria tercakup `tests/api/asset-history.spec.ts` (query + route), `tests/unit/asset-history.spec.ts`, dan `tests/unit/asset-history-schema.spec.ts`.
+- Tes lama yang tersentuh: hanya tes baru di `cache-invalidation.spec.ts` (key histori cocok dengan resource `valuations` dan ikut `invalidate("transactions")` / `invalidate("accounts")`), sesuai plan-40. Tidak ada assertion lama yang diubah.
+- Jumlah tes naik 1551 → 1552 di antara T142 dan T143 tanpa tes baru. Run itu melewati tengah malam WIB (2026-11-04), jadi kemungkinan ada `it.each` yang bergantung tanggal. Tidak ditelusuri.
+- Satu run penuh saat T142 gagal sekali di `goals-item.spec.ts` ("updates the name, amount and target month…") dan lulus di dua run ulang berkas itu. T142 tidak mengubah kode server. Pesan error run yang gagal tidak tersimpan. Polanya sama dengan Temuan T134/T138.
+- Keputusan saat build: bulan pertama per akun = `least(bulan created_at WIB, bulan transaksi hidup tertua)`. `assetHistory` menyimpulkan `null` dari seri kosong (akun aset aktif selalu punya bulan pertama ≤ bulan `today`). `useAssetHistory` memakai `keepPreviousData` supaya ringkasan dan tabel tidak berkedip saat ganti rentang atau akun. Label bulan memakai `formatTargetMonth` ("Agu 2026" dari ICU; contoh SPEC menulis "Agt"). Tabel memakai `formatMarketGain` untuk Setoran/Pasar penuh dan helper baru `formatShortIDR`/`formatSignedShortIDR` di bawah `sm`.
+- Tidak dikerjakan: `EXPLAIN` dengan beberapa ribu baris (SPEC § Risiko, bukan acceptance criteria).
+- First load `/net-worth` 361,8 KB (sebelum modul 342,8 KB), jadi butir < 200 KB tidak tercapai. Lihat Catatan ukuran asset-history.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir UI SPEC-asset-history dan butir Manual todo-40 (360×800 dan 1024, terang/gelap, `hideAmounts`, mode pesawat, empat kolom muat di 360 px, domain sumbu Y terhadap perubahan ratusan ribu).

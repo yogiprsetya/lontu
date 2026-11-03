@@ -13,7 +13,7 @@ Section "Histori nilai" di `/net-worth` menjawab "aset saya naik atau turun, dan
 - [x] T141: Section Histori nilai: ringkasan dan tabel (M)
 - [x] T142: Kontrol rentang dan akun (S)
 - [x] T143: Grafik Nilai vs Disetor (S)
-- [ ] T144: Verifikasi dan status (S)
+- [x] T144: Verifikasi dan status (S)
 
 Urutan: T139 → T140 → T141 → T142, T143 (saling bebas) → T144.
 
@@ -66,7 +66,7 @@ docs(asset-history) spec + plan
 
 ## Checkpoint AN (sesudah T144)
 
-- [ ] Butir UI SPEC-asset-history dicentang atau ditandai "tertunda: sesi tanpa browser"
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; ukuran first load `/net-worth` sebelum/sesudah dicatat
-- [ ] Status SPEC-asset-history.md dan baris `asset-history` di plan.md diperbarui
+- [x] Butir UI SPEC-asset-history dicentang atau ditandai "tertunda: sesi tanpa browser"
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; ukuran first load `/net-worth` sebelum/sesudah dicatat (342,8 → 361,8 KB, 1552 tes)
+- [x] Status SPEC-asset-history.md dan baris `asset-history` di plan.md diperbarui
 - [ ] Review dengan Yogi

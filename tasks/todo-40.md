@@ -130,14 +130,14 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Setiap butir di SPEC-asset-history § Acceptance criteria dicentang atau ditandai tertunda dengan alasan
-- [ ] Temuan verifikasi T144 ditulis di plan.md (tes lama yang tersentuh, keputusan saat build, yang belum dicek)
-- [ ] SPEC-asset-history.md Status dan plan.md baris `asset-history` menyebut T139–T144
+- [x] Setiap butir di SPEC-asset-history § Acceptance criteria dicentang atau ditandai tertunda dengan alasan
+- [x] Temuan verifikasi T144 ditulis di plan.md (tes lama yang tersentuh, keputusan saat build, yang belum dicek)
+- [x] SPEC-asset-history.md Status dan plan.md baris `asset-history` menyebut T139–T144
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes dicatat
-- [ ] Review bersama Yogi
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes dicatat
+- [ ] Review bersama Yogi · menunggu Yogi
 
 **Dependencies:** T142, T143
 

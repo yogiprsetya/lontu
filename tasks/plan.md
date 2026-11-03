@@ -844,3 +844,14 @@ Section "Histori nilai" di `/net-worth`: kalimat ringkasan, grafik Nilai vs Dise
 - Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
 - TDD: T139, T140, T141 menulis tes merah dulu dengan angka SPEC-asset-history § Acceptance criteria.
 - Tes lama tidak diubah, kecuali tes baru di `cache-invalidation.spec.ts` (T141). Jumlah tes dicatat di setiap checkpoint.
+
+## Catatan ukuran asset-history (2026-11-04)
+
+Metode sama dengan Catatan ukuran dashboard: chunk JS yang dirujuk HTML prerender `/net-worth`, gzip level 9, 1 KB = 1000 byte.
+
+| Titik                               | `/net-worth` |
+| ----------------------------------- | ------------ |
+| Sebelum T143 (T142, tanpa grafik)   | 360,2 KB     |
+| T143 (grafik lewat `next/dynamic`)  | 361,8 KB     |
+
+Recharts ada di satu chunk lazy (97,1 KB gzip) dan tidak ada di 22 chunk first load (dicek dengan string `recharts-wrapper`). Target 200 KB tetap terlewati oleh app shell bersama, sama dengan Catatan ukuran dashboard.

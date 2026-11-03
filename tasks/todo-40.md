@@ -106,15 +106,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] Grafik tampil di antara ringkasan dan tabel dengan data ≥ 2 bulan; satu bulan → teks pengganti
-- [ ] Recharts tidak ada di chunk first load `/net-worth`; ukuran sebelum/sesudah dicatat di plan.md
-- [ ] (cek di browser boleh tertunda) Nilai dan Disetor bisa dibedakan tanpa warna; perubahan ratusan ribu terlihat di atas basis puluhan juta
+- [x] Grafik tampil di antara ringkasan dan tabel dengan data ≥ 2 bulan; satu bulan → teks pengganti · dari kode, belum dicek di browser
+- [x] Recharts tidak ada di chunk first load `/net-worth`; ukuran sebelum/sesudah dicatat di plan.md
+- [ ] (cek di browser boleh tertunda) Nilai dan Disetor bisa dibedakan tanpa warna; perubahan ratusan ribu terlihat di atas basis puluhan juta · tertunda: sesi tanpa browser
 
 **Verification:**
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Ukuran: metode Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9)
-- [ ] Manual: 360×800 dan 1024, terang/gelap, `hideAmounts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [x] Ukuran: metode Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9)
+- [ ] Manual: 360×800 dan 1024, terang/gelap, `hideAmounts` · tertunda: sesi tanpa browser
 
 **Dependencies:** T141
 

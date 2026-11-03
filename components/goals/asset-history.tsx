@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { HistoryIcon } from "lucide-react";
 import { selectItemClass, selectTriggerClass } from "@/components/forms/field-styles";
 import { SectionTitle } from "@/components/layout/section-title";
@@ -41,6 +42,14 @@ const RANGE_LABELS: Record<AssetHistoryRange, string> = {
 };
 
 const ALL = "all";
+
+// Legend + chart height, so nothing shifts when Recharts arrives.
+const chartSkeleton = () => <Skeleton className="h-63 w-full" />;
+
+const AssetHistoryChart = dynamic(() => import("@/components/goals/asset-history-chart"), {
+  ssr: false,
+  loading: chartSkeleton,
+});
 
 /** Abbreviated below `sm` so four columns fit 360 px; only one span shows, so one number is read. */
 function Amount({
@@ -144,7 +153,7 @@ export function AssetHistory({
     content = (
       <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat histori nilai">
         <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-64 w-full" />
+        {chartSkeleton()}
       </div>
     );
   } else {
@@ -152,6 +161,11 @@ export function AssetHistory({
     content = (
       <>
         {summary && <p className="font-semibold">{summarySentence(summary, money)}</p>}
+        {data.months.length >= 2 ? (
+          <AssetHistoryChart months={data.months} />
+        ) : (
+          <p className="text-sm text-muted-foreground">Grafik muncul setelah ada data dua bulan.</p>
+        )}
         <HistoryTable months={data.months} />
       </>
     );

@@ -3,6 +3,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { EllipsisVerticalIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
+import { AssetHistory } from "@/components/goals/asset-history";
 import { AssetValues, NoAssets } from "@/components/goals/asset-values";
 import { GoalCard } from "@/components/goals/goal-card";
 import { ValuationSheet } from "@/components/goals/valuation-sheet";
@@ -274,13 +275,16 @@ export function GoalsView() {
         {assets.length === 0 ? (
           <NoAssets />
         ) : (
-          <AssetValues
-            assets={assets}
-            accounts={accountsById}
-            today={today}
-            online={online}
-            onValue={setValuingId}
-          />
+          <>
+            <AssetValues
+              assets={assets}
+              accounts={accountsById}
+              today={today}
+              online={online}
+              onValue={setValuingId}
+            />
+            <AssetHistory />
+          </>
         )}
       </>
     );

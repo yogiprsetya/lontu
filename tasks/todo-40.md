@@ -59,15 +59,15 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Acceptance criteria:**
 
-- [ ] `summarySentence`: naik, turun, tetap, pasar negatif "−Rp…", nominal tersembunyi; `assetHistorySummary` kosong → `null`
-- [ ] `assetHistoryKey()` cocok dengan `isResourceKey("valuations", …)`, jadi ikut `affectedBy("transactions")` dan `affectedBy("accounts")`
-- [ ] (cek di browser boleh tertunda) Section tampil di bawah "Nilai aset", empat kolom muat di 360 px, check-in baru memperbarui baris bulan berjalan tanpa reload
+- [x] `summarySentence`: naik, turun, tetap, pasar negatif "−Rp…", nominal tersembunyi; `assetHistorySummary` kosong → `null`
+- [x] `assetHistoryKey()` cocok dengan `isResourceKey("valuations", …)`, jadi ikut `affectedBy("transactions")` dan `affectedBy("accounts")`
+- [ ] (cek di browser boleh tertunda) Section tampil di bawah "Nilai aset", empat kolom muat di 360 px, check-in baru memperbarui baris bulan berjalan tanpa reload · tertunda: sesi tanpa browser
 
 **Verification:**
 
-- [ ] Merah dulu: `pnpm vitest run tests/unit/asset-history.spec.ts tests/unit/cache-invalidation.spec.ts`
-- [ ] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
-- [ ] Manual: `/net-worth` di 360×800 dan 1024, dengan `hideAmounts` aktif dan tidak
+- [x] Merah dulu: `pnpm vitest run tests/unit/asset-history.spec.ts tests/unit/cache-invalidation.spec.ts`
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
+- [ ] Manual: `/net-worth` di 360×800 dan 1024, dengan `hideAmounts` aktif dan tidak · tertunda: sesi tanpa browser
 
 **Dependencies:** T140
 

@@ -10,7 +10,7 @@ Section "Histori nilai" di `/net-worth` menjawab "aset saya naik atau turun, dan
 
 - [x] T139: Query `assetHistory` (M)
 - [x] T140: Route `GET /api/valuations/history` (S)
-- [ ] T141: Section Histori nilai: ringkasan dan tabel (M)
+- [x] T141: Section Histori nilai: ringkasan dan tabel (M)
 - [ ] T142: Kontrol rentang dan akun (S)
 - [ ] T143: Grafik Nilai vs Disetor (S)
 - [ ] T144: Verifikasi dan status (S)

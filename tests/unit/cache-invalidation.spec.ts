@@ -16,6 +16,7 @@ const { budgetUsageKey } = await import("@/hooks/use-budgets");
 const { dashboardKey } = await import("@/hooks/use-dashboard");
 const { archiveRule, recurringKey } = await import("@/hooks/use-recurring");
 const { recordValuations, valuationsKey } = await import("@/hooks/use-valuations");
+const { assetHistoryKey } = await import("@/hooks/use-asset-history");
 const { archiveGoal, createGoal, goalsKey, restoreGoal, updateGoal } =
   await import("@/hooks/use-goals");
 
@@ -145,6 +146,19 @@ describe("valuations edges", () => {
     mockedMutate.mockReset();
     await invalidate("accounts");
     expect(revalidated(keys.valuations)).toBe(true);
+  });
+
+  it("the asset history is a valuations key, refreshed by a transaction or account change", async () => {
+    const history = [
+      assetHistoryKey({ range: "12", accountId: null }),
+      assetHistoryKey({ range: "6", accountId: id }),
+    ];
+    for (const key of history) expect(isResourceKey("valuations", key)).toBe(true);
+    await invalidate("transactions");
+    for (const key of history) expect(revalidated(key)).toBe(true);
+    mockedMutate.mockReset();
+    await invalidate("accounts");
+    for (const key of history) expect(revalidated(key)).toBe(true);
   });
 
   it("a check-in writes transactions, so it refreshes balances, the dashboard and the values", async () => {

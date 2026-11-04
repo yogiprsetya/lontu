@@ -55,14 +55,16 @@ export function formatSignedShortIDR(amount: number) {
   return `${amount > 0 ? "+" : ""}${formatShortIDR(amount)}`;
 }
 
+/** "Naik Rp12,4 jt", "Turun Rp300 rb" or "Tetap". */
+function trend(change: number, money: Money) {
+  if (change === 0) return "Tetap";
+  return `${change > 0 ? "Naik" : "Turun"} ${money(Math.abs(change), formatShortIDR)}`;
+}
+
 /** "Naik Rp12,4 jt sejak Agu 2026: setoran +Rp12 jt, pasar +Rp400 rb." No percent (SPEC-asset-history #4). */
 export function summarySentence(
   { since, change, contributed, market }: AssetHistorySummary,
   money: Money,
 ) {
-  const head =
-    change === 0
-      ? `Tetap sejak ${formatTargetMonth(since)}`
-      : `${change > 0 ? "Naik" : "Turun"} ${money(Math.abs(change), formatShortIDR)} sejak ${formatTargetMonth(since)}`;
-  return `${head}: setoran ${money(contributed, formatSignedShortIDR)}, pasar ${money(market, formatSignedShortIDR)}.`;
+  return `${trend(change, money)} sejak ${formatTargetMonth(since)}: setoran ${money(contributed, formatSignedShortIDR)}, pasar ${money(market, formatSignedShortIDR)}.`;
 }

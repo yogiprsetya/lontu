@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
 import { accounts, transactions } from "@/db/schema";
+import { todayInJakarta } from "@/lib/date";
 import type { AssetHistory } from "@/lib/schemas/asset-history";
 import { assetHistory } from "@/lib/server/queries/asset-history";
 import { assetValuations } from "@/lib/server/queries/asset-valuations";
@@ -304,8 +305,12 @@ describe("GET /api/valuations/history", () => {
     const res = await get();
     expect(res.status).toBe(200);
     const body = (await res.json()) as AssetHistory;
-    expect(body).toMatchObject({ range: "12", accountId: null });
-    expect(body.months[0]).toMatchObject({ month: "2026-07", value: 30_000_000 });
+    // The route reads the real today, so compare with the query rather than pinned months.
+    const realToday = todayInJakarta();
+    expect(body).toEqual(
+      await assetHistory(userId, { range: "12", accountId: null, today: realToday }),
+    );
+    expect(body.months.at(-1)?.month).toBe(realToday.slice(0, 7));
   });
 
   it("filters by an asset account", async () => {

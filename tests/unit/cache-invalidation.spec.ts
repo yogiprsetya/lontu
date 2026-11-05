@@ -17,8 +17,8 @@ const { dashboardKey } = await import("@/hooks/use-dashboard");
 const { archiveRule, recurringKey } = await import("@/hooks/use-recurring");
 const { recordValuations, valuationsKey } = await import("@/hooks/use-valuations");
 const { assetHistoryKey } = await import("@/hooks/use-asset-history");
-const { archiveGoal, createGoal, goalsKey, restoreGoal, updateGoal } =
-  await import("@/hooks/use-goals");
+const { archiveNetWorth, createNetWorth, netWorthsKey, restoreNetWorth, updateNetWorth } =
+  await import("@/hooks/use-net-worth");
 
 const mockedMutate = vi.mocked(mutate);
 const id = "1f2e3d4c-5b6a-4978-8a6b-5c4d3e2f1a0b";
@@ -31,7 +31,7 @@ const keys = {
   dashboard: "/api/dashboard?period=2026-10",
   recurring: "/api/recurring?includeArchived=true",
   valuations: "/api/valuations",
-  goals: "/api/goals?includeArchived=true",
+  netWorths: "/api/net-worth?includeArchived=true",
 } as const;
 
 /** True when some mutate call received a matcher that accepts `key`. */
@@ -65,8 +65,8 @@ describe("isResourceKey", () => {
     ["recurring", "/api/recurring"],
     ["recurring", "/api/recurring?includeArchived=true"],
     ["valuations", "/api/valuations"],
-    ["goals", "/api/goals"],
-    ["goals", "/api/goals?includeArchived=true"],
+    ["netWorths", "/api/net-worth"],
+    ["netWorths", "/api/net-worth?includeArchived=true"],
   ] as const)("%s matches %s", (resource, key) => {
     expect(isResourceKey(resource, key)).toBe(true);
   });
@@ -79,7 +79,7 @@ describe("isResourceKey", () => {
     ["recurring", "/api/recurringx"],
     ["recurring", "/api/transactions"],
     ["valuations", "/api/valuationsx"],
-    ["goals", "/api/goalsx"],
+    ["netWorths", "/api/net-worthx"],
     ["transactions", undefined],
     ["transactions", ["/api/transactions"]],
   ] as const)("%s does not match %j", (resource, key) => {
@@ -91,15 +91,15 @@ describe("affectedBy", () => {
   it.each([
     [
       "transactions",
-      ["transactions", "accounts", "budgets", "dashboard", "recurring", "valuations", "goals"],
+      ["transactions", "accounts", "budgets", "dashboard", "recurring", "valuations", "netWorths"],
     ],
-    ["accounts", ["accounts", "transactions", "recurring", "valuations", "goals"]],
+    ["accounts", ["accounts", "transactions", "recurring", "valuations", "netWorths"]],
     ["categories", ["categories", "budgets"]],
     ["budgets", ["budgets"]],
     ["dashboard", ["dashboard"]],
     ["recurring", ["recurring"]],
     ["valuations", ["valuations"]],
-    ["goals", ["goals", "valuations"]],
+    ["netWorths", ["netWorths", "valuations"]],
   ] as const)("a %s change refreshes %j", (resource, expected) => {
     expect(affectedBy(resource)).toEqual(expected);
   });
@@ -170,30 +170,30 @@ describe("valuations edges", () => {
   });
 });
 
-describe("goals edges", () => {
-  it("a transaction or account change refreshes goal progress", async () => {
+describe("net worth edges", () => {
+  it("a transaction or account change refreshes net worth progress", async () => {
     await invalidate("transactions");
-    expect(revalidated(keys.goals)).toBe(true);
+    expect(revalidated(keys.netWorths)).toBe(true);
     mockedMutate.mockReset();
     await invalidate("accounts");
-    expect(revalidated(keys.goals)).toBe(true);
+    expect(revalidated(keys.netWorths)).toBe(true);
   });
 
-  it("creating a goal refreshes goals and the asset values' goal links, not balances", async () => {
-    await createGoal({ name: "DP", targetAmount: 1, targetMonth: null, accountIds: [id] });
-    expect(revalidated(keys.goals)).toBe(true);
+  it("creating a net worth refreshes net worths and the asset values' net worth links, not balances", async () => {
+    await createNetWorth({ name: "DP", targetAmount: 1, targetMonth: null, accountIds: [id] });
+    expect(revalidated(keys.netWorths)).toBe(true);
     expect(revalidated(keys.valuations)).toBe(true);
     expect(revalidated(keys.accounts)).toBe(false);
     expect(revalidated(keys.transactions)).toBe(false);
   });
 
   it.each([
-    ["editing", () => updateGoal(id, { name: "Rumah" })],
-    ["archiving", () => archiveGoal(id)],
-    ["restoring", () => restoreGoal(id)],
-  ])("%s a goal refreshes goals and asset values", async (_, mutation) => {
+    ["editing", () => updateNetWorth(id, { name: "Rumah" })],
+    ["archiving", () => archiveNetWorth(id)],
+    ["restoring", () => restoreNetWorth(id)],
+  ])("%s a net worth refreshes net worths and asset values", async (_, mutation) => {
     await mutation();
-    expect(revalidated(keys.goals)).toBe(true);
+    expect(revalidated(keys.netWorths)).toBe(true);
     expect(revalidated(keys.valuations)).toBe(true);
     expect(revalidated(keys.dashboard)).toBe(false);
   });
@@ -271,8 +271,8 @@ describe("every key a hook builds matches its resource and no other", () => {
     ["transactions", transactionsTotalsKey(filters)],
     ["transactions", transactionKey(id)],
     ["valuations", valuationsKey()],
-    ["goals", goalsKey()],
-    ["goals", goalsKey({ includeArchived: true })],
+    ["netWorths", netWorthsKey()],
+    ["netWorths", netWorthsKey({ includeArchived: true })],
   ] as const;
   const resources = [
     "accounts",
@@ -282,7 +282,7 @@ describe("every key a hook builds matches its resource and no other", () => {
     "dashboard",
     "recurring",
     "valuations",
-    "goals",
+    "netWorths",
   ] as const;
 
   it.each(built)("%s: %s", (resource, key) => {

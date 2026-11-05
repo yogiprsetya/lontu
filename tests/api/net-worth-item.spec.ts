@@ -2,17 +2,17 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { accounts, goals } from "@/db/schema";
+import { accounts, netWorths } from "@/db/schema";
 import { todayInJakarta } from "@/lib/date";
 import { shiftPeriod } from "@/lib/period";
-import type { GoalProgress } from "@/lib/schemas/goal";
+import type { NetWorthProgress } from "@/lib/schemas/net-worth";
 import { createTestUsers } from "../setup/db";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
-const itemRoute = await import("@/app/api/goals/[id]/route");
-const restoreRoute = await import("@/app/api/goals/[id]/restore/route");
+const itemRoute = await import("@/app/api/net-worth/[id]/route");
+const restoreRoute = await import("@/app/api/net-worth/[id]/restore/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
@@ -23,7 +23,7 @@ function signInAs(userId: string | null) {
 
 function patch(id: string, body: unknown) {
   return itemRoute.PATCH(
-    new Request(`http://localhost/api/goals/${id}`, {
+    new Request(`http://localhost/api/net-worth/${id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: typeof body === "string" ? body : JSON.stringify(body),
@@ -34,14 +34,14 @@ function patch(id: string, body: unknown) {
 
 function del(id: string) {
   return itemRoute.DELETE(
-    new Request(`http://localhost/api/goals/${id}`, { method: "DELETE" }),
+    new Request(`http://localhost/api/net-worth/${id}`, { method: "DELETE" }),
     ctx(id),
   );
 }
 
 function restore(id: string) {
   return restoreRoute.POST(
-    new Request(`http://localhost/api/goals/${id}/restore`, { method: "POST" }),
+    new Request(`http://localhost/api/net-worth/${id}/restore`, { method: "POST" }),
     ctx(id),
   );
 }
@@ -55,7 +55,7 @@ async function expectError(res: Response, status: number, code: string, field?: 
 
 async function ok(res: Response) {
   expect(res.status).toBe(200);
-  return (await res.json()) as GoalProgress;
+  return (await res.json()) as NetWorthProgress;
 }
 
 let userA: string;
@@ -70,9 +70,9 @@ async function account(userId: string, values: Partial<typeof accounts.$inferIns
   return row.id;
 }
 
-async function goal(userId: string, values: Partial<typeof goals.$inferInsert> = {}) {
+async function netWorth(userId: string, values: Partial<typeof netWorths.$inferInsert> = {}) {
   const [row] = await db
-    .insert(goals)
+    .insert(netWorths)
     .values({
       userId,
       name: `Target ${randomUUID()}`,
@@ -85,7 +85,7 @@ async function goal(userId: string, values: Partial<typeof goals.$inferInsert> =
 }
 
 async function stored(id: string) {
-  const [row] = await db.select().from(goals).where(eq(goals.id, id));
+  const [row] = await db.select().from(netWorths).where(eq(netWorths.id, id));
   return row;
 }
 
@@ -97,10 +97,10 @@ beforeAll(async () => {
 
 afterAll(() => cleanup());
 
-describe("PATCH /api/goals/[id]", () => {
+describe("PATCH /api/net-worth/[id]", () => {
   it("updates the name, amount and target month, clearing the month with null", async () => {
     signInAs(userA);
-    const row = await goal(userA);
+    const row = await netWorth(userA);
     const next = shiftPeriod(shiftPeriod(todayInJakarta().slice(0, 7), 1), 1);
     expect(
       await ok(await patch(row.id, { name: " Rumah ", targetAmount: 5, targetMonth: next })),
@@ -111,7 +111,7 @@ describe("PATCH /api/goals/[id]", () => {
   it("keeps an archived account on a name-only change", async () => {
     signInAs(userA);
     const archived = await account(userA, { archivedAt: new Date() });
-    const row = await goal(userA, { accountIds: [archived] });
+    const row = await netWorth(userA, { accountIds: [archived] });
     expect(await ok(await patch(row.id, { name: `Baru ${randomUUID()}` }))).toMatchObject({
       accountIds: [archived],
     });
@@ -122,7 +122,7 @@ describe("PATCH /api/goals/[id]", () => {
     const linked = await account(userA, { archivedAt: new Date() });
     const added = await account(userA);
     const otherArchived = await account(userA, { archivedAt: new Date() });
-    const row = await goal(userA, { accountIds: [linked] });
+    const row = await netWorth(userA, { accountIds: [linked] });
 
     expect((await ok(await patch(row.id, { accountIds: [added, linked] }))).accountIds).toEqual([
       added,
@@ -136,12 +136,12 @@ describe("PATCH /api/goals/[id]", () => {
     );
   });
 
-  it("rejects an account of another active goal, but not one of its own", async () => {
+  it("rejects an account of another active net worth, but not one of its own", async () => {
     signInAs(userA);
     const mine = await account(userA);
     const theirs = await account(userA);
-    const row = await goal(userA, { accountIds: [mine] });
-    await goal(userA, { accountIds: [theirs] });
+    const row = await netWorth(userA, { accountIds: [mine] });
+    await netWorth(userA, { accountIds: [theirs] });
 
     await expectError(
       await patch(row.id, { accountIds: [mine, theirs] }),
@@ -152,14 +152,14 @@ describe("PATCH /api/goals/[id]", () => {
     expect((await ok(await patch(row.id, { accountIds: [mine] }))).accountIds).toEqual([mine]);
   });
 
-  it("returns 409 for another active goal's name, and allows its own in another case", async () => {
+  it("returns 409 for another active net worth's name, and allows its own in another case", async () => {
     signInAs(userA);
-    const row = await goal(userA);
-    const other = await goal(userA);
+    const row = await netWorth(userA);
+    const other = await netWorth(userA);
     await expectError(
       await patch(row.id, { name: other.name.toUpperCase() }),
       409,
-      "GOAL_NAME_TAKEN",
+      "NET_WORTH_NAME_TAKEN",
     );
     expect((await ok(await patch(row.id, { name: row.name.toUpperCase() }))).name).toBe(
       row.name.toUpperCase(),
@@ -168,7 +168,7 @@ describe("PATCH /api/goals/[id]", () => {
 
   it("rejects an empty body, a past month, userId, and invalid JSON", async () => {
     signInAs(userA);
-    const row = await goal(userA);
+    const row = await netWorth(userA);
     const lastMonth = shiftPeriod(todayInJakarta().slice(0, 7), -1);
     await expectError(await patch(row.id, {}), 400, "VALIDATION_ERROR");
     await expectError(
@@ -181,69 +181,69 @@ describe("PATCH /api/goals/[id]", () => {
     await expectError(await patch(row.id, "{"), 400, "INVALID_JSON");
   });
 
-  it("returns 404 for an archived goal", async () => {
+  it("returns 404 for an archived net worth", async () => {
     signInAs(userA);
-    const row = await goal(userA, { archivedAt: new Date() });
-    await expectError(await patch(row.id, { name: "x" }), 404, "GOAL_NOT_FOUND");
+    const row = await netWorth(userA, { archivedAt: new Date() });
+    await expectError(await patch(row.id, { name: "x" }), 404, "NET_WORTH_NOT_FOUND");
   });
 });
 
 describe("DELETE and restore", () => {
   it("archives idempotently, keeping the first timestamp", async () => {
     signInAs(userA);
-    const row = await goal(userA);
+    const row = await netWorth(userA);
     const first = await ok(await del(row.id));
     expect(first.archivedAt).not.toBeNull();
     const second = await ok(await del(row.id));
     expect(second.archivedAt).toBe(first.archivedAt);
   });
 
-  it("restores an archived goal, and leaves an active one as it is", async () => {
+  it("restores an archived net worth, and leaves an active one as it is", async () => {
     signInAs(userA);
-    const row = await goal(userA, { archivedAt: new Date() });
+    const row = await netWorth(userA, { archivedAt: new Date() });
     expect((await ok(await restore(row.id))).archivedAt).toBeNull();
     expect(await ok(await restore(row.id))).toMatchObject({ id: row.id, archivedAt: null });
   });
 
-  it("refuses to restore a goal whose account another active goal took meanwhile", async () => {
+  it("refuses to restore a net worth whose account another active net worth took meanwhile", async () => {
     signInAs(userA);
     const shared = await account(userA);
-    const a = await goal(userA, { accountIds: [shared] });
+    const a = await netWorth(userA, { accountIds: [shared] });
     await ok(await del(a.id));
-    await goal(userA, { accountIds: [shared] });
-    await expectError(await restore(a.id), 409, "GOAL_RESTORE_CONFLICT");
+    await netWorth(userA, { accountIds: [shared] });
+    await expectError(await restore(a.id), 409, "NET_WORTH_RESTORE_CONFLICT");
     expect((await stored(a.id)).archivedAt).not.toBeNull();
   });
 
-  it("refuses to restore a goal whose name another active goal took meanwhile", async () => {
+  it("refuses to restore a net worth whose name another active net worth took meanwhile", async () => {
     signInAs(userA);
-    const a = await goal(userA);
+    const a = await netWorth(userA);
     await ok(await del(a.id));
-    await goal(userA, { name: a.name.toLowerCase() });
-    await expectError(await restore(a.id), 409, "GOAL_RESTORE_CONFLICT");
+    await netWorth(userA, { name: a.name.toLowerCase() });
+    await expectError(await restore(a.id), 409, "NET_WORTH_RESTORE_CONFLICT");
   });
 });
 
-describe("goal ids", () => {
-  it.each(["not-a-uuid", randomUUID()])("returns 404 GOAL_NOT_FOUND for %s", async (id) => {
+describe("net worth ids", () => {
+  it.each(["not-a-uuid", randomUUID()])("returns 404 NET_WORTH_NOT_FOUND for %s", async (id) => {
     signInAs(userA);
-    await expectError(await patch(id, { name: "x" }), 404, "GOAL_NOT_FOUND");
-    await expectError(await del(id), 404, "GOAL_NOT_FOUND");
-    await expectError(await restore(id), 404, "GOAL_NOT_FOUND");
+    await expectError(await patch(id, { name: "x" }), 404, "NET_WORTH_NOT_FOUND");
+    await expectError(await del(id), 404, "NET_WORTH_NOT_FOUND");
+    await expectError(await restore(id), 404, "NET_WORTH_NOT_FOUND");
   });
 
-  it("returns 404 to user B for user A's goal and leaves it untouched", async () => {
-    const row = await goal(userA);
+  it("returns 404 to user B for user A's net worth and leaves it untouched", async () => {
+    const row = await netWorth(userA);
     signInAs(userB);
-    await expectError(await patch(row.id, { name: "Diambil" }), 404, "GOAL_NOT_FOUND");
-    await expectError(await del(row.id), 404, "GOAL_NOT_FOUND");
-    await expectError(await restore(row.id), 404, "GOAL_NOT_FOUND");
+    await expectError(await patch(row.id, { name: "Diambil" }), 404, "NET_WORTH_NOT_FOUND");
+    await expectError(await del(row.id), 404, "NET_WORTH_NOT_FOUND");
+    await expectError(await restore(row.id), 404, "NET_WORTH_NOT_FOUND");
     expect(await stored(row.id)).toMatchObject({ name: row.name, archivedAt: null });
   });
 
   it("does not let user B link user A's account through PATCH", async () => {
     const aAccount = await account(userA);
-    const row = await goal(userB);
+    const row = await netWorth(userB);
     signInAs(userB);
     await expectError(
       await patch(row.id, { accountIds: [aAccount] }),

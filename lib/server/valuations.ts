@@ -18,7 +18,7 @@ function accountProblem(account: { type: string; archivedAt: Date | null } | und
   if (account.type !== "asset") return "Hanya akun aset yang bisa diperbarui nilainya";
 }
 
-/** SPEC-goals #6: one changed value per account per day. `>=` also holds back any future-dated row. */
+/** SPEC-net-worth #6: one changed value per account per day. `>=` also holds back any future-dated row. */
 function dateProblem(last: string | null | undefined, today: string) {
   if (last && last >= today)
     return "Nilai sudah diperbarui hari ini. Revaluasi hanya sekali sehari.";

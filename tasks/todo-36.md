@@ -1,6 +1,6 @@
 # Todo phase 36: Revaluasi
 
-Plan: [plan-36.md](plan-36.md) · Index: [plan.md](plan.md) · Spec: [SPEC-goals.md](../SPEC-goals.md)
+Plan: [plan-36.md](plan-36.md) · Index: [plan.md](plan.md) · Spec: [SPEC-net-worth.md](../SPEC-net-worth.md)
 
 Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commit conventional. Task UI juga `pnpm build` dan cek manual di 360×800 dan 1024.
 
@@ -8,7 +8,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T124: Tipe `revaluation` di DB dan API transaksi
 
-**Description:** Migrasi `revaluation` sesuai SPEC-goals § Perubahan skema (tanpa tabel `goals`): tiga constraint `transactions`, view `account_balances` (`revaluation → +amount`), index `transactions_user_account_type_idx`. `db/schema.ts` mengikuti. Tambah `SYSTEM_TRANSACTION_TYPES` + `isSystemTransactionType()` (plan-36 § Keputusan) dan pakai di `lib/schemas/transaction.ts` dan `updateTransaction` (revaluasi → `notEditable`). Tes merah dulu dengan baris `revaluation` yang ditulis langsung ke DB.
+**Description:** Migrasi `revaluation` sesuai SPEC-net-worth § Perubahan skema (tanpa tabel `net_worth`): tiga constraint `transactions`, view `account_balances` (`revaluation → +amount`), index `transactions_user_account_type_idx`. `db/schema.ts` mengikuti. Tambah `SYSTEM_TRANSACTION_TYPES` + `isSystemTransactionType()` (plan-36 § Keputusan) dan pakai di `lib/schemas/transaction.ts` dan `updateTransaction` (revaluasi → `notEditable`). Tes merah dulu dengan baris `revaluation` yang ditulis langsung ke DB.
 
 **Acceptance criteria:**
 
@@ -34,13 +34,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T125: `GET`/`POST /api/valuations` dan subtype `gold`
 
-**Description:** `lib/schemas/valuation.ts` (`AssetValuation`, `valuationSchema`), `lib/server/valuations.ts` (`recordValuations`: lock baris akun urut id, saldo per tanggal sesuai keputusan #7, revaluasi terakhir untuk keputusan #6, insert delta ≠ 0, `description "Pembaruan nilai"`), `lib/server/queries/asset-valuations.ts`, `app/api/valuations/route.ts`. Subtype `gold` ("Emas") di `lib/schemas/account.ts`. Tes merah dulu dengan skenario dasar SPEC-goals.
+**Description:** `lib/schemas/valuation.ts` (`AssetValuation`, `valuationSchema`), `lib/server/valuations.ts` (`recordValuations`: lock baris akun urut id, saldo per tanggal sesuai keputusan #7, revaluasi terakhir untuk keputusan #6, insert delta ≠ 0, `description "Pembaruan nilai"`), `lib/server/queries/asset-valuations.ts`, `app/api/valuations/route.ts`. Subtype `gold` ("Emas") di `lib/schemas/account.ts`. Tes merah dulu dengan skenario dasar SPEC-net-worth.
 
 **Acceptance criteria:**
 
 - [x] Skenario dasar: check-in 2026-10-31 Emas 36.500.000 + RD Saham 6.200.000 → `recorded: 2`, revaluasi +500.000 dan +200.000; ulangan → `recorded: 0`; dua request paralel → total tetap dua baris
 - [x] Tanggal sebelum revaluasi terakhir → 400 `fields.date`; tanggal masa depan, akun `transaction`, terarsip, atau milik user lain → 400 `fields["items.<i>"]` dan tidak ada item yang tertulis; adjustment hari ini + check-in kemarin → delta sesuai keputusan #7
-- [x] `GET /api/valuations` → akun aset aktif dengan `contributed + marketGain = balance` dan `lastValuedAt`; `goalId` `null`; isolasi A/B; tanpa session → 401; `subtype: "gold"` diterima `POST /api/accounts`
+- [x] `GET /api/valuations` → akun aset aktif dengan `contributed + marketGain = balance` dan `lastValuedAt`; `netWorthId` `null`; isolasi A/B; tanpa session → 401; `subtype: "gold"` diterima `POST /api/accounts`
 
 **Verification:**
 
@@ -83,26 +83,26 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ---
 
-### T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai
+### T127: Halaman `/net-worth` dengan nilai aset dan sheet Perbarui nilai
 
-**Description:** `app/(app)/goals/page.tsx` (di dalam `<Suspense>`, baca `node_modules/next/dist/docs/` dulu) dan `components/goals/goals-view.tsx`: daftar akun aset aktif (nama, subtype, nilai, "Disetor Rp… · Pasar ±Rp…", "diperbarui 12 Okt" / "belum pernah", teks basi > 35 hari) dan tombol **Perbarui nilai** yang membuka `components/goals/valuation-sheet.tsx` (SPEC-goals § UI). `hooks/use-valuations.ts` (`useValuations`, `recordValuations` → `invalidate("transactions")`). Resource `valuations` di `lib/cache-invalidation.ts` dengan edge dari `transactions` dan `accounts`. `goalsItem` di nav. Teks bantuan "Pakai harga buyback hari ini" untuk akun `gold`.
+**Description:** `app/(app)/net-worth/page.tsx` (di dalam `<Suspense>`, baca `node_modules/next/dist/docs/` dulu) dan `components/net-worth/net-worth-view.tsx`: daftar akun aset aktif (nama, subtype, nilai, "Disetor Rp… · Pasar ±Rp…", "diperbarui 12 Okt" / "belum pernah", teks basi > 35 hari) dan tombol **Perbarui nilai** yang membuka `components/net-worth/valuation-sheet.tsx` (SPEC-net-worth § UI). `hooks/use-valuations.ts` (`useValuations`, `recordValuations` → `invalidate("transactions")`). Resource `valuations` di `lib/cache-invalidation.ts` dengan edge dari `transactions` dan `accounts`. `netWorthsItem` di nav. Teks bantuan "Pakai harga buyback hari ini" untuk akun `gold`.
 
 **Acceptance criteria:**
 
 - [x] Check-in dari sheet (hanya baris yang diubah dikirim) → nilai, porsi pasar, dan kartu Account Balance dashboard berubah tanpa reload; toast "{n} nilai diperbarui" / "Nilai sama, tidak ada yang dicatat"; error per baris terpasang di barisnya
 - [x] Tanpa akun aset → teks yang mengajak membuat akun aset di Settings; offline → tombol nonaktif "Butuh koneksi"; `hideAmounts` menyamarkan nominal
-- [x] "Goals" ada di sidebar (≥ lg) dan menu More (< lg); 360 px tanpa scroll horizontal, input 16 px, target ≥ 44 px
+- [x] "Net Worth" ada di sidebar (≥ lg) dan menu More (< lg); 360 px tanpa scroll horizontal, input 16 px, target ≥ 44 px
 
 **Verification:**
 
 - [x] `pnpm vitest run tests/unit/cache-invalidation.spec.ts` hijau (edge `valuations`)
-- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; JS first load `/goals` dicatat
+- [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; JS first load `/net-worth` dicatat
 - [ ] Manual (tertunda: sesi tanpa browser): skenario di atas di 360×800 dan 1024
 
 **Dependencies:** T125
 
-**Files likely touched:** `app/(app)/goals/page.tsx`, `components/goals/goals-view.tsx`, `components/goals/valuation-sheet.tsx`, `hooks/use-valuations.ts`, `lib/cache-invalidation.ts`, `components/layout/nav-items.ts`, `tests/unit/cache-invalidation.spec.ts`
+**Files likely touched:** `app/(app)/net-worth/page.tsx`, `components/net-worth/net-worth-view.tsx`, `components/net-worth/valuation-sheet.tsx`, `hooks/use-valuations.ts`, `lib/cache-invalidation.ts`, `components/layout/nav-items.ts`, `tests/unit/cache-invalidation.spec.ts`
 
 **Estimated scope:** M
 
-**Catatan (2026-11-02):** JS first load `/goals` 329,4 KB gzip (metode Catatan ukuran dashboard), setara `/recurring` 330,4 dan `/settings` 324,6; di atas target 200 KB karena app shell bersama (sudah tercatat). `hideAmounts` di sheet: field mulai kosong (tidak menampilkan saldo) dan hanya akun yang diisi yang dikirim. Wave halaman `lilac`. `cache-invalidation.spec.ts` dan `nav.spec.ts` (yang ada) diperluas untuk `valuations` dan `goalsItem`, seperti rencana SPEC-goals § Tes. Tes: 1373 lulus (81 berkas).
+**Catatan (2026-11-02):** JS first load `/net-worth` 329,4 KB gzip (metode Catatan ukuran dashboard), setara `/recurring` 330,4 dan `/settings` 324,6; di atas target 200 KB karena app shell bersama (sudah tercatat). `hideAmounts` di sheet: field mulai kosong (tidak menampilkan saldo) dan hanya akun yang diisi yang dikirim. Wave halaman `lilac`. `cache-invalidation.spec.ts` dan `nav.spec.ts` (yang ada) diperluas untuk `valuations` dan `netWorthsItem`, seperti rencana SPEC-net-worth § Tes. Tes: 1373 lulus (81 berkas).

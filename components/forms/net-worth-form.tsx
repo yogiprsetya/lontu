@@ -13,21 +13,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { createGoal, updateGoal, useGoals } from "@/hooks/use-goals";
+import { createNetWorth, updateNetWorth, useNetWorths } from "@/hooks/use-net-worth";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
-import { goalAccountOptions, goalChanges, type GoalAccountOption } from "@/lib/goal-format";
+import {
+  netWorthAccountOptions,
+  netWorthChanges,
+  type NetWorthAccountOption,
+} from "@/lib/net-worth-format";
 import { failureMessage } from "@/lib/offline/network-error";
 import {
-  type Goal,
-  type GoalCreateInput,
-  goalCreateSchema,
-  goalEditSchema,
-} from "@/lib/schemas/goal";
+  type NetWorth,
+  type NetWorthCreateInput,
+  netWorthCreateSchema,
+  netWorthEditSchema,
+} from "@/lib/schemas/net-worth";
 
-type FormValues = z.input<typeof goalCreateSchema>;
+type FormValues = z.input<typeof netWorthCreateSchema>;
 
-const ACCOUNTS_MESSAGE_ID = "goal-accounts-message";
+const ACCOUNTS_MESSAGE_ID = "net-worth-accounts-message";
 
 function AccountChecklist({
   options,
@@ -35,7 +39,7 @@ function AccountChecklist({
   onChange,
   error,
 }: {
-  options: GoalAccountOption[];
+  options: NetWorthAccountOption[];
   value: string[];
   onChange: (ids: string[]) => void;
   error?: string;
@@ -80,16 +84,16 @@ function AccountChecklist({
   );
 }
 
-type GoalFormProps = {
-  /** Edit this goal; omit to create one. */
-  goal?: Goal;
+type NetWorthFormProps = {
+  /** Edit this net worth; omit to create one. */
+  netWorth?: NetWorth;
   onDone: () => void;
 };
 
-export function GoalForm({ goal, onDone }: GoalFormProps) {
-  // Archived accounts the goal already counts stay listed (SPEC-goals #15).
+export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
+  // Archived accounts the net worth already counts stay listed (SPEC-net-worth #15).
   const accounts = useAccounts({ includeArchived: true });
-  const goals = useGoals();
+  const netWorths = useNetWorths();
   const thisMonth = todayInJakarta().slice(0, 7);
   const {
     register,
@@ -97,28 +101,30 @@ export function GoalForm({ goal, onDone }: GoalFormProps) {
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<FormValues, unknown, GoalCreateInput>({
-    resolver: zodResolver(goal ? goalEditSchema(goal.targetMonth) : goalCreateSchema),
-    defaultValues: goal
+  } = useForm<FormValues, unknown, NetWorthCreateInput>({
+    resolver: zodResolver(
+      netWorth ? netWorthEditSchema(netWorth.targetMonth) : netWorthCreateSchema,
+    ),
+    defaultValues: netWorth
       ? {
-          name: goal.name,
-          targetAmount: goal.targetAmount,
-          targetMonth: goal.targetMonth,
-          accountIds: goal.accountIds,
+          name: netWorth.name,
+          targetAmount: netWorth.targetAmount,
+          targetMonth: netWorth.targetMonth,
+          accountIds: netWorth.accountIds,
         }
       : { name: "", targetAmount: 0, targetMonth: null, accountIds: [] },
   });
 
   const onSubmit = handleSubmit(async (input) => {
     try {
-      if (goal) {
-        const changes = goalChanges(goal, input);
+      if (netWorth) {
+        const changes = netWorthChanges(netWorth, input);
         if (Object.keys(changes).length > 0) {
-          await updateGoal(goal.id, changes);
+          await updateNetWorth(netWorth.id, changes);
           toast.success("Target diperbarui");
         }
       } else {
-        await createGoal(input);
+        await createNetWorth(input);
         toast.success("Target ditambahkan");
       }
       onDone();
@@ -128,19 +134,19 @@ export function GoalForm({ goal, onDone }: GoalFormProps) {
     }
   });
 
-  const options = goalAccountOptions(accounts.data ?? [], goals.data ?? [], goal);
+  const options = netWorthAccountOptions(accounts.data ?? [], netWorths.data ?? [], netWorth);
 
   return (
-    <form id="goal-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-2">
-      <FormField id="goal-name" label="Nama" error={errors.name?.message}>
+    <form id="net-worth-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4 pb-2">
+      <FormField id="net-worth-name" label="Nama" error={errors.name?.message}>
         <Input
-          id="goal-name"
+          id="net-worth-name"
           className={inputClass}
           autoComplete="off"
           maxLength={60}
           placeholder="mis. DP Rumah, Dana Darurat"
           aria-invalid={!!errors.name}
-          aria-describedby="goal-name-message"
+          aria-describedby="net-worth-name-message"
           {...register("name")}
         />
       </FormField>
@@ -149,14 +155,18 @@ export function GoalForm({ goal, onDone }: GoalFormProps) {
         control={control}
         name="targetAmount"
         render={({ field }) => (
-          <FormField id="goal-amount" label="Nominal target" error={errors.targetAmount?.message}>
+          <FormField
+            id="net-worth-amount"
+            label="Nominal target"
+            error={errors.targetAmount?.message}
+          >
             <MoneyInput
-              id="goal-amount"
+              id="net-worth-amount"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
               invalid={!!errors.targetAmount}
-              describedBy="goal-amount-message"
+              describedBy="net-worth-amount-message"
             />
           </FormField>
         )}
@@ -167,14 +177,14 @@ export function GoalForm({ goal, onDone }: GoalFormProps) {
         name="targetMonth"
         render={({ field }) => (
           <FormField
-            id="goal-month"
+            id="net-worth-month"
             label="Bulan target (opsional)"
             error={errors.targetMonth?.message}
             hint="Tanpa bulan target, kartu menampilkan perkiraan kapan tercapai."
           >
             <div className="flex gap-2">
               <Input
-                id="goal-month"
+                id="net-worth-month"
                 type="month"
                 className={inputClass}
                 min={thisMonth}
@@ -183,7 +193,7 @@ export function GoalForm({ goal, onDone }: GoalFormProps) {
                 onChange={(e) => field.onChange(e.target.value || null)}
                 onBlur={field.onBlur}
                 aria-invalid={!!errors.targetMonth}
-                aria-describedby="goal-month-message"
+                aria-describedby="net-worth-month-message"
               />
               {field.value && (
                 <Button

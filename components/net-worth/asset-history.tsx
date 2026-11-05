@@ -24,7 +24,7 @@ import {
   formatSignedShortIDR,
   summarySentence,
 } from "@/lib/asset-history";
-import { formatTargetMonth } from "@/lib/goal-format";
+import { formatTargetMonth } from "@/lib/net-worth-format";
 import { formatIDR } from "@/lib/money";
 import type { Account } from "@/lib/schemas/account";
 import {
@@ -46,7 +46,7 @@ const ALL = "all";
 // Legend + chart height, so nothing shifts when Recharts arrives.
 const chartSkeleton = () => <Skeleton className="h-63 w-full" />;
 
-const AssetHistoryChart = dynamic(() => import("@/components/goals/asset-history-chart"), {
+const AssetHistoryChart = dynamic(() => import("@/components/net-worth/asset-history-chart"), {
   ssr: false,
   loading: chartSkeleton,
 });

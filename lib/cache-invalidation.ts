@@ -8,7 +8,7 @@ export type Resource =
   | "dashboard"
   | "recurring"
   | "valuations"
-  | "goals";
+  | "netWorths";
 
 /** Every SWR key of a resource starts with its base path. `infinite`: it also has useSWRInfinite lists. */
 const RESOURCES: Record<Resource, { base: string; infinite?: boolean }> = {
@@ -19,7 +19,7 @@ const RESOURCES: Record<Resource, { base: string; infinite?: boolean }> = {
   dashboard: { base: "/api/dashboard" },
   recurring: { base: "/api/recurring" },
   valuations: { base: "/api/valuations" },
-  goals: { base: "/api/goals" },
+  netWorths: { base: "/api/net-worth" },
 };
 
 // `$inf$` is useSWRInfinite's prefix for its aggregate entry.
@@ -55,11 +55,11 @@ export function apiKey(resource: Resource, { path, query }: { path?: string; que
  * `invalidate` never follows edges, so a mutation that changes another resource names that one.
  */
 const AFFECTS: Record<Resource, Resource[]> = {
-  // Balances, budget usage, the dashboard, the payday forecast, asset values and goal progress are sums over transactions.
-  transactions: ["accounts", "budgets", "dashboard", "recurring", "valuations", "goals"],
+  // Balances, budget usage, the dashboard, the payday forecast, asset values and net worth progress are sums over transactions.
+  transactions: ["accounts", "budgets", "dashboard", "recurring", "valuations", "netWorths"],
   // An initial-balance edit records an adjustment transaction and moves the forecast balance;
-  // archiving drops an asset from the values list and from goal progress.
-  accounts: ["transactions", "recurring", "valuations", "goals"],
+  // archiving drops an asset from the values list and from net worth progress.
+  accounts: ["transactions", "recurring", "valuations", "netWorths"],
   // Usage rows depend on whether a category is archived.
   categories: ["budgets"],
   budgets: [],
@@ -69,8 +69,8 @@ const AFFECTS: Record<Resource, Resource[]> = {
   recurring: [],
   // Read-only. A check-in writes revaluations, which is a "transactions" change.
   valuations: [],
-  // Each asset value names the active goal that counts it.
-  goals: ["valuations"],
+  // Each asset value names the active net worth that counts it.
+  netWorths: ["valuations"],
 };
 
 export function isResourceKey(resource: Resource, key: unknown) {

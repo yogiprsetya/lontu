@@ -2,55 +2,60 @@ import "server-only";
 import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { accounts, goals } from "@/db/schema";
+import { accounts, netWorths } from "@/db/schema";
 import { todayInJakarta } from "@/lib/date";
 import { periodToYearMonth } from "@/lib/period";
-import type { GoalCreateInput, GoalProgress, GoalUpdateInput } from "@/lib/schemas/goal";
-import { goalProgress } from "@/lib/server/queries/goal-progress";
+import type {
+  NetWorthCreateInput,
+  NetWorthProgress,
+  NetWorthUpdateInput,
+} from "@/lib/schemas/net-worth";
+import { netWorthProgress } from "@/lib/server/queries/net-worth-progress";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 type InvalidAccounts = { invalid: { field: "accountIds"; message: string } };
 type Refused =
   InvalidAccounts | { nameTaken: true } | { notFound: true } | { restoreConflict: true };
-export type GoalWriteResult = GoalProgress | Refused;
+export type NetWorthWriteResult = NetWorthProgress | Refused;
 
 const isUuid = (id: string) => z.uuid().safeParse(id).success;
-const owned = (userId: string, id: string) => and(eq(goals.userId, userId), eq(goals.id, id));
+const owned = (userId: string, id: string) =>
+  and(eq(netWorths.userId, userId), eq(netWorths.id, id));
 
 /**
- * Serializes every goal write of one user until commit, so two requests cannot both pass the
- * "one account, one active goal" check (SPEC-goals #10). Same key as the budget lock.
+ * Serializes every net worth write of one user until commit, so two requests cannot both pass the
+ * "one account, one active net worth" check (SPEC-net-worth #10). Same key as the budget lock.
  */
-async function lockGoals(tx: Tx, userId: string) {
+async function lockNetWorths(tx: Tx, userId: string) {
   await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${userId}))`);
 }
 
-function otherActiveGoals(tx: Tx, userId: string, self?: string) {
+function otherActiveNetWorths(tx: Tx, userId: string, self?: string) {
   return tx
-    .select({ id: goals.id, name: goals.name, accountIds: goals.accountIds })
-    .from(goals)
+    .select({ id: netWorths.id, name: netWorths.name, accountIds: netWorths.accountIds })
+    .from(netWorths)
     .where(
       and(
-        eq(goals.userId, userId),
-        isNull(goals.archivedAt),
-        self ? ne(goals.id, self) : undefined,
+        eq(netWorths.userId, userId),
+        isNull(netWorths.archivedAt),
+        self ? ne(netWorths.id, self) : undefined,
       ),
     );
 }
 
-type OtherGoal = Awaited<ReturnType<typeof otherActiveGoals>>[number];
+type OtherNetWorth = Awaited<ReturnType<typeof otherActiveNetWorths>>[number];
 
-const nameClash = (others: OtherGoal[], name: string) =>
+const nameClash = (others: OtherNetWorth[], name: string) =>
   others.some((g) => g.name.toLowerCase() === name.toLowerCase());
 
 type AccountRow = { name: string; subtype: string | null; archivedAt: Date | null };
 
-/** Why `account` cannot join the goal, or undefined when it can. */
+/** Why `account` cannot join the net worth, or undefined when it can. */
 function accountProblem(
   account: AccountRow | undefined,
   kept: boolean,
-  owner: OtherGoal | undefined,
+  owner: OtherNetWorth | undefined,
 ) {
   // A foreign and a missing id read the same, so nothing leaks.
   if (!account) return "Akun tidak valid";
@@ -62,13 +67,13 @@ function accountProblem(
 
 /**
  * Each account must be the user's, not a credit card, active unless `kept` (already in the
- * goal), and in no other active goal. The message names the first account that fails.
+ * net worth), and in no other active net worth. The message names the first account that fails.
  */
 async function checkAccounts(
   tx: Tx,
   userId: string,
   ids: string[],
-  others: OtherGoal[],
+  others: OtherNetWorth[],
   kept: ReadonlySet<string> = new Set(),
 ): Promise<InvalidAccounts | undefined> {
   const rows = await tx
@@ -95,28 +100,31 @@ function targetColumns(targetMonth: string | null) {
 }
 
 /** Read after the write commits, with the same rules as GET. */
-export async function getGoalProgress(userId: string, id: string) {
-  const all = await goalProgress(userId, { today: todayInJakarta(), includeArchived: true });
+export async function getNetWorthProgress(userId: string, id: string) {
+  const all = await netWorthProgress(userId, { today: todayInJakarta(), includeArchived: true });
   return all.find((g) => g.id === id);
 }
 
 type Written = Refused | { id: string };
 
 /** The write ran in a transaction; the progress is read after commit so it sees the new row. */
-async function afterWrite(userId: string, written: Written): Promise<GoalWriteResult> {
-  if ("id" in written) return (await getGoalProgress(userId, written.id))!;
+async function afterWrite(userId: string, written: Written): Promise<NetWorthWriteResult> {
+  if ("id" in written) return (await getNetWorthProgress(userId, written.id))!;
   return written;
 }
 
-export async function createGoal(userId: string, input: GoalCreateInput): Promise<GoalWriteResult> {
+export async function createNetWorth(
+  userId: string,
+  input: NetWorthCreateInput,
+): Promise<NetWorthWriteResult> {
   const written = await db.transaction(async (tx): Promise<Written> => {
-    await lockGoals(tx, userId);
-    const others = await otherActiveGoals(tx, userId);
+    await lockNetWorths(tx, userId);
+    const others = await otherActiveNetWorths(tx, userId);
     const invalid = await checkAccounts(tx, userId, input.accountIds, others);
     if (invalid) return invalid;
     if (nameClash(others, input.name)) return { nameTaken: true };
     const [row] = await tx
-      .insert(goals)
+      .insert(netWorths)
       .values({
         userId,
         name: input.name,
@@ -124,37 +132,37 @@ export async function createGoal(userId: string, input: GoalCreateInput): Promis
         accountIds: input.accountIds,
         ...targetColumns(input.targetMonth),
       })
-      .returning({ id: goals.id });
+      .returning({ id: netWorths.id });
     return { id: row.id };
   });
   return afterWrite(userId, written);
 }
 
-/** A name or account change is checked against the other active goals; untouched fields are not. */
-export async function updateGoal(
+/** A name or account change is checked against the other active net worths; untouched fields are not. */
+export async function updateNetWorth(
   userId: string,
   id: string,
-  input: GoalUpdateInput,
-): Promise<GoalWriteResult> {
+  input: NetWorthUpdateInput,
+): Promise<NetWorthWriteResult> {
   if (!isUuid(id)) return { notFound: true };
   const written = await db.transaction(async (tx): Promise<Written> => {
-    await lockGoals(tx, userId);
-    const [goal] = await tx
-      .select({ accountIds: goals.accountIds })
-      .from(goals)
-      .where(and(owned(userId, id), isNull(goals.archivedAt)));
-    if (!goal) return { notFound: true };
-    const others = await otherActiveGoals(tx, userId, id);
+    await lockNetWorths(tx, userId);
+    const [netWorth] = await tx
+      .select({ accountIds: netWorths.accountIds })
+      .from(netWorths)
+      .where(and(owned(userId, id), isNull(netWorths.archivedAt)));
+    if (!netWorth) return { notFound: true };
+    const others = await otherActiveNetWorths(tx, userId, id);
     if (input.accountIds) {
-      // An account archived after it was linked may stay (SPEC-goals #15).
-      const kept = new Set(goal.accountIds);
+      // An account archived after it was linked may stay (SPEC-net-worth #15).
+      const kept = new Set(netWorth.accountIds);
       const invalid = await checkAccounts(tx, userId, input.accountIds, others, kept);
       if (invalid) return invalid;
     }
     if (input.name !== undefined && nameClash(others, input.name)) return { nameTaken: true };
     const { targetMonth, ...fields } = input;
     await tx
-      .update(goals)
+      .update(netWorths)
       .set({
         ...fields,
         ...(targetMonth !== undefined && targetColumns(targetMonth)),
@@ -166,30 +174,30 @@ export async function updateGoal(
   return afterWrite(userId, written);
 }
 
-export async function archiveGoal(userId: string, id: string): Promise<GoalWriteResult> {
+export async function archiveNetWorth(userId: string, id: string): Promise<NetWorthWriteResult> {
   if (!isUuid(id)) return { notFound: true };
   const [row] = await db
-    .update(goals)
+    .update(netWorths)
     // coalesce keeps the original timestamp when archiving twice.
-    .set({ archivedAt: sql`coalesce(${goals.archivedAt}, now())` })
+    .set({ archivedAt: sql`coalesce(${netWorths.archivedAt}, now())` })
     .where(owned(userId, id))
-    .returning({ id: goals.id });
+    .returning({ id: netWorths.id });
   return afterWrite(userId, row ?? { notFound: true });
 }
 
-/** Rechecks the name and every account, since another goal may have taken them meanwhile. */
-export async function restoreGoal(userId: string, id: string): Promise<GoalWriteResult> {
+/** Rechecks the name and every account, since another net worth may have taken them meanwhile. */
+export async function restoreNetWorth(userId: string, id: string): Promise<NetWorthWriteResult> {
   if (!isUuid(id)) return { notFound: true };
   const written = await db.transaction(async (tx): Promise<Written> => {
-    await lockGoals(tx, userId);
-    const [goal] = await tx.select().from(goals).where(owned(userId, id));
-    if (!goal) return { notFound: true };
-    if (!goal.archivedAt) return { id };
-    const others = await otherActiveGoals(tx, userId, id);
+    await lockNetWorths(tx, userId);
+    const [netWorth] = await tx.select().from(netWorths).where(owned(userId, id));
+    if (!netWorth) return { notFound: true };
+    if (!netWorth.archivedAt) return { id };
+    const others = await otherActiveNetWorths(tx, userId, id);
     const taken = new Set(others.flatMap((g) => g.accountIds));
-    if (nameClash(others, goal.name) || goal.accountIds.some((a) => taken.has(a)))
+    if (nameClash(others, netWorth.name) || netWorth.accountIds.some((a) => taken.has(a)))
       return { restoreConflict: true };
-    await tx.update(goals).set({ archivedAt: null }).where(owned(userId, id));
+    await tx.update(netWorths).set({ archivedAt: null }).where(owned(userId, id));
     return { id };
   });
   return afterWrite(userId, written);

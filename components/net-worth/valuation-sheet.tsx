@@ -42,7 +42,7 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (value === undefined || value === asset.balance) {
-      // The server drops a note on an unchanged value (SPEC-goals #23), so stop it being lost silently.
+      // The server drops a note on an unchanged value (SPEC-net-worth #23), so stop it being lost silently.
       if (note.trim()) {
         setErrors({ note: "Deskripsi disimpan bersama nilai baru. Ubah nilainya dulu." });
         return;

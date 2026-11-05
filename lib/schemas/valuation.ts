@@ -10,8 +10,8 @@ export type AssetValuation = {
   contributed: number;
   /** YYYY-MM-DD of the latest live revaluation. */
   lastValuedAt: string | null;
-  /** The active goal that counts this account. */
-  goalId: string | null;
+  /** The active net worth that counts this account. */
+  netWorthId: string | null;
 };
 
 export type ValuationResult = { recorded: number; assets: AssetValuation[] };
@@ -22,7 +22,7 @@ const item = z.strictObject({
     .int("Nilai harus bilangan bulat rupiah")
     .min(0, "Nilai minimal Rp0")
     .max(1e12, "Maksimal 1 triliun"),
-  /** Stored as the revaluation's description; dropped with an unchanged value (SPEC-goals #23). */
+  /** Stored as the revaluation's description; dropped with an unchanged value (SPEC-net-worth #23). */
   note: transactionDescriptionSchema.optional(),
 });
 

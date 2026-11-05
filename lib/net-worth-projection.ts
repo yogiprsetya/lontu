@@ -1,5 +1,5 @@
 import { addMonths, monthsBetween } from "@/lib/period";
-import type { GoalProjection } from "@/lib/schemas/goal";
+import type { NetWorthProjection } from "@/lib/schemas/net-worth";
 
 type Input = {
   targetAmount: number;
@@ -7,21 +7,21 @@ type Input = {
   current: number;
   /** Net flow per counted month in the rate window. */
   monthlyFlows: number[];
-  /** 0..3 full months before the current one (SPEC-goals #12). */
+  /** 0..3 full months before the current one (SPEC-net-worth #12). */
   countedMonths: number;
   /** YYYY-MM-DD in Asia/Jakarta. */
   today: string;
 };
 
-/** Contributions only: market gains are never projected forward (SPEC-goals #13). */
-export function goalProjection({
+/** Contributions only: market gains are never projected forward (SPEC-net-worth #13). */
+export function netWorthProjection({
   targetAmount,
   targetMonth,
   current,
   monthlyFlows,
   countedMonths,
   today,
-}: Input): GoalProjection {
+}: Input): NetWorthProjection {
   const currentMonth = today.slice(0, 7);
   const remaining = Math.max(targetAmount - current, 0);
   const reached = remaining === 0;

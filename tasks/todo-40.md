@@ -55,7 +55,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T141: Section Histori nilai: ringkasan dan tabel
 
-**Description:** `assetHistorySummary` dan `summarySentence` di `lib/asset-history.ts`. `useAssetHistory({ range, accountId })` + `assetHistoryKey()` di `hooks/use-asset-history.ts`. `components/goals/asset-history.tsx`: section `surface` dengan `SectionTitle` "Histori nilai", kalimat ringkasan, dan tabel Bulan · Setoran · Pasar · Nilai (terbaru di atas, label "berjalan", angka singkatan di bawah `sm`, `hideAmounts`), skeleton, dan `LoadError`. Untuk sementara tetap 12 bulan gabungan. `GoalsView` merendernya di bawah `AssetValues` jika ada aset.
+**Description:** `assetHistorySummary` dan `summarySentence` di `lib/asset-history.ts`. `useAssetHistory({ range, accountId })` + `assetHistoryKey()` di `hooks/use-asset-history.ts`. `components/net-worth/asset-history.tsx`: section `surface` dengan `SectionTitle` "Histori nilai", kalimat ringkasan, dan tabel Bulan · Setoran · Pasar · Nilai (terbaru di atas, label "berjalan", angka singkatan di bawah `sm`, `hideAmounts`), skeleton, dan `LoadError`. Untuk sementara tetap 12 bulan gabungan. `NetWorthView` merendernya di bawah `AssetValues` jika ada aset.
 
 **Acceptance criteria:**
 
@@ -71,7 +71,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Dependencies:** T140
 
-**Files likely touched:** `lib/asset-history.ts`, `hooks/use-asset-history.ts`, `components/goals/asset-history.tsx`, `components/goals/goals-view.tsx`, `tests/unit/asset-history.spec.ts`, `tests/unit/cache-invalidation.spec.ts`
+**Files likely touched:** `lib/asset-history.ts`, `hooks/use-asset-history.ts`, `components/net-worth/asset-history.tsx`, `components/net-worth/net-worth-view.tsx`, `tests/unit/asset-history.spec.ts`, `tests/unit/cache-invalidation.spec.ts`
 
 **Estimated scope:** M
 
@@ -94,7 +94,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Dependencies:** T141
 
-**Files likely touched:** `components/goals/asset-history.tsx`
+**Files likely touched:** `components/net-worth/asset-history.tsx`
 
 **Estimated scope:** S
 
@@ -102,7 +102,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T143: Grafik Nilai vs Disetor
 
-**Description:** `components/goals/asset-history-chart.tsx` (default export, dimuat `next/dynamic` di belakang skeleton setinggi grafik): `LineChart` lewat shadcn chart, Nilai garis penuh `--chart-1`, Disetor garis putus-putus `--muted-foreground`, legenda teks, sumbu X `formatBucket(…, "tick")`, sumbu Y `abbreviateIDR` dengan domain dari data, tooltip bulan + Nilai/Disetor/Pasar `formatIDR`, `aria-hidden`. `hideAmounts` menyembunyikan sumbu Y dan tooltip. `months.length = 1` → "Grafik muncul setelah ada data dua bulan."
+**Description:** `components/net-worth/asset-history-chart.tsx` (default export, dimuat `next/dynamic` di belakang skeleton setinggi grafik): `LineChart` lewat shadcn chart, Nilai garis penuh `--chart-1`, Disetor garis putus-putus `--muted-foreground`, legenda teks, sumbu X `formatBucket(…, "tick")`, sumbu Y `abbreviateIDR` dengan domain dari data, tooltip bulan + Nilai/Disetor/Pasar `formatIDR`, `aria-hidden`. `hideAmounts` menyembunyikan sumbu Y dan tooltip. `months.length = 1` → "Grafik muncul setelah ada data dua bulan."
 
 **Acceptance criteria:**
 
@@ -118,7 +118,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Dependencies:** T141
 
-**Files likely touched:** `components/goals/asset-history-chart.tsx`, `components/goals/asset-history.tsx`, `tasks/plan.md`
+**Files likely touched:** `components/net-worth/asset-history-chart.tsx`, `components/net-worth/asset-history.tsx`, `tasks/plan.md`
 
 **Estimated scope:** S
 

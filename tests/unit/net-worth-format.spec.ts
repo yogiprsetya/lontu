@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   formatTargetMonth,
-  goalAccountOptions,
-  goalChanges,
-  goalPercent,
-  goalProjectionText,
-} from "@/lib/goal-format";
+  netWorthAccountOptions,
+  netWorthChanges,
+  netWorthPercent,
+  netWorthProjectionText,
+} from "@/lib/net-worth-format";
 import type { Account } from "@/lib/schemas/account";
-import type { GoalProjection } from "@/lib/schemas/goal";
+import type { NetWorthProjection } from "@/lib/schemas/net-worth";
 
-const base: GoalProjection = {
+const base: NetWorthProjection = {
   remaining: 107_300_000,
   reached: false,
   monthlyContribution: 4_000_000,
@@ -20,11 +20,11 @@ const base: GoalProjection = {
   onTrack: false,
 };
 
-const text = (projection: Partial<GoalProjection>, targetMonth: string | null = "2028-12") =>
-  goalProjectionText({ targetMonth, projection: { ...base, ...projection } });
+const text = (projection: Partial<NetWorthProjection>, targetMonth: string | null = "2028-12") =>
+  netWorthProjectionText({ targetMonth, projection: { ...base, ...projection } });
 
-describe("goalProjectionText", () => {
-  it("says the goal is reached and nothing else", () => {
+describe("netWorthProjectionText", () => {
+  it("says the net worth is reached and nothing else", () => {
     expect(text({ reached: true, remaining: 0, etaMonth: null, onTrack: null })).toEqual([
       "Tercapai",
     ]);
@@ -86,17 +86,17 @@ describe("goalProjectionText", () => {
 
   it("passes every amount through the screen's formatter, so hidden amounts stay hidden", () => {
     const hidden = () => "Rp•••";
-    expect(goalProjectionText({ targetMonth: "2028-12", projection: base }, hidden)[0]).toBe(
+    expect(netWorthProjectionText({ targetMonth: "2028-12", projection: base }, hidden)[0]).toBe(
       "Butuh Rp•••/bulan sampai Des 2028",
     );
   });
 });
 
-describe("goalPercent", () => {
+describe("netWorthPercent", () => {
   it("floors, and never goes below zero", () => {
-    expect(goalPercent(42_700_000, 150_000_000)).toBe(28);
-    expect(goalPercent(-1, 100)).toBe(0);
-    expect(goalPercent(150, 100)).toBe(150);
+    expect(netWorthPercent(42_700_000, 150_000_000)).toBe(28);
+    expect(netWorthPercent(-1, 100)).toBe(0);
+    expect(netWorthPercent(150, 100)).toBe(150);
   });
 });
 
@@ -106,7 +106,7 @@ describe("formatTargetMonth", () => {
   });
 });
 
-describe("goalAccountOptions", () => {
+describe("netWorthAccountOptions", () => {
   const account = (id: string, patch: Partial<Account> = {}): Account => ({
     id,
     name: id.toUpperCase(),
@@ -125,21 +125,21 @@ describe("goalAccountOptions", () => {
     account("rd", { subtype: "investment" }),
     account("lama", { archivedAt: "2026-10-01T00:00:00.000Z" }),
   ];
-  const goals = [
+  const netWorths = [
     { id: "g1", name: "DP Rumah", accountIds: ["emas", "lama"], archivedAt: null },
     { id: "g2", name: "Liburan", accountIds: ["rd"], archivedAt: "2026-10-01T00:00:00.000Z" },
   ];
 
-  it("hides credit cards and archived accounts, and marks another goal's account as taken", () => {
-    expect(goalAccountOptions(accounts, goals)).toEqual([
+  it("hides credit cards and archived accounts, and marks another net worth's account as taken", () => {
+    expect(netWorthAccountOptions(accounts, netWorths)).toEqual([
       { id: "bca", name: "BCA", balance: 1_000, takenBy: null },
       { id: "emas", name: "EMAS", balance: 1_000, takenBy: "DP Rumah" },
       { id: "rd", name: "RD", balance: 1_000, takenBy: null },
     ]);
   });
 
-  it("frees the goal's own accounts and keeps its archived ones, labelled", () => {
-    expect(goalAccountOptions(accounts, goals, goals[0])).toEqual([
+  it("frees the net worth's own accounts and keeps its archived ones, labelled", () => {
+    expect(netWorthAccountOptions(accounts, netWorths, netWorths[0])).toEqual([
       { id: "bca", name: "BCA", balance: 1_000, takenBy: null },
       { id: "emas", name: "EMAS", balance: 1_000, takenBy: null },
       { id: "rd", name: "RD", balance: 1_000, takenBy: null },
@@ -148,8 +148,8 @@ describe("goalAccountOptions", () => {
   });
 });
 
-describe("goalChanges", () => {
-  const goal = {
+describe("netWorthChanges", () => {
+  const netWorth = {
     name: "DP Rumah",
     targetAmount: 150_000_000,
     targetMonth: "2028-12",
@@ -157,18 +157,18 @@ describe("goalChanges", () => {
   };
 
   it("is empty when nothing changed", () => {
-    expect(goalChanges(goal, { ...goal, accountIds: ["emas", "rd"] })).toEqual({});
+    expect(netWorthChanges(netWorth, { ...netWorth, accountIds: ["emas", "rd"] })).toEqual({});
   });
 
   it("sends only the fields that changed, clearing the month with null", () => {
-    expect(goalChanges(goal, { ...goal, name: "Rumah", targetMonth: null })).toEqual({
+    expect(netWorthChanges(netWorth, { ...netWorth, name: "Rumah", targetMonth: null })).toEqual({
       name: "Rumah",
       targetMonth: null,
     });
   });
 
   it("treats a new account order as a change", () => {
-    expect(goalChanges(goal, { ...goal, accountIds: ["rd", "emas"] })).toEqual({
+    expect(netWorthChanges(netWorth, { ...netWorth, accountIds: ["rd", "emas"] })).toEqual({
       accountIds: ["rd", "emas"],
     });
   });

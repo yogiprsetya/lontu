@@ -1,6 +1,6 @@
 # Todo phase 39: Check-in hari ini dan deskripsi
 
-Plan: [plan-39.md](plan-39.md) · Index: [plan.md](plan.md) · Spec: [SPEC-goals.md](../SPEC-goals.md)
+Plan: [plan-39.md](plan-39.md) · Index: [plan.md](plan.md) · Spec: [SPEC-net-worth.md](../SPEC-net-worth.md)
 
 Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commit conventional. Task UI juga `pnpm build` dan cek manual di 360×800 dan 1024.
 
@@ -22,9 +22,9 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau (`tests/unit/cache-invalidation.spec.ts` ikut: `date` dihapus dari body mock, assertion tidak berubah)
 - [ ] (tertunda: sesi tanpa browser) Manual: Perbarui nilai satu akun di 360×800, lalu coba lagi dari tab lain → pesan sekali sehari di bawah field nilai
 
-**Dependencies:** commit `docs(goals)` spec + plan
+**Dependencies:** commit `docs(net-worth)` spec + plan
 
-**Files likely touched:** `lib/schemas/valuation.ts`, `lib/server/valuations.ts`, `components/goals/valuation-sheet.tsx`, `tests/api/valuations.spec.ts`, `tests/unit/valuation-schema.spec.ts`
+**Files likely touched:** `lib/schemas/valuation.ts`, `lib/server/valuations.ts`, `components/net-worth/valuation-sheet.tsx`, `tests/api/valuations.spec.ts`, `tests/unit/valuation-schema.spec.ts`
 
 **Estimated scope:** M
 
@@ -48,7 +48,7 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Dependencies:** T135
 
-**Files likely touched:** `lib/schemas/valuation.ts`, `lib/schemas/transaction.ts`, `lib/server/valuations.ts`, `components/goals/valuation-sheet.tsx`, `tests/api/valuations.spec.ts`, `tests/unit/valuation-schema.spec.ts`
+**Files likely touched:** `lib/schemas/valuation.ts`, `lib/schemas/transaction.ts`, `lib/server/valuations.ts`, `components/net-worth/valuation-sheet.tsx`, `tests/api/valuations.spec.ts`, `tests/unit/valuation-schema.spec.ts`
 
 **Estimated scope:** M
 
@@ -69,9 +69,9 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau
 - [ ] (tertunda: sesi tanpa browser) Manual: sesudah check-in, baris berubah tanpa reload (SWR revalidate) di 360×800
 
-**Dependencies:** commit `docs(goals)` spec + plan
+**Dependencies:** commit `docs(net-worth)` spec + plan
 
-**Files likely touched:** `lib/valuation-format.ts`, `components/goals/asset-values.tsx`, `tests/unit/valuation-format.spec.ts`
+**Files likely touched:** `lib/valuation-format.ts`, `components/net-worth/asset-values.tsx`, `tests/unit/valuation-format.spec.ts`
 
 **Estimated scope:** S
 
@@ -79,13 +79,13 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 ### T138: Verifikasi dan status
 
-**Description:** Jalankan Checkpoint AL. Centang butir revisi di SPEC-goals § Acceptance criteria (API lewat tes, UI manual atau "tertunda: sesi tanpa browser"). Perbarui Status SPEC-goals dan baris `goals` di plan.md, lalu catat jumlah tes akhir. Perbaikan yang ditemukan menjadi commit `fix` terpisah dengan tes yang mereproduksi.
+**Description:** Jalankan Checkpoint AL. Centang butir revisi di SPEC-net-worth § Acceptance criteria (API lewat tes, UI manual atau "tertunda: sesi tanpa browser"). Perbarui Status SPEC-net-worth dan baris `net-worth` di plan.md, lalu catat jumlah tes akhir. Perbaikan yang ditemukan menjadi commit `fix` terpisah dengan tes yang mereproduksi.
 
 **Acceptance criteria:**
 
-- [x] Setiap butir revisi 2026-11-02 di SPEC-goals dicentang atau ditandai tertunda dengan alasan
+- [x] Setiap butir revisi 2026-11-02 di SPEC-net-worth dicentang atau ditandai tertunda dengan alasan
 - [x] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
-- [x] SPEC-goals.md Status dan plan.md baris `goals` menyebut T135–T138
+- [x] SPEC-net-worth.md Status dan plan.md baris `net-worth` menyebut T135–T138
 
 **Verification:**
 
@@ -94,6 +94,6 @@ Gerbang setiap task: `pnpm lint && pnpm typecheck && pnpm test`, lalu satu commi
 
 **Dependencies:** T135, T136, T137
 
-**Files likely touched:** `SPEC-goals.md`, `tasks/plan.md`, `tasks/plan-39.md`
+**Files likely touched:** `SPEC-net-worth.md`, `tasks/plan.md`, `tasks/plan-39.md`
 
 **Estimated scope:** S

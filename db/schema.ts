@@ -176,9 +176,9 @@ export const recurringRules = pgTable.withRLS(
   ],
 );
 
-// account_ids has no FK, same as budgets.category_ids: ownership and the one-goal rule are checked on write.
-export const goals = pgTable.withRLS(
-  "goals",
+// account_ids has no FK, same as budgets.category_ids: ownership and the one-net-worth rule are checked on write.
+export const netWorths = pgTable.withRLS(
+  "net_worth",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: userId(),
@@ -192,13 +192,13 @@ export const goals = pgTable.withRLS(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    check("goals_amount_check", sql`${t.targetAmount} between 1 and 1000000000000`),
+    check("net_worth_amount_check", sql`${t.targetAmount} between 1 and 1000000000000`),
     check(
-      "goals_target_check",
+      "net_worth_target_check",
       sql`(${t.targetYear} is null) = (${t.targetMonth} is null) and (${t.targetMonth} is null or ${t.targetMonth} between 1 and 12)`,
     ),
-    check("goals_account_ids_check", sql`cardinality(${t.accountIds}) between 1 and 20`),
-    index("goals_user_idx").on(t.userId),
+    check("net_worth_account_ids_check", sql`cardinality(${t.accountIds}) between 1 and 20`),
+    index("net_worth_user_idx").on(t.userId),
   ],
 );
 

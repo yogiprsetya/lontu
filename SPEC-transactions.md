@@ -27,7 +27,7 @@ Nomor 1–3 diputuskan Yogi pada 2026-10-21 (menjawab Open questions #3–#5 di 
 10. **Filter hidup di URL, bukan di `usePeriodStore`.** `/transactions` tidak membaca store itu. Modul lain yang menautkan ke daftar harus menyusun URL lengkap (lihat [Kontrak untuk modul lain](#kontrak-untuk-modul-lain)).
 11. **Paginasi dengan tombol "Muat lebih banyak"** (target ≥ 44 px), bukan infinite scroll otomatis.
 12. **Total** mencakup `income`, `expense`, `saving` pada himpunan yang terfilter. `transfer`, `adjustment`, dan `revaluation` tidak dihitung. Baris biaya admin adalah `expense` biasa, jadi ikut terhitung.
-13. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `adjustment` berlabel "Penyesuaian", `revaluation` (modul `goals`) berlabel "Revaluasi".
+13. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `adjustment` berlabel "Penyesuaian", `revaluation` (modul `net-worth`) berlabel "Revaluasi".
 
 Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan kosong.
 
@@ -40,11 +40,11 @@ Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan ko
 | `saving`     | `−amount` (uang pindah ke tabungan, tidak dihitung sebagai pengeluaran) | wajib, `kind = saving`   | idem                                          |
 | `transfer`   | `−amount` di `account_id`, `+amount` di `to_account_id`                 | tidak ada                | `accountId`, `toAccountId` (≠ `accountId`)    |
 | `adjustment` | bertanda                                                                | tidak ada                | dibuat hanya oleh modul `accounts-categories` |
-| `revaluation` | bertanda                                                               | tidak ada                | dibuat hanya oleh modul `goals` (`POST /api/valuations`) |
+| `revaluation` | bertanda                                                               | tidak ada                | dibuat hanya oleh modul `net-worth` (`POST /api/valuations`) |
 
 - Efek saldo dihitung view `account_balances`, bukan TS. Modul ini tidak menulis saldo.
 - Pemetaan tipe → `kind` kategori memakai `CATEGORY_KIND_FOR` dari `lib/schemas/category.ts`.
-- `adjustment` tampil di daftar, bisa difilter, bisa di-soft-delete (saldo awal efektif ikut bergeser), tetapi **tidak bisa dibuat atau diedit** lewat API ini. `revaluation` diperlakukan sama (tipe sistem bertanda, `SYSTEM_TRANSACTION_TYPES`); menghapusnya menggeser saldo kembali ([SPEC-goals.md](SPEC-goals.md)).
+- `adjustment` tampil di daftar, bisa difilter, bisa di-soft-delete (saldo awal efektif ikut bergeser), tetapi **tidak bisa dibuat atau diedit** lewat API ini. `revaluation` diperlakukan sama (tipe sistem bertanda, `SYSTEM_TRANSACTION_TYPES`); menghapusnya menggeser saldo kembali ([SPEC-net-worth.md](SPEC-net-worth.md)).
 - Referensi (`accountId`, `toAccountId`, `categoryId`) harus milik user dan **aktif** saat create. Saat edit, referensi yang tidak diubah boleh tetap menunjuk item terarsip. Id asing, tidak ada, atau terarsip → 400 pada field yang bersangkutan (pesan sama untuk id asing dan id tidak ada, supaya tidak membocorkan data user lain).
 
 ## Kontrak API

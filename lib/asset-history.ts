@@ -1,4 +1,4 @@
-import { formatTargetMonth } from "@/lib/goal-format";
+import { formatTargetMonth } from "@/lib/net-worth-format";
 import { abbreviateIDR } from "@/lib/money";
 import type {
   AssetHistory,

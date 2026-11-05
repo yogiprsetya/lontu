@@ -23,10 +23,10 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 | `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
-| `goals` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/goals`), query `goalProgress`, proyeksi `goalProjection`, halaman `/goals` | accounts-categories, transactions |
+| `net-worth` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/net-worth`), query `netWorthProgress`, proyeksi `netWorthProjection`, halaman `/net-worth` | accounts-categories, transactions |
 | `asset-history` | Histori nilai aset per bulan (setoran vs pasar) dari transaksi, `GET /api/valuations/history`, query `assetHistory`, section "Histori nilai" (ringkasan, grafik Nilai vs Disetor, tabel) di `/net-worth` | goals, transactions, accounts-categories |
 
-**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → goals (Fase 2, ditambahkan 2026-11-01) → asset-history (Fase 2, ditambahkan 2026-11-03)
+**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → net-worth (Fase 2, ditambahkan 2026-11-01) → asset-history (Fase 2, ditambahkan 2026-11-03)
 
 Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET /api/accounts` ditulis di `SPEC-accounts-categories.md`.
 
@@ -41,7 +41,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 5. **Transfer digabung ke modul `transactions`:** tabel, daftar, dan cache SWR-nya sama.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
-8. **7 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`, `goals`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `goals` ditambahkan modul `goals` (Fase 2), bersama tipe transaksi `revaluation` (constraint + view), disetujui 2026-11-01 ([SPEC-goals.md](SPEC-goals.md) § Perubahan skema). `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
+8. **7 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`, `net_worth`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `net_worth` ditambahkan modul `net-worth` (Fase 2), bersama tipe transaksi `revaluation` (constraint + view), disetujui 2026-11-01, diganti nama dari `goals` 2026-11-05 ([SPEC-net-worth.md](SPEC-net-worth.md) § Perubahan skema). `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
 
 ## Tech stack
 

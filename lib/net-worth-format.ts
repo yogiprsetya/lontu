@@ -2,7 +2,12 @@ import { archiveLabel } from "@/lib/archived";
 import { abbreviateIDR, formatIDR } from "@/lib/money";
 import { monthsBetween } from "@/lib/period";
 import type { Account } from "@/lib/schemas/account";
-import type { Goal, GoalCreateInput, GoalProgress, GoalUpdateInput } from "@/lib/schemas/goal";
+import type {
+  NetWorth,
+  NetWorthCreateInput,
+  NetWorthProgress,
+  NetWorthUpdateInput,
+} from "@/lib/schemas/net-worth";
 
 /** The screen's amount formatter (`useAmountFormat`), so hidden amounts stay hidden. */
 type Money = (amount: number, format: (amount: number) => string) => string;
@@ -23,13 +28,13 @@ export function formatTargetMonth(month: string) {
 }
 
 /** Current as a share of the target, floored; may pass 100. */
-export function goalPercent(current: number, targetAmount: number) {
+export function netWorthPercent(current: number, targetAmount: number) {
   return Math.max(0, Math.floor((current * 100) / targetAmount));
 }
 
-/** The card's projection sentences (SPEC-goals § UI), lateness spelled out rather than coloured. */
-export function goalProjectionText(
-  { targetMonth, projection: p }: Pick<GoalProgress, "targetMonth" | "projection">,
+/** The card's projection sentences (SPEC-net-worth § UI), lateness spelled out rather than coloured. */
+export function netWorthProjectionText(
+  { targetMonth, projection: p }: Pick<NetWorthProgress, "targetMonth" | "projection">,
   money: Money = plain,
 ): string[] {
   if (p.reached) return ["Tercapai"];
@@ -59,27 +64,27 @@ export function goalProjectionText(
   ];
 }
 
-export type GoalAccountOption = {
+export type NetWorthAccountOption = {
   id: string;
   name: string;
   balance: number;
-  /** The other active goal that already counts this account; shown, but not pickable. */
+  /** The other active net worth that already counts this account; shown, but not pickable. */
   takenBy: string | null;
 };
 
 /**
- * Accounts the goal form offers (SPEC-goals #10, #15): no credit cards, active ones, plus the
- * archived ones `self` already counts. `goals` may include archived goals; they hold nothing.
+ * Accounts the net worth form offers (SPEC-net-worth #10, #15): no credit cards, active ones, plus the
+ * archived ones `self` already counts. `netWorths` may include archived net worths; they hold nothing.
  */
-export function goalAccountOptions(
+export function netWorthAccountOptions(
   accounts: Account[],
-  goals: Pick<Goal, "id" | "name" | "accountIds" | "archivedAt">[],
-  self?: Pick<Goal, "id" | "accountIds">,
-): GoalAccountOption[] {
+  netWorths: Pick<NetWorth, "id" | "name" | "accountIds" | "archivedAt">[],
+  self?: Pick<NetWorth, "id" | "accountIds">,
+): NetWorthAccountOption[] {
   const owner = new Map<string, string>();
-  for (const goal of goals)
-    if (!goal.archivedAt && goal.id !== self?.id)
-      for (const id of goal.accountIds) owner.set(id, goal.name);
+  for (const netWorth of netWorths)
+    if (!netWorth.archivedAt && netWorth.id !== self?.id)
+      for (const id of netWorth.accountIds) owner.set(id, netWorth.name);
   return accounts
     .filter(
       (a) => a.subtype !== "credit_card" && (!a.archivedAt || self?.accountIds.includes(a.id)),
@@ -92,14 +97,17 @@ export function goalAccountOptions(
     }));
 }
 
-type Editable = Pick<Goal, "name" | "targetAmount" | "targetMonth" | "accountIds">;
+type Editable = Pick<NetWorth, "name" | "targetAmount" | "targetMonth" | "accountIds">;
 
 /** The PATCH body for an edit: only changed fields, so untouched accounts are not rechecked. */
-export function goalChanges(goal: Editable, input: GoalCreateInput): GoalUpdateInput {
-  const changes: GoalUpdateInput = {};
-  if (input.name !== goal.name) changes.name = input.name;
-  if (input.targetAmount !== goal.targetAmount) changes.targetAmount = input.targetAmount;
-  if (input.targetMonth !== goal.targetMonth) changes.targetMonth = input.targetMonth;
-  if (input.accountIds.join() !== goal.accountIds.join()) changes.accountIds = input.accountIds;
+export function netWorthChanges(
+  netWorth: Editable,
+  input: NetWorthCreateInput,
+): NetWorthUpdateInput {
+  const changes: NetWorthUpdateInput = {};
+  if (input.name !== netWorth.name) changes.name = input.name;
+  if (input.targetAmount !== netWorth.targetAmount) changes.targetAmount = input.targetAmount;
+  if (input.targetMonth !== netWorth.targetMonth) changes.targetMonth = input.targetMonth;
+  if (input.accountIds.join() !== netWorth.accountIds.join()) changes.accountIds = input.accountIds;
   return changes;
 }

@@ -2,7 +2,7 @@ import { formatIDR } from "@/lib/money";
 import { daysBetween } from "@/lib/period";
 import { formatShortDate } from "@/lib/recurring-format";
 
-/** SPEC-goals #16: a value older than this no longer describes the account. */
+/** SPEC-net-worth #16: a value older than this no longer describes the account. */
 export const STALE_AFTER_DAYS = 35;
 
 export function isStale(lastValuedAt: string | null, today: string) {

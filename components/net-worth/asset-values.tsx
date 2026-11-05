@@ -60,7 +60,7 @@ function AssetRow({
         >
           {subtype} · {valuedLabel(asset.lastValuedAt, today)}
         </p>
-        {/* SPEC-goals #6: a second value today would be refused, so do not offer one. */}
+        {/* SPEC-net-worth #6: a second value today would be refused, so do not offer one. */}
         {asset.lastValuedAt !== today && (
           <Button
             variant="outline"

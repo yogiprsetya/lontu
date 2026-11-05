@@ -94,17 +94,17 @@ export function budgetNameTaken() {
   return conflict("BUDGET_NAME_TAKEN", "Nama budget sudah dipakai budget lain bulan ini.");
 }
 
-export function goalNotFound() {
-  return notFound("GOAL_NOT_FOUND", "Target tidak ditemukan");
+export function netWorthNotFound() {
+  return notFound("NET_WORTH_NOT_FOUND", "Target tidak ditemukan");
 }
 
-export function goalNameTaken() {
-  return conflict("GOAL_NAME_TAKEN", "Nama target sudah dipakai target lain.");
+export function netWorthNameTaken() {
+  return conflict("NET_WORTH_NAME_TAKEN", "Nama target sudah dipakai target lain.");
 }
 
-export function goalRestoreConflict() {
+export function netWorthRestoreConflict() {
   return conflict(
-    "GOAL_RESTORE_CONFLICT",
+    "NET_WORTH_RESTORE_CONFLICT",
     "Tidak bisa dipulihkan: nama atau akun sudah dipakai target lain",
   );
 }

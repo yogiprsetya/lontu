@@ -2,10 +2,10 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { db } from "@/db";
-import { accounts, categories, goals, transactions } from "@/db/schema";
+import { accounts, categories, netWorths, transactions } from "@/db/schema";
 import { listAccounts } from "@/lib/server/accounts";
 import { assetValuations } from "@/lib/server/queries/asset-valuations";
-import { goalProgress } from "@/lib/server/queries/goal-progress";
+import { netWorthProgress } from "@/lib/server/queries/net-worth-progress";
 import { createTestUsers } from "../setup/db";
 
 const today = "2026-11-15";
@@ -39,9 +39,9 @@ async function account(
   return row.id;
 }
 
-async function goal(userId: string, values: Partial<typeof goals.$inferInsert> = {}) {
+async function netWorth(userId: string, values: Partial<typeof netWorths.$inferInsert> = {}) {
   const [row] = await db
-    .insert(goals)
+    .insert(netWorths)
     .values({
       userId,
       name: `Target ${randomUUID()}`,
@@ -49,7 +49,7 @@ async function goal(userId: string, values: Partial<typeof goals.$inferInsert> =
       accountIds: [],
       ...values,
     })
-    .returning({ id: goals.id });
+    .returning({ id: netWorths.id });
   return row.id;
 }
 
@@ -74,7 +74,7 @@ const revaluation = (accountId: string, amount: number, date: string): Row => ({
   accountId,
 });
 
-/** SPEC-goals § Acceptance criteria, after the 2026-10-31 check-in. */
+/** SPEC-net-worth § Acceptance criteria, after the 2026-10-31 check-in. */
 async function baseScenario() {
   const userId = await newUser();
   const bca = await account(userId, "BCA", { type: "transaction", subtype: "debit" });
@@ -88,7 +88,7 @@ async function baseScenario() {
     revaluation(emas, 500_000, "2026-10-31"),
     revaluation(reksadana, 200_000, "2026-10-31"),
   ]);
-  const dpRumah = await goal(userId, {
+  const dpRumah = await netWorth(userId, {
     name: "DP Rumah",
     targetYear: 2028,
     targetMonth: 12,
@@ -97,12 +97,14 @@ async function baseScenario() {
   return { userId, bca, emas, reksadana, dpRumah };
 }
 
-async function progressOf(userId: string, goalId: string, includeArchived = false) {
-  return (await goalProgress(userId, { today, includeArchived })).find((g) => g.id === goalId)!;
+async function progressOf(userId: string, netWorthId: string, includeArchived = false) {
+  return (await netWorthProgress(userId, { today, includeArchived })).find(
+    (g) => g.id === netWorthId,
+  )!;
 }
 
-describe("goalProgress", () => {
-  it("computes the SPEC-goals base scenario", async () => {
+describe("netWorthProgress", () => {
+  it("computes the SPEC-net-worth base scenario", async () => {
     const { userId, emas, reksadana, dpRumah } = await baseScenario();
     expect(await progressOf(userId, dpRumah)).toMatchObject({
       id: dpRumah,
@@ -128,9 +130,9 @@ describe("goalProgress", () => {
     });
   });
 
-  it("moves the rate between two goals for a transfer from one to the other", async () => {
+  it("moves the rate between two net worths for a transfer from one to the other", async () => {
     const { userId, bca, dpRumah } = await baseScenario();
-    const darurat = await goal(userId, { name: "Dana Darurat", accountIds: [bca] });
+    const darurat = await netWorth(userId, { name: "Dana Darurat", accountIds: [bca] });
     expect((await progressOf(userId, dpRumah)).projection.monthlyContribution).toBe(4_000_000);
     expect(await progressOf(userId, darurat)).toMatchObject({
       targetMonth: null,
@@ -153,10 +155,10 @@ describe("goalProgress", () => {
     });
   });
 
-  it("counts income, expense and saving on a goal account in the rate", async () => {
+  it("counts income, expense and saving on a net worth account in the rate", async () => {
     const userId = await newUser();
     const tabungan = await account(userId, "Tabungan", { type: "transaction" });
-    const id = await goal(userId, { accountIds: [tabungan] });
+    const id = await netWorth(userId, { accountIds: [tabungan] });
     const [income, spending, saving] = await db
       .insert(categories)
       .values([
@@ -202,7 +204,7 @@ describe("goalProgress", () => {
       createdAt: new Date("2026-09-30T17:30:00Z"),
     });
     const source = await account(userId, "Sumber", { type: "transaction" });
-    const id = await goal(userId, { accountIds: [october] });
+    const id = await netWorth(userId, { accountIds: [october] });
     await insertTransactions(userId, [transfer(source, october, 2_000_000, "2026-10-05")]);
     expect((await progressOf(userId, id)).projection.monthlyContribution).toBe(2_000_000);
   });
@@ -212,7 +214,7 @@ describe("goalProgress", () => {
     const fresh = await account(userId, "Bulan ini", {
       createdAt: new Date("2026-11-03T03:00:00Z"),
     });
-    const id = await goal(userId, { accountIds: [fresh], targetYear: 2027, targetMonth: 6 });
+    const id = await netWorth(userId, { accountIds: [fresh], targetYear: 2027, targetMonth: 6 });
     expect((await progressOf(userId, id)).projection).toMatchObject({
       monthlyContribution: null,
       etaMonth: null,
@@ -221,9 +223,12 @@ describe("goalProgress", () => {
     });
   });
 
-  it("marks an old goal whose target month has passed as overdue, needing the whole remainder", async () => {
+  it("marks an old net worth whose target month has passed as overdue, needing the whole remainder", async () => {
     const { userId, dpRumah } = await baseScenario();
-    await db.update(goals).set({ targetYear: 2026, targetMonth: 10 }).where(eq(goals.id, dpRumah));
+    await db
+      .update(netWorths)
+      .set({ targetYear: 2026, targetMonth: 10 })
+      .where(eq(netWorths.id, dpRumah));
     expect((await progressOf(userId, dpRumah)).projection).toMatchObject({
       overdue: true,
       monthsLeft: 0,
@@ -242,11 +247,11 @@ describe("goalProgress", () => {
       revaluation(old, 1_000, "2026-10-10"),
       revaluation(fresh, 1_000, "2026-10-11"),
     ]);
-    const id = await goal(userId, { accountIds: [fresh, cash, old, never] });
+    const id = await netWorth(userId, { accountIds: [fresh, cash, old, never] });
     expect((await progressOf(userId, id)).staleAccountIds).toEqual([old, never]);
   });
 
-  it("current equals the sum of GET /api/accounts balances of the goal's active accounts", async () => {
+  it("current equals the sum of GET /api/accounts balances of the net worth's active accounts", async () => {
     const { userId, emas, reksadana, dpRumah } = await baseScenario();
     const balances = await listAccounts(userId);
     const sum = balances
@@ -255,44 +260,44 @@ describe("goalProgress", () => {
     expect((await progressOf(userId, dpRumah)).current).toBe(sum);
   });
 
-  it("lists active goals by created_at, and archived ones only on request", async () => {
+  it("lists active net worths by created_at, and archived ones only on request", async () => {
     const userId = await newUser();
     const a = await account(userId, "A");
     const b = await account(userId, "B");
-    const first = await goal(userId, { accountIds: [a], createdAt: new Date("2026-10-01") });
-    const archived = await goal(userId, {
+    const first = await netWorth(userId, { accountIds: [a], createdAt: new Date("2026-10-01") });
+    const archived = await netWorth(userId, {
       accountIds: [b],
       createdAt: new Date("2026-10-02"),
       archivedAt: new Date(),
     });
-    const second = await goal(userId, { accountIds: [b], createdAt: new Date("2026-10-03") });
+    const second = await netWorth(userId, { accountIds: [b], createdAt: new Date("2026-10-03") });
 
-    const active = await goalProgress(userId, { today });
+    const active = await netWorthProgress(userId, { today });
     expect(active.map((g) => g.id)).toEqual([first, second]);
-    const all = await goalProgress(userId, { today, includeArchived: true });
+    const all = await netWorthProgress(userId, { today, includeArchived: true });
     expect(all.map((g) => g.id)).toEqual([first, archived, second]);
     expect(all[1].archivedAt).not.toBeNull();
   });
 
-  it("never reads another user's goals or accounts", async () => {
+  it("never reads another user's net worths or accounts", async () => {
     const { userId: userA, emas, dpRumah } = await baseScenario();
     const userB = await newUser();
-    const smuggled = await goal(userB, { accountIds: [emas] });
+    const smuggled = await netWorth(userB, { accountIds: [emas] });
 
-    const forB = await goalProgress(userB, { today, includeArchived: true });
+    const forB = await netWorthProgress(userB, { today, includeArchived: true });
     expect(forB.map((g) => g.id)).toEqual([smuggled]);
     expect(forB[0]).toMatchObject({ current: 0, marketGain: 0, staleAccountIds: [] });
-    expect((await goalProgress(userA, { today })).map((g) => g.id)).toEqual([dpRumah]);
+    expect((await netWorthProgress(userA, { today })).map((g) => g.id)).toEqual([dpRumah]);
   });
 });
 
-describe("assetValuations goalId", () => {
-  it("names the active goal that counts each asset account", async () => {
+describe("assetValuations netWorthId", () => {
+  it("names the active net worth that counts each asset account", async () => {
     const { userId, emas, reksadana, dpRumah } = await baseScenario();
     const other = await account(userId, "Lepas");
-    await goal(userId, { accountIds: [other], archivedAt: new Date() });
+    await netWorth(userId, { accountIds: [other], archivedAt: new Date() });
 
-    const byId = new Map((await assetValuations(userId)).map((v) => [v.accountId, v.goalId]));
+    const byId = new Map((await assetValuations(userId)).map((v) => [v.accountId, v.netWorthId]));
     expect(byId.get(emas)).toBe(dpRumah);
     expect(byId.get(reksadana)).toBe(dpRumah);
     expect(byId.get(other)).toBeNull();

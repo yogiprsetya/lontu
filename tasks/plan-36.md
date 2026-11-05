@@ -1,28 +1,28 @@
 # Plan phase 36: Revaluasi
 
-Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-36.md](todo-36.md) · Spec: [SPEC-goals.md](../SPEC-goals.md) § Perubahan skema, Aturan tulis, Kontrak untuk modul lain
+Index: [plan.md](plan.md) § Modul `net-worth` · Todo: [todo-36.md](todo-36.md) · Spec: [SPEC-net-worth.md](../SPEC-net-worth.md) § Perubahan skema, Aturan tulis, Kontrak untuk modul lain
 
 ## Tujuan
 
-Pemilik bisa membuka `/goals`, melihat nilai setiap akun aset beserta porsi disetor dan pasar, lalu memperbarui nilai reksadana dan emas lewat satu sheet. Revaluasi tampil jujur di `/transactions` dan tidak pernah masuk totals, dashboard, atau budget. Phase ini berguna sendiri walau target belum ada.
+Pemilik bisa membuka `/net-worth`, melihat nilai setiap akun aset beserta porsi disetor dan pasar, lalu memperbarui nilai reksadana dan emas lewat satu sheet. Revaluasi tampil jujur di `/transactions` dan tidak pernah masuk totals, dashboard, atau budget. Phase ini berguna sendiri walau target belum ada.
 
 ## Task
 
 - [x] T124: Tipe `revaluation` di DB dan API transaksi (M, risiko tinggi: migrasi constraint di DB bersama)
 - [x] T125: `GET`/`POST /api/valuations` + subtype `gold` (M, risiko tinggi: saldo per tanggal)
 - [x] T126: Revaluasi di UI transaksi (S)
-- [x] T127: Halaman `/goals` dengan nilai aset dan sheet Perbarui nilai (M)
+- [x] T127: Halaman `/net-worth` dengan nilai aset dan sheet Perbarui nilai (M)
 
 Urutan: T124 dulu. T125 dan T126 bebas urutan (keduanya butuh T124). T127 butuh T125.
 
 ## Keputusan
 
-- **Migrasi `revaluation` di T124 hanya berisi bagian transaksi:** drop + create `transactions_type_check`, `transactions_amount_check`, `transactions_category_check`, `create or replace view account_balances`, index `transactions_user_account_type_idx`. Tabel `goals` di migrasi T129 (`goals_table`).
+- **Migrasi `revaluation` di T124 hanya berisi bagian transaksi:** drop + create `transactions_type_check`, `transactions_amount_check`, `transactions_category_check`, `create or replace view account_balances`, index `transactions_user_account_type_idx`. Tabel `net_worth` di migrasi T129 (`goals_table`).
 - **`SYSTEM_TRANSACTION_TYPES`** di `lib/transaction-types.ts` (`adjustment`, `revaluation`) + `isSystemTransactionType()`. `LIST_TRANSACTION_TYPES = [...TRANSACTION_TYPES, ...SYSTEM_TRANSACTION_TYPES]`. Cabang "tidak bisa diedit", "nominal bertanda", "tanpa kategori" memakai helper. `effectiveInitialBalance` di `lib/server/accounts.ts` tetap khusus `adjustment`.
-- **Saldo per tanggal** (SPEC-goals keputusan #7) satu fungsi SQL di `lib/server/valuations.ts`, dipakai `recordValuations` saja. Tidak diekspor ke modul lain.
-- **`GET /api/valuations` di T125 belum punya `goalId`** dari tabel target; field selalu `null` sampai T129 menambahkannya. Tipe sudah final di T125.
+- **Saldo per tanggal** (SPEC-net-worth keputusan #7) satu fungsi SQL di `lib/server/valuations.ts`, dipakai `recordValuations` saja. Tidak diekspor ke modul lain.
+- **`GET /api/valuations` di T125 belum punya `netWorthId`** dari tabel target; field selalu `null` sampai T129 menambahkannya. Tipe sudah final di T125.
 - **Resource cache `valuations`** ditambahkan di T127 (bersama hook pertama yang memakainya), dengan edge dari `transactions` dan `accounts`.
-- **Nav "Goals"** (`TargetIcon`) di `sidebarItems` dan `moreItems` di T127.
+- **Nav "Net Worth"** (`TargetIcon`) di `sidebarItems` dan `moreItems` di T127.
 
 ## Risiko
 
@@ -36,6 +36,6 @@ Urutan: T124 dulu. T125 dan T126 bebas urutan (keduanya butuh T124). T127 butuh 
 
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; jumlah tes sebelum/sesudah dicatat (1324 di T124 → 1373 di T127)
 - [ ] Migrasi T124 diterapkan; `/transactions` dan dashboard produksi (kode lama) tetap normal (migrasi diterapkan 2026-11-01; cek produksi tertunda untuk Yogi)
-- [x] Skenario dasar SPEC-goals (check-in 2026-10-31) hijau di `tests/api/valuations.spec.ts`
-- [ ] Manual (boleh tertunda: sesi tanpa browser): check-in dari `/goals` → saldo di Settings dan dashboard berubah, revaluasi tampil di `/transactions`
+- [x] Skenario dasar SPEC-net-worth (check-in 2026-10-31) hijau di `tests/api/valuations.spec.ts`
+- [ ] Manual (boleh tertunda: sesi tanpa browser): check-in dari `/net-worth` → saldo di Settings dan dashboard berubah, revaluasi tampil di `/transactions`
 - [ ] Review dengan Yogi sebelum phase 37

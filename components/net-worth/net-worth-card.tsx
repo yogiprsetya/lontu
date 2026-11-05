@@ -2,14 +2,14 @@
 
 import { BudgetProgress } from "@/components/budgets/budget-progress";
 import { useAmountFormat } from "@/hooks/use-amount-format";
-import { goalPercent, goalProjectionText } from "@/lib/goal-format";
+import { netWorthPercent, netWorthProjectionText } from "@/lib/net-worth-format";
 import type { Account } from "@/lib/schemas/account";
-import type { GoalProgress } from "@/lib/schemas/goal";
+import type { NetWorthProgress } from "@/lib/schemas/net-worth";
 import { cn } from "@/lib/utils";
 import { formatMarketGain, valuedLabel } from "@/lib/valuation-format";
 
-type GoalCardProps = {
-  goal: GoalProgress;
+type NetWorthCardProps = {
+  netWorth: NetWorthProgress;
   accounts: Map<string, Account>;
   /** Last value date per asset account, for the stale lines. */
   lastValuedAt: Map<string, string | null>;
@@ -20,25 +20,31 @@ type GoalCardProps = {
   children?: React.ReactNode;
 };
 
-export function GoalCard({
-  goal,
+export function NetWorthCard({
+  netWorth,
   accounts,
   lastValuedAt,
   today,
   onValue,
   children,
-}: GoalCardProps) {
+}: NetWorthCardProps) {
   const money = useAmountFormat();
-  const percent = goalPercent(goal.current, goal.targetAmount);
-  const [first, ...rest] = goalProjectionText(goal, money);
-  const { reached, overdue, onTrack } = goal.projection;
+  const percent = netWorthPercent(netWorth.current, netWorth.targetAmount);
+  const [first, ...rest] = netWorthProjectionText(netWorth, money);
+  const { reached, overdue, onTrack } = netWorth.projection;
   const late = !reached && (overdue || onTrack === false);
 
   return (
-    <article aria-labelledby={`goal-${goal.id}`} className="flex flex-col gap-3 surface px-5 py-5">
+    <article
+      aria-labelledby={`net-worth-${netWorth.id}`}
+      className="flex flex-col gap-3 surface px-5 py-5"
+    >
       <div className="flex items-start justify-between gap-3">
-        <h3 id={`goal-${goal.id}`} className="min-w-0 font-heading text-lg font-bold break-words">
-          {goal.name}
+        <h3
+          id={`net-worth-${netWorth.id}`}
+          className="min-w-0 font-heading text-lg font-bold break-words"
+        >
+          {netWorth.name}
         </h3>
         {children && <div className="-mt-2 -mr-2 flex shrink-0 gap-1">{children}</div>}
       </div>
@@ -46,18 +52,21 @@ export function GoalCard({
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
           <p className="min-w-0">
-            <span className="font-heading text-xl font-extrabold">{money(goal.current)}</span>{" "}
-            <span className="text-sm text-muted-foreground">dari {money(goal.targetAmount)}</span>
+            <span className="font-heading text-xl font-extrabold">{money(netWorth.current)}</span>{" "}
+            <span className="text-sm text-muted-foreground">
+              dari {money(netWorth.targetAmount)}
+            </span>
           </p>
           <p className="shrink-0 font-bold">{percent}%</p>
         </div>
         <BudgetProgress
           percent={percent}
           status="ok"
-          label={`${percent}% dari target ${goal.name}`}
+          label={`${percent}% dari target ${netWorth.name}`}
         />
         <p className="text-sm text-muted-foreground">
-          Disetor {money(goal.contributed)} · Pasar {money(goal.marketGain, formatMarketGain)}
+          Disetor {money(netWorth.contributed)} · Pasar{" "}
+          {money(netWorth.marketGain, formatMarketGain)}
         </p>
       </div>
 
@@ -70,9 +79,9 @@ export function GoalCard({
         ))}
       </div>
 
-      {goal.staleAccountIds.length > 0 && (
+      {netWorth.staleAccountIds.length > 0 && (
         <ul className="flex flex-col gap-1">
-          {goal.staleAccountIds.map((id) => {
+          {netWorth.staleAccountIds.map((id) => {
             const text = `Nilai ${accounts.get(id)?.name ?? "akun"} ${valuedLabel(lastValuedAt.get(id) ?? null, today)}`;
             return (
               <li key={id} className="flex min-h-11 items-center justify-between gap-3 text-sm">

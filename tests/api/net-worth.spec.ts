@@ -2,16 +2,16 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { accounts, goals } from "@/db/schema";
+import { accounts, netWorths } from "@/db/schema";
 import { todayInJakarta } from "@/lib/date";
 import { shiftPeriod } from "@/lib/period";
-import type { GoalProgress } from "@/lib/schemas/goal";
+import type { NetWorthProgress } from "@/lib/schemas/net-worth";
 import { createTestUsers } from "../setup/db";
 
 vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 const { auth } = await import("@/lib/auth");
-const route = await import("@/app/api/goals/route");
+const route = await import("@/app/api/net-worth/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
 const noParams = { params: Promise.resolve({}) };
@@ -22,7 +22,7 @@ function signInAs(userId: string | null) {
 
 function post(body: unknown) {
   return route.POST(
-    new Request("http://localhost/api/goals", {
+    new Request("http://localhost/api/net-worth", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: typeof body === "string" ? body : JSON.stringify(body),
@@ -32,10 +32,10 @@ function post(body: unknown) {
 }
 
 async function list(includeArchived = false) {
-  const url = `http://localhost/api/goals${includeArchived ? "?includeArchived=true" : ""}`;
+  const url = `http://localhost/api/net-worth${includeArchived ? "?includeArchived=true" : ""}`;
   const res = await route.GET(new Request(url), noParams);
   expect(res.status).toBe(200);
-  return (await res.json()) as GoalProgress[];
+  return (await res.json()) as NetWorthProgress[];
 }
 
 async function expectError(res: Response, status: number, code: string, field?: string) {
@@ -77,8 +77,8 @@ beforeAll(async () => {
 
 afterAll(() => cleanup());
 
-describe("POST /api/goals", () => {
-  it("creates a goal and returns its progress", async () => {
+describe("POST /api/net-worth", () => {
+  it("creates a net worth and returns its progress", async () => {
     signInAs(userA);
     const emas = await account(userA, "Emas", { initialBalance: 10_000_000 });
     const tabungan = await account(userA, "Tabungan", {
@@ -108,7 +108,7 @@ describe("POST /api/goals", () => {
     });
   });
 
-  it("returns 409 GOAL_NAME_TAKEN for an active goal's name in another case", async () => {
+  it("returns 409 NET_WORTH_NAME_TAKEN for an active net worth's name in another case", async () => {
     signInAs(userA);
     const first = await account(userA, "Satu");
     const second = await account(userA, "Dua");
@@ -117,16 +117,16 @@ describe("POST /api/goals", () => {
     await expectError(
       await post(body([second.id], { name: name.toUpperCase() })),
       409,
-      "GOAL_NAME_TAKEN",
+      "NET_WORTH_NAME_TAKEN",
     );
   });
 
-  it("lets an archived goal's name be used again", async () => {
+  it("lets an archived net worth's name be used again", async () => {
     signInAs(userA);
     const old = await account(userA, "Lama");
     const fresh = await account(userA, "Baru");
     const name = `Mobil ${randomUUID()}`;
-    await db.insert(goals).values({
+    await db.insert(netWorths).values({
       userId: userA,
       name,
       targetAmount: 1,
@@ -148,7 +148,7 @@ describe("POST /api/goals", () => {
     );
   });
 
-  it("names the account another active goal already uses", async () => {
+  it("names the account another active net worth already uses", async () => {
     signInAs(userA);
     const shared = await account(userA, "Bersama");
     const other = await account(userA, "Lain");
@@ -163,10 +163,10 @@ describe("POST /api/goals", () => {
     expect(message).toBe(`${shared.name} sudah dipakai ${name}`);
   });
 
-  it("allows an account whose goal was archived", async () => {
+  it("allows an account whose net worth was archived", async () => {
     signInAs(userA);
     const a = await account(userA, "Bekas");
-    await db.insert(goals).values({
+    await db.insert(netWorths).values({
       userId: userA,
       name: "Arsip",
       targetAmount: 1,
@@ -213,7 +213,7 @@ describe("POST /api/goals", () => {
     expect(a).toBe(b);
   });
 
-  it("lets exactly one of two parallel goals claim the same account", async () => {
+  it("lets exactly one of two parallel net worths claim the same account", async () => {
     signInAs(userA);
     const a = await account(userA, "Rebutan");
     const results = await Promise.all([post(body([a.id])), post(body([a.id]))]);
@@ -230,14 +230,14 @@ describe("POST /api/goals", () => {
   });
 });
 
-describe("GET /api/goals", () => {
-  it("lists only the user's goals, active ones by created_at, archived ones on request", async () => {
+describe("GET /api/net-worth", () => {
+  it("lists only the user's net worths, active ones by created_at, archived ones on request", async () => {
     signInAs(userB);
     const one = await account(userB, "Satu");
     const two = await account(userB, "Dua");
-    const first = (await (await post(body([one.id]))).json()) as GoalProgress;
-    const second = (await (await post(body([two.id]))).json()) as GoalProgress;
-    await db.update(goals).set({ archivedAt: new Date() }).where(eq(goals.id, first.id));
+    const first = (await (await post(body([one.id]))).json()) as NetWorthProgress;
+    const second = (await (await post(body([two.id]))).json()) as NetWorthProgress;
+    await db.update(netWorths).set({ archivedAt: new Date() }).where(eq(netWorths.id, first.id));
 
     expect((await list()).map((g) => g.id)).toEqual([second.id]);
     expect((await list(true)).map((g) => g.id)).toEqual([first.id, second.id]);
@@ -252,7 +252,7 @@ describe("GET /api/goals", () => {
 describe("without a session", () => {
   it("returns 401 for GET and POST", async () => {
     signInAs(null);
-    const res = await route.GET(new Request("http://localhost/api/goals"), noParams);
+    const res = await route.GET(new Request("http://localhost/api/net-worth"), noParams);
     await expectError(res, 401, "UNAUTHORIZED");
     await expectError(await post(body([randomUUID()])), 401, "UNAUTHORIZED");
   });

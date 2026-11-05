@@ -2,7 +2,7 @@ import { z } from "zod";
 import { todayInJakarta } from "@/lib/date";
 import { isPeriod, periodMode } from "@/lib/period";
 
-export type Goal = {
+export type NetWorth = {
   id: string;
   name: string;
   /** Integer rupiah, 1..1e12. */
@@ -15,11 +15,11 @@ export type Goal = {
   createdAt: string;
 };
 
-export type GoalProjection = {
+export type NetWorthProjection = {
   /** max(targetAmount − current, 0). */
   remaining: number;
   reached: boolean;
-  /** Net monthly flow into the goal's accounts over the counted months, rounded down. */
+  /** Net monthly flow into the net worth's accounts over the counted months, rounded down. */
   monthlyContribution: number | null;
   /** YYYY-MM; null when reached, without a rate, or with a rate ≤ 0. */
   etaMonth: string | null;
@@ -32,8 +32,8 @@ export type GoalProjection = {
   onTrack: boolean | null;
 };
 
-export type GoalProgress = Goal & {
-  /** Sum of the balances of the goal's active accounts. */
+export type NetWorthProgress = NetWorth & {
+  /** Sum of the balances of the net worth's active accounts. */
   current: number;
   /** Sum of the live revaluations of those accounts. */
   marketGain: number;
@@ -41,7 +41,7 @@ export type GoalProgress = Goal & {
   contributed: number;
   /** Asset accounts never valued or last valued more than 35 days ago. */
   staleAccountIds: string[];
-  projection: GoalProjection;
+  projection: NetWorthProjection;
 };
 
 const name = z
@@ -56,7 +56,7 @@ const targetAmount = z
   .max(1e12, "Maksimal 1 triliun");
 
 // YYYY-MM strings compare correctly as text. The current month is read at parse time,
-// so a long-lived schema never goes stale across a month boundary. `kept` is a goal's own
+// so a long-lived schema never goes stale across a month boundary. `kept` is a net worth's own
 // stored month, which an edit may leave in place after it has passed.
 const targetMonthSchema = (kept: string | null = null) =>
   z
@@ -79,22 +79,22 @@ const accountIds = z
   .max(20, "Maksimal 20 akun")
   .refine((ids) => new Set(ids).size === ids.length, "Akun tidak boleh ganda");
 
-export const goalCreateSchema = z.strictObject({
+export const netWorthCreateSchema = z.strictObject({
   name,
   targetAmount,
   targetMonth: targetMonth.default(null),
   accountIds,
 });
 
-export type GoalCreateInput = z.infer<typeof goalCreateSchema>;
+export type NetWorthCreateInput = z.infer<typeof netWorthCreateSchema>;
 
 /** The edit form's schema; the PATCH body only carries the fields that changed. */
-export const goalEditSchema = (storedMonth: string | null) =>
-  goalCreateSchema.extend({ targetMonth: targetMonthSchema(storedMonth).default(null) });
+export const netWorthEditSchema = (storedMonth: string | null) =>
+  netWorthCreateSchema.extend({ targetMonth: targetMonthSchema(storedMonth).default(null) });
 
-export const goalUpdateSchema = z
+export const netWorthUpdateSchema = z
   .strictObject({ name, targetAmount, targetMonth, accountIds })
   .partial()
   .refine((input) => Object.keys(input).length > 0, "Tidak ada perubahan");
 
-export type GoalUpdateInput = z.infer<typeof goalUpdateSchema>;
+export type NetWorthUpdateInput = z.infer<typeof netWorthUpdateSchema>;

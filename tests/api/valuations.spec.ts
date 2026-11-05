@@ -150,7 +150,7 @@ describe("POST /api/valuations, base scenario", () => {
       marketGain: 500_000,
       contributed: 36_000_000,
       lastValuedAt: today,
-      goalId: null,
+      netWorthId: null,
     });
   });
 
@@ -369,7 +369,7 @@ describe("GET /api/valuations", () => {
     for (const v of valuations) {
       expect(v.contributed + v.marketGain).toBe(v.balance);
       expect(v.balance).toBe(assets.find((a) => a.id === v.accountId)?.balance);
-      expect(v.goalId).toBeNull();
+      expect(v.netWorthId).toBeNull();
     }
   });
 

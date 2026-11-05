@@ -3,10 +3,10 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { EllipsisVerticalIcon, PencilIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { AssetHistory } from "@/components/goals/asset-history";
-import { AssetValues, NoAssets } from "@/components/goals/asset-values";
-import { GoalCard } from "@/components/goals/goal-card";
-import { ValuationSheet } from "@/components/goals/valuation-sheet";
+import { AssetHistory } from "@/components/net-worth/asset-history";
+import { AssetValues, NoAssets } from "@/components/net-worth/asset-values";
+import { NetWorthCard } from "@/components/net-worth/net-worth-card";
+import { ValuationSheet } from "@/components/net-worth/valuation-sheet";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
@@ -19,20 +19,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
-import { archiveGoal, restoreGoal, useGoals } from "@/hooks/use-goals";
+import { archiveNetWorth, restoreNetWorth, useNetWorths } from "@/hooks/use-net-worth";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useValuations } from "@/hooks/use-valuations";
 import { todayInJakarta } from "@/lib/date";
 import { ApiError } from "@/lib/fetcher";
 import { failureMessage } from "@/lib/offline/network-error";
 import type { Account } from "@/lib/schemas/account";
-import type { GoalProgress } from "@/lib/schemas/goal";
+import type { NetWorthProgress } from "@/lib/schemas/net-worth";
 import type { AssetValuation } from "@/lib/schemas/valuation";
 import { undoToast } from "@/lib/undo-toast";
 
 // Loaded on the first Tambah target or Ubah, not with the page.
-const GoalForm = lazy(() =>
-  import("@/components/forms/goal-form").then((m) => ({ default: m.GoalForm })),
+const NetWorthForm = lazy(() =>
+  import("@/components/forms/net-worth-form").then((m) => ({ default: m.NetWorthForm })),
 );
 
 function ViewSkeleton() {
@@ -45,11 +45,11 @@ function ViewSkeleton() {
   );
 }
 
-/** A 409 names the goal or account that is now taken, so its message is shown as is. */
-async function restoreWithMessage(goal: GoalProgress) {
+/** A 409 names the net worth or account that is now taken, so its message is shown as is. */
+async function restoreWithMessage(netWorth: NetWorthProgress) {
   try {
-    await restoreGoal(goal.id);
-    toast.success(`${goal.name} dipulihkan`);
+    await restoreNetWorth(netWorth.id);
+    toast.success(`${netWorth.name} dipulihkan`);
   } catch (err) {
     toast.error(
       err instanceof ApiError && err.status === 409
@@ -59,7 +59,13 @@ async function restoreWithMessage(goal: GoalProgress) {
   }
 }
 
-function RestoreGoalButton({ goal, online }: { goal: GoalProgress; online: boolean }) {
+function RestoreNetWorthButton({
+  netWorth,
+  online,
+}: {
+  netWorth: NetWorthProgress;
+  online: boolean;
+}) {
   const [pending, setPending] = useState(false);
   return (
     <Button
@@ -68,7 +74,7 @@ function RestoreGoalButton({ goal, online }: { goal: GoalProgress; online: boole
       disabled={!online || pending}
       onClick={async () => {
         setPending(true);
-        await restoreWithMessage(goal);
+        await restoreWithMessage(netWorth);
         setPending(false);
       }}
     >
@@ -77,13 +83,13 @@ function RestoreGoalButton({ goal, online }: { goal: GoalProgress; online: boole
   );
 }
 
-function GoalMenu({
-  goal,
+function NetWorthMenu({
+  netWorth,
   online,
   onEdit,
   onArchive,
 }: {
-  goal: GoalProgress;
+  netWorth: NetWorthProgress;
   online: boolean;
   onEdit: () => void;
   onArchive: () => void;
@@ -94,7 +100,7 @@ function GoalMenu({
         variant="ghost"
         size="icon"
         className="size-11 rounded-xl"
-        aria-label={`Ubah ${goal.name}`}
+        aria-label={`Ubah ${netWorth.name}`}
         onClick={onEdit}
       >
         <PencilIcon className="size-5" aria-hidden />
@@ -106,7 +112,7 @@ function GoalMenu({
               variant="ghost"
               size="icon"
               className="size-11 rounded-xl"
-              aria-label={`Aksi untuk ${goal.name}`}
+              aria-label={`Aksi untuk ${netWorth.name}`}
             />
           }
         >
@@ -126,7 +132,7 @@ function GoalMenu({
   );
 }
 
-function NoGoals({ showArchived, onCreate }: { showArchived: boolean; onCreate: () => void }) {
+function NoNetWorths({ showArchived, onCreate }: { showArchived: boolean; onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
       <p className="text-muted-foreground">
@@ -143,19 +149,19 @@ function NoGoals({ showArchived, onCreate }: { showArchived: boolean; onCreate: 
   );
 }
 
-type GoalListProps = {
-  goals: GoalProgress[];
+type NetWorthListProps = {
+  netWorths: NetWorthProgress[];
   accounts: Map<string, Account>;
   assets: AssetValuation[];
   today: string;
   online: boolean;
   onValue?: (accountId: string) => void;
   onEdit: (id: string) => void;
-  onArchive: (goal: GoalProgress) => void;
+  onArchive: (netWorth: NetWorthProgress) => void;
 };
 
-function GoalList({
-  goals,
+function NetWorthList({
+  netWorths,
   accounts,
   assets,
   today,
@@ -163,50 +169,50 @@ function GoalList({
   onValue,
   onEdit,
   onArchive,
-}: GoalListProps) {
+}: NetWorthListProps) {
   const lastValuedAt = new Map(assets.map((a) => [a.accountId, a.lastValuedAt]));
   return (
-    <section aria-labelledby="goal-list" className="flex flex-col gap-3">
+    <section aria-labelledby="net-worth-list" className="flex flex-col gap-3">
       <h2
-        id="goal-list"
+        id="net-worth-list"
         className="px-1 text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase"
       >
         Target
       </h2>
-      {goals.map((goal) => (
-        <GoalCard
-          key={goal.id}
-          goal={goal}
+      {netWorths.map((netWorth) => (
+        <NetWorthCard
+          key={netWorth.id}
+          netWorth={netWorth}
           accounts={accounts}
           lastValuedAt={lastValuedAt}
           today={today}
-          onValue={goal.archivedAt ? undefined : onValue}
+          onValue={netWorth.archivedAt ? undefined : onValue}
         >
-          {goal.archivedAt ? (
-            <RestoreGoalButton goal={goal} online={online} />
+          {netWorth.archivedAt ? (
+            <RestoreNetWorthButton netWorth={netWorth} online={online} />
           ) : (
-            <GoalMenu
-              goal={goal}
+            <NetWorthMenu
+              netWorth={netWorth}
               online={online}
-              onEdit={() => onEdit(goal.id)}
-              onArchive={() => onArchive(goal)}
+              onEdit={() => onEdit(netWorth.id)}
+              onArchive={() => onArchive(netWorth)}
             />
           )}
-        </GoalCard>
+        </NetWorthCard>
       ))}
     </section>
   );
 }
 
-export function GoalsView() {
+export function NetWorthView() {
   const [valuingId, setValuingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
-  // Archived goals vanish at once; the id leaves this set when the request settles.
+  // Archived net worths vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
-  const goals = useGoals({ includeArchived: showArchived });
+  const netWorths = useNetWorths({ includeArchived: showArchived });
   const valuations = useValuations();
   const accounts = useAccounts({ includeArchived: true });
   const accountsById = useMemo(
@@ -216,60 +222,60 @@ export function GoalsView() {
   const today = todayInJakarta();
   const assets = valuations.data;
   const valuing = assets?.find((a) => a.accountId === valuingId);
-  const visibleGoals = goals.data?.filter((g) => !archiving.has(g.id));
-  const editing = visibleGoals?.find((g) => g.id === editingId && !g.archivedAt);
+  const visibleNetWorths = netWorths.data?.filter((g) => !archiving.has(g.id));
+  const editing = visibleNetWorths?.find((g) => g.id === editingId && !g.archivedAt);
   const formOpen = creating || !!editing;
   const closeForm = () => {
     setCreating(false);
     setEditingId(null);
   };
 
-  async function archive(goal: GoalProgress) {
-    setArchiving((prev) => new Set(prev).add(goal.id));
+  async function archive(netWorth: NetWorthProgress) {
+    setArchiving((prev) => new Set(prev).add(netWorth.id));
     try {
-      await archiveGoal(goal.id);
-      undoToast({ message: "Target diarsipkan", restore: () => restoreWithMessage(goal) });
+      await archiveNetWorth(netWorth.id);
+      undoToast({ message: "Target diarsipkan", restore: () => restoreWithMessage(netWorth) });
     } catch (err) {
       toast.error(failureMessage(err, "Gagal mengarsipkan target. Coba lagi."));
     } finally {
       setArchiving((prev) => {
         const next = new Set(prev);
-        next.delete(goal.id);
+        next.delete(netWorth.id);
         return next;
       });
     }
   }
 
-  const error = goals.error ?? valuations.error ?? accounts.error;
+  const error = netWorths.error ?? valuations.error ?? accounts.error;
   let content;
   if (error) {
     content = (
       <LoadError
         message="Gagal memuat target dan nilai aset."
         onRetry={() => {
-          void goals.mutate();
+          void netWorths.mutate();
           void valuations.mutate();
           void accounts.mutate();
         }}
       />
     );
-  } else if (!visibleGoals || !assets || !accounts.data) {
+  } else if (!visibleNetWorths || !assets || !accounts.data) {
     content = <ViewSkeleton />;
   } else {
     content = (
       <>
-        {visibleGoals.length === 0 ? (
-          <NoGoals showArchived={showArchived} onCreate={() => setCreating(true)} />
+        {visibleNetWorths.length === 0 ? (
+          <NoNetWorths showArchived={showArchived} onCreate={() => setCreating(true)} />
         ) : (
-          <GoalList
-            goals={visibleGoals}
+          <NetWorthList
+            netWorths={visibleNetWorths}
             accounts={accountsById}
             assets={assets}
             today={today}
             online={online}
             onValue={online ? setValuingId : undefined}
             onEdit={setEditingId}
-            onArchive={(goal) => void archive(goal)}
+            onArchive={(netWorth) => void archive(netWorth)}
           />
         )}
         {assets.length === 0 ? (
@@ -300,7 +306,7 @@ export function GoalsView() {
           </Button>
         </div>
         <ShowArchivedSwitch
-          id="show-archived-goals"
+          id="show-archived-net-worth"
           checked={showArchived}
           onCheckedChange={setShowArchived}
         />
@@ -333,7 +339,7 @@ export function GoalsView() {
               </Button>
               <Button
                 type="submit"
-                form="goal-form"
+                form="net-worth-form"
                 className="h-11 flex-1 text-base"
                 disabled={!online}
               >
@@ -345,7 +351,7 @@ export function GoalsView() {
       >
         {formOpen && (
           <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
-            <GoalForm key={editing?.id ?? "create"} goal={editing} onDone={closeForm} />
+            <NetWorthForm key={editing?.id ?? "create"} netWorth={editing} onDone={closeForm} />
           </Suspense>
         )}
       </ResponsiveModal>

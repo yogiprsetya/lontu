@@ -1,6 +1,6 @@
 # Plan phase 39: Check-in hari ini dan deskripsi
 
-Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-39.md](todo-39.md) · Spec: [SPEC-goals.md](../SPEC-goals.md) keputusan #6, #7, #23, § Validasi, Aturan tulis, UI
+Index: [plan.md](plan.md) § Modul `net-worth` · Todo: [todo-39.md](todo-39.md) · Spec: [SPEC-net-worth.md](../SPEC-net-worth.md) keputusan #6, #7, #23, § Validasi, Aturan tulis, UI
 
 ## Tujuan
 
@@ -15,12 +15,12 @@ Index: [plan.md](plan.md) § Modul `goals` · Todo: [todo-39.md](todo-39.md) · 
 
 Urutan: T135 → T136 → T138. T137 tidak bergantung pada T135/T136 dan boleh dikerjakan kapan saja sebelum T138.
 
-Sebelum T135: satu commit `docs(goals)` berisi revisi SPEC-goals.md, plan-39.md, todo-39.md, dan baris indeks plan.md.
+Sebelum T135: satu commit `docs(net-worth)` berisi revisi SPEC-net-worth.md, plan-39.md, todo-39.md, dan baris indeks plan.md.
 
 ## Dependency graph
 
 ```
-docs(goals) spec + plan
+docs(net-worth) spec + plan
    │
    ├─► T135 schema tanpa date ─► server: today + saldo dari view ─► sheet tanpa picker
    │      │
@@ -65,8 +65,8 @@ docs(goals) spec + plan
 
 ## Checkpoint AL
 
-- [x] Butir SPEC-goals § Acceptance criteria yang dibuka lagi (revisi 2026-11-02) hijau (API) atau ditandai tertunda (UI)
+- [x] Butir SPEC-net-worth § Acceptance criteria yang dibuka lagi (revisi 2026-11-02) hijau (API) atau ditandai tertunda (UI)
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau; tidak ada tes di luar `valuations.spec.ts`, `valuation-schema.spec.ts`, `valuation-format.spec.ts` yang diubah (kecuali `cache-invalidation.spec.ts`, lihat Temuan verifikasi T138 di plan.md)
 - [x] `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong
-- [x] SPEC-goals.md Status dan plan.md baris `goals` diperbarui
+- [x] SPEC-net-worth.md Status dan plan.md baris `net-worth` diperbarui
 - [x] Review dengan Yogi (2026-11-03)

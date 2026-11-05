@@ -4,6 +4,7 @@ import {
   moreItems,
   netWorthItem,
   recurringItem,
+  settingsItem,
   sidebarItems,
 } from "@/components/layout/nav-items";
 
@@ -30,6 +31,14 @@ describe("recurring nav item", () => {
     expect(sidebarItems).toContain(recurringItem);
     expect(moreItems).toContain(recurringItem);
     expect(recurringItem).toMatchObject({ href: "/recurring", label: "Recurring" });
+  });
+});
+
+describe("settings nav item", () => {
+  it("sits outside the main nav lists, reached from the sidebar footer and dashboard header", () => {
+    expect(sidebarItems).not.toContain(settingsItem);
+    expect(moreItems).not.toContain(settingsItem);
+    expect(settingsItem).toMatchObject({ href: "/settings", label: "Settings" });
   });
 });
 

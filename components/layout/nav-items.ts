@@ -29,6 +29,7 @@ export const netWorthItem: NavItem = {
   label: "Net Worth",
   icon: TrendingUpIcon,
 };
+/** Account-level, so it lives in the sidebar footer and the dashboard header, not the nav lists. */
 export const settingsItem: NavItem = { href: "/settings", label: "Settings", icon: SettingsIcon };
 
 export const sidebarItems = [
@@ -38,11 +39,10 @@ export const sidebarItems = [
   budgetItem,
   recurringItem,
   netWorthItem,
-  settingsItem,
 ];
 
 /** Sections without a bottom-nav slot of their own. */
-export const moreItems = [expensesItem, recurringItem, netWorthItem, settingsItem];
+export const moreItems = [expensesItem, recurringItem, netWorthItem];
 
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);

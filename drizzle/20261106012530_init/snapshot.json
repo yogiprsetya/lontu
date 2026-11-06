@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "38e0f35c-714c-4d2c-abd1-63071cb6c1c5",
+  "id": "3696d3e5-b222-42aa-95a0-5c98d10ad58b",
   "prevIds": [
-    "7c9b801f-d41f-407e-bade-aebd60f1d142"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -1330,7 +1330,7 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "budget_versions_user_id_users_id_fkey",
+      "name": "budgets_user_id_users_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "budgets"
@@ -1503,7 +1503,7 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "budget_versions_pkey",
+      "name": "budgets_pkey",
       "schema": "public",
       "table": "budgets",
       "entityType": "pks"
@@ -1736,11 +1736,5 @@
       "schema": "public"
     }
   ],
-  "renames": [
-    "public.goals->public.net_worth",
-    "public.net_worth.goals_amount_check->public.net_worth.net_worth_amount_check",
-    "public.net_worth.goals_target_check->public.net_worth.net_worth_target_check",
-    "public.net_worth.goals_account_ids_check->public.net_worth.net_worth_account_ids_check",
-    "public.net_worth.goals_user_idx->public.net_worth.net_worth_user_idx"
-  ]
+  "renames": []
 }

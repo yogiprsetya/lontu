@@ -117,4 +117,5 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - **Auth.js v5 + Next 16.4:** cek kompatibilitas peer dependency saat install. Jika ada masalah, berhenti dan tanya sebelum mengganti library.
 - **Drizzle 1.0 RC:** API (`drizzle-orm/postgres-js`, relations) berbeda dari 0.x. Ikuti dokumen dari versi yang terpasang.
 - **Pooler Supabase transaction mode** tidak mendukung prepared statement, jadi wajib `prepare: false`. Migrasi dijalankan lewat koneksi langsung (port 5432) jika pooler menolak DDL.
+- **Squash migrasi (2026-11-06):** 12 migrasi lama (foundation s.d. rename goals ke net_worth) digabung jadi satu migrasi awal `drizzle/<timestamp>_init/` hasil `db:generate` dari `db/schema.ts`. Tidak ada data produksi, jadi DB di-reset (tabel `public` dan schema `drizzle` di-drop) lalu dimigrasi ulang. Nama folder migrasi lama di spec dan `tasks/` adalah riwayat.
 - **`cacheComponents: true`:** layout `(app)` membaca session (data dinamis), jadi bagian dinamis harus dibungkus `<Suspense>`. Baca `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`.

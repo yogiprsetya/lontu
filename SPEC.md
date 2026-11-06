@@ -16,7 +16,7 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 
 | Module id | Tanggung jawab | Bergantung pada |
 |---|---|---|
-| `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, theme, manifest | — |
+| `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, manifest | — |
 | `accounts-categories` | CRUD akun & kategori, modal Manage Accounts / Manage Categories, seed kategori default, saldo dari view `account_balances`, halaman Settings | foundation |
 | `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
 | `budgets` | Budget bernama berversi (beberapa kategori, satu jenis Needs/Wants, berlaku sampai diubah), akhiri + urungkan, query `budgetUsage` | accounts-categories, transactions |
@@ -48,7 +48,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 | Bagian | Pilihan | Versi (terpasang / target) |
 |---|---|---|
 | Framework | Next.js App Router, `cacheComponents: true`, `proxy.ts` (pengganti middleware) | 16.4.2 |
-| UI | React 19, Tailwind v4, shadcn (style `base-vega`, `@base-ui/react`), lucide-react, `next-themes` | 19.3.0 / tailwind 4 |
+| UI | React 19, Tailwind v4, shadcn (style `base-vega`, `@base-ui/react`), lucide-react, `next-themes` (hanya untuk `components/ui/sonner.tsx` dari registry; app hanya punya tema terang) | 19.3.0 / tailwind 4 |
 | Auth | `next-auth` v5 (Auth.js), Google provider | ditambahkan di foundation |
 | DB | Supabase Postgres, `drizzle-orm` + `drizzle-kit`, `postgres` | 1.0.0-rc.4 / ^3.4.9 |
 | Validasi & form | `zod` v4, `react-hook-form`, `@hookform/resolvers` | ditambahkan di foundation |

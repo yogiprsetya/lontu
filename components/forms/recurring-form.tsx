@@ -221,7 +221,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
                 id="recurring-day"
                 aria-invalid={!!errors.dayOfMonth}
                 aria-describedby="recurring-day-message"
-                className="flex h-11 w-full items-center justify-between gap-1.5 rounded-md border border-input bg-transparent pr-3 pl-4 text-base font-semibold shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:hover:bg-input/50"
+                className="flex h-11 w-full items-center justify-between gap-1.5 rounded-md border border-input bg-transparent pr-3 pl-4 text-base font-semibold shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
               >
                 {field.value ? (
                   `Tanggal ${field.value}`

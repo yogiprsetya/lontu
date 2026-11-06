@@ -137,7 +137,7 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
                   className={cn(
                     CARD_CLASS,
                     tile,
-                    "transition-[filter,transform] hover:brightness-[0.97] motion-safe:active:scale-[0.98] dark:hover:brightness-110",
+                    "transition-[filter,transform] hover:brightness-[0.97] motion-safe:active:scale-[0.98]",
                   )}
                 >
                   {body}

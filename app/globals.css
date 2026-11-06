@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Light only. Nothing sets `.dark`, so the `dark:` classes in components/ui never apply
+   (without this variant Tailwind would fall back to prefers-color-scheme). */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -125,63 +127,6 @@
   --grid-line: oklch(0.82 0.05 75 / 0.45);
   --dot: oklch(0.27 0.03 60 / 0.09);
   --shadow-color: oklch(0.45 0.05 65 / 0.14);
-}
-
-.dark {
-  --background: oklch(0.215 0.012 70);
-  --foreground: oklch(0.94 0.022 85);
-  --card: oklch(0.265 0.014 70);
-  --card-foreground: oklch(0.94 0.022 85);
-  --popover: oklch(0.265 0.014 70);
-  --popover-foreground: oklch(0.94 0.022 85);
-  --primary: oklch(0.84 0.11 80);
-  --primary-foreground: oklch(0.25 0.03 60);
-  --secondary: oklch(0.31 0.016 70);
-  --secondary-foreground: oklch(0.94 0.022 85);
-  --muted: oklch(0.31 0.016 70);
-  --muted-foreground: oklch(0.75 0.03 80);
-  --accent: oklch(0.31 0.016 70);
-  --accent-foreground: oklch(0.94 0.022 85);
-  --destructive: oklch(0.76 0.14 35);
-  --border: oklch(0.94 0.022 85 / 10%);
-  --input: oklch(0.94 0.022 85 / 16%);
-  --ring: oklch(0.84 0.11 80 / 70%);
-  --chart-1: oklch(0.78 0.13 60);
-  --chart-2: oklch(0.74 0.12 292);
-  --chart-3: oklch(0.76 0.12 150);
-  --chart-4: oklch(0.74 0.1 235);
-  --chart-5: oklch(0.72 0.14 10);
-  --sidebar: oklch(0.245 0.013 70);
-  --sidebar-foreground: oklch(0.94 0.022 85);
-  --sidebar-primary: oklch(0.84 0.11 80);
-  --sidebar-primary-foreground: oklch(0.25 0.03 60);
-  --sidebar-accent: oklch(0.31 0.016 70);
-  --sidebar-accent-foreground: oklch(0.94 0.022 85);
-  --sidebar-border: oklch(0.94 0.022 85 / 10%);
-  --sidebar-ring: oklch(0.84 0.11 80 / 70%);
-  --income: oklch(0.8 0.13 150);
-  --expense: oklch(0.76 0.14 35);
-  --budget: oklch(0.83 0.12 80);
-  --transfer: oklch(0.8 0.11 292);
-  --sunny: oklch(0.84 0.13 80);
-  --sunny-foreground: oklch(0.25 0.03 60);
-  --sunny-muted-foreground: oklch(0.43 0.07 60);
-  --sunny-alert: oklch(0.47 0.17 30);
-  --mint: oklch(0.35 0.06 150);
-  --mint-foreground: oklch(0.88 0.08 148);
-  --peach: oklch(0.36 0.055 62);
-  --peach-foreground: oklch(0.9 0.06 65);
-  --lilac: oklch(0.34 0.075 292);
-  --lilac-foreground: oklch(0.88 0.06 292);
-  --sky: oklch(0.34 0.06 230);
-  --sky-foreground: oklch(0.88 0.05 225);
-  --mint-pop: oklch(0.6 0.15 150);
-  --peach-pop: oklch(0.63 0.17 45);
-  --lilac-pop: oklch(0.56 0.17 292);
-  --sky-pop: oklch(0.58 0.13 240);
-  --grid-line: oklch(0.8 0.08 78 / 0.07);
-  --dot: oklch(0.25 0.03 60 / 0.1);
-  --shadow-color: oklch(0.1 0.01 60 / 0.45);
 }
 
 @layer base {

@@ -162,8 +162,8 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
 - **Settings (`app/(app)/settings/page.tsx`)** menggantikan placeholder. Section berurutan:
   1. **Profil:** form `displayName`, `phone`, `location` (react-hook-form + `profileSchema`), tombol Simpan, toast sukses.
   2. **Keuangan:** tombol "Kelola akun" dan "Kelola kategori" (membuka modal lewat `useUIStore`), toggle "Sembunyikan nominal" (`hideAmounts`).
-  3. **Tampilan:** `ThemeToggle` yang sudah ada.
-  4. **Logout.**
+  3. **Logout.**
+     (Section Tampilan dengan `ThemeToggle` dihapus 2026-11-06 bersama dark mode.)
      Bagian yang membaca data memakai SWR di komponen client dengan skeleton. Halaman tetap memenuhi aturan `cacheComponents`.
 - **`components/modals/manage-accounts.tsx`** (di dalam `ResponsiveModal`):
   - Daftar dikelompokkan "Transaksi" dan "Aset". Setiap baris berisi nama, label subtype, dan saldo (`formatIDR`, disamarkan jika `hideAmounts`, merah jika negatif).

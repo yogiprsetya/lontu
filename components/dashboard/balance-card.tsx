@@ -14,7 +14,6 @@ import { filtersToUrl } from "@/lib/transaction-filters";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
-// Sunny stays bright in dark mode, so everything on it uses the sunny-* text tokens, never foreground.
 const HERO_CLASS =
   "relative mt-5 flex flex-col gap-4 rounded-[1.75rem] bg-sunny bg-dots px-5 py-5 text-sunny-foreground shadow-soft [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-sunny-foreground";
 const EYEBROW_CLASS = "text-xs font-bold uppercase tracking-[0.14em] text-sunny-muted-foreground";

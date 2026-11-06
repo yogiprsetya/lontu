@@ -78,7 +78,7 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: P
         }
       >
         <SelectTrigger
-          className="w-40 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
+          className="w-40 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14"
           aria-label="Rentang periode"
         >
           <SelectValue />

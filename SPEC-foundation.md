@@ -75,7 +75,7 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 ### 5. Util client
 
 - `lib/money.ts`: `formatIDR(n)` → `Rp10.000` (`Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })`), `parseIDR("10.000") → 10000`, `formatThousands` untuk input, `abbreviateIDR(1_200_000) → "1,2 jt"` (rb, jt, M, T).
-- `lib/fetcher.ts`: `fetcher` dan `ApiError { status, code, message, fields }`. `SWRConfig` global di `app/providers.tsx` bersama `ThemeProvider` (next-themes, default `system`) dan `Toaster`.
+- `lib/fetcher.ts`: `fetcher` dan `ApiError { status, code, message, fields }`. `SWRConfig` global di `app/providers.tsx` bersama `Toaster` (`theme="light"`). Tidak ada `ThemeProvider`: app hanya punya tema terang (diubah 2026-11-06).
 - **Nominal di UI lewat `useAmountFormat()`** (`hooks/use-amount-format.ts`): mengembalikan `(amount, format = formatIDR) => string` yang menampilkan `HIDDEN_AMOUNT` selama `hideAmounts` aktif, berdasarkan `displayAmount(amount, hidden, format)` murni di `lib/money.ts`. Hal yang bukan teks (warna tanda negatif, sumbu dan tooltip grafik) memakai `useAmountsHidden()` dari berkas yang sama. Hanya hook ini dan dua toggle (`components/settings/finance-section.tsx`, `components/dashboard/hide-amounts-button.tsx`) yang membaca `hideAmounts`.
 - `stores/ui.ts`: `useUIStore { modal: 'manageAccounts' | 'manageCategories' | null, modalProps, open, close, hideAmounts, toggleHideAmounts }`. Hanya `hideAmounts` yang di-`persist`.
 
@@ -87,7 +87,7 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - `components/layout/responsive-modal.tsx`: Drawer di bawah `lg`, Dialog di `lg` ke atas, dengan API yang sama.
 - Halaman dashboard/transactions/budget/expenses/settings berupa placeholder dengan judul dan empty state.
 - `app/layout.tsx`: hanya font Inter (`--font-sans`), `lang="id"`, metadata "Lontu", `viewport.themeColor`, padding `env(safe-area-inset-bottom)` di bottom nav, `tabular-nums` untuk nominal.
-- Token warna di `globals.css`: `--income` (hijau), `--expense` (merah), `--budget` (kuning), `--transfer` (ungu), masing-masing untuk light/dark dan lolos 4.5:1 terhadap background.
+- Token warna di `globals.css`: `--income` (hijau), `--expense` (merah), `--budget` (kuning), `--transfer` (ungu), hanya tema terang (`:root`), lolos 4.5:1 terhadap background.
 - `app/manifest.ts`: name, ikon 192/512 + maskable, `display: "standalone"`, `start_url: "/dashboard"`, shortcut "Tambah Expense" → `/add/expense`. Ikon dipulihkan dari commit `c9de1eb`. Ikon maskable dibuat dari ikon 512 dengan padding safe zone.
 
 ## Acceptance criteria
@@ -101,7 +101,7 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - [x] `account_balances` benar untuk skenario: saldo awal 100.000, income 50.000, expense 20.000, transfer keluar 10.000 ke akun B, satu expense soft-deleted → A = 120.000, B = saldo awal B + 10.000.
 - [x] Di lebar 360 px bottom nav tampil dengan 5 slot ≥ 44×44 px dan tidak ada horizontal scroll. Di 1024 px sidebar tampil dan bottom nav hilang.
 - [x] ResponsiveModal tampil sebagai Drawer di mobile dan Dialog di desktop.
-- [x] Dark mode mengikuti sistem dan bisa diubah manual. Pilihan bertahan setelah reload.
+- [x] ~~Dark mode mengikuti sistem dan bisa diubah manual.~~ Dihapus 2026-11-06: app hanya tema terang, tanpa theme switcher.
 - [x] Lighthouse menyatakan manifest installable.
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 

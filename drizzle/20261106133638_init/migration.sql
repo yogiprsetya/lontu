@@ -1,4 +1,6 @@
-CREATE TABLE "accounts" (
+CREATE SCHEMA "lontu";
+--> statement-breakpoint
+CREATE TABLE "lontu"."accounts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -10,8 +12,8 @@ CREATE TABLE "accounts" (
 	CONSTRAINT "accounts_type_check" CHECK ("type" in ('transaction', 'asset'))
 );
 --> statement-breakpoint
-ALTER TABLE "accounts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "budgets" (
+ALTER TABLE "lontu"."accounts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."budgets" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"budget_id" uuid NOT NULL,
@@ -29,8 +31,8 @@ CREATE TABLE "budgets" (
 	CONSTRAINT "budgets_category_ids_check" CHECK (cardinality("category_ids") >= 1)
 );
 --> statement-breakpoint
-ALTER TABLE "budgets" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "categories" (
+ALTER TABLE "lontu"."budgets" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -42,8 +44,8 @@ CREATE TABLE "categories" (
 	CONSTRAINT "categories_spending_type_check" CHECK (("spending_type" is null or "spending_type" in ('needs', 'wants')) and ("kind" = 'spending') = ("spending_type" is not null))
 );
 --> statement-breakpoint
-ALTER TABLE "categories" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "net_worth" (
+ALTER TABLE "lontu"."categories" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."net_worth" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -59,8 +61,8 @@ CREATE TABLE "net_worth" (
 	CONSTRAINT "net_worth_account_ids_check" CHECK (cardinality("account_ids") between 1 and 20)
 );
 --> statement-breakpoint
-ALTER TABLE "net_worth" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "recurring_rules" (
+ALTER TABLE "lontu"."net_worth" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."recurring_rules" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"type" text NOT NULL,
@@ -80,8 +82,8 @@ CREATE TABLE "recurring_rules" (
 	CONSTRAINT "recurring_rules_payday_check" CHECK (not "is_payday" or "type" = 'income')
 );
 --> statement-breakpoint
-ALTER TABLE "recurring_rules" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "transactions" (
+ALTER TABLE "lontu"."recurring_rules" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."transactions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"user_id" text NOT NULL,
 	"type" text NOT NULL,
@@ -102,8 +104,8 @@ CREATE TABLE "transactions" (
 	CONSTRAINT "transactions_distinct_accounts_check" CHECK ("to_account_id" <> "account_id")
 );
 --> statement-breakpoint
-ALTER TABLE "transactions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE TABLE "users" (
+ALTER TABLE "lontu"."transactions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE TABLE "lontu"."users" (
 	"id" text PRIMARY KEY,
 	"email" text NOT NULL UNIQUE,
 	"display_name" text,
@@ -114,30 +116,30 @@ CREATE TABLE "users" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-CREATE UNIQUE INDEX "accounts_user_name_unique" ON "accounts" ("user_id",lower("name"));--> statement-breakpoint
-CREATE UNIQUE INDEX "budgets_user_budget_period_unique" ON "budgets" ("user_id","budget_id","year","month");--> statement-breakpoint
-CREATE UNIQUE INDEX "categories_user_kind_name_unique" ON "categories" ("user_id","kind",lower("name"));--> statement-breakpoint
-CREATE INDEX "net_worth_user_idx" ON "net_worth" ("user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "recurring_rules_one_payday" ON "recurring_rules" ("user_id") WHERE "is_payday" and "archived_at" is null;--> statement-breakpoint
-CREATE INDEX "recurring_rules_user_idx" ON "recurring_rules" ("user_id","next_due_date");--> statement-breakpoint
-CREATE INDEX "transactions_user_date_idx" ON "transactions" ("user_id","date" DESC NULLS LAST,"id" DESC NULLS LAST);--> statement-breakpoint
-CREATE INDEX "transactions_user_account_idx" ON "transactions" ("user_id","account_id");--> statement-breakpoint
-CREATE INDEX "transactions_user_to_account_idx" ON "transactions" ("user_id","to_account_id");--> statement-breakpoint
-CREATE INDEX "transactions_user_category_date_idx" ON "transactions" ("user_id","category_id","date");--> statement-breakpoint
-CREATE INDEX "transactions_user_account_type_idx" ON "transactions" ("user_id","account_id","type","date");--> statement-breakpoint
-ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "budgets" ADD CONSTRAINT "budgets_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "categories" ADD CONSTRAINT "categories_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "net_worth" ADD CONSTRAINT "net_worth_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "recurring_rules" ADD CONSTRAINT "recurring_rules_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "recurring_rules" ADD CONSTRAINT "recurring_rules_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "accounts"("id");--> statement-breakpoint
-ALTER TABLE "recurring_rules" ADD CONSTRAINT "recurring_rules_category_id_categories_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id");--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "accounts"("id");--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_to_account_id_accounts_id_fkey" FOREIGN KEY ("to_account_id") REFERENCES "accounts"("id");--> statement-breakpoint
-ALTER TABLE "transactions" ADD CONSTRAINT "transactions_category_id_categories_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id");--> statement-breakpoint
-CREATE VIEW "account_balances" WITH (security_invoker = true) AS (
+ALTER TABLE "lontu"."users" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE UNIQUE INDEX "accounts_user_name_unique" ON "lontu"."accounts" ("user_id",lower("name"));--> statement-breakpoint
+CREATE UNIQUE INDEX "budgets_user_budget_period_unique" ON "lontu"."budgets" ("user_id","budget_id","year","month");--> statement-breakpoint
+CREATE UNIQUE INDEX "categories_user_kind_name_unique" ON "lontu"."categories" ("user_id","kind",lower("name"));--> statement-breakpoint
+CREATE INDEX "net_worth_user_idx" ON "lontu"."net_worth" ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "recurring_rules_one_payday" ON "lontu"."recurring_rules" ("user_id") WHERE "is_payday" and "archived_at" is null;--> statement-breakpoint
+CREATE INDEX "recurring_rules_user_idx" ON "lontu"."recurring_rules" ("user_id","next_due_date");--> statement-breakpoint
+CREATE INDEX "transactions_user_date_idx" ON "lontu"."transactions" ("user_id","date" DESC NULLS LAST,"id" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "transactions_user_account_idx" ON "lontu"."transactions" ("user_id","account_id");--> statement-breakpoint
+CREATE INDEX "transactions_user_to_account_idx" ON "lontu"."transactions" ("user_id","to_account_id");--> statement-breakpoint
+CREATE INDEX "transactions_user_category_date_idx" ON "lontu"."transactions" ("user_id","category_id","date");--> statement-breakpoint
+CREATE INDEX "transactions_user_account_type_idx" ON "lontu"."transactions" ("user_id","account_id","type","date");--> statement-breakpoint
+ALTER TABLE "lontu"."accounts" ADD CONSTRAINT "accounts_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."budgets" ADD CONSTRAINT "budgets_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."categories" ADD CONSTRAINT "categories_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."net_worth" ADD CONSTRAINT "net_worth_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."recurring_rules" ADD CONSTRAINT "recurring_rules_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."recurring_rules" ADD CONSTRAINT "recurring_rules_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "lontu"."accounts"("id");--> statement-breakpoint
+ALTER TABLE "lontu"."recurring_rules" ADD CONSTRAINT "recurring_rules_category_id_categories_id_fkey" FOREIGN KEY ("category_id") REFERENCES "lontu"."categories"("id");--> statement-breakpoint
+ALTER TABLE "lontu"."transactions" ADD CONSTRAINT "transactions_user_id_users_id_fkey" FOREIGN KEY ("user_id") REFERENCES "lontu"."users"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "lontu"."transactions" ADD CONSTRAINT "transactions_account_id_accounts_id_fkey" FOREIGN KEY ("account_id") REFERENCES "lontu"."accounts"("id");--> statement-breakpoint
+ALTER TABLE "lontu"."transactions" ADD CONSTRAINT "transactions_to_account_id_accounts_id_fkey" FOREIGN KEY ("to_account_id") REFERENCES "lontu"."accounts"("id");--> statement-breakpoint
+ALTER TABLE "lontu"."transactions" ADD CONSTRAINT "transactions_category_id_categories_id_fkey" FOREIGN KEY ("category_id") REFERENCES "lontu"."categories"("id");--> statement-breakpoint
+CREATE VIEW "lontu"."account_balances" WITH (security_invoker = true) AS (
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
         when t.type in ('income', 'adjustment', 'revaluation') then t.amount
@@ -145,8 +147,8 @@ CREATE VIEW "account_balances" WITH (security_invoker = true) AS (
         when t.type = 'transfer' and t.account_id = a.id       then -t.amount
         when t.type = 'transfer' and t.to_account_id = a.id    then t.amount
       end), 0)::bigint as balance
-    from accounts a
-    left join transactions t
+    from "lontu"."accounts" a
+    left join "lontu"."transactions" t
       on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)
     group by a.id
   );

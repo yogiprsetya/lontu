@@ -1,52 +1,56 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "3696d3e5-b222-42aa-95a0-5c98d10ad58b",
+  "id": "b54467e3-08a6-41c4-8870-ba143e21421a",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
+      "name": "lontu",
+      "entityType": "schemas"
+    },
+    {
       "isRlsEnabled": true,
       "name": "accounts",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "budgets",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "categories",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "net_worth",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "recurring_rules",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "transactions",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "isRlsEnabled": true,
       "name": "users",
       "entityType": "tables",
-      "schema": "public"
+      "schema": "lontu"
     },
     {
       "type": "uuid",
@@ -58,7 +62,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -71,7 +75,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -84,7 +88,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -97,7 +101,7 @@
       "identity": null,
       "name": "type",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -110,7 +114,7 @@
       "identity": null,
       "name": "subtype",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -123,7 +127,7 @@
       "identity": null,
       "name": "initial_balance",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -136,7 +140,7 @@
       "identity": null,
       "name": "archived_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -149,7 +153,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -162,7 +166,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -175,7 +179,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -188,7 +192,7 @@
       "identity": null,
       "name": "budget_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -201,7 +205,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -214,7 +218,7 @@
       "identity": null,
       "name": "spending_type",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -227,7 +231,7 @@
       "identity": null,
       "name": "year",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -240,7 +244,7 @@
       "identity": null,
       "name": "month",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -253,7 +257,7 @@
       "identity": null,
       "name": "amount",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -266,7 +270,7 @@
       "identity": null,
       "name": "category_ids",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -279,7 +283,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -292,7 +296,7 @@
       "identity": null,
       "name": "deleted_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -305,7 +309,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -318,7 +322,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -331,7 +335,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -344,7 +348,7 @@
       "identity": null,
       "name": "kind",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -357,7 +361,7 @@
       "identity": null,
       "name": "spending_type",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -370,7 +374,7 @@
       "identity": null,
       "name": "archived_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -383,7 +387,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -396,7 +400,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -409,7 +413,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -422,7 +426,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -435,7 +439,7 @@
       "identity": null,
       "name": "target_amount",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -448,7 +452,7 @@
       "identity": null,
       "name": "target_year",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -461,7 +465,7 @@
       "identity": null,
       "name": "target_month",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -474,7 +478,7 @@
       "identity": null,
       "name": "account_ids",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -487,7 +491,7 @@
       "identity": null,
       "name": "archived_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -500,7 +504,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -513,7 +517,7 @@
       "identity": null,
       "name": "updated_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -526,7 +530,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -539,7 +543,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -552,7 +556,7 @@
       "identity": null,
       "name": "type",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -565,7 +569,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -578,7 +582,7 @@
       "identity": null,
       "name": "amount",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -591,7 +595,7 @@
       "identity": null,
       "name": "account_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -604,7 +608,7 @@
       "identity": null,
       "name": "category_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -617,7 +621,7 @@
       "identity": null,
       "name": "day_of_month",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -630,7 +634,7 @@
       "identity": null,
       "name": "next_due_date",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -643,7 +647,7 @@
       "identity": null,
       "name": "is_payday",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -656,7 +660,7 @@
       "identity": null,
       "name": "archived_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -669,7 +673,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -682,7 +686,7 @@
       "identity": null,
       "name": "updated_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -695,7 +699,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -708,7 +712,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -721,7 +725,7 @@
       "identity": null,
       "name": "type",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -734,7 +738,7 @@
       "identity": null,
       "name": "amount",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -747,7 +751,7 @@
       "identity": null,
       "name": "date",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -760,7 +764,7 @@
       "identity": null,
       "name": "account_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -773,7 +777,7 @@
       "identity": null,
       "name": "to_account_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -786,7 +790,7 @@
       "identity": null,
       "name": "category_id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -799,7 +803,7 @@
       "identity": null,
       "name": "description",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -812,7 +816,7 @@
       "identity": null,
       "name": "receipt_url",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -825,7 +829,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -838,7 +842,7 @@
       "identity": null,
       "name": "updated_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -851,7 +855,7 @@
       "identity": null,
       "name": "deleted_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -864,7 +868,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -877,7 +881,7 @@
       "identity": null,
       "name": "email",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -890,7 +894,7 @@
       "identity": null,
       "name": "display_name",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -903,7 +907,7 @@
       "identity": null,
       "name": "image",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -916,7 +920,7 @@
       "identity": null,
       "name": "phone",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -929,7 +933,7 @@
       "identity": null,
       "name": "location",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -942,7 +946,7 @@
       "identity": null,
       "name": "currency",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -955,7 +959,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users"
     },
     {
@@ -983,7 +987,7 @@
       "concurrently": false,
       "name": "accounts_user_name_unique",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -1025,7 +1029,7 @@
       "concurrently": false,
       "name": "budgets_user_budget_period_unique",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -1060,7 +1064,7 @@
       "concurrently": false,
       "name": "categories_user_kind_name_unique",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -1081,7 +1085,7 @@
       "concurrently": false,
       "name": "net_worth_user_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -1102,7 +1106,7 @@
       "concurrently": false,
       "name": "recurring_rules_one_payday",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -1130,7 +1134,7 @@
       "concurrently": false,
       "name": "recurring_rules_user_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -1165,7 +1169,7 @@
       "concurrently": false,
       "name": "transactions_user_date_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1193,7 +1197,7 @@
       "concurrently": false,
       "name": "transactions_user_account_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1221,7 +1225,7 @@
       "concurrently": false,
       "name": "transactions_user_to_account_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1256,7 +1260,7 @@
       "concurrently": false,
       "name": "transactions_user_category_date_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1298,7 +1302,7 @@
       "concurrently": false,
       "name": "transactions_user_account_type_idx",
       "entityType": "indexes",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1306,7 +1310,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1315,7 +1319,7 @@
       "onDelete": "CASCADE",
       "name": "accounts_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
@@ -1323,7 +1327,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1332,7 +1336,7 @@
       "onDelete": "CASCADE",
       "name": "budgets_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
@@ -1340,7 +1344,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1349,7 +1353,7 @@
       "onDelete": "CASCADE",
       "name": "categories_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
@@ -1357,7 +1361,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1366,7 +1370,7 @@
       "onDelete": "CASCADE",
       "name": "net_worth_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
@@ -1374,7 +1378,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1383,7 +1387,7 @@
       "onDelete": "CASCADE",
       "name": "recurring_rules_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -1391,7 +1395,7 @@
       "columns": [
         "account_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "accounts",
       "columnsTo": [
         "id"
@@ -1400,7 +1404,7 @@
       "onDelete": "NO ACTION",
       "name": "recurring_rules_account_id_accounts_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -1408,7 +1412,7 @@
       "columns": [
         "category_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "categories",
       "columnsTo": [
         "id"
@@ -1417,7 +1421,7 @@
       "onDelete": "NO ACTION",
       "name": "recurring_rules_category_id_categories_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
@@ -1425,7 +1429,7 @@
       "columns": [
         "user_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "users",
       "columnsTo": [
         "id"
@@ -1434,7 +1438,7 @@
       "onDelete": "CASCADE",
       "name": "transactions_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1442,7 +1446,7 @@
       "columns": [
         "account_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "accounts",
       "columnsTo": [
         "id"
@@ -1451,7 +1455,7 @@
       "onDelete": "NO ACTION",
       "name": "transactions_account_id_accounts_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1459,7 +1463,7 @@
       "columns": [
         "to_account_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "accounts",
       "columnsTo": [
         "id"
@@ -1468,7 +1472,7 @@
       "onDelete": "NO ACTION",
       "name": "transactions_to_account_id_accounts_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1476,7 +1480,7 @@
       "columns": [
         "category_id"
       ],
-      "schemaTo": "public",
+      "schemaTo": "lontu",
       "tableTo": "categories",
       "columnsTo": [
         "id"
@@ -1485,7 +1489,7 @@
       "onDelete": "NO ACTION",
       "name": "transactions_category_id_categories_id_fkey",
       "entityType": "fks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
@@ -1494,7 +1498,7 @@
       ],
       "nameExplicit": false,
       "name": "accounts_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts",
       "entityType": "pks"
     },
@@ -1504,7 +1508,7 @@
       ],
       "nameExplicit": false,
       "name": "budgets_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets",
       "entityType": "pks"
     },
@@ -1514,7 +1518,7 @@
       ],
       "nameExplicit": false,
       "name": "categories_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories",
       "entityType": "pks"
     },
@@ -1524,7 +1528,7 @@
       ],
       "nameExplicit": false,
       "name": "net_worth_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth",
       "entityType": "pks"
     },
@@ -1534,7 +1538,7 @@
       ],
       "nameExplicit": false,
       "name": "recurring_rules_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules",
       "entityType": "pks"
     },
@@ -1544,7 +1548,7 @@
       ],
       "nameExplicit": false,
       "name": "transactions_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions",
       "entityType": "pks"
     },
@@ -1554,7 +1558,7 @@
       ],
       "nameExplicit": false,
       "name": "users_pkey",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users",
       "entityType": "pks"
     },
@@ -1565,7 +1569,7 @@
       ],
       "nullsNotDistinct": false,
       "name": "users_email_key",
-      "schema": "public",
+      "schema": "lontu",
       "table": "users",
       "entityType": "uniques"
     },
@@ -1573,137 +1577,137 @@
       "value": "\"type\" in ('transaction', 'asset')",
       "name": "accounts_type_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "accounts"
     },
     {
       "value": "\"spending_type\" in ('needs', 'wants')",
       "name": "budgets_spending_type_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
       "value": "\"month\" between 1 and 12",
       "name": "budgets_month_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
       "value": "\"amount\" >= 0",
       "name": "budgets_amount_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
       "value": "cardinality(\"category_ids\") >= 1",
       "name": "budgets_category_ids_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "budgets"
     },
     {
       "value": "\"kind\" in ('income', 'saving', 'spending')",
       "name": "categories_kind_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
       "value": "(\"spending_type\" is null or \"spending_type\" in ('needs', 'wants')) and (\"kind\" = 'spending') = (\"spending_type\" is not null)",
       "name": "categories_spending_type_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "categories"
     },
     {
       "value": "\"target_amount\" between 1 and 1000000000000",
       "name": "net_worth_amount_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
       "value": "(\"target_year\" is null) = (\"target_month\" is null) and (\"target_month\" is null or \"target_month\" between 1 and 12)",
       "name": "net_worth_target_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
       "value": "cardinality(\"account_ids\") between 1 and 20",
       "name": "net_worth_account_ids_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "net_worth"
     },
     {
       "value": "\"type\" in ('income', 'expense', 'saving')",
       "name": "recurring_rules_type_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
       "value": "\"amount\" > 0",
       "name": "recurring_rules_amount_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
       "value": "\"day_of_month\" between 1 and 31",
       "name": "recurring_rules_day_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
       "value": "not \"is_payday\" or \"type\" = 'income'",
       "name": "recurring_rules_payday_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "recurring_rules"
     },
     {
       "value": "\"type\" in ('income', 'expense', 'saving', 'transfer', 'adjustment', 'revaluation')",
       "name": "transactions_type_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
       "value": "case when \"type\" in ('adjustment', 'revaluation') then \"amount\" <> 0 else \"amount\" > 0 end",
       "name": "transactions_amount_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
       "value": "(\"type\" = 'transfer') = (\"to_account_id\" is not null)",
       "name": "transactions_transfer_target_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
       "value": "(\"type\" in ('transfer', 'adjustment', 'revaluation')) = (\"category_id\" is null)",
       "name": "transactions_category_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
       "value": "\"to_account_id\" <> \"account_id\"",
       "name": "transactions_distinct_accounts_check",
       "entityType": "checks",
-      "schema": "public",
+      "schema": "lontu",
       "table": "transactions"
     },
     {
-      "definition": "\n    select a.id as account_id, a.user_id,\n      a.initial_balance + coalesce(sum(case\n        when t.type in ('income', 'adjustment', 'revaluation') then t.amount\n        when t.type in ('expense', 'saving')                   then -t.amount\n        when t.type = 'transfer' and t.account_id = a.id       then -t.amount\n        when t.type = 'transfer' and t.to_account_id = a.id    then t.amount\n      end), 0)::bigint as balance\n    from accounts a\n    left join transactions t\n      on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)\n    group by a.id\n  ",
+      "definition": "\n    select a.id as account_id, a.user_id,\n      a.initial_balance + coalesce(sum(case\n        when t.type in ('income', 'adjustment', 'revaluation') then t.amount\n        when t.type in ('expense', 'saving')                   then -t.amount\n        when t.type = 'transfer' and t.account_id = a.id       then -t.amount\n        when t.type = 'transfer' and t.to_account_id = a.id    then t.amount\n      end), 0)::bigint as balance\n    from \"lontu\".\"accounts\" a\n    left join \"lontu\".\"transactions\" t\n      on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)\n    group by a.id\n  ",
       "with": {
         "checkOption": null,
         "securityBarrier": null,
@@ -1733,7 +1737,7 @@
       "materialized": false,
       "name": "account_balances",
       "entityType": "views",
-      "schema": "public"
+      "schema": "lontu"
     }
   ],
   "renames": []

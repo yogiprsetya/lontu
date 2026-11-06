@@ -6,14 +6,16 @@ import {
   date,
   index,
   integer,
-  pgTable,
-  pgView,
+  pgSchema,
   smallint,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// One Supabase project hosts several personal apps, one Postgres schema each.
+export const lontu = pgSchema("lontu");
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const userId = () =>
@@ -22,7 +24,7 @@ const userId = () =>
     .references(() => users.id, { onDelete: "cascade" });
 const money = (name: string) => bigint(name, { mode: "number" });
 
-export const users = pgTable.withRLS("users", {
+export const users = lontu.table.withRLS("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   displayName: text("display_name"),
@@ -33,7 +35,7 @@ export const users = pgTable.withRLS("users", {
   createdAt: createdAt(),
 });
 
-export const accounts = pgTable.withRLS(
+export const accounts = lontu.table.withRLS(
   "accounts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -51,7 +53,7 @@ export const accounts = pgTable.withRLS(
   ],
 );
 
-export const categories = pgTable.withRLS(
+export const categories = lontu.table.withRLS(
   "categories",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -72,7 +74,7 @@ export const categories = pgTable.withRLS(
   ],
 );
 
-export const transactions = pgTable.withRLS(
+export const transactions = lontu.table.withRLS(
   "transactions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -119,7 +121,7 @@ export const transactions = pgTable.withRLS(
 
 // One row = one version of a named budget, in effect from (year, month) until a later version.
 // category_ids has no FK: ownership and kind are checked on write, and categories are never hard-deleted.
-export const budgets = pgTable.withRLS(
+export const budgets = lontu.table.withRLS(
   "budgets",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -143,7 +145,7 @@ export const budgets = pgTable.withRLS(
   ],
 );
 
-export const recurringRules = pgTable.withRLS(
+export const recurringRules = lontu.table.withRLS(
   "recurring_rules",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -177,7 +179,7 @@ export const recurringRules = pgTable.withRLS(
 );
 
 // account_ids has no FK, same as budgets.category_ids: ownership and the one-net-worth rule are checked on write.
-export const netWorths = pgTable.withRLS(
+export const netWorths = lontu.table.withRLS(
   "net_worth",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -202,11 +204,13 @@ export const netWorths = pgTable.withRLS(
   ],
 );
 
-export const accountBalances = pgView("account_balances", {
-  accountId: uuid("account_id").notNull(),
-  userId: text("user_id").notNull(),
-  balance: money("balance").notNull(),
-}).with({ securityInvoker: true }).as(sql`
+export const accountBalances = lontu
+  .view("account_balances", {
+    accountId: uuid("account_id").notNull(),
+    userId: text("user_id").notNull(),
+    balance: money("balance").notNull(),
+  })
+  .with({ securityInvoker: true }).as(sql`
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
         when t.type in ('income', 'adjustment', 'revaluation') then t.amount
@@ -214,8 +218,8 @@ export const accountBalances = pgView("account_balances", {
         when t.type = 'transfer' and t.account_id = a.id       then -t.amount
         when t.type = 'transfer' and t.to_account_id = a.id    then t.amount
       end), 0)::bigint as balance
-    from accounts a
-    left join transactions t
+    from ${accounts} a
+    left join ${transactions} t
       on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)
     group by a.id
   `);

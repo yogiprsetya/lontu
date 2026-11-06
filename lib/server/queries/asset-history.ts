@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
+import { accounts, transactions } from "@/db/schema";
 import { withChanges } from "@/lib/asset-history";
 import type {
   AssetHistory,
@@ -22,11 +23,11 @@ function series(userId: string, accountId: string | null, today: string) {
     with assets as (
       select a.id, a.initial_balance, least(
         to_char(a.created_at at time zone 'Asia/Jakarta', 'YYYY-MM'),
-        (select to_char(min(t.date), 'YYYY-MM') from transactions t
+        (select to_char(min(t.date), 'YYYY-MM') from ${transactions} t
           where t.user_id = ${userId} and t.deleted_at is null
           and (t.account_id = a.id or t.to_account_id = a.id))
       ) as first_month
-      from accounts a
+      from ${accounts} a
       where a.user_id = ${userId} and a.type = 'asset' and a.archived_at is null
       ${accountId === null ? sql`` : sql`and a.id = ${accountId}`}
     ),
@@ -41,7 +42,7 @@ function series(userId: string, accountId: string | null, today: string) {
         end as contributed,
         case when t.type = 'revaluation' then t.amount else 0 end as market_gain
       from assets a
-      join transactions t
+      join ${transactions} t
         on t.user_id = ${userId} and t.deleted_at is null
         and (t.account_id = a.id or t.to_account_id = a.id)
       union all

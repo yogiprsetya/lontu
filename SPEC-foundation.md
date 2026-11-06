@@ -27,6 +27,8 @@ ALLOWED_EMAILS=          # dipisah koma
 
 ### 2. Skema database (`db/schema.ts` + `drizzle/`)
 
+Semua tabel dan view ada di schema `lontu` (`pgSchema("lontu")` di `db/schema.ts`). `drizzle.config.ts` memakai `schemaFilter: ["lontu"]` dan menyimpan riwayat migrasi di `drizzle.lontu_migrations` (bukan di schema `lontu`: drizzle-kit membuat schema tabel migrasi lebih dulu, sehingga `CREATE SCHEMA "lontu"` di migrasi init akan bentrok), jadi drizzle-kit tidak menyentuh schema app lain di database yang sama. Schema `lontu` tidak diekspos REST Supabase (PostgREST hanya mengekspos `public` secara default).
+
 Semua tabel punya `user_id text not null references users(id) on delete cascade`, kecuali `users`. Uang memakai `bigint`. RLS: `alter table … enable row level security` di kelima tabel, tanpa policy.
 
 | Tabel | Kolom | Constraint & index |
@@ -118,4 +120,12 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - **Drizzle 1.0 RC:** API (`drizzle-orm/postgres-js`, relations) berbeda dari 0.x. Ikuti dokumen dari versi yang terpasang.
 - **Pooler Supabase transaction mode** tidak mendukung prepared statement, jadi wajib `prepare: false`. Migrasi dijalankan lewat koneksi langsung (port 5432) jika pooler menolak DDL.
 - **Squash migrasi (2026-11-06):** 12 migrasi lama (foundation s.d. rename goals ke net_worth) digabung jadi satu migrasi awal `drizzle/<timestamp>_init/` hasil `db:generate` dari `db/schema.ts`. Tidak ada data produksi, jadi DB di-reset (tabel `public` dan schema `drizzle` di-drop) lalu dimigrasi ulang. Nama folder migrasi lama di spec dan `tasks/` adalah riwayat.
+- **Schema `lontu` (2026-11-06):** Lontu pindah ke project Supabase baru yang dipakai bersama beberapa app pribadi, satu schema per app. Migrasi init di-generate ulang dengan semua objek di schema `lontu`. Opsional, untuk isolasi akses antar app: role `lontu_app` yang hanya bisa menyentuh schema `lontu`. Dibuat manual sekali di SQL editor Supabase **sebelum** `pnpm db:migrate`, supaya schema dibuat dan dimiliki role ini (lalu `DATABASE_URL` memakai user `lontu_app.<project-ref>`):
+
+  ```sql
+  create role lontu_app login password '<password>';
+  grant create on database postgres to lontu_app;  -- agar migrasi bisa membuat schema lontu
+  ```
+
+  Role baru tidak punya hak atas tabel milik role lain, jadi `lontu_app` tidak bisa membaca tabel app lain tanpa `grant` tambahan.
 - **`cacheComponents: true`:** layout `(app)` membaca session (data dinamis), jadi bagian dinamis harus dibungkus `<Suspense>`. Baca `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`.

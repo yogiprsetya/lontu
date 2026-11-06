@@ -14,7 +14,7 @@ import type {
 // The outer reference is spelled out: in a single-table select Drizzle renders
 // ${accounts.id} as a bare "id", which inside the subquery would bind to t.id.
 const effectiveInitialBalance = sql<number>`(${accounts.initialBalance} + coalesce((
-  select sum(t.amount) from transactions t
+  select sum(t.amount) from ${transactions} t
   where t.account_id = "accounts"."id" and t.type = 'adjustment' and t.deleted_at is null
 ), 0))::bigint`.mapWith(Number);
 

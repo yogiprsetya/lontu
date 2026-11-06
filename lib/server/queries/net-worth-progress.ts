@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { netWorths } from "@/db/schema";
+import { accountBalances, accounts, netWorths, transactions } from "@/db/schema";
 import { netWorthProjection } from "@/lib/net-worth-projection";
 import { addDays, addMonths, monthRange, yearMonthToPeriod } from "@/lib/period";
 import type { NetWorth, NetWorthProgress } from "@/lib/schemas/net-worth";
@@ -31,7 +31,7 @@ function netWorthAccounts(userId: string, includeArchived: boolean) {
       select g.id as net_worth_id, a.id as account_id, a.type, a.created_at
       from ${netWorths} g
       cross join lateral unnest(g.account_ids) as ids(account_id)
-      join accounts a on a.id = ids.account_id and a.user_id = g.user_id and a.archived_at is null
+      join ${accounts} a on a.id = ids.account_id and a.user_id = g.user_id and a.archived_at is null
       where g.user_id = ${userId} ${includeArchived ? sql`` : sql`and g.archived_at is null`}
     )`;
 }
@@ -50,7 +50,7 @@ function totals(userId: string, includeArchived: boolean, staleBefore: string) {
     with ${netWorthAccounts(userId, includeArchived)},
     revaluations as (
       select account_id, sum(amount) as gain, max(date) as last
-      from transactions
+      from ${transactions}
       where user_id = ${userId} and type = 'revaluation' and deleted_at is null
       group by account_id
     )
@@ -63,7 +63,7 @@ function totals(userId: string, includeArchived: boolean, staleBefore: string) {
         '{}'
       ) as stale_ids
     from net_worth_accounts ga
-    join account_balances b on b.account_id = ga.account_id
+    join ${accountBalances} b on b.account_id = ga.account_id
     left join revaluations r on r.account_id = ga.account_id
     group by ga.net_worth_id
   `);
@@ -85,7 +85,7 @@ function flows(userId: string, includeArchived: boolean, from: string, to: strin
         when t.type = 'transfer' and t.to_account_id = ga.account_id then t.amount
       end)::bigint as flow
     from net_worth_accounts ga
-    join transactions t
+    join ${transactions} t
       on t.user_id = ${userId} and t.deleted_at is null
       and (t.account_id = ga.account_id or t.to_account_id = ga.account_id)
       and t.type not in ('adjustment', 'revaluation')

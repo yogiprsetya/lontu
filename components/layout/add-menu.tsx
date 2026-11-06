@@ -36,18 +36,20 @@ export function FabAddMenu() {
   );
 }
 
-/** The full-width Tambah button in the sidebar; the menu opens downward. */
-export function SidebarAddMenu() {
+/** The floating + at the bottom right on lg and up, where there is no bottom nav. */
+export function DesktopFabAddMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Tambah transaksi"
-        className={cn(triggerClass, "h-11 w-full px-4")}
+        className={cn(
+          triggerClass,
+          "fixed right-8 bottom-8 z-40 hidden size-14 shadow-soft transition-transform motion-safe:hover:rotate-90 motion-safe:active:scale-90 lg:inline-flex",
+        )}
       >
         <PlusIcon className="size-5" aria-hidden />
-        Tambah
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="start" sideOffset={8} className={contentClass}>
+      <DropdownMenuContent side="top" align="end" sideOffset={8} className={contentClass}>
         <AddMenuItems />
       </DropdownMenuContent>
     </DropdownMenu>

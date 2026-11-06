@@ -84,7 +84,7 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 ### 6. App shell
 
 - `app/(app)/layout.tsx`: di bawah `lg`, satu kolom + **BottomNav** 5 slot (Dashboard, Transactions, **+**, Budget, More). Di `lg` ke atas, **Sidebar** dan bottom nav disembunyikan.
-- Tombol **+** membuka menu Income / Expense / Saving / Transfer yang menuju `/add/[type]` (halaman placeholder di modul ini).
+- Tombol **+** membuka menu Income / Expense / Saving / Transfer yang menuju `/add/[type]` (halaman placeholder di modul ini). Di bawah `lg` ia ada di tengah bottom nav. Di `lg` ke atas ia berupa floating button di pojok kanan bawah, bukan tombol "Tambah" di sidebar (diubah 2026-11-06).
 - More berisi halaman tanpa slot sendiri, lalu Logout di bawah pemisah. Settings tidak ada di More: di bawah `lg` ia dibuka lewat tombol gear di header dashboard (sebelah tombol sembunyikan nominal). Di `lg` ke atas ia ada di kaki sidebar, di atas Logout, terpisah dari navigasi utama (diubah 2026-11-05).
 - `components/layout/responsive-modal.tsx`: Drawer di bawah `lg`, Dialog di `lg` ke atas, dengan API yang sama.
 - Halaman dashboard/transactions/budget/expenses/settings berupa placeholder dengan judul dan empty state.

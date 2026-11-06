@@ -66,7 +66,7 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 - **Icon chip**: `size-11 rounded-xl` pastel square with a 20 px lucide icon (`TypeChip`).
 - **Quick add** (dashboard, after the hero): four `size-14` `*-pop` squares with white 28 px icons and a bold label below, one per type. This replaces the reference's illustrated app-icon menu.
 - **Bottom nav**: card-colored bar with a rounded top edge and a soft upward shadow. The active item gets a `bg-sunny` pill behind its icon and a bold label. The center FAB is an ink circle (`size-14`) that sits slightly above the bar.
-- **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`.
+- **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`. No add button in the sidebar: on lg the same ink FAB floats at the bottom right (`fixed right-8 bottom-8`) and its menu opens upward.
 - **Progress bar**: `h-2.5 rounded-full`, `muted` track, `mint-pop` fill when ok, `budget` for warning, `expense` for over.
 - **Segmented choices** (chips): `rounded-full` pills; the selected one is ink-filled (`bg-primary text-primary-foreground`).
 - shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts. The one exception is `Button`: sizes `default` and `lg` pad `px-4` (registry `px-2.5`) so labels don't crowd the edge, and a re-add from the CLI must keep it.

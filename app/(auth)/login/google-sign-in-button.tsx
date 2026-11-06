@@ -11,7 +11,8 @@ export function GoogleSignInButton() {
   return (
     <Button
       size="lg"
-      className="h-12 w-full bg-sunny-foreground text-base font-bold text-sunny hover:bg-sunny-foreground/85 focus-visible:ring-sunny-foreground/40"
+      variant="sunny"
+      className="w-full"
       disabled={pending}
       onClick={() => {
         setPending(true);

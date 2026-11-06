@@ -18,7 +18,7 @@ export function NoAssets() {
         Belum ada akun aset. Buat akun aset untuk reksadana atau emas di Settings, lalu perbarui
         nilainya di sini tiap bulan.
       </p>
-      <Link href="/settings" className={cn(buttonVariants(), "h-11 text-base")}>
+      <Link href="/settings" className={buttonVariants()}>
         Buka Settings
       </Link>
     </div>
@@ -64,7 +64,7 @@ function AssetRow({
         {asset.lastValuedAt !== today && (
           <Button
             variant="outline"
-            className="shrink-0 text-base"
+            className="shrink-0"
             size="sm"
             disabled={!online}
             aria-label={`Perbarui nilai ${name}`}

@@ -13,7 +13,6 @@ import { dashboardMode } from "@/lib/dashboard-period";
 import { activityPeak, formatBucket } from "@/lib/dashboard-format";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { formatPeriodLabel } from "@/lib/period";
-import { cn } from "@/lib/utils";
 
 // Same height as the chart so nothing shifts when Recharts arrives.
 const chartSkeleton = () => <Skeleton className="h-56 w-full" />;
@@ -30,7 +29,7 @@ export function NoExpense({ period }: { period: DashboardPeriod }) {
   return (
     <div className="flex h-56 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 text-center">
       <p className="text-muted-foreground">Belum ada pengeluaran di {formatPeriodLabel(period)}.</p>
-      <Link href="/add/expense" className={cn(buttonVariants(), "h-11 text-base")}>
+      <Link href="/add/expense" className={buttonVariants()}>
         Catat expense
       </Link>
     </div>

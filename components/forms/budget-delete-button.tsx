@@ -36,8 +36,7 @@ export function BudgetDeleteButton({ period, budgetId, disabled, onDone }: Props
     <div className="flex flex-col gap-2 border-t pt-4">
       <Button
         type="button"
-        variant="outline"
-        className="h-11 text-base text-destructive"
+        variant="destructive"
         disabled={disabled}
         onClick={() => void onDelete()}
       >

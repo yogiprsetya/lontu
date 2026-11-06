@@ -27,10 +27,7 @@ type ShowArchivedSwitchProps = {
 
 export function ShowArchivedSwitch({ id, checked, onCheckedChange }: ShowArchivedSwitchProps) {
   return (
-    <Label
-      htmlFor={id}
-      className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-base font-normal"
-    >
+    <Label htmlFor={id} variant="row">
       Tampilkan arsip
       <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </Label>
@@ -70,9 +67,7 @@ export function ArchiveButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger
-        render={
-          <Button type="button" variant="destructive" className="h-11 self-start text-base" />
-        }
+        render={<Button type="button" variant="destructive" className="self-start" />}
       >
         <ArchiveIcon aria-hidden />
         {label}
@@ -83,10 +78,10 @@ export function ArchiveButton({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            className="h-11 text-base"
+
             disabled={pending}
             onClick={() => void confirm()}
           >
@@ -123,7 +118,7 @@ export function RestoreButton({
   return (
     <Button
       variant="outline"
-      className="h-11 shrink-0 text-base"
+      className="shrink-0"
       disabled={pending}
       onClick={() => void handleClick()}
     >

@@ -27,7 +27,7 @@ export function RecordOccurrenceModal({
       title={rule ? `Catat ${rule.name}` : "Catat"}
     >
       {rule && (
-        <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+        <Suspense fallback={<Skeleton className="h-96 w-full" />}>
           <RecordOccurrenceForm
             key={`${rule.id}-${rule.nextDueDate}`}
             rule={rule}

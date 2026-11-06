@@ -39,7 +39,6 @@ import {
 } from "@/lib/schemas/transaction";
 import { useUIStore } from "@/stores/ui";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof transferCreateSchema>;
 type Form = UseFormReturn<FormValues, unknown, TransferCreateInput>;
@@ -64,7 +63,7 @@ export function CreateTransferForm() {
         <Button
           type="button"
           variant="outline"
-          className="h-11 text-base"
+
           onClick={() => open("manageAccounts")}
         >
           <PlusIcon aria-hidden />
@@ -352,7 +351,7 @@ function TransferFields({
       >
         <Input
           id="transfer-description"
-          className={inputClass}
+
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}

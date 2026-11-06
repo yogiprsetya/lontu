@@ -29,9 +29,6 @@ function Sticker() {
   );
 }
 
-const HERO_BUTTON_CLASS =
-  "h-11 rounded-full bg-sunny-foreground px-5 text-base font-bold text-sunny hover:bg-sunny-foreground/85 focus-visible:ring-sunny-foreground/40";
-
 /** Balances are always today's, whatever the period; the period only scopes the drill-down. */
 export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
@@ -41,7 +38,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const tone = (amount: number) => !hidden && amount < 0 && "text-sunny-alert";
 
   if (error) return <LoadError message="Gagal memuat saldo." onRetry={() => void mutate()} />;
-  if (!data) return <Skeleton className="mt-5 h-52 w-full rounded-[1.75rem]" aria-busy="true" />;
+  if (!data) return <Skeleton className="mt-5 h-52 w-full" aria-busy="true" />;
 
   if (data.length === 0) {
     return (
@@ -51,7 +48,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
           Total saldo
         </h2>
         <p className="font-semibold">Belum ada akun. Tambahkan akun untuk melihat saldo.</p>
-        <Button className={HERO_BUTTON_CLASS} onClick={() => openModal("manageAccounts")}>
+        <Button variant="sunny" onClick={() => openModal("manageAccounts")}>
           Tambah akun
         </Button>
       </section>

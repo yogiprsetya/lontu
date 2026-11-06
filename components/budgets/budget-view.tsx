@@ -31,9 +31,9 @@ const BudgetForm = lazy(() =>
 function ViewSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true">
-      <Skeleton className="h-28 w-full rounded-2xl" />
+      <Skeleton className="h-28 w-full" />
       {Array.from({ length: 4 }, (_, i) => (
-        <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+        <Skeleton key={i} className="h-24 w-full" />
       ))}
     </div>
   );
@@ -124,10 +124,7 @@ export function BudgetView() {
     content = (
       <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
         <p className="text-muted-foreground">Belum ada kategori spending untuk diberi budget.</p>
-        <Button
-          className="h-11 text-base"
-          onClick={() => openModal("manageCategories", { kind: "spending" })}
-        >
+        <Button onClick={() => openModal("manageCategories", { kind: "spending" })}>
           Tambah kategori
         </Button>
       </div>
@@ -138,11 +135,7 @@ export function BudgetView() {
         {usage.data.items.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-8 text-center">
             <p className="text-muted-foreground">{emptyBudgetMessage(period, today)}</p>
-            {isCurrent && (
-              <Button className="h-11 text-base" onClick={() => setAdding(true)}>
-                Tambah budget
-              </Button>
-            )}
+            {isCurrent && <Button onClick={() => setAdding(true)}>Tambah budget</Button>}
           </div>
         ) : (
           <BudgetList usage={usage.data} names={names} onOpen={setOpenId} />
@@ -159,7 +152,8 @@ export function BudgetView() {
         {isCurrent && (
           <Button
             aria-label="Tambah budget"
-            className="size-14 shrink-0 rounded-2xl"
+            size="icon-lg"
+            className="shrink-0"
             disabled={!usage.data || !categories.data}
             onClick={() => setAdding(true)}
           >
@@ -176,7 +170,7 @@ export function BudgetView() {
         footer={<FormActions form="budget-form" onCancel={() => setAdding(false)} />}
       >
         {adding && usage.data && categories.data && (
-          <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+          <Suspense fallback={<Skeleton className="h-64 w-full" />}>
             <BudgetForm
               categories={categories.data}
               usage={usage.data}
@@ -200,7 +194,7 @@ export function BudgetView() {
           <div className="flex flex-col gap-6">
             <BudgetBreakdown period={period} item={opened} names={names} />
             {isCurrent && usage.data && (
-              <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
                 <BudgetForm
                   key={opened.budgetId}
                   categories={categories.data}

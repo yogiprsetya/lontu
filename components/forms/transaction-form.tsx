@@ -43,7 +43,6 @@ import {
 import { signedEffect } from "@/lib/transaction-balance";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof simpleCreateSchema>;
 type Form = UseFormReturn<FormValues, unknown, SimpleCreateInput>;
@@ -184,7 +183,7 @@ export function RecordOccurrenceForm({
     <form onSubmit={onSubmit} noValidate className={formClass}>
       <FixedType type={rule.type} />
       <TransactionFields form={form} type={rule.type} today={today} />
-      <Button type="submit" className="mt-2 h-11 w-full text-base" disabled={isSubmitting}>
+      <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
         {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
         Simpan
       </Button>
@@ -306,7 +305,7 @@ function TransactionFields({
       >
         <Input
           id="transaction-description"
-          className={inputClass}
+
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}

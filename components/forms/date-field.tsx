@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { CalendarIcon } from "lucide-react";
 import { id as idLocale } from "react-day-picker/locale";
-import { cn } from "cn";
-import { inputClass } from "@/components/forms/field-styles";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -48,15 +46,15 @@ export function DateField({
       <PopoverTrigger
         ref={ref}
         id={id}
-        render={<Button variant="outline" />}
-        className={cn(inputClass, "w-full justify-between")}
+        render={<Button variant="field" />}
+        className="w-full"
         aria-invalid={invalid}
         aria-describedby={describedBy}
       >
         {selected ? formatLongDate(value) : "Pilih tanggal"}
         <CalendarIcon aria-hidden className="text-muted-foreground" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      <PopoverContent align="start">
         <Calendar
           mode="single"
           locale={idLocale}
@@ -69,8 +67,6 @@ export function DateField({
           disabled={[first && { before: first }, last && { after: last }].filter((m) => !!m)}
           today={dateFromValue(todayInJakarta())}
           autoFocus
-          // 44 px days; 7 of them plus padding still fit a 360 px screen.
-          className="rounded-md p-2 [--cell-size:--spacing(11)]"
         />
       </PopoverContent>
     </Popover>

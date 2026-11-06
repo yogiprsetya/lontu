@@ -57,7 +57,7 @@ Before every commit: `pnpm lint && pnpm typecheck && pnpm test`. Conventional co
 - Server-only modules start with `import "server-only"`; client components with `"use client"`.
 - TypeScript strict, alias `@/*`. Files kebab-case, components PascalCase, hooks `useX`.
 - Prettier (`.prettierrc.json`) owns formatting; lint-staged runs it on commit. Run `pnpm format` only in a dedicated commit, and add that commit to `.git-blame-ignore-revs`.
-- Don't hand-edit `components/ui/`; add or update components via the shadcn CLI. One exception: `button.tsx` sizes `default` and `lg` use `px-4` (registry `px-2.5`). Re-apply it after any `shadcn add button --overwrite`.
+- `components/ui/` primitives own their look (DESIGN.md "Primitives own their look"): add them via the shadcn CLI, then edit defaults/variants to match DESIGN.md. Where they are used, `className` is layout only (width, placement, margins, position); a new look is a new variant. `tests/unit/ui-usage.spec.ts` enforces it. Re-apply the edits after any `shadcn add --overwrite`.
 - Comments only for reasons not visible in the code.
 - Mobile: layout must work at 360 px, touch targets ≥ 44×44 px, input font 16 px, text contrast ≥ 4.5:1.
 

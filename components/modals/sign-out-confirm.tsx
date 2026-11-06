@@ -37,10 +37,10 @@ export function SignOutConfirm({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            className="h-11 text-base"
+
             disabled={pending}
             onClick={() => {
               setPending(true);

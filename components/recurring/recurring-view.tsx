@@ -39,7 +39,7 @@ function ViewSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat aturan">
       {Array.from({ length: 4 }, (_, i) => (
-        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+        <Skeleton key={i} className="h-20 w-full" />
       ))}
     </div>
   );
@@ -61,26 +61,18 @@ function RowMenu({ rule, online, onArchive }: RowMenuProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 rounded-xl"
+            className="shrink-0"
             aria-label={`Aksi untuk ${rule.name}`}
           />
         }
       >
         <EllipsisVerticalIcon className="size-5" aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44 rounded-2xl p-1.5">
-        <DropdownMenuItem
-          className="min-h-11 rounded-xl text-base"
-          disabled={!online}
-          onClick={() => void skipOccurrence(rule)}
-        >
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem disabled={!online} onClick={() => void skipOccurrence(rule)}>
           Lewati{suffix}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="min-h-11 rounded-xl text-base"
-          disabled={!online}
-          onClick={onArchive}
-        >
+        <DropdownMenuItem disabled={!online} onClick={onArchive}>
           Arsipkan{suffix}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -104,16 +96,11 @@ function EmptyRules({
       </p>
       {!showArchived && (
         <div className="flex flex-wrap justify-center gap-2">
-          <Button
-            className="h-11 text-base"
-            onClick={() => onCreate({ type: "income", isPayday: true })}
-          >
-            Tambah gaji
-          </Button>
+          <Button onClick={() => onCreate({ type: "income", isPayday: true })}>Tambah gaji</Button>
 
           <Button
             variant="outline"
-            className="h-11 text-base"
+
             onClick={() => onCreate({ type: "expense" })}
           >
             Tambah tagihan
@@ -170,7 +157,7 @@ function RuleGroups({
                   {/* Always visible, not in the menu; filled once the occurrence is due. */}
                   <Button
                     variant={rule.nextDueDate <= today ? "default" : "outline"}
-                    className="h-11 px-4 text-base"
+
                     disabled={!online}
                     onClick={() => onRecord(rule.id)}
                   >
@@ -266,10 +253,7 @@ export function RecurringView() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <Button
-          className="h-11 self-start text-base"
-          onClick={() => setEditing({ kind: "create" })}
-        >
+        <Button className="self-start" onClick={() => setEditing({ kind: "create" })}>
           <PlusIcon aria-hidden />
           Tambah aturan
         </Button>
@@ -297,20 +281,10 @@ export function RecurringView() {
               </p>
             )}
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 flex-1 text-base"
-                onClick={close}
-              >
+              <Button type="button" variant="outline" className="flex-1" onClick={close}>
                 Batal
               </Button>
-              <Button
-                type="submit"
-                form="recurring-form"
-                className="h-11 flex-1 text-base"
-                disabled={!online}
-              >
+              <Button type="submit" form="recurring-form" className="flex-1" disabled={!online}>
                 Simpan
               </Button>
             </div>
@@ -318,7 +292,7 @@ export function RecurringView() {
         }
       >
         {formOpen && (
-          <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
             <RecurringForm
               key={editingRule?.id ?? "create"}
               rule={editingRule}

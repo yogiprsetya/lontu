@@ -13,9 +13,7 @@ type FormFieldProps = {
 export function FormField({ id, label, error, hint, children }: FormFieldProps) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-base font-semibold">
-        {label}
-      </Label>
+      <Label htmlFor={id}>{label}</Label>
       {children}
       {(error || hint) && (
         <p id={`${id}-message`} className={fieldMessageClass(!!error)}>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { inputClass } from "@/components/forms/field-styles";
 import { moneyFromInput, moneyToInput } from "@/lib/money-input";
 import { cn } from "@/lib/utils";
 
@@ -66,11 +65,8 @@ export function MoneyInput({
           inputMode="numeric"
           autoComplete="off"
           placeholder="0"
-          className={cn(
-            inputClass,
-            "pl-14 text-lg font-bold md:text-lg",
-            negative && "text-destructive",
-          )}
+          variant="amount"
+          data-negative={negative || undefined}
           value={moneyToInput(value)}
           onChange={(e) => onChange(moneyFromInput(e.target.value, negative))}
           onBlur={onBlur}

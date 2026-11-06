@@ -24,12 +24,8 @@ export function InstallCard() {
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {state === "prompt" && (
-          <Button className="h-11 text-base" onClick={() => void install()}>
-            Pasang
-          </Button>
-        )}
-        <Button variant="ghost" className="h-11 text-base" onClick={dismiss}>
+        {state === "prompt" && <Button onClick={() => void install()}>Pasang</Button>}
+        <Button variant="ghost" onClick={dismiss}>
           Nanti
         </Button>
       </div>

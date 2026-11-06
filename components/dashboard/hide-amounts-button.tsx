@@ -10,8 +10,9 @@ export function HideAmountsButton() {
 
   return (
     <Button
-      variant="ghost"
-      className="size-11 shrink-0 rounded-xl bg-card shadow-soft hover:bg-sunny hover:text-sunny-foreground aria-pressed:bg-sunny aria-pressed:text-sunny-foreground"
+      variant="raised"
+      size="icon"
+      className="shrink-0"
       aria-label="Sembunyikan nominal"
       aria-pressed={hideAmounts}
       onClick={toggle}

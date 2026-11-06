@@ -14,7 +14,6 @@ import { useBackToList } from "@/hooks/use-back-to-list";
 import { deleteTransaction, restoreTransaction, useTransaction } from "@/hooks/use-transactions";
 import { ApiError } from "@/lib/fetcher";
 import { isSystemTransactionType } from "@/lib/transaction-types";
-import { cn } from "@/lib/utils";
 import { failureMessage } from "@/lib/offline/network-error";
 import { undoToast } from "@/lib/undo-toast";
 
@@ -23,10 +22,7 @@ function NotFound() {
     <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-6">
       <p className="font-medium">Transaksi tidak ditemukan</p>
       <p className="text-sm text-muted-foreground">Mungkin sudah dihapus.</p>
-      <Link
-        href="/transactions"
-        className={cn(buttonVariants({ variant: "outline" }), "h-11 text-base")}
-      >
+      <Link href="/transactions" className={buttonVariants({ variant: "outline" })}>
         Kembali ke daftar
       </Link>
     </div>
@@ -54,8 +50,8 @@ function DeleteButton({ id }: { id: string }) {
   return (
     <Button
       type="button"
-      variant="outline"
-      className="mt-8 h-11 w-full text-base text-destructive"
+      variant="destructive"
+      className="mt-8 w-full"
       disabled={deleting}
       onClick={() => void onDelete()}
     >

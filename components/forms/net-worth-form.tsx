@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { XIcon } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
-import { fieldMessageClass, inputClass } from "@/components/forms/field-styles";
+import { fieldMessageClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Button } from "@/components/ui/button";
@@ -141,7 +141,7 @@ export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
       <FormField id="net-worth-name" label="Nama" error={errors.name?.message}>
         <Input
           id="net-worth-name"
-          className={inputClass}
+
           autoComplete="off"
           maxLength={60}
           placeholder="mis. DP Rumah, Dana Darurat"
@@ -186,7 +186,7 @@ export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
               <Input
                 id="net-worth-month"
                 type="month"
-                className={inputClass}
+
                 min={thisMonth}
                 placeholder="YYYY-MM"
                 value={field.value ?? ""}
@@ -200,7 +200,7 @@ export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="size-11 shrink-0"
+                  className="shrink-0"
                   aria-label="Hapus bulan target"
                   onClick={() => field.onChange(null)}
                 >

@@ -39,7 +39,7 @@ function ViewSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat nilai aset">
       {Array.from({ length: 3 }, (_, i) => (
-        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+        <Skeleton key={i} className="h-20 w-full" />
       ))}
     </div>
   );
@@ -70,7 +70,7 @@ function RestoreNetWorthButton({
   return (
     <Button
       variant="outline"
-      className="h-11 text-base"
+
       disabled={!online || pending}
       onClick={async () => {
         setPending(true);
@@ -96,34 +96,17 @@ function NetWorthMenu({
 }) {
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-11 rounded-xl"
-        aria-label={`Ubah ${netWorth.name}`}
-        onClick={onEdit}
-      >
+      <Button variant="ghost" size="icon" aria-label={`Ubah ${netWorth.name}`} onClick={onEdit}>
         <PencilIcon className="size-5" aria-hidden />
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11 rounded-xl"
-              aria-label={`Aksi untuk ${netWorth.name}`}
-            />
-          }
+          render={<Button variant="ghost" size="icon" aria-label={`Aksi untuk ${netWorth.name}`} />}
         >
           <EllipsisVerticalIcon className="size-5" aria-hidden />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-44 rounded-2xl p-1.5">
-          <DropdownMenuItem
-            className="min-h-11 rounded-xl text-base"
-            disabled={!online}
-            onClick={onArchive}
-          >
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem disabled={!online} onClick={onArchive}>
             Arsipkan{online ? "" : " · Butuh koneksi"}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -140,11 +123,7 @@ function NoNetWorths({ showArchived, onCreate }: { showArchived: boolean; onCrea
           ? "Belum ada target, termasuk arsip."
           : "Buat target seperti DP rumah atau dana darurat, lalu pilih akun yang menabung untuknya."}
       </p>
-      {!showArchived && (
-        <Button className="h-11 text-base" onClick={onCreate}>
-          Tambah target
-        </Button>
-      )}
+      {!showArchived && <Button onClick={onCreate}>Tambah target</Button>}
     </div>
   );
 }
@@ -300,7 +279,7 @@ export function NetWorthView() {
     <>
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
-          <Button className="h-11 text-base" onClick={() => setCreating(true)}>
+          <Button onClick={() => setCreating(true)}>
             <PlusIcon aria-hidden />
             Tambah target
           </Button>
@@ -329,20 +308,10 @@ export function NetWorthView() {
               </p>
             )}
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 flex-1 text-base"
-                onClick={closeForm}
-              >
+              <Button type="button" variant="outline" className="flex-1" onClick={closeForm}>
                 Batal
               </Button>
-              <Button
-                type="submit"
-                form="net-worth-form"
-                className="h-11 flex-1 text-base"
-                disabled={!online}
-              >
+              <Button type="submit" form="net-worth-form" className="flex-1" disabled={!online}>
                 Simpan
               </Button>
             </div>
@@ -350,7 +319,7 @@ export function NetWorthView() {
         }
       >
         {formOpen && (
-          <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+          <Suspense fallback={<Skeleton className="h-96 w-full" />}>
             <NetWorthForm key={editing?.id ?? "create"} netWorth={editing} onDone={closeForm} />
           </Suspense>
         )}

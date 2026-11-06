@@ -3,7 +3,6 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { HistoryIcon } from "lucide-react";
-import { selectItemClass, selectTriggerClass } from "@/components/forms/field-styles";
 import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
 import { Label } from "@/components/ui/label";
@@ -189,7 +188,7 @@ export function AssetHistory({
           onValueChange={(next) => next[0] && setRange(next[0] as AssetHistoryRange)}
         >
           {ASSET_HISTORY_RANGES.map((r) => (
-            <ToggleGroupItem key={r} value={r} className="h-11 px-4 text-base">
+            <ToggleGroupItem key={r} value={r}>
               {RANGE_LABELS[r]}
             </ToggleGroupItem>
           ))}
@@ -204,12 +203,12 @@ export function AssetHistory({
               value={accountId ?? ALL}
               onValueChange={(v) => v && setSelected(v)}
             >
-              <SelectTrigger id="asset-history-account" className={selectTriggerClass}>
+              <SelectTrigger id="asset-history-account">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {accountItems.map((a) => (
-                  <SelectItem key={a.value} value={a.value} className={selectItemClass}>
+                  <SelectItem key={a.value} value={a.value}>
                     {a.label}
                   </SelectItem>
                 ))}

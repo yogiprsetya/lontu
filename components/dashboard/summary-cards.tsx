@@ -104,7 +104,7 @@ export function SummaryCards({ period }: { period: DashboardPeriod }) {
           if (!data) {
             return (
               <li key={key}>
-                <Skeleton className="h-36 w-full rounded-2xl" />
+                <Skeleton className="h-36 w-full" />
               </li>
             );
           }

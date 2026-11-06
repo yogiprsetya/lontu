@@ -67,16 +67,14 @@ function PendingRow({
         {failed && (
           <Button
             variant="outline"
-            className="h-11 text-base"
+
             onClick={() => void retryQueued(item.id)}
           >
             Coba lagi
           </Button>
         )}
         <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="ghost" className="h-11 text-base" />}>
-            Buang
-          </AlertDialogTrigger>
+          <AlertDialogTrigger render={<Button variant="ghost" />}>Buang</AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Buang transaksi ini?</AlertDialogTitle>
@@ -85,10 +83,10 @@ function PendingRow({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="h-11 text-base">Batal</AlertDialogCancel>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
-                className="h-11 text-base"
+
                 onClick={() => void discardQueued(item.id)}
               >
                 Buang
@@ -121,7 +119,7 @@ export function PendingTransactions() {
               Menunggu dikirim ({items.length})
             </h2>
             {online && items.some((i) => i.status === "pending") && (
-              <Button variant="outline" className="h-11 text-base" onClick={requestReplay}>
+              <Button variant="outline" onClick={requestReplay}>
                 Kirim sekarang
               </Button>
             )}

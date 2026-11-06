@@ -9,10 +9,7 @@ export function SettingsButton() {
     <Link
       href={settingsItem.href}
       aria-label={settingsItem.label}
-      className={cn(
-        buttonVariants({ variant: "ghost" }),
-        "size-11 shrink-0 rounded-xl bg-card shadow-soft hover:bg-sunny hover:text-sunny-foreground lg:hidden",
-      )}
+      className={cn(buttonVariants({ variant: "raised", size: "icon" }), "shrink-0 lg:hidden")}
     >
       <settingsItem.icon aria-hidden />
     </Link>

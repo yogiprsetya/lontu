@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
-import { inputClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
@@ -108,7 +107,7 @@ function ValuationForm({ asset, account, onSubmitting, onDone }: FormProps) {
       <FormField id={`${id}-note`} label="Deskripsi (opsional)" error={errors.note}>
         <Input
           id={`${id}-note`}
-          className={inputClass}
+
           autoComplete="off"
           maxLength={200}
           value={note}
@@ -150,7 +149,7 @@ export function ValuationSheet({ asset, account, onClose }: SheetProps) {
             <Button
               type="button"
               variant="outline"
-              className="flex-1 text-base"
+              className="flex-1"
               disabled={submitting}
               onClick={onClose}
             >
@@ -160,7 +159,7 @@ export function ValuationSheet({ asset, account, onClose }: SheetProps) {
             <Button
               type="submit"
               form="valuation-form"
-              className="flex-1 text-base"
+              className="flex-1"
               disabled={!online || submitting}
             >
               {submitting && <Loader2Icon className="animate-spin" aria-hidden />}

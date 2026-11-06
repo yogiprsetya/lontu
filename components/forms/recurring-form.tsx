@@ -12,6 +12,7 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { TYPE_STYLES } from "@/components/transactions/type-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { inputClass } from "@/components/forms/field-styles";
 import { createRule, updateRule } from "@/hooks/use-recurring";
 import { applyServerErrors } from "@/lib/form-errors";
 import { failureMessage } from "@/lib/offline/network-error";
@@ -120,7 +120,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
             {RECURRING_GROUPS.map(({ type: value, label }) => {
               const { icon: Icon } = TYPE_STYLES[value];
               return (
-                <ToggleGroupItem key={value} value={value} className="h-11 gap-1.5 text-base">
+                <ToggleGroupItem key={value} value={value}>
                   <Icon className="size-4" aria-hidden />
                   {label}
                 </ToggleGroupItem>
@@ -133,7 +133,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
       <FormField id="recurring-name" label="Nama" error={errors.name?.message}>
         <Input
           id="recurring-name"
-          className={inputClass}
+
           autoComplete="off"
           maxLength={60}
           placeholder={
@@ -221,7 +221,8 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
                 id="recurring-day"
                 aria-invalid={!!errors.dayOfMonth}
                 aria-describedby="recurring-day-message"
-                className="flex h-11 w-full items-center justify-between gap-1.5 rounded-md border border-input bg-transparent pr-3 pl-4 text-base font-semibold shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
+                render={<Button variant="field" />}
+                className="w-full"
               >
                 {field.value ? (
                   `Tanggal ${field.value}`
@@ -231,7 +232,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
                 <ChevronDownIcon className="size-4 text-muted-foreground" aria-hidden />
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="p-1">
+              <DropdownMenuContent>
                 <DropdownMenuRadioGroup
                   value={field.value ?? null}
                   onValueChange={field.onChange}
@@ -243,7 +244,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
                       value={day}
                       closeOnClick
                       aria-label={`Tanggal ${day}`}
-                      className="h-11 justify-center p-0 text-base tabular-nums data-checked:bg-primary data-checked:font-semibold data-checked:text-primary-foreground data-checked:focus:bg-primary data-checked:focus:text-primary-foreground *:data-[slot=dropdown-menu-radio-item-indicator]:hidden"
+                      variant="cell"
                     >
                       {day}
                     </DropdownMenuRadioItem>
@@ -261,10 +262,7 @@ export function RecurringForm({ rule, preset, currentPayday, today, onDone }: Re
           name="isPayday"
           render={({ field }) => (
             <div className="flex flex-col gap-1">
-              <Label
-                htmlFor="recurring-payday"
-                className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-base font-normal"
-              >
+              <Label htmlFor="recurring-payday" variant="row">
                 Ini gaji saya
                 <Switch
                   id="recurring-payday"

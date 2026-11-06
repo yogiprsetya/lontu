@@ -61,11 +61,7 @@ export function ResponsiveModal({
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-4">{children}</div>
-        {footer && (
-          <DrawerFooter className="pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            {footer}
-          </DrawerFooter>
-        )}
+        {footer && <DrawerFooter>{footer}</DrawerFooter>}
       </DrawerContent>
     </Drawer>
   );

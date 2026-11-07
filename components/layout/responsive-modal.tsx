@@ -25,6 +25,8 @@ type ResponsiveModalProps = {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** False while a save is in flight: swipe, Esc and backdrop clicks leave the modal open. */
+  dismissible?: boolean;
 };
 
 /** Bottom drawer below `lg`, centered dialog from `lg` up. Only one of them is mounted. */
@@ -35,12 +37,16 @@ export function ResponsiveModal({
   description,
   children,
   footer,
+  dismissible = true,
 }: ResponsiveModalProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const handleOpenChange = (next: boolean) => {
+    if (next || dismissible) onOpenChange(next);
+  };
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
@@ -54,7 +60,7 @@ export function ResponsiveModal({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
+    <Drawer open={open} onOpenChange={handleOpenChange} showSwipeHandle>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>

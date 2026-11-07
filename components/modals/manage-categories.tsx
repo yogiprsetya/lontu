@@ -47,6 +47,7 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
   const [tab, setTab] = useState<CategoryKind>(initialKind ?? "income");
   const [view, setView] = useState<View>({ kind: "list" });
   const [showArchived, setShowArchived] = useState(false);
+  const [saving, setSaving] = useState(false);
   const toList = () => setView({ kind: "list" });
 
   // The host keeps this mounted, so each opening restarts at the requested tab and the list.
@@ -64,6 +65,7 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
       open={open}
       onOpenChange={(next) => !next && onClose()}
       title={titles[view.kind]}
+      dismissible={!saving}
       description={
         view.kind === "list" ? "Kategori untuk income, saving, dan spending." : undefined
       }
@@ -74,7 +76,7 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
             Tambah kategori {KIND_LABELS[tab]}
           </Button>
         ) : (
-          <FormActions form="category-form" onCancel={toList} />
+          <FormActions form="category-form" onCancel={toList} isSubmitting={saving} />
         )
       }
     >
@@ -109,13 +111,14 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
           ))}
         </Tabs>
       ) : view.kind === "create" ? (
-        <CategoryForm kind={tab} onDone={toList} />
+        <CategoryForm kind={tab} onDone={toList} onSubmitting={setSaving} />
       ) : (
         <CategoryForm
           key={view.category.id}
           kind={view.category.kind}
           category={view.category}
           onDone={toList}
+          onSubmitting={setSaving}
         >
           <ArchiveButton
             label="Arsipkan kategori"
@@ -123,6 +126,7 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
             description="Kategori disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi lama. Kamu bisa memulihkannya kapan saja."
             archive={() => archiveCategory(view.category.id)}
             onArchived={toList}
+            disabled={saving}
           />
         </CategoryForm>
       )}

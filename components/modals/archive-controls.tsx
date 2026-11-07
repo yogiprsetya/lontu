@@ -41,6 +41,7 @@ type ArchiveButtonProps = {
   description: React.ReactNode;
   archive: () => Promise<unknown>;
   onArchived: () => void;
+  disabled?: boolean;
 };
 
 export function ArchiveButton({
@@ -49,6 +50,7 @@ export function ArchiveButton({
   description,
   archive,
   onArchived,
+  disabled,
 }: ArchiveButtonProps) {
   const [pending, setPending] = useState(false);
 
@@ -67,6 +69,7 @@ export function ArchiveButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger
+        disabled={disabled}
         render={<Button type="button" variant="destructive" className="self-start" />}
       >
         <ArchiveIcon aria-hidden />

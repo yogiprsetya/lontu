@@ -3,6 +3,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
@@ -176,6 +177,7 @@ function RuleGroups({
 
 export function RecurringView() {
   const [showArchived, setShowArchived] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
   const [recordingId, setRecordingId] = useState<string | null>(null);
   // Archived rows vanish at once; the id leaves this set when the request settles.
@@ -273,22 +275,14 @@ export function RecurringView() {
         open={formOpen}
         onOpenChange={(open) => !open && close()}
         title={editingRule ? "Ubah aturan" : "Tambah aturan"}
+        dismissible={!saving}
         footer={
-          <div className="flex flex-col gap-2">
-            {!online && (
-              <p className="text-center text-sm text-muted-foreground">
-                Butuh koneksi untuk menyimpan.
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={close}>
-                Batal
-              </Button>
-              <Button type="submit" form="recurring-form" className="flex-1" disabled={!online}>
-                Simpan
-              </Button>
-            </div>
-          </div>
+          <FormActions
+            form="recurring-form"
+            onCancel={close}
+            isSubmitting={saving}
+            offline={!online}
+          />
         }
       >
         {formOpen && (
@@ -300,6 +294,7 @@ export function RecurringView() {
               currentPayday={currentPayday}
               today={today}
               onDone={close}
+              onSubmitting={setSaving}
             />
           </Suspense>
         )}

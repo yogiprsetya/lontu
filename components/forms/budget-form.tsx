@@ -11,6 +11,7 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createBudget, updateBudget } from "@/hooks/use-budgets";
+import { useReportSubmitting } from "@/hooks/use-report-submitting";
 import { budgetCategoryOptions, budgetPatch } from "@/lib/budget-format";
 import { applyServerErrors } from "@/lib/form-errors";
 import { failureMessage } from "@/lib/offline/network-error";
@@ -25,9 +26,11 @@ type BudgetFormProps = {
   /** Edit this budget's current version; omit to create one. */
   budget?: BudgetUsageItem;
   onDone: () => void;
+  /** Reports the save request in flight, for a Simpan button outside the form. */
+  onSubmitting?: (submitting: boolean) => void;
 };
 
-export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProps) {
+export function BudgetForm({ categories, usage, budget, onDone, onSubmitting }: BudgetFormProps) {
   const initial = budget && {
     name: budget.name,
     amount: budget.budget,
@@ -46,6 +49,7 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
       ? { ...initial, spendingType: budget.spendingType }
       : { name: "", amount: 0, spendingType: "wants", categoryIds: [] },
   });
+  useReportSubmitting(isSubmitting, onSubmitting);
   const spendingType = useWatch({ control, name: "spendingType" });
   const options = budgetCategoryOptions({
     categories,

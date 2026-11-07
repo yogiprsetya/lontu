@@ -36,6 +36,7 @@ const titles = {
 export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [view, setView] = useState<View>({ kind: "list" });
   const [showArchived, setShowArchived] = useState(false);
+  const [saving, setSaving] = useState(false);
   const toList = () => setView({ kind: "list" });
 
   function handleOpenChange(next: boolean) {
@@ -49,6 +50,7 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
       open={open}
       onOpenChange={handleOpenChange}
       title={titles[view.kind]}
+      dismissible={!saving}
       description={view.kind === "list" ? "Rekening, e-wallet, kartu kredit, dan aset." : undefined}
       footer={
         view.kind === "list" ? (
@@ -57,7 +59,7 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
             Tambah akun
           </Button>
         ) : (
-          <FormActions form="account-form" onCancel={toList} />
+          <FormActions form="account-form" onCancel={toList} isSubmitting={saving} />
         )
       }
     >
@@ -69,9 +71,14 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
             onEdit={(account) => setView({ kind: "edit", account })}
           />
         )}
-        {view.kind === "create" && <AccountForm onDone={toList} />}
+        {view.kind === "create" && <AccountForm onDone={toList} onSubmitting={setSaving} />}
         {view.kind === "edit" && (
-          <AccountForm key={view.account.id} account={view.account} onDone={toList}>
+          <AccountForm
+            key={view.account.id}
+            account={view.account}
+            onDone={toList}
+            onSubmitting={setSaving}
+          >
             <ArchiveButton
               label="Arsipkan akun"
               name={view.account.name}
@@ -86,6 +93,7 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
               }
               archive={() => archiveAccount(view.account.id)}
               onArchived={toList}
+              disabled={saving}
             />
           </AccountForm>
         )}

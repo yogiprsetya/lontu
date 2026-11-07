@@ -87,6 +87,7 @@ export function BudgetView() {
   const [adding, setAdding] = useState(false);
   // Only the id: the budget itself always comes from the SWR cache.
   const [openId, setOpenId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const openModal = useUIStore((s) => s.open);
   const usage = useBudgetUsage(period);
   const categories = useCategories({ includeArchived: true });
@@ -165,9 +166,12 @@ export function BudgetView() {
       <ResponsiveModal
         open={adding}
         onOpenChange={setAdding}
+        dismissible={!saving}
         title="Tambah budget"
         description={`Mulai ${formatPeriodLabel(period)}`}
-        footer={<FormActions form="budget-form" onCancel={() => setAdding(false)} />}
+        footer={
+          <FormActions form="budget-form" onCancel={() => setAdding(false)} isSubmitting={saving} />
+        }
       >
         {adding && usage.data && categories.data && (
           <Suspense fallback={<Skeleton className="h-64 w-full" />}>
@@ -175,6 +179,7 @@ export function BudgetView() {
               categories={categories.data}
               usage={usage.data}
               onDone={() => setAdding(false)}
+              onSubmitting={setSaving}
             />
           </Suspense>
         )}
@@ -182,11 +187,16 @@ export function BudgetView() {
       <ResponsiveModal
         open={!!opened}
         onOpenChange={(open) => !open && setOpenId(null)}
+        dismissible={!saving}
         title={opened?.name ?? "Budget"}
         description={formatPeriodLabel(period)}
         footer={
           isCurrent ? (
-            <FormActions form="budget-form" onCancel={() => setOpenId(null)} />
+            <FormActions
+              form="budget-form"
+              onCancel={() => setOpenId(null)}
+              isSubmitting={saving}
+            />
           ) : undefined
         }
       >
@@ -201,6 +211,7 @@ export function BudgetView() {
                   usage={usage.data}
                   budget={opened}
                   onDone={() => setOpenId(null)}
+                  onSubmitting={setSaving}
                 />
               </Suspense>
             )}

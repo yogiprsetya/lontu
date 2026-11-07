@@ -3,7 +3,6 @@ import Link from "next/link";
 import { WifiOffIcon } from "lucide-react";
 import { PageTitle } from "@/components/layout/page-title";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Offline" };
 
@@ -16,7 +15,7 @@ export default function OfflinePage() {
         <PageTitle>Kamu sedang offline</PageTitle>
         <p className="text-muted-foreground">Halaman ini belum pernah dibuka di perangkat ini.</p>
         <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <Link href="/dashboard" className={cn(buttonVariants(), "h-11 text-base")}>
+          <Link href="/dashboard" className={buttonVariants()}>
             Ke Dashboard
           </Link>
         </div>

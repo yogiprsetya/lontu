@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { DesktopFabAddMenu } from "@/components/layout/add-menu";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageSkeleton } from "@/components/layout/page-skeleton";
 import { PageWave } from "@/components/layout/page-wave";
@@ -28,6 +29,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={null}>
         <BottomNav />
       </Suspense>
+      <DesktopFabAddMenu />
       <ModalHost />
       <CacheOwnerCheck />
       <OutboxReplay />

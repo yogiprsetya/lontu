@@ -39,7 +39,7 @@ export function PaydayCard() {
 
   if (error)
     return <LoadError message="Gagal memuat proyeksi gajian." onRetry={() => void mutate()} />;
-  if (!data) return <Skeleton className="h-44 w-full rounded-2xl" aria-busy="true" />;
+  if (!data) return <Skeleton className="h-44 w-full" aria-busy="true" />;
 
   const { forecast, rules } = data;
 
@@ -77,7 +77,7 @@ export function PaydayCard() {
           berikutnya bisa dihitung.
         </p>
         <Button
-          className="h-11 self-start text-base"
+          className="self-start"
           disabled={!online || !payday}
           onClick={() => setRecording(true)}
         >

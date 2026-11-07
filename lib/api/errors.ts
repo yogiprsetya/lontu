@@ -63,7 +63,7 @@ export function transactionNotFound() {
 export function transactionNotEditable() {
   return conflict(
     "TRANSACTION_NOT_EDITABLE",
-    "Penyesuaian saldo tidak bisa diubah. Hapus saja jika keliru.",
+    "Penyesuaian dan revaluasi tidak bisa diubah. Hapus saja jika keliru.",
   );
 }
 
@@ -92,6 +92,21 @@ export function budgetRestoreConflict() {
 
 export function budgetNameTaken() {
   return conflict("BUDGET_NAME_TAKEN", "Nama budget sudah dipakai budget lain bulan ini.");
+}
+
+export function netWorthNotFound() {
+  return notFound("NET_WORTH_NOT_FOUND", "Target tidak ditemukan");
+}
+
+export function netWorthNameTaken() {
+  return conflict("NET_WORTH_NAME_TAKEN", "Nama target sudah dipakai target lain.");
+}
+
+export function netWorthRestoreConflict() {
+  return conflict(
+    "NET_WORTH_RESTORE_CONFLICT",
+    "Tidak bisa dipulihkan: nama atau akun sudah dipakai target lain",
+  );
 }
 
 export function ruleNotFound() {

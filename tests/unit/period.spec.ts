@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
+  addMonths,
   clampDay,
   daysBetween,
   formatPeriodLabel,
@@ -8,6 +9,7 @@ import {
   lastDayOfMonth,
   MIN_PERIOD_YEAR,
   monthRange,
+  monthsBetween,
   parsePeriod,
   periodMode,
   periodToRange,
@@ -252,5 +254,27 @@ describe("addDays", () => {
     ["2026-10-23", 10, "2026-11-02"],
   ])("%s %+i → %s", (date, days, expected) => {
     expect(addDays(date, days)).toBe(expected);
+  });
+});
+
+describe("addMonths", () => {
+  it.each([
+    ["2026-11", 26, "2029-01"],
+    ["2026-01", -1, "2025-12"],
+    ["2026-11", -3, "2026-08"],
+    ["2026-12", 0, "2026-12"],
+  ])("%s %+i → %s", (month, count, expected) => {
+    expect(addMonths(month, count)).toBe(expected);
+  });
+});
+
+describe("monthsBetween", () => {
+  it.each([
+    ["2026-11", "2028-12", 25],
+    ["2028-12", "2029-01", 1],
+    ["2026-11", "2026-10", -1],
+    ["2026-11", "2026-11", 0],
+  ])("%s → %s is %i", (from, to, expected) => {
+    expect(monthsBetween(from, to)).toBe(expected);
   });
 });

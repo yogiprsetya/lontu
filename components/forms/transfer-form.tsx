@@ -18,6 +18,7 @@ import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
 import { useShortBalanceWarning } from "@/components/forms/balance-warning";
 import { CategoryPicker } from "@/components/forms/category-picker";
+import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { StickySubmit } from "@/components/forms/sticky-submit";
@@ -38,7 +39,6 @@ import {
 } from "@/lib/schemas/transaction";
 import { useUIStore } from "@/stores/ui";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof transferCreateSchema>;
 type Form = UseFormReturn<FormValues, unknown, TransferCreateInput>;
@@ -63,7 +63,7 @@ export function CreateTransferForm() {
         <Button
           type="button"
           variant="outline"
-          className="h-11 text-base"
+
           onClick={() => open("manageAccounts")}
         >
           <PlusIcon aria-hidden />
@@ -325,18 +325,24 @@ function TransferFields({
         )}
       />
 
-      <FormField id="transfer-date" label="Tanggal" error={errors.date?.message}>
-        <Input
-          id="transfer-date"
-          type="date"
-          className={inputClass}
-          min={MIN_TRANSACTION_DATE}
-          max={today}
-          aria-invalid={!!errors.date}
-          aria-describedby="transfer-date-message"
-          {...register("date")}
-        />
-      </FormField>
+      <Controller
+        control={control}
+        name="date"
+        render={({ field }) => (
+          <FormField id="transfer-date" label="Tanggal" error={errors.date?.message}>
+            <DateField
+              ref={field.ref}
+              id="transfer-date"
+              value={field.value}
+              onChange={field.onChange}
+              min={MIN_TRANSACTION_DATE}
+              max={today}
+              invalid={!!errors.date}
+              describedBy="transfer-date-message"
+            />
+          </FormField>
+        )}
+      />
 
       <FormField
         id="transfer-description"
@@ -345,7 +351,7 @@ function TransferFields({
       >
         <Input
           id="transfer-description"
-          className={inputClass}
+
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}

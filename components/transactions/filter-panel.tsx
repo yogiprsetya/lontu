@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useCategories } from "@/hooks/use-categories";
 import { archiveLabel } from "@/lib/archived";
@@ -28,22 +27,17 @@ import {
   type ListFilters,
 } from "@/lib/transaction-filters";
 import {
-  ADJUSTMENT_LABEL,
-  TRANSACTION_TYPE_LABELS,
+  isSystemTransactionType,
+  transactionTypeLabel,
   type TransactionType,
 } from "@/lib/transaction-types";
 
 const ALL = "all";
 
-const typeLabel = (type: ListTransactionType) =>
-  type === "adjustment" ? ADJUSTMENT_LABEL : TRANSACTION_TYPE_LABELS[type];
-
 function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-base font-semibold">
-        {label}
-      </Label>
+      <Label htmlFor={id}>{label}</Label>
       {children}
     </div>
   );
@@ -68,7 +62,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
 
   const types = [
     { value: ALL, label: "Semua jenis" },
-    ...LIST_TRANSACTION_TYPES.map((t) => ({ value: t, label: typeLabel(t) })),
+    ...LIST_TRANSACTION_TYPES.map((t) => ({ value: t, label: transactionTypeLabel(t) })),
   ];
   const accountItems = [
     { value: ALL, label: "Semua akun" },
@@ -78,7 +72,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
     })),
   ];
   const takesCategory =
-    !filters.type || (filters.type !== "transfer" && filters.type !== "adjustment");
+    !filters.type || (filters.type !== "transfer" && !isSystemTransactionType(filters.type));
   const allowedKind =
     takesCategory && filters.type
       ? CATEGORY_KIND_FOR[filters.type as Exclude<TransactionType, "transfer">]
@@ -93,7 +87,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
 
   return (
     <>
-      <Button variant="outline" className="h-11 text-base" onClick={() => setOpen(true)}>
+      <Button variant="outline" onClick={() => setOpen(true)}>
         <SlidersHorizontalIcon aria-hidden />
         Filter
         {active > 0 && (
@@ -114,15 +108,13 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
           <>
             <Button
               variant="outline"
-              className="h-11 text-base"
+
               disabled={active === 0}
               onClick={() => onChange(normalizeFilters(resetFilters(filters), kindOf, lockedType))}
             >
               Reset
             </Button>
-            <Button className="h-11 text-base" onClick={() => setOpen(false)}>
-              Selesai
-            </Button>
+            <Button onClick={() => setOpen(false)}>Selesai</Button>
           </>
         }
       >
@@ -139,12 +131,12 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
                   })
                 }
               >
-                <SelectTrigger id="filter-type" className={selectTriggerClass}>
+                <SelectTrigger id="filter-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false}>
                   {types.map((t) => (
-                    <SelectItem key={t.value} value={t.value} className={selectItemClass}>
+                    <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
                   ))}
@@ -158,12 +150,12 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
               value={filters.accountId ?? ALL}
               onValueChange={(v) => v && set({ accountId: v === ALL ? undefined : v })}
             >
-              <SelectTrigger id="filter-account" className={selectTriggerClass}>
+              <SelectTrigger id="filter-account">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {accountItems.map((a) => (
-                  <SelectItem key={a.value} value={a.value} className={selectItemClass}>
+                  <SelectItem key={a.value} value={a.value}>
                     {a.label}
                   </SelectItem>
                 ))}
@@ -177,13 +169,11 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
                 value={filters.categoryId ?? ALL}
                 onValueChange={(v) => v && set({ categoryId: v === ALL ? undefined : v })}
               >
-                <SelectTrigger id="filter-category" className={selectTriggerClass}>
+                <SelectTrigger id="filter-category">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false}>
-                  <SelectItem value={ALL} className={selectItemClass}>
-                    Semua kategori
-                  </SelectItem>
+                  <SelectItem value={ALL}>Semua kategori</SelectItem>
                   {CATEGORY_KINDS.filter((kind) => !allowedKind || kind === allowedKind).map(
                     (kind) => (
                       <CategoryGroup
@@ -209,7 +199,7 @@ function CategoryGroup({ label, categories }: { label: string; categories: Categ
     <SelectGroup>
       <SelectLabel>{label}</SelectLabel>
       {categories.map((c) => (
-        <SelectItem key={c.id} value={c.id} className={selectItemClass}>
+        <SelectItem key={c.id} value={c.id}>
           {archiveLabel(c)}
         </SelectItem>
       ))}

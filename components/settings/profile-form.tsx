@@ -14,7 +14,6 @@ import { applyServerErrors } from "@/lib/form-errors";
 import { type Profile, profileSchema } from "@/lib/schemas/profile";
 import { LoadError } from "./load-error";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass } from "@/components/forms/field-styles";
 
 const formSchema = profileSchema
   .pick({ displayName: true, phone: true, location: true })
@@ -77,7 +76,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           <FormField key={name} id={id} label={label} error={errors[name]?.message}>
             <Input
               id={id}
-              className={inputClass}
+
               aria-invalid={!!errors[name]}
               aria-describedby={`${id}-message`}
               {...inputProps}
@@ -86,7 +85,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           </FormField>
         );
       })}
-      <Button type="submit" className="h-11 self-start px-6 text-base" disabled={isSubmitting}>
+      <Button type="submit" className="self-start" disabled={isSubmitting}>
         {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
         Simpan
       </Button>

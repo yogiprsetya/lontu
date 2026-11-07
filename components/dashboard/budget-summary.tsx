@@ -34,7 +34,7 @@ function MonthBudget({ period }: { period: DashboardPeriod }) {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-muted-foreground">{emptyBudgetMessage(period, todayInJakarta())}</p>
-        <Link href={budgetHref} className={cn(buttonVariants(), "h-11 text-base")}>
+        <Link href={budgetHref} className={buttonVariants()}>
           Atur budget
         </Link>
       </div>

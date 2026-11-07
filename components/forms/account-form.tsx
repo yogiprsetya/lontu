@@ -28,7 +28,6 @@ import {
   accountCreateSchema,
 } from "@/lib/schemas/account";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass, selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 
 type FormValues = z.input<typeof accountCreateSchema>;
 
@@ -87,7 +86,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
       <FormField id="account-name" label="Nama akun" error={errors.name?.message}>
         <Input
           id="account-name"
-          className={inputClass}
+
           autoComplete="off"
           placeholder="mis. BCA, GoPay"
           aria-invalid={!!errors.name}
@@ -112,7 +111,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
               onValueChange={(next) => next[0] && field.onChange(next[0] as AccountType)}
             >
               {ACCOUNT_TYPES.map((type) => (
-                <ToggleGroupItem key={type} value={type} className="h-11 text-base">
+                <ToggleGroupItem key={type} value={type}>
                   {ACCOUNT_TYPE_LABELS[type]}
                 </ToggleGroupItem>
               ))}
@@ -135,16 +134,13 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
               value={field.value ?? null}
               onValueChange={(v) => field.onChange(v)}
             >
-              <SelectTrigger id="account-subtype" className={selectTriggerClass}>
+              <SelectTrigger id="account-subtype">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent alignItemWithTrigger={false}>
                 {subtypeItems.map((item) => (
-                  <SelectItem
-                    key={item.value ?? "none"}
-                    value={item.value}
-                    className={selectItemClass}
-                  >
+                  <SelectItem key={item.value ?? "none"} value={item.value}>
                     {item.label}
                   </SelectItem>
                 ))}

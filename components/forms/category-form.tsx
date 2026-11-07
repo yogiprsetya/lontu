@@ -18,7 +18,6 @@ import {
   categoryRenameSchema,
 } from "@/lib/schemas/category";
 import { failureMessage } from "@/lib/offline/network-error";
-import { inputClass } from "@/components/forms/field-styles";
 
 // The kind comes from the active tab, so the form only edits name and, for spending, needs/wants.
 const formSchema = z.object({
@@ -76,7 +75,7 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
       <FormField id="category-name" label="Nama kategori" error={errors.name?.message}>
         <Input
           id="category-name"
-          className={inputClass}
+
           autoComplete="off"
           aria-invalid={!!errors.name}
           aria-describedby="category-name-message"
@@ -105,7 +104,7 @@ export function CategoryForm({ kind, category, onDone, children }: CategoryFormP
                 onValueChange={(next) => next[0] && field.onChange(next[0] as SpendingType)}
               >
                 {SPENDING_TYPES.map((type) => (
-                  <ToggleGroupItem key={type} value={type} className="h-11 text-base">
+                  <ToggleGroupItem key={type} value={type}>
                     {SPENDING_TYPE_LABELS[type]}
                   </ToggleGroupItem>
                 ))}

@@ -17,7 +17,7 @@ export function LoadError({
       <p className="text-sm text-muted-foreground">
         {online ? message : "Belum ada data tersimpan untuk tampilan ini."}
       </p>
-      <Button variant="outline" className="h-11 text-base" onClick={onRetry}>
+      <Button variant="outline" onClick={onRetry}>
         Coba lagi
       </Button>
     </div>

@@ -18,20 +18,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8efe0" },
-    { media: "(prefers-color-scheme: dark)", color: "#1d1914" },
-  ],
+  themeColor: "#f8efe0",
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // next-themes sets the theme class on <html> before hydration.
     <html
       lang="id"
       className={cn("h-full", "antialiased", "font-sans", nunito.variable, baloo.variable)}
-      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col tabular-nums">
         <Providers>{children}</Providers>

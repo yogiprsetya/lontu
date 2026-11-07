@@ -18,7 +18,6 @@ import { archiveLabel, selectableItems } from "@/lib/archived";
 import { groupBySpendingType, useCategories } from "@/hooks/use-categories";
 import { type Category, type CategoryKind, SPENDING_TYPES } from "@/lib/schemas/category";
 import { useUIStore } from "@/stores/ui";
-import { selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 
 type CategoryPickerProps = {
   id: string;
@@ -55,7 +54,7 @@ export function CategoryPicker({
         <Button
           type="button"
           variant="outline"
-          className="h-11 text-base"
+
           onClick={() => open("manageCategories", { kind })}
         >
           <PlusIcon aria-hidden />
@@ -75,7 +74,7 @@ export function CategoryPicker({
     >
       <SelectTrigger
         id={id}
-        className={selectTriggerClass}
+
         aria-invalid={invalid}
         aria-describedby={describedBy}
       >
@@ -87,9 +86,7 @@ export function CategoryPicker({
             (type) =>
               groups[type].length > 0 && (
                 <SelectGroup key={type}>
-                  <SelectLabel className="text-sm font-semibold">
-                    {SPENDING_TYPE_LABELS[type]}
-                  </SelectLabel>
+                  <SelectLabel>{SPENDING_TYPE_LABELS[type]}</SelectLabel>
                   <CategoryItems categories={groups[type]} />
                 </SelectGroup>
               ),
@@ -104,7 +101,7 @@ export function CategoryPicker({
 
 function CategoryItems({ categories }: { categories: Category[] }) {
   return categories.map((c) => (
-    <SelectItem key={c.id} value={c.id} className={selectItemClass}>
+    <SelectItem key={c.id} value={c.id}>
       {archiveLabel(c)}
     </SelectItem>
   ));

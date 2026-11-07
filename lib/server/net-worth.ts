@@ -1,0 +1,204 @@
+import "server-only";
+import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { z } from "zod";
+import { db } from "@/db";
+import { accounts, netWorths } from "@/db/schema";
+import { todayInJakarta } from "@/lib/date";
+import { periodToYearMonth } from "@/lib/period";
+import type {
+  NetWorthCreateInput,
+  NetWorthProgress,
+  NetWorthUpdateInput,
+} from "@/lib/schemas/net-worth";
+import { netWorthProgress } from "@/lib/server/queries/net-worth-progress";
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+type InvalidAccounts = { invalid: { field: "accountIds"; message: string } };
+type Refused =
+  InvalidAccounts | { nameTaken: true } | { notFound: true } | { restoreConflict: true };
+export type NetWorthWriteResult = NetWorthProgress | Refused;
+
+const isUuid = (id: string) => z.uuid().safeParse(id).success;
+const owned = (userId: string, id: string) =>
+  and(eq(netWorths.userId, userId), eq(netWorths.id, id));
+
+/**
+ * Serializes every net worth write of one user until commit, so two requests cannot both pass the
+ * "one account, one active net worth" check (SPEC-net-worth #10). Same key as the budget lock.
+ */
+async function lockNetWorths(tx: Tx, userId: string) {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${userId}))`);
+}
+
+function otherActiveNetWorths(tx: Tx, userId: string, self?: string) {
+  return tx
+    .select({ id: netWorths.id, name: netWorths.name, accountIds: netWorths.accountIds })
+    .from(netWorths)
+    .where(
+      and(
+        eq(netWorths.userId, userId),
+        isNull(netWorths.archivedAt),
+        self ? ne(netWorths.id, self) : undefined,
+      ),
+    );
+}
+
+type OtherNetWorth = Awaited<ReturnType<typeof otherActiveNetWorths>>[number];
+
+const nameClash = (others: OtherNetWorth[], name: string) =>
+  others.some((g) => g.name.toLowerCase() === name.toLowerCase());
+
+type AccountRow = { name: string; subtype: string | null; archivedAt: Date | null };
+
+/** Why `account` cannot join the net worth, or undefined when it can. */
+function accountProblem(
+  account: AccountRow | undefined,
+  kept: boolean,
+  owner: OtherNetWorth | undefined,
+) {
+  // A foreign and a missing id read the same, so nothing leaks.
+  if (!account) return "Akun tidak valid";
+  if (account.subtype === "credit_card")
+    return `${account.name} adalah kartu kredit dan tidak bisa dipakai target`;
+  if (account.archivedAt && !kept) return `${account.name} sudah diarsipkan`;
+  if (owner) return `${account.name} sudah dipakai ${owner.name}`;
+}
+
+/**
+ * Each account must be the user's, not a credit card, active unless `kept` (already in the
+ * net worth), and in no other active net worth. The message names the first account that fails.
+ */
+async function checkAccounts(
+  tx: Tx,
+  userId: string,
+  ids: string[],
+  others: OtherNetWorth[],
+  kept: ReadonlySet<string> = new Set(),
+): Promise<InvalidAccounts | undefined> {
+  const rows = await tx
+    .select({
+      id: accounts.id,
+      name: accounts.name,
+      subtype: accounts.subtype,
+      archivedAt: accounts.archivedAt,
+    })
+    .from(accounts)
+    .where(and(eq(accounts.userId, userId), inArray(accounts.id, ids)));
+  const byId = new Map(rows.map((a) => [a.id, a]));
+  for (const id of ids) {
+    const owner = others.find((g) => g.accountIds.includes(id));
+    const message = accountProblem(byId.get(id), kept.has(id), owner);
+    if (message) return { invalid: { field: "accountIds", message } };
+  }
+}
+
+function targetColumns(targetMonth: string | null) {
+  if (targetMonth === null) return { targetYear: null, targetMonth: null };
+  const { year, month } = periodToYearMonth(targetMonth);
+  return { targetYear: year, targetMonth: month };
+}
+
+/** Read after the write commits, with the same rules as GET. */
+export async function getNetWorthProgress(userId: string, id: string) {
+  const all = await netWorthProgress(userId, { today: todayInJakarta(), includeArchived: true });
+  return all.find((g) => g.id === id);
+}
+
+type Written = Refused | { id: string };
+
+/** The write ran in a transaction; the progress is read after commit so it sees the new row. */
+async function afterWrite(userId: string, written: Written): Promise<NetWorthWriteResult> {
+  if ("id" in written) return (await getNetWorthProgress(userId, written.id))!;
+  return written;
+}
+
+export async function createNetWorth(
+  userId: string,
+  input: NetWorthCreateInput,
+): Promise<NetWorthWriteResult> {
+  const written = await db.transaction(async (tx): Promise<Written> => {
+    await lockNetWorths(tx, userId);
+    const others = await otherActiveNetWorths(tx, userId);
+    const invalid = await checkAccounts(tx, userId, input.accountIds, others);
+    if (invalid) return invalid;
+    if (nameClash(others, input.name)) return { nameTaken: true };
+    const [row] = await tx
+      .insert(netWorths)
+      .values({
+        userId,
+        name: input.name,
+        targetAmount: input.targetAmount,
+        accountIds: input.accountIds,
+        ...targetColumns(input.targetMonth),
+      })
+      .returning({ id: netWorths.id });
+    return { id: row.id };
+  });
+  return afterWrite(userId, written);
+}
+
+/** A name or account change is checked against the other active net worths; untouched fields are not. */
+export async function updateNetWorth(
+  userId: string,
+  id: string,
+  input: NetWorthUpdateInput,
+): Promise<NetWorthWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const written = await db.transaction(async (tx): Promise<Written> => {
+    await lockNetWorths(tx, userId);
+    const [netWorth] = await tx
+      .select({ accountIds: netWorths.accountIds })
+      .from(netWorths)
+      .where(and(owned(userId, id), isNull(netWorths.archivedAt)));
+    if (!netWorth) return { notFound: true };
+    const others = await otherActiveNetWorths(tx, userId, id);
+    if (input.accountIds) {
+      // An account archived after it was linked may stay (SPEC-net-worth #15).
+      const kept = new Set(netWorth.accountIds);
+      const invalid = await checkAccounts(tx, userId, input.accountIds, others, kept);
+      if (invalid) return invalid;
+    }
+    if (input.name !== undefined && nameClash(others, input.name)) return { nameTaken: true };
+    const { targetMonth, ...fields } = input;
+    await tx
+      .update(netWorths)
+      .set({
+        ...fields,
+        ...(targetMonth !== undefined && targetColumns(targetMonth)),
+        updatedAt: sql`now()`,
+      })
+      .where(owned(userId, id));
+    return { id };
+  });
+  return afterWrite(userId, written);
+}
+
+export async function archiveNetWorth(userId: string, id: string): Promise<NetWorthWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const [row] = await db
+    .update(netWorths)
+    // coalesce keeps the original timestamp when archiving twice.
+    .set({ archivedAt: sql`coalesce(${netWorths.archivedAt}, now())` })
+    .where(owned(userId, id))
+    .returning({ id: netWorths.id });
+  return afterWrite(userId, row ?? { notFound: true });
+}
+
+/** Rechecks the name and every account, since another net worth may have taken them meanwhile. */
+export async function restoreNetWorth(userId: string, id: string): Promise<NetWorthWriteResult> {
+  if (!isUuid(id)) return { notFound: true };
+  const written = await db.transaction(async (tx): Promise<Written> => {
+    await lockNetWorths(tx, userId);
+    const [netWorth] = await tx.select().from(netWorths).where(owned(userId, id));
+    if (!netWorth) return { notFound: true };
+    if (!netWorth.archivedAt) return { id };
+    const others = await otherActiveNetWorths(tx, userId, id);
+    const taken = new Set(others.flatMap((g) => g.accountIds));
+    if (nameClash(others, netWorth.name) || netWorth.accountIds.some((a) => taken.has(a)))
+      return { restoreConflict: true };
+    await tx.update(netWorths).set({ archivedAt: null }).where(owned(userId, id));
+    return { id };
+  });
+  return afterWrite(userId, written);
+}

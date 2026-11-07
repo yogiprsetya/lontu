@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronRightIcon, TagsIcon, WalletIcon } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useUIStore } from "@/stores/ui";
 
@@ -25,11 +24,12 @@ export function FinanceSection() {
         <span className="flex-1">Kelola kategori</span>
         <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
       </button>
-      {/* The whole row is the label so the tap target is 44px tall, not just the switch. */}
-      <Label htmlFor="hide-amounts" className={`${rowClass} cursor-pointer font-normal`}>
+      {/* The whole row is the label so the tap target is 44px tall, not just the switch.
+          A plain label, not Label, so it matches the button rows above. */}
+      <label htmlFor="hide-amounts" className={`${rowClass} cursor-pointer`}>
         <span className="flex-1">Sembunyikan nominal</span>
         <Switch id="hide-amounts" checked={hideAmounts} onCheckedChange={toggleHideAmounts} />
-      </Label>
+      </label>
     </div>
   );
 }

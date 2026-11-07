@@ -6,25 +6,22 @@ The source of truth for how Lontu looks. Read it before touching UI; if the dire
 
 Warm, cheerful, playful. Think of a sticker-covered notebook on a sunny desk: a cream page with a faint grid, a pastel hill of color behind the content, soft rounded cards, bright pastel tiles and a few bold candy-colored accents. It should feel like a happy companion app that greets you by name, not a bank dashboard. Money is still serious: numbers stay big, clear and aligned, and decoration never sits on top of a number.
 
-Two themes, same mood:
-
-- **Light**: cream page, warm-white cards, near-black warm ink.
-- **Dark**: warm espresso page (never pure black or cool grey), slightly lighter cards, muted deep pastel tiles. The sunny hero card **stays bright yellow** in dark mode; it is the one warm light on the screen.
+One light theme: cream page, warm-white cards, near-black warm ink. There is no dark mode and no theme switcher.
 
 ## Color
 
-All colors are tokens in `app/globals.css`, defined for `:root` and `.dark`. Don't write raw colors in components.
+All colors are tokens in `app/globals.css`, defined on `:root`. Don't write raw colors in components.
 
 | Token | Role |
 | --- | --- |
-| `background` | Cream page (`#f8efe0` light, `#1d1914` dark) |
+| `background` | Cream page (`#f8efe0`) |
 | `card` / `popover` / `sidebar` | Raised surfaces, a step lighter than the page |
 | `foreground` | Warm ink for text |
 | `muted` / `muted-foreground` | Quiet fills (tracks, chips) and secondary text |
-| `primary` | Pill CTAs: ink in light, sunny in dark |
-| `sunny` + `sunny-foreground` + `sunny-muted-foreground` + `sunny-alert` | The hero card and active nav state. Same in both themes. On sunny, use only these `sunny-*` text tokens, never `foreground` |
+| `primary` | Pill CTAs: ink |
+| `sunny` + `sunny-foreground` + `sunny-muted-foreground` + `sunny-alert` | The hero card and active nav state. On sunny, use only these `sunny-*` text tokens, never `foreground` |
 | `mint`, `peach`, `lilac`, `sky` (+ `-foreground`) | Pastel tiles and page waves. Text on a tile uses its own `-foreground` or `foreground` |
-| `mint-pop`, `peach-pop`, `lilac-pop`, `sky-pop` | Bold candy accents, same in both themes: icon squares (quick add, hero sticker) and the ok progress fill. Icons on them are white (≥ 3:1). Never put text on them |
+| `mint-pop`, `peach-pop`, `lilac-pop`, `sky-pop` | Bold candy accents: icon squares (quick add, hero sticker) and the ok progress fill. Icons on them are white (≥ 3:1). Never put text on them |
 | `income`, `expense`, `budget`, `transfer` | Amount and status text tones |
 | `chart-1..5` | Chart slices, in the same pastel family |
 
@@ -39,7 +36,7 @@ Fixed meaning per transaction type. Keep it identical everywhere (tiles, chips, 
 
 Use `TypeChip` and `TYPE_STYLES` from [components/transactions/type-chip.tsx](components/transactions/type-chip.tsx) rather than repeating the mapping.
 
-Contrast is checked: every text token is at least 4.5:1 on the surfaces it is used on, in both themes. Every `-foreground` passes on its own tile, and the tone colors pass on `card`, `background` and every pastel tile. If you add a pairing, check it. [tests/unit/color-tokens.spec.ts](tests/unit/color-tokens.spec.ts) enforces the tone and chart rules: chart slices need chroma ≥ 0.1, hues at least 40° apart and 3:1 on `background`.
+Contrast is checked: every text token is at least 4.5:1 on the surfaces it is used on. Every `-foreground` passes on its own tile, and the tone colors pass on `card`, `background` and every pastel tile. If you add a pairing, check it. [tests/unit/color-tokens.spec.ts](tests/unit/color-tokens.spec.ts) enforces the tone and chart rules: chart slices need chroma ≥ 0.1, hues at least 40° apart and 3:1 on `background`.
 
 ## Typography
 
@@ -50,7 +47,7 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 - Eyebrow label (above a hero value, a group heading): `text-xs font-bold uppercase tracking-[0.14em]`.
 - Hero amount: `font-heading text-4xl font-extrabold`. Tile amount: `font-heading text-xl font-extrabold`.
 - Money stays `tabular-nums` (already on `<body>`).
-- Fields: use `inputClass`, `selectTriggerClass` and `selectItemClass` from [components/forms/field-styles.ts](components/forms/field-styles.ts). Values are 16 px semibold on every breakpoint (the primitives drop to 14 px at `md`, these undo that); placeholders stay normal weight so a filled field reads differently from an empty one. Labels are `text-base font-semibold`, hints `text-sm`, errors `text-sm font-semibold`. The amount in `MoneyInput` is `text-lg font-bold` because it is the field the form exists for.
+- Fields: `Input`, `SelectTrigger` and `SelectItem` are `h-11` (items `min-h-11`) with 16 px semibold values on every breakpoint; placeholders stay normal weight so a filled field reads differently from an empty one. `Label` is `text-base font-semibold`; hints are `text-sm`, errors `text-sm font-semibold` (`fieldMessageClass` in [components/forms/field-styles.ts](components/forms/field-styles.ts)). The amount in `MoneyInput` is `Input variant="amount"` (`text-lg font-bold`) because it is the field the form exists for.
 
 ## Surfaces and shape
 
@@ -65,14 +62,18 @@ Contrast is checked: every text token is at least 4.5:1 on the surfaces it is us
 
 ## Components
 
-- **Primary CTA**: dark ink pill (`Button` default variant, `h-11`; the pill comes from `--radius-md`). Inside the sunny hero, use `bg-sunny-foreground text-sunny` so it stays dark in both themes.
+- **Primary CTA**: dark ink pill (`Button` default variant and size: `h-11`, 16 px; the pill comes from `--radius-md`). Inside the sunny hero, use `variant="sunny"` so it stays dark on the yellow.
 - **Icon chip**: `size-11 rounded-xl` pastel square with a 20 px lucide icon (`TypeChip`).
 - **Quick add** (dashboard, after the hero): four `size-14` `*-pop` squares with white 28 px icons and a bold label below, one per type. This replaces the reference's illustrated app-icon menu.
-- **Bottom nav**: card-colored bar with a rounded top edge and a soft upward shadow. The active item gets a `bg-sunny` pill behind its icon and a bold label. The center FAB is an ink circle (`size-14`) that sits slightly above the bar.
-- **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`.
+- **Bottom nav**: card-colored bar with a rounded top edge and a soft upward shadow. The active item gets a `bg-sunny` pill behind its icon and a bold label. The center FAB is an ink circle (`Button size="fab"`, `size-14`) that sits slightly above the bar.
+- **Sidebar (lg)**: `sidebar` surface, display-font logo, active item `bg-sunny text-sunny-foreground rounded-xl font-bold`. No add button in the sidebar: on lg the same ink FAB floats at the bottom right (`fixed right-8 bottom-8`) and its menu opens upward.
 - **Progress bar**: `h-2.5 rounded-full`, `muted` track, `mint-pop` fill when ok, `budget` for warning, `expense` for over.
-- **Segmented choices** (theme toggle, chips): `rounded-full` pills; the selected one is ink-filled (`bg-primary text-primary-foreground`).
-- shadcn primitives in `components/ui/` are not hand-edited. They pick up the look through tokens. Override per use with `className`; `cn` merges Tailwind conflicts. The one exception is `Button`: sizes `default` and `lg` pad `px-4` (registry `px-2.5`) so labels don't crowd the edge, and a re-add from the CLI must keep it.
+- **Segmented choices** (chips, `ToggleGroup`): pills; the selected one is ink-filled (`bg-primary text-primary-foreground`).
+- **Primitives own their look.** `components/ui/` is edited to match this file, so a primitive looks right with no `className`. Where a primitive is used, `className` only places it: width, flex/grid placement, margins, position, visibility, `sr-only`. Height, padding, type, color, radius, shadow and state styles go in the primitive as a default or a variant; if a use needs a new look, add a variant. Boxes with no look of their own (`Skeleton`, `ChartContainer`, `ScrollArea`, `Tabs`) may also take a size and inner spacing. [tests/unit/ui-usage.spec.ts](tests/unit/ui-usage.spec.ts) enforces it. Re-adding a primitive from the shadcn CLI overwrites these edits, so diff and re-apply them.
+- Variants beyond the registry:
+  - `Button`: sizes are `h-11` (default), `sm` `h-9`, `lg` `h-12`, `icon` `size-11 rounded-xl`, `icon-lg` `size-14 rounded-2xl`, `fab`. Variants `sunny` (CTA on the hero), `raised` (card-colored icon square that turns sunny on hover and when pressed: hide amounts, settings) and `field` (a trigger that reads as an input: date, day of month). Destructive actions use `destructive`.
+  - `Input variant="amount"`, `SelectTrigger variant="raised" size="lg"` (period stepper), `Label variant="row"` (a whole row labelling a switch, 44 px tall), `DropdownMenuRadioItem variant="cell"` (one square of a picker grid), `Skeleton variant="circle"`.
+  - Menus, select lists and popovers are `rounded-2xl` with `rounded-xl`, `min-h-11`, 16 px items. `Skeleton` is `rounded-2xl`. `DrawerFooter` clears the iOS home indicator.
 
 ## Mascot and illustration
 
@@ -91,7 +92,7 @@ Works at 360 px, touch targets ≥ 44×44 px, input font 16 px, text contrast �
 ## Don't
 
 - Don't use pure white, pure black or neutral greys for surfaces. Everything is tinted warm.
-- Don't put `text-foreground` or `text-muted-foreground` on `bg-sunny`; in dark mode they turn light.
+- Don't put `text-foreground` or `text-muted-foreground` on `bg-sunny`; use the `sunny-*` text tokens.
 - Don't add borders around cards or use more than one hero per screen.
 - Don't use the pastel tiles for anything other than a stat or a type cue; long content goes on `surface`.
 - Don't introduce gradients (beyond the masks that fade the grid and wave), glassmorphism or neon accents.

@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 export function FormActions({ form, onCancel }: { form: string; onCancel: () => void }) {
   return (
     <div className="flex gap-2">
-      <Button type="button" variant="outline" className="h-11 flex-1 text-base" onClick={onCancel}>
+      <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
         Batal
       </Button>
-      <Button type="submit" form={form} className="h-11 flex-1 text-base">
+      <Button type="submit" form={form} className="flex-1">
         Simpan
       </Button>
     </div>

@@ -27,6 +27,8 @@ ALLOWED_EMAILS=          # dipisah koma
 
 ### 2. Skema database (`db/schema.ts` + `drizzle/`)
 
+Semua tabel dan view ada di schema `lontu` (`pgSchema("lontu")` di `db/schema.ts`). `drizzle.config.ts` memakai `schemaFilter: ["lontu"]` dan menyimpan riwayat migrasi di `drizzle.lontu_migrations` (bukan di schema `lontu`: drizzle-kit membuat schema tabel migrasi lebih dulu, sehingga `CREATE SCHEMA "lontu"` di migrasi init akan bentrok), jadi drizzle-kit tidak menyentuh schema app lain di database yang sama. Schema `lontu` tidak diekspos REST Supabase (PostgREST hanya mengekspos `public` secara default).
+
 Semua tabel punya `user_id text not null references users(id) on delete cascade`, kecuali `users`. Uang memakai `bigint`. RLS: `alter table … enable row level security` di kelima tabel, tanpa policy.
 
 | Tabel | Kolom | Constraint & index |
@@ -75,19 +77,19 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 ### 5. Util client
 
 - `lib/money.ts`: `formatIDR(n)` → `Rp10.000` (`Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })`), `parseIDR("10.000") → 10000`, `formatThousands` untuk input, `abbreviateIDR(1_200_000) → "1,2 jt"` (rb, jt, M, T).
-- `lib/fetcher.ts`: `fetcher` dan `ApiError { status, code, message, fields }`. `SWRConfig` global di `app/providers.tsx` bersama `ThemeProvider` (next-themes, default `system`) dan `Toaster`.
+- `lib/fetcher.ts`: `fetcher` dan `ApiError { status, code, message, fields }`. `SWRConfig` global di `app/providers.tsx` bersama `Toaster` (`theme="light"`). Tidak ada `ThemeProvider`: app hanya punya tema terang (diubah 2026-11-06).
 - **Nominal di UI lewat `useAmountFormat()`** (`hooks/use-amount-format.ts`): mengembalikan `(amount, format = formatIDR) => string` yang menampilkan `HIDDEN_AMOUNT` selama `hideAmounts` aktif, berdasarkan `displayAmount(amount, hidden, format)` murni di `lib/money.ts`. Hal yang bukan teks (warna tanda negatif, sumbu dan tooltip grafik) memakai `useAmountsHidden()` dari berkas yang sama. Hanya hook ini dan dua toggle (`components/settings/finance-section.tsx`, `components/dashboard/hide-amounts-button.tsx`) yang membaca `hideAmounts`.
 - `stores/ui.ts`: `useUIStore { modal: 'manageAccounts' | 'manageCategories' | null, modalProps, open, close, hideAmounts, toggleHideAmounts }`. Hanya `hideAmounts` yang di-`persist`.
 
 ### 6. App shell
 
 - `app/(app)/layout.tsx`: di bawah `lg`, satu kolom + **BottomNav** 5 slot (Dashboard, Transactions, **+**, Budget, More). Di `lg` ke atas, **Sidebar** dan bottom nav disembunyikan.
-- Tombol **+** membuka menu Income / Expense / Saving / Transfer yang menuju `/add/[type]` (halaman placeholder di modul ini).
-- More berisi Settings (placeholder) dan Logout.
+- Tombol **+** membuka menu Income / Expense / Saving / Transfer yang menuju `/add/[type]` (halaman placeholder di modul ini). Di bawah `lg` ia ada di tengah bottom nav. Di `lg` ke atas ia berupa floating button di pojok kanan bawah, bukan tombol "Tambah" di sidebar (diubah 2026-11-06).
+- More berisi halaman tanpa slot sendiri, lalu Logout di bawah pemisah. Settings tidak ada di More: di bawah `lg` ia dibuka lewat tombol gear di header dashboard (sebelah tombol sembunyikan nominal). Di `lg` ke atas ia ada di kaki sidebar, di atas Logout, terpisah dari navigasi utama (diubah 2026-11-05).
 - `components/layout/responsive-modal.tsx`: Drawer di bawah `lg`, Dialog di `lg` ke atas, dengan API yang sama.
 - Halaman dashboard/transactions/budget/expenses/settings berupa placeholder dengan judul dan empty state.
 - `app/layout.tsx`: hanya font Inter (`--font-sans`), `lang="id"`, metadata "Lontu", `viewport.themeColor`, padding `env(safe-area-inset-bottom)` di bottom nav, `tabular-nums` untuk nominal.
-- Token warna di `globals.css`: `--income` (hijau), `--expense` (merah), `--budget` (kuning), `--transfer` (ungu), masing-masing untuk light/dark dan lolos 4.5:1 terhadap background.
+- Token warna di `globals.css`: `--income` (hijau), `--expense` (merah), `--budget` (kuning), `--transfer` (ungu), hanya tema terang (`:root`), lolos 4.5:1 terhadap background.
 - `app/manifest.ts`: name, ikon 192/512 + maskable, `display: "standalone"`, `start_url: "/dashboard"`, shortcut "Tambah Expense" → `/add/expense`. Ikon dipulihkan dari commit `c9de1eb`. Ikon maskable dibuat dari ikon 512 dengan padding safe zone.
 
 ## Acceptance criteria
@@ -101,7 +103,7 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - [x] `account_balances` benar untuk skenario: saldo awal 100.000, income 50.000, expense 20.000, transfer keluar 10.000 ke akun B, satu expense soft-deleted → A = 120.000, B = saldo awal B + 10.000.
 - [x] Di lebar 360 px bottom nav tampil dengan 5 slot ≥ 44×44 px dan tidak ada horizontal scroll. Di 1024 px sidebar tampil dan bottom nav hilang.
 - [x] ResponsiveModal tampil sebagai Drawer di mobile dan Dialog di desktop.
-- [x] Dark mode mengikuti sistem dan bisa diubah manual. Pilihan bertahan setelah reload.
+- [x] ~~Dark mode mengikuti sistem dan bisa diubah manual.~~ Dihapus 2026-11-06: app hanya tema terang, tanpa theme switcher.
 - [x] Lighthouse menyatakan manifest installable.
 - [x] `pnpm lint && pnpm typecheck && pnpm test && pnpm build` hijau.
 
@@ -117,4 +119,13 @@ Diubah oleh modul `accounts-categories`: tipe transaksi `adjustment` (bertanda, 
 - **Auth.js v5 + Next 16.4:** cek kompatibilitas peer dependency saat install. Jika ada masalah, berhenti dan tanya sebelum mengganti library.
 - **Drizzle 1.0 RC:** API (`drizzle-orm/postgres-js`, relations) berbeda dari 0.x. Ikuti dokumen dari versi yang terpasang.
 - **Pooler Supabase transaction mode** tidak mendukung prepared statement, jadi wajib `prepare: false`. Migrasi dijalankan lewat koneksi langsung (port 5432) jika pooler menolak DDL.
+- **Squash migrasi (2026-11-06):** 12 migrasi lama (foundation s.d. rename goals ke net_worth) digabung jadi satu migrasi awal `drizzle/<timestamp>_init/` hasil `db:generate` dari `db/schema.ts`. Tidak ada data produksi, jadi DB di-reset (tabel `public` dan schema `drizzle` di-drop) lalu dimigrasi ulang. Nama folder migrasi lama di spec dan `tasks/` adalah riwayat.
+- **Schema `lontu` (2026-11-06):** Lontu pindah ke project Supabase baru yang dipakai bersama beberapa app pribadi, satu schema per app. Migrasi init di-generate ulang dengan semua objek di schema `lontu`. Opsional, untuk isolasi akses antar app: role `lontu_app` yang hanya bisa menyentuh schema `lontu`. Dibuat manual sekali di SQL editor Supabase **sebelum** `pnpm db:migrate`, supaya schema dibuat dan dimiliki role ini (lalu `DATABASE_URL` memakai user `lontu_app.<project-ref>`):
+
+  ```sql
+  create role lontu_app login password '<password>';
+  grant create on database postgres to lontu_app;  -- agar migrasi bisa membuat schema lontu
+  ```
+
+  Role baru tidak punya hak atas tabel milik role lain, jadi `lontu_app` tidak bisa membaca tabel app lain tanpa `grant` tambahan.
 - **`cacheComponents: true`:** layout `(app)` membaca session (data dinamis), jadi bagian dinamis harus dibungkus `<Suspense>`. Baca `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`.

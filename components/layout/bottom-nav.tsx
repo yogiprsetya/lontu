@@ -34,16 +34,33 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
       aria-current={active ? "page" : undefined}
       className={cn(slotClass, active ? "font-extrabold text-foreground" : "text-muted-foreground")}
     >
-      <span
-        className={cn(
-          pillClass,
-          active ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted",
-        )}
-      >
-        <item.icon className="size-5" aria-hidden />
-      </span>
+      <NavPill icon={item.icon} active={active} />
       {item.label}
     </Link>
+  );
+}
+
+function NavPill({ icon: Icon, active }: { icon: NavItem["icon"]; active: boolean }) {
+  return (
+    <span
+      className={cn(pillClass, active ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted")}
+    >
+      <Icon className="size-5" aria-hidden />
+    </span>
+  );
+}
+
+/** The More slot: looks like a nav link, opens the menu. */
+function MoreSlot({ active, ...props }: React.ComponentProps<"button"> & { active: boolean }) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className={cn(slotClass, active ? "font-extrabold text-foreground" : "text-muted-foreground")}
+    >
+      <NavPill icon={EllipsisIcon} active={active} />
+      More
+    </button>
   );
 }
 
@@ -65,43 +82,16 @@ export function BottomNav() {
         </div>
         <NavLink item={budgetItem} pathname={pathname} />
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className={cn(
-              slotClass,
-              moreActive ? "font-extrabold text-foreground" : "text-muted-foreground",
-            )}
-          >
-            <span
-              className={cn(
-                pillClass,
-                moreActive ? "bg-sunny text-sunny-foreground" : "group-hover:bg-muted",
-              )}
-            >
-              <EllipsisIcon className="size-5" aria-hidden />
-            </span>
-            More
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            side="top"
-            align="end"
-            sideOffset={8}
-            className="min-w-52 rounded-2xl p-1.5"
-          >
+          <DropdownMenuTrigger render={<MoreSlot active={moreActive} />} />
+          <DropdownMenuContent side="top" align="end" sideOffset={8} className="min-w-52">
             {moreItems.map((item) => (
-              <DropdownMenuItem
-                key={item.href}
-                className="min-h-11 gap-3 rounded-xl text-base"
-                render={<Link href={item.href} />}
-              >
+              <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
                 <item.icon className="size-5" aria-hidden />
                 {item.label}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="min-h-11 gap-3 rounded-xl text-base"
-              onClick={() => void signOut()}
-            >
+            <DropdownMenuItem onClick={() => void signOut()}>
               <LogOutIcon className="size-5" aria-hidden />
               Logout
             </DropdownMenuItem>

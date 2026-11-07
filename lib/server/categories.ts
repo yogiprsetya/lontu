@@ -21,10 +21,10 @@ export async function seedDefaultCategories(tx: Executor, userId: string) {
     sql`, `,
   );
   await tx.execute(sql`
-    insert into categories (user_id, name, kind, spending_type)
+    insert into ${categories} (user_id, name, kind, spending_type)
     select ${userId}, v.name, v.kind, v.spending_type
     from (values ${values}) as v(name, kind, spending_type)
-    where not exists (select 1 from categories where user_id = ${userId})
+    where not exists (select 1 from ${categories} where user_id = ${userId})
     on conflict do nothing
   `);
 }

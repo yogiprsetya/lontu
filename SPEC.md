@@ -7,7 +7,7 @@ File ini berisi **capability map** (indeks modul) dan aturan yang berlaku untuk 
 
 ## Objective
 
-Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan bernama (satu budget mencakup beberapa kategori), dan dashboard ringkasan.
+Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy): income, expense, saving, transfer antar akun, budget bulanan bernama (satu budget mencakup beberapa kategori), dashboard ringkasan, dan progres ke target net worth bernama.
 
 - **Pengguna:** hanya pemilik (login Google dengan allowlist email). Model data tetap multi-user (`user_id` di setiap tabel), jadi membuka pendaftaran nanti tidak butuh migrasi data.
 - **Sukses berarti:** mencatat transaksi dari ponsel cukup beberapa tap, saldo setiap akun selalu benar, budget yang hampir habis terlihat sebelum akhir bulan, dan data terakhir tetap bisa dilihat saat offline.
@@ -16,15 +16,17 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 
 | Module id | Tanggung jawab | Bergantung pada |
 |---|---|---|
-| `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, theme, manifest | — |
+| `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, manifest | — |
 | `accounts-categories` | CRUD akun & kategori, modal Manage Accounts / Manage Categories, seed kategori default, saldo dari view `account_balances`, halaman Settings | foundation |
 | `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
 | `budgets` | Budget bernama berversi (beberapa kategori, satu jenis Needs/Wants, berlaku sampai diubah), akhiri + urungkan, query `budgetUsage` | accounts-categories, transactions |
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
 | `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
+| `net-worth` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/net-worth`), query `netWorthProgress`, proyeksi `netWorthProjection`, halaman `/net-worth` | accounts-categories, transactions |
+| `asset-history` | Histori nilai aset per bulan (setoran vs pasar) dari transaksi, `GET /api/valuations/history`, query `assetHistory`, section "Histori nilai" (ringkasan, grafik Nilai vs Disetor, tabel) di `/net-worth` | goals, transactions, accounts-categories |
 
-**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya)
+**Urutan build:** foundation → accounts-categories → transactions → budgets → dashboard → pwa-offline → recurring (Fase 2, ditambahkan 2026-10-27; `dashboard` hanya memasang komponennya) → net-worth (Fase 2, ditambahkan 2026-11-01) → asset-history (Fase 2, ditambahkan 2026-11-03)
 
 Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET /api/accounts` ditulis di `SPEC-accounts-categories.md`.
 
@@ -33,20 +35,20 @@ Kontrak antar modul ditulis di spec modul penyedia. Contoh: bentuk respons `GET 
 Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 
 1. **Auth: Auth.js (`next-auth` v5) dengan provider Google saja.** Tanpa Firebase. Session JWT di cookie. Callback `signIn` menolak email di luar `ALLOWED_EMAILS` dan meng-upsert baris `users`. `users.id` = Google `sub` (text).
-2. **Database: Supabase hanya sebagai hosting Postgres, diakses lewat Drizzle** (`drizzle-orm` + `postgres`, `DATABASE_URL` memakai pooler transaction mode, `prepare: false`). Tanpa `supabase-js`, tanpa service role key.
+2. **Database: Supabase hanya sebagai hosting Postgres, diakses lewat Drizzle** (`drizzle-orm` + `postgres`, `DATABASE_URL` memakai pooler transaction mode, `prepare: false`). Tanpa `supabase-js`, tanpa service role key. Semua tabel dan view Lontu ada di schema Postgres `lontu`, bukan `public`, supaya satu project Supabase bisa dipakai beberapa app pribadi (satu schema per app, diputuskan 2026-11-06). SQL mentah merujuk tabel lewat objek Drizzle (`${transactions}`), bukan nama polos, sehingga selalu ter-qualify `"lontu"."transactions"` tanpa bergantung pada `search_path`. Nama untuk hal lain yang khusus Lontu di level project memakai prefix `lontu_` (riwayat migrasi `drizzle.lontu_migrations`, role DB `lontu_app`).
 3. **"RPC" menjadi fungsi query TypeScript** di `lib/server/queries/` (`transactionTotals`, `dashboardSummary`, `budgetUsage`) yang menjalankan SQL agregat lewat Drizzle. Agregasi tetap terjadi di database. Hanya view `account_balances` yang hidup di SQL (lewat migrasi).
 4. **Keamanan data:** setiap query difilter `user_id` dari session. RLS diaktifkan di semua tabel tanpa policy (deny-all), sebagai pengaman jika kredensial anon/REST Supabase bocor. Role koneksi Drizzle adalah pemilik tabel, jadi tidak terkena RLS.
 5. **Transfer digabung ke modul `transactions`:** tabel, daftar, dan cache SWR-nya sama.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
-8. **6 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
+8. **7 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`, `net_worth`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `net_worth` ditambahkan modul `net-worth` (Fase 2), bersama tipe transaksi `revaluation` (constraint + view), disetujui 2026-11-01, diganti nama dari `goals` 2026-11-05 ([SPEC-net-worth.md](SPEC-net-worth.md) § Perubahan skema). `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
 
 ## Tech stack
 
 | Bagian | Pilihan | Versi (terpasang / target) |
 |---|---|---|
 | Framework | Next.js App Router, `cacheComponents: true`, `proxy.ts` (pengganti middleware) | 16.4.2 |
-| UI | React 19, Tailwind v4, shadcn (style `base-vega`, `@base-ui/react`), lucide-react, `next-themes` | 19.3.0 / tailwind 4 |
+| UI | React 19, Tailwind v4, shadcn (style `base-vega`, `@base-ui/react`), lucide-react, `next-themes` (hanya untuk `components/ui/sonner.tsx` dari registry; app hanya punya tema terang) | 19.3.0 / tailwind 4 |
 | Auth | `next-auth` v5 (Auth.js), Google provider | ditambahkan di foundation |
 | DB | Supabase Postgres, `drizzle-orm` + `drizzle-kit`, `postgres` | 1.0.0-rc.4 / ^3.4.9 |
 | Validasi & form | `zod` v4, `react-hook-form`, `@hookform/resolvers` | ditambahkan di foundation |

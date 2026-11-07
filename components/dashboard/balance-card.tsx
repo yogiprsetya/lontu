@@ -14,7 +14,6 @@ import { filtersToUrl } from "@/lib/transaction-filters";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui";
 
-// Sunny stays bright in dark mode, so everything on it uses the sunny-* text tokens, never foreground.
 const HERO_CLASS =
   "relative mt-5 flex flex-col gap-4 rounded-[1.75rem] bg-sunny bg-dots px-5 py-5 text-sunny-foreground shadow-soft [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-sunny-foreground";
 const EYEBROW_CLASS = "text-xs font-bold uppercase tracking-[0.14em] text-sunny-muted-foreground";
@@ -30,9 +29,6 @@ function Sticker() {
   );
 }
 
-const HERO_BUTTON_CLASS =
-  "h-11 rounded-full bg-sunny-foreground px-5 text-base font-bold text-sunny hover:bg-sunny-foreground/85 focus-visible:ring-sunny-foreground/40";
-
 /** Balances are always today's, whatever the period; the period only scopes the drill-down. */
 export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const money = useAmountFormat();
@@ -42,7 +38,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
   const tone = (amount: number) => !hidden && amount < 0 && "text-sunny-alert";
 
   if (error) return <LoadError message="Gagal memuat saldo." onRetry={() => void mutate()} />;
-  if (!data) return <Skeleton className="mt-5 h-52 w-full rounded-[1.75rem]" aria-busy="true" />;
+  if (!data) return <Skeleton className="mt-5 h-52 w-full" aria-busy="true" />;
 
   if (data.length === 0) {
     return (
@@ -52,7 +48,7 @@ export function BalanceCard({ period }: { period: DashboardPeriod }) {
           Total saldo
         </h2>
         <p className="font-semibold">Belum ada akun. Tambahkan akun untuk melihat saldo.</p>
-        <Button className={HERO_BUTTON_CLASS} onClick={() => openModal("manageAccounts")}>
+        <Button variant="sunny" onClick={() => openModal("manageAccounts")}>
           Tambah akun
         </Button>
       </section>

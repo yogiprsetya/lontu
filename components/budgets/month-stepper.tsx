@@ -20,7 +20,8 @@ export function MonthStepper({
     <div className="surface flex min-w-0 flex-1 items-center justify-between gap-1 p-1.5">
       <Button
         variant="secondary"
-        className="size-11 shrink-0"
+        size="icon"
+        className="shrink-0"
         aria-label="Bulan sebelumnya"
         disabled={previous === period}
         onClick={() => onChange(previous)}
@@ -35,7 +36,8 @@ export function MonthStepper({
       </p>
       <Button
         variant="secondary"
-        className="size-11 shrink-0"
+        size="icon"
+        className="shrink-0"
         aria-label="Bulan berikutnya"
         disabled={next > todayInJakarta().slice(0, 7)}
         onClick={() => onChange(next)}

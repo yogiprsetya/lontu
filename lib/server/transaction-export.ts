@@ -4,13 +4,9 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { accounts, categories, transactions } from "@/db/schema";
 import { type Cell, toCSV } from "@/lib/csv";
-import type { TransactionFilters } from "@/lib/schemas/transaction";
+import type { ListTransactionType, TransactionFilters } from "@/lib/schemas/transaction";
 import { transactionWhere } from "@/lib/server/transactions";
-import {
-  ADJUSTMENT_LABEL,
-  TRANSACTION_TYPE_LABELS,
-  isTransactionType,
-} from "@/lib/transaction-types";
+import { transactionTypeLabel } from "@/lib/transaction-types";
 
 const HEADER = [
   "Tanggal",
@@ -48,7 +44,7 @@ export async function exportTransactionsCsv(userId: string, filters: Transaction
 
   const body: Cell[][] = rows.map((r) => [
     r.date,
-    isTransactionType(r.type) ? TRANSACTION_TYPE_LABELS[r.type] : ADJUSTMENT_LABEL,
+    transactionTypeLabel(r.type as ListTransactionType),
     r.amount,
     r.account,
     r.toAccount,

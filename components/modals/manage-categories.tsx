@@ -69,7 +69,7 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
       }
       footer={
         view.kind === "list" ? (
-          <Button size="lg" className="mx-auto h-11" onClick={() => setView({ kind: "create" })}>
+          <Button className="mx-auto" onClick={() => setView({ kind: "create" })}>
             <PlusIcon aria-hidden />
             Tambah kategori {KIND_LABELS[tab]}
           </Button>
@@ -84,9 +84,9 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
           onValueChange={(value) => setTab(value as CategoryKind)}
           className="gap-4 pb-2"
         >
-          <TabsList className="w-full group-data-horizontal/tabs:h-auto">
+          <TabsList className="w-full">
             {CATEGORY_KINDS.map((kind) => (
-              <TabsTrigger key={kind} value={kind} className="h-11 text-base">
+              <TabsTrigger key={kind} value={kind}>
                 {KIND_LABELS[kind]}
               </TabsTrigger>
             ))}

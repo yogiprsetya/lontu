@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { selectItemClass } from "@/components/forms/field-styles";
 import { todayInJakarta } from "@/lib/date";
 import {
   formatPeriodLabel,
@@ -46,7 +45,8 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: P
       <div className="surface flex min-w-0 flex-1 items-center justify-between gap-1 p-1.5">
         <Button
           variant="secondary"
-          className="size-11 shrink-0"
+          size="icon"
+          className="shrink-0"
           aria-label="Periode sebelumnya"
           disabled={shiftPeriod(period, -1) === period}
           onClick={() => onChange(shiftPeriod(period, -1))}
@@ -61,7 +61,8 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: P
         </p>
         <Button
           variant="secondary"
-          className="size-11 shrink-0"
+          size="icon"
+          className="shrink-0"
           aria-label="Periode berikutnya"
           disabled={!canGoNext}
           onClick={() => onChange(next)}
@@ -77,16 +78,13 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: P
           value && onChange(switchPeriodMode(period, value as PeriodMode, today))
         }
       >
-        <SelectTrigger
-          className="w-40 rounded-2xl border-0 bg-card pr-3.5 pl-4 text-base font-bold shadow-soft data-[size=default]:h-14 dark:bg-card"
-          aria-label="Rentang periode"
-        >
+        <SelectTrigger variant="raised" size="lg" className="w-40" aria-label="Rentang periode">
           <SelectValue />
         </SelectTrigger>
 
         <SelectContent alignItemWithTrigger={false}>
           {items.map((m) => (
-            <SelectItem key={m.value} value={m.value} className={selectItemClass}>
+            <SelectItem key={m.value} value={m.value}>
               {m.label}
             </SelectItem>
           ))}

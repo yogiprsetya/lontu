@@ -56,7 +56,7 @@ export function DueInbox() {
             </div>
             <div className="flex gap-2">
               <Button
-                className="h-11 flex-1 text-base sm:flex-none"
+                className="flex-1 sm:flex-none"
                 disabled={!online}
                 onClick={() => setRecordingId(rule.id)}
               >
@@ -64,7 +64,7 @@ export function DueInbox() {
               </Button>
               <Button
                 variant="outline"
-                className="h-11 flex-1 text-base sm:flex-none"
+                className="flex-1 sm:flex-none"
                 disabled={!online || skipping === rule.id}
                 onClick={() => void skip(rule)}
               >

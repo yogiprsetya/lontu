@@ -26,8 +26,8 @@ Nomor 1–3 diputuskan Yogi pada 2026-10-21 (menjawab Open questions #3–#5 di 
 9. **Urutan daftar** `date desc, created_at desc, id desc` (yang terbaru dicatat tampil paling atas di harinya). Cursor memuat ketiganya. Lihat [Cursor](#cursor).
 10. **Filter hidup di URL, bukan di `usePeriodStore`.** `/transactions` tidak membaca store itu. Modul lain yang menautkan ke daftar harus menyusun URL lengkap (lihat [Kontrak untuk modul lain](#kontrak-untuk-modul-lain)).
 11. **Paginasi dengan tombol "Muat lebih banyak"** (target ≥ 44 px), bukan infinite scroll otomatis.
-12. **Total** mencakup `income`, `expense`, `saving` pada himpunan yang terfilter. `transfer` dan `adjustment` tidak dihitung. Baris biaya admin adalah `expense` biasa, jadi ikut terhitung.
-13. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `adjustment` berlabel "Penyesuaian".
+12. **Total** mencakup `income`, `expense`, `saving` pada himpunan yang terfilter. `transfer`, `adjustment`, dan `revaluation` tidak dihitung. Baris biaya admin adalah `expense` biasa, jadi ikut terhitung.
+13. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `adjustment` berlabel "Penyesuaian", `revaluation` (modul `net-worth`) berlabel "Revaluasi".
 
 Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan kosong.
 
@@ -40,10 +40,11 @@ Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan ko
 | `saving`     | `−amount` (uang pindah ke tabungan, tidak dihitung sebagai pengeluaran) | wajib, `kind = saving`   | idem                                          |
 | `transfer`   | `−amount` di `account_id`, `+amount` di `to_account_id`                 | tidak ada                | `accountId`, `toAccountId` (≠ `accountId`)    |
 | `adjustment` | bertanda                                                                | tidak ada                | dibuat hanya oleh modul `accounts-categories` |
+| `revaluation` | bertanda                                                               | tidak ada                | dibuat hanya oleh modul `net-worth` (`POST /api/valuations`) |
 
 - Efek saldo dihitung view `account_balances`, bukan TS. Modul ini tidak menulis saldo.
 - Pemetaan tipe → `kind` kategori memakai `CATEGORY_KIND_FOR` dari `lib/schemas/category.ts`.
-- `adjustment` tampil di daftar, bisa difilter, bisa di-soft-delete (saldo awal efektif ikut bergeser), tetapi **tidak bisa dibuat atau diedit** lewat API ini.
+- `adjustment` tampil di daftar, bisa difilter, bisa di-soft-delete (saldo awal efektif ikut bergeser), tetapi **tidak bisa dibuat atau diedit** lewat API ini. `revaluation` diperlakukan sama (tipe sistem bertanda, `SYSTEM_TRANSACTION_TYPES`); menghapusnya menggeser saldo kembali ([SPEC-net-worth.md](SPEC-net-worth.md)).
 - Referensi (`accountId`, `toAccountId`, `categoryId`) harus milik user dan **aktif** saat create. Saat edit, referensi yang tidak diubah boleh tetap menunjuk item terarsip. Id asing, tidak ada, atau terarsip → 400 pada field yang bersangkutan (pesan sama untuk id asing dan id tidak ada, supaya tidak membocorkan data user lain).
 
 ## Kontrak API
@@ -56,12 +57,12 @@ Semua route memakai `withAuth`, memfilter `user_id` dari session, dan format err
 // lib/schemas/transaction.ts (dipakai client & server)
 type Transaction = {
   id: string;
-  type: "income" | "expense" | "saving" | "transfer" | "adjustment";
-  amount: number; // integer rupiah; bertanda hanya untuk adjustment
+  type: "income" | "expense" | "saving" | "transfer" | "adjustment" | "revaluation";
+  amount: number; // integer rupiah; bertanda hanya untuk adjustment dan revaluation
   date: string; // YYYY-MM-DD
   accountId: string;
   toAccountId: string | null; // non-null tepat jika type = transfer
-  categoryId: string | null; // null untuk transfer dan adjustment
+  categoryId: string | null; // null untuk transfer, adjustment, dan revaluation
   description: string | null;
   createdAt: string; // ISO timestamp
   updatedAt: string;
@@ -77,7 +78,7 @@ type TransactionCreated = { transaction: Transaction; fee: Transaction | null };
 
 | Param             | Nilai                                                   | Catatan                                            |
 | ----------------- | ------------------------------------------------------- | -------------------------------------------------- |
-| `type`            | `income \| expense \| saving \| transfer \| adjustment` | satu nilai                                         |
+| `type`            | `income \| expense \| saving \| transfer \| adjustment \| revaluation` | satu nilai                         |
 | `accountId`       | `z.uuid()`                                              | cocok dengan `account_id` **atau** `to_account_id` |
 | `categoryId`      | `z.uuid()`                                              |                                                    |
 | `from`, `to`      | `YYYY-MM-DD`, inklusif                                  | `from ≤ to`, keduanya opsional                     |
@@ -92,7 +93,7 @@ Param tak dikenal diabaikan. Nilai tidak valid → 400 `VALIDATION_ERROR` dengan
 | `GET /api/transactions`               | filter + `cursor`, `limit`      | 200 `TransactionPage`                                                                      | 400 `VALIDATION_ERROR`, 400 `INVALID_CURSOR`          |
 | `POST /api/transactions`              | lihat di bawah                  | 201 `TransactionCreated`                                                                   | 400                                                   |
 | `GET /api/transactions/[id]`          | —                               | 200 `Transaction`                                                                          | 404                                                   |
-| `PATCH /api/transactions/[id]`        | subset field yang boleh diubah  | 200 `Transaction`                                                                          | 400, 404, 409 `TRANSACTION_NOT_EDITABLE` (adjustment) |
+| `PATCH /api/transactions/[id]`        | subset field yang boleh diubah  | 200 `Transaction`                                                                          | 400, 404, 409 `TRANSACTION_NOT_EDITABLE` (adjustment, revaluation) |
 | `DELETE /api/transactions/[id]`       | —                               | 200 `Transaction` (`deletedAt` terisi). Idempoten: hapus ulang tidak mengubah `deleted_at` | 404                                                   |
 | `POST /api/transactions/[id]/restore` | —                               | 200 `Transaction` (aktif). Idempoten                                                       | 404                                                   |
 | `GET /api/transactions/totals`        | filter (tanpa `cursor`/`limit`) | 200 `TransactionTotals` (nol jika kosong)                                                  | 400                                                   |
@@ -106,7 +107,7 @@ Param tak dikenal diabaikan. Nilai tidak valid → 400 `VALIDATION_ERROR` dengan
 | ----------------------------- | -------------------------------------------------------------------------------------------- |
 | `income`, `expense`, `saving` | `amount`, `date`, `accountId`, `categoryId`, `description?`                                  |
 | `transfer`                    | `amount`, `date`, `accountId`, `toAccountId`, `description?`, `fee?: { amount, categoryId }` |
-| `adjustment`                  | selalu 400                                                                                   |
+| `adjustment`, `revaluation`   | selalu 400                                                                                   |
 
 `fee` hanya ada saat create. Jika ada, server membuat `expense` dengan `account_id` = akun sumber, `date` sama, `description = "Biaya admin transfer"`, dan `categoryId` dari `fee` (harus `kind = spending`). Transfer dan biaya ditulis dalam satu `db.transaction`. Semua validasi dan cek kepemilikan selesai sebelum insert pertama.
 
@@ -155,9 +156,9 @@ Opaque, base64url dari JSON `[date, createdAtMicros, id]`. Predikat keyset: `(da
 ### Ekspor CSV
 
 - Kolom: `Tanggal, Jenis, Jumlah, Akun, Akun Tujuan, Kategori, Needs/Wants, Deskripsi`. Urutan baris sama dengan daftar, tanpa paginasi.
-- `Jumlah` integer mentah (tanpa format), `Jenis` memakai label tipe ("Penyesuaian" untuk adjustment). Nama akun/kategori terarsip tetap terisi.
+- `Jumlah` integer mentah (tanpa format), `Jenis` memakai label tipe ("Penyesuaian" untuk adjustment, "Revaluasi" untuk revaluation). Nama akun/kategori terarsip tetap terisi.
 - Diawali BOM UTF-8 supaya Excel membaca aksara dengan benar. `Content-Disposition: attachment; filename="lontu-transaksi-<period|semua>.csv"`.
-- Sel **teks** yang diawali `=`, `+`, `-`, `@`, tab, atau CR diberi awalan `'` (CSV/formula injection dari `description`). Kolom `Jumlah` tidak disentuh, karena adjustment negatif memang diawali `-`.
+- Sel **teks** yang diawali `=`, `+`, `-`, `@`, tab, atau CR diberi awalan `'` (CSV/formula injection dari `description`). Kolom `Jumlah` tidak disentuh, karena adjustment dan revaluation negatif memang diawali `-`.
 - Dibangun di memori. Cukup untuk skala pribadi (puluhan ribu baris).
 
 ### Kontrak untuk modul lain
@@ -272,10 +273,10 @@ Rekomendasi: **(a)**. Ia memenuhi keempat batasan dan target ≤ 2 nama, serta m
 
 ### 1. Server
 
-- `lib/schemas/transaction.ts`: tipe, schema create/update/filter, `LIST_TRANSACTION_TYPES` (= `TRANSACTION_TYPES` + `adjustment`).
+- `lib/schemas/transaction.ts`: tipe, schema create/update/filter, `LIST_TRANSACTION_TYPES` (= `TRANSACTION_TYPES` + `adjustment` + `revaluation`).
 - `lib/transaction-types.ts`: tambah label "Penyesuaian". `TRANSACTION_TYPES` tidak berubah (adjustment tidak boleh dibuat dari UI).
 - `lib/period.ts` (murni, dipakai client & server): konsep Period (`YYYY-MM`, `YYYY`, `all`): `periodMode`, `isPeriod`, `periodToRange(period)`, `shiftPeriod`, `switchPeriodMode`, `formatPeriodLabel`, `monthRange`, `periodToYearMonth` / `yearMonthToPeriod`, dan aritmetika hari kalender (`lastDayOfMonth`, `clampDay`, `addDays`, `daysBetween`) dari string `YYYY-MM-DD` dibaca sebagai UTC. Modul budgets, dashboard, recurring, dan server mengimpor periode dari sini, bukan dari filter transaksi.
-- `lib/transaction-filters.ts` (murni, dipakai client & server): `parseFilters(searchParams)`, `filtersToSearchParams`, `normalizeFilters` (membersihkan kombinasi tak berarti: `type = transfer/adjustment` menghapus `categoryId`, `categoryId` yang `kind`-nya tidak cocok dengan `type` dihapus).
+- `lib/transaction-filters.ts` (murni, dipakai client & server): `parseFilters(searchParams)`, `filtersToSearchParams`, `normalizeFilters` (membersihkan kombinasi tak berarti: `type = transfer/adjustment/revaluation` menghapus `categoryId`, `categoryId` yang `kind`-nya tidak cocok dengan `type` dihapus).
 - `lib/server/transaction-cursor.ts`: `encodeCursor` / `decodeCursor`.
 - `lib/server/transactions.ts`: `transactionWhere(userId, filters)` (satu-satunya pembangun `where`, dipakai list, totals, dan export), `listTransactions`, `getTransaction`, `createTransaction` (termasuk fee dalam satu `db.transaction`), `updateTransaction`, `softDeleteTransaction`, `restoreTransaction`.
 - `lib/server/queries/transaction-totals.ts`: `transactionTotals(userId, filters)`, satu query `sum(amount) filter (where type = …)` untuk tiga tipe.
@@ -301,9 +302,9 @@ Rekomendasi: **(a)**. Ia memenuhi keempat batasan dan target ≤ 2 nama, serta m
   - Header: stepper periode (bulan sebelumnya/berikutnya, pilih bulan/tahun/"Semua"), strip total Income / Expense / Saving (`hideAmounts` menyamarkan nominal), menu "Ekspor CSV" (tautan biasa ke `/api/transactions/export?…`, ikut filter aktif).
   - Filter Jenis, Akun, Kategori dalam satu panel `ResponsiveModal` dengan badge jumlah filter aktif dan tombol Reset. Perubahan menulis URL lewat `router.replace`, jadi bertahan setelah refresh dan tombol back tidak dipenuhi langkah filter. Akun dan kategori terarsip tetap bisa dipilih (berlabel "(arsip)") karena transaksi lama masih memakainya.
   - Daftar dikelompokkan per tanggal ("Hari ini", "Kemarin", "Sen, 19 Okt 2026"). Judul tanggal diformat dari string `YYYY-MM-DD` dengan `timeZone: "UTC"` supaya tidak bergeser sehari.
-  - Baris: nama kategori (transfer: "A → B", adjustment: "Penyesuaian"), nama akun, deskripsi, nominal berwarna token `--income` (+), `--expense` (−), `--budget` untuk saving (−), `--transfer` tanpa tanda, adjustment sesuai tanda. Tap baris → `/transactions/[id]`.
+  - Baris: nama kategori (transfer: "A → B", adjustment: "Penyesuaian", revaluation: "Revaluasi"), nama akun, deskripsi, nominal berwarna token `--income` (+), `--expense` (−), `--budget` untuk saving (−), `--transfer` tanpa tanda, adjustment dan revaluation sesuai tanda. Tap baris → `/transactions/[id]`.
   - Skeleton saat memuat, empty state berbeda untuk "belum ada transaksi" dan "tidak ada yang cocok dengan filter", error SWR dengan "Coba lagi", tombol "Muat lebih banyak" selama `nextCursor` ada.
-- **`app/(app)/transactions/[id]/page.tsx`**: form edit (field sesuai tipe, tipe ditampilkan read-only), tombol "Hapus". Id bukan UUID → `notFound()`. Referensi terarsip yang tidak diubah tetap muncul sebagai pilihan terpilih berlabel "(arsip)". Untuk adjustment halaman read-only, hanya ada "Hapus". Hapus → kembali ke daftar (`router.back()`, fallback `/transactions`) dan toast "Transaksi dihapus · Urungkan" (6 detik).
+- **`app/(app)/transactions/[id]/page.tsx`**: form edit (field sesuai tipe, tipe ditampilkan read-only), tombol "Hapus". Id bukan UUID → `notFound()`. Referensi terarsip yang tidak diubah tetap muncul sebagai pilihan terpilih berlabel "(arsip)". Untuk adjustment dan revaluation halaman read-only, hanya ada "Hapus". Hapus → kembali ke daftar (`router.back()`, fallback `/transactions`) dan toast "Transaksi dihapus · Urungkan" (6 detik).
 - **`app/(app)/expenses/page.tsx`**: `<TransactionList lockedType="expense" />` dalam `<Suspense>`. Filter Jenis disembunyikan.
 - Mobile: semua target sentuh ≥ 44×44 px, input 16 px, tanpa horizontal scroll di 360 px, kontras ≥ 4.5:1 (nominal tidak hanya dibedakan lewat warna: tanda +/− ikut tampil).
 

@@ -207,3 +207,12 @@ describe("period lower bound", () => {
     expect(parse(`period=${period}`).period).toBe("2026-10");
   });
 });
+
+describe("normalizeFilters with a revaluation type", () => {
+  it("drops the category, since a revaluation has none", () => {
+    const kindOf = () => "spending" as const;
+    expect(
+      normalizeFilters({ period: "all", type: "revaluation", categoryId: CATEGORY }, kindOf),
+    ).toEqual({ period: "all", type: "revaluation" });
+  });
+});

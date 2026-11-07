@@ -3,7 +3,6 @@ import { PageTitle } from "@/components/layout/page-title";
 import { FinanceSection } from "@/components/settings/finance-section";
 import { LogoutButton } from "@/components/settings/logout-button";
 import { ProfileSection } from "@/components/settings/profile-form";
-import { ThemeToggle } from "@/components/settings/theme-toggle";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -31,9 +30,6 @@ export default function SettingsPage() {
         <div className="surface px-5 py-5">
           <FinanceSection />
         </div>
-      </Section>
-      <Section title="Tampilan">
-        <ThemeToggle />
       </Section>
       <LogoutButton />
     </main>

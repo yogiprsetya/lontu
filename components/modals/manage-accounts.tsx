@@ -52,7 +52,7 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
       description={view.kind === "list" ? "Rekening, e-wallet, kartu kredit, dan aset." : undefined}
       footer={
         view.kind === "list" ? (
-          <Button className="h-11 text-base" onClick={() => setView({ kind: "create" })}>
+          <Button onClick={() => setView({ kind: "create" })}>
             <PlusIcon aria-hidden />
             Tambah akun
           </Button>

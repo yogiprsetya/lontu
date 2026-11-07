@@ -16,7 +16,7 @@ import { topCategories } from "@/lib/dashboard-format";
 import type { DashboardPeriod } from "@/lib/schemas/dashboard";
 import { filtersToUrl } from "@/lib/transaction-filters";
 
-const donutSkeleton = () => <Skeleton className="mx-auto size-48 rounded-full" />;
+const donutSkeleton = () => <Skeleton variant="circle" className="mx-auto size-48" />;
 
 const CategoryDonutChart = dynamic(() => import("@/components/dashboard/category-donut-chart"), {
   ssr: false,

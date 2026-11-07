@@ -16,7 +16,7 @@ Di luar cakupan: transaksi apa pun (termasuk penyesuaian saldo lewat transaksi),
 1. **Hapus = arsip.** `DELETE` mengisi `archived_at`, dan item bisa dipulihkan. Tidak ada hard delete. Item terarsip hilang dari picker, tetapi tetap tampil (dengan namanya) di transaksi lama.
 2. **Kategori hanya bisa di-rename.** `kind` dan `spending_type` dikunci sejak dibuat. Transaksi mereferensikan `category_id`, jadi rename langsung berlaku di semua transaksi. Untuk "memindah" kategori ke kind lain, buat kategori baru.
 3. **Akun boleh diubah seluruhnya:** `name`, `type`, `subtype`, dan saldo awal. Kolom `initial_balance` hanya diisi saat akun dibuat. Mengubah saldo awal setelahnya **menambah transaksi `adjustment`** sebesar selisihnya, sehingga ada jejak kenapa saldo bergeser (lihat [Transaksi penyesuaian](#transaksi-penyesuaian)).
-4. **`subtype` opsional dan bebas dari `type`.** Nilainya salah satu dari `debit | ewallet | credit_card | investment | crypto | other`, atau `null`. Tidak ada pasangan wajib dengan `type`.
+4. **`subtype` opsional dan bebas dari `type`.** Nilainya salah satu dari `debit | ewallet | credit_card | investment | crypto | gold | other`, atau `null`. `gold` ("Emas") ditambahkan modul `net-worth` 2026-11-01, hanya Zod dan label karena kolom `subtype` tanpa check constraint. Tidak ada pasangan wajib dengan `type`.
 5. **Saldo negatif diizinkan di semua akun,** termasuk `initial_balance` negatif (rentang −1e12..1e12).
 6. **Seed kategori default saat login,** di `upsertUser`, hanya jika user belum punya baris `categories` sama sekali (termasuk yang terarsip). Karena tidak ada hard delete, seed praktis terjadi sekali per user. Pemilik yang sudah login di fase foundation ikut ter-seed pada login berikutnya.
 7. **Nama unik per user** (akun) dan per user + kind (kategori), case-insensitive, **termasuk yang terarsip** (index unik di DB tidak parsial). Restore tidak pernah bentrok. Membuat item baru dengan nama yang sama dengan item terarsip → 409 dengan pesan yang menyarankan restore.
@@ -34,6 +34,7 @@ Migrasi baru (bukan mengubah/menghapus kolom) mengganti constraint `transactions
 | `transactions_amount_check` | `amount > 0` | `amount > 0`, kecuali `adjustment`: `amount <> 0` (bertanda) |
 | `transactions_category_check` | `(type = 'transfer') = (category_id is null)` | `(type in ('transfer','adjustment')) = (category_id is null)` |
 | view `account_balances` | `income → +amount` | `income`, `adjustment → +amount` |
+| `revaluation` (modul `net-worth`, 2026-11-01) | — | ikut ketiga constraint seperti `adjustment` (bertanda, tanpa kategori) dan `+amount` di view ([SPEC-net-worth.md](SPEC-net-worth.md) § Perubahan skema) |
 
 Aturan:
 
@@ -71,6 +72,7 @@ type Account = {
     | "credit_card"
     | "investment"
     | "crypto"
+    | "gold"
     | "other"
     | null;
   initialBalance: number; // saldo awal efektif (initial_balance + adjustment), integer rupiah
@@ -160,8 +162,8 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
 - **Settings (`app/(app)/settings/page.tsx`)** menggantikan placeholder. Section berurutan:
   1. **Profil:** form `displayName`, `phone`, `location` (react-hook-form + `profileSchema`), tombol Simpan, toast sukses.
   2. **Keuangan:** tombol "Kelola akun" dan "Kelola kategori" (membuka modal lewat `useUIStore`), toggle "Sembunyikan nominal" (`hideAmounts`).
-  3. **Tampilan:** `ThemeToggle` yang sudah ada.
-  4. **Logout.**
+  3. **Logout.**
+     (Section Tampilan dengan `ThemeToggle` dihapus 2026-11-06 bersama dark mode.)
      Bagian yang membaca data memakai SWR di komponen client dengan skeleton. Halaman tetap memenuhi aturan `cacheComponents`.
 - **`components/modals/manage-accounts.tsx`** (di dalam `ResponsiveModal`):
   - Daftar dikelompokkan "Transaksi" dan "Aset". Setiap baris berisi nama, label subtype, dan saldo (`formatIDR`, disamarkan jika `hideAmounts`, merah jika negatif).

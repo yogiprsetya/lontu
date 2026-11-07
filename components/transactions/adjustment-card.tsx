@@ -11,16 +11,16 @@ import {
   formatDateHeading,
   formatSignedAmount,
 } from "@/lib/transaction-format";
-import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
+import { transactionTypeLabel } from "@/lib/transaction-types";
 import { cn } from "@/lib/utils";
 
-/** Adjustments come from changing an account's opening balance, so they are shown but not edited. */
+/** System rows (adjustment, revaluation) are written by the server, so they are shown but not edited. */
 export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
   const { data: accounts } = useAccounts({ includeArchived: true });
   const money = useAmountFormat();
   const account = accounts?.find((a) => a.id === transaction.accountId);
   const rows: [string, React.ReactNode][] = [
-    ["Jenis", ADJUSTMENT_LABEL],
+    ["Jenis", transactionTypeLabel(transaction.type)],
     ["Tanggal", formatDateHeading(transaction.date, todayInJakarta())],
     ["Akun", account ? archiveLabel(account) : "…"],
     [
@@ -29,10 +29,10 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
         key="amount"
         className={cn(
           "font-medium tabular-nums",
-          AMOUNT_TONE_CLASS[amountTone("adjustment", transaction.amount)],
+          AMOUNT_TONE_CLASS[amountTone(transaction.type, transaction.amount)],
         )}
       >
-        {money(transaction.amount, (amount) => formatSignedAmount("adjustment", amount))}
+        {money(transaction.amount, (amount) => formatSignedAmount(transaction.type, amount))}
       </span>,
     ],
     ...(transaction.description
@@ -51,8 +51,9 @@ export function AdjustmentCard({ transaction }: { transaction: Transaction }) {
         ))}
       </dl>
       <p className="text-sm text-muted-foreground">
-        Dibuat saat saldo awal akun diubah. Penyesuaian tidak bisa diedit; menghapusnya
-        mengembalikan saldo awal efektif akun.
+        {transaction.type === "revaluation"
+          ? "Dibuat saat nilai akun diperbarui. Revaluasi tidak bisa diedit; menghapusnya mengembalikan saldo akun ke nilai sebelumnya."
+          : "Dibuat saat saldo awal akun diubah. Penyesuaian tidak bisa diedit; menghapusnya mengembalikan saldo awal efektif akun."}
       </p>
     </div>
   );

@@ -1,7 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
-import { budgets } from "@/db/schema";
+import { budgets, categories, transactions } from "@/db/schema";
 import { budgetStatus, summarizeBudgetUsage } from "@/lib/budget-status";
 import { monthRange, periodToYearMonth } from "@/lib/period";
 import type { BudgetPeriod } from "@/lib/schemas/budget";
@@ -31,7 +31,7 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
     shown as (select * from effective where deleted_at is null),
     spending as (
       select category_id, sum(amount)::bigint as spent
-      from transactions
+      from ${transactions}
       where user_id = ${userId} and deleted_at is null and type = 'expense'
         and date between ${from} and ${to}
       group by category_id
@@ -40,7 +40,7 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
       select s.budget_id, bc.category_id, coalesce(sp.spent, 0)::bigint as spent, lower(c.name) as sort_name
       from shown s
       cross join unnest(s.category_ids) as bc(category_id)
-      left join categories c on c.id = bc.category_id and c.user_id = ${userId}
+      left join ${categories} c on c.id = bc.category_id and c.user_id = ${userId}
       left join spending sp on sp.category_id = bc.category_id
     ),
     items as (
@@ -62,7 +62,7 @@ export async function budgetUsage(userId: string, period: BudgetPeriod): Promise
           'categoryId', c.id, 'spendingType', c.spending_type, 'spent', sp.spent)
         order by c.spending_type, lower(c.name), c.id)
        from spending sp
-       join categories c on c.id = sp.category_id and c.user_id = ${userId} and c.kind = 'spending'
+       join ${categories} c on c.id = sp.category_id and c.user_id = ${userId} and c.kind = 'spending'
        where not exists (select 1 from budget_categories bc where bc.category_id = sp.category_id)
       ) as unbudgeted
   `);

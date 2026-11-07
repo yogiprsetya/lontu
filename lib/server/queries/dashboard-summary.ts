@@ -28,7 +28,7 @@ async function expenseActivity(userId: string, { from, to }: DateRange, mode: Da
   const rows = await db.execute<{ bucket: string; expense: string }>(sql`
     select to_char(b.start, ${label}) as bucket, coalesce(sum(t.amount), 0)::bigint as expense
     from generate_series(${from}::timestamp, ${to}::timestamp, ${step}) as b(start)
-    left join transactions t
+    left join ${transactions} t
       on t.user_id = ${userId}
       and t.type = 'expense'
       and t.deleted_at is null

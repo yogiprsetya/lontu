@@ -57,7 +57,7 @@ function ListSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-busy="true">
       {Array.from({ length: 6 }, (_, i) => (
-        <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+        <Skeleton key={i} className="h-16 w-full" />
       ))}
     </div>
   );
@@ -126,7 +126,6 @@ function SavedTransactions({ filters }: { filters: ListFilters }) {
       {tx.hasMore && (
         <Button
           variant="outline"
-          className="h-11 rounded-full text-base font-bold"
           disabled={tx.isLoadingMore}
           onClick={() => void tx.setSize(tx.size + 1)}
         >

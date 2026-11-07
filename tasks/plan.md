@@ -15,6 +15,8 @@ Indeks plan per modul, mengikuti urutan build di capability map. `pwa-offline` a
 | `recurring`           | [SPEC-recurring.md](../SPEC-recurring.md)                     | 22–24 | T77–T89 | Selesai (T77–T89). JS `/dashboard` +3,2 KB gzip |
 | Refactor arsitektur   | Architecture review 2026-10-28 (lihat § Refactor arsitektur)  | 25–29 | T90–T106 | Direncanakan |
 | Budget bernama        | [SPEC-budgets.md](../SPEC-budgets.md) (direvisi di T107)      | 30–34 | T107–T122 | T107–T120 selesai; T121–T122 (cutover) menunggu Yogi (migrasi `budget_versions` diterapkan 2026-10-31) |
+| `net-worth`               | [SPEC-net-worth.md](../SPEC-net-worth.md)                             | 35–39 | T123–T138 | T123–T138 selesai (cek UI manual dan produksi tertunda, lihat Temuan verifikasi T134 dan T138) |
+| `asset-history`       | [SPEC-asset-history.md](../SPEC-asset-history.md)             | 40    | T139–T144 | T139–T144 selesai (cek UI manual tertunda, lihat Temuan verifikasi T144). JS `/net-worth` +19,0 KB gzip |
 
 ---
 
@@ -694,3 +696,176 @@ Phase 34  T121 Migrasi data lama (file + dry run) ─► T122 Cutover produksi +
 1. **Budget lama per kategori saat cutover:** dimigrasi sebagai riwayat dan berakhir di bulan cutover (bulan berjalan mulai kosong, pemilik membuat budget bernama baru), atau tetap aktif sebagai budget satu kategori yang lalu digabung manual? (Default: berakhir di bulan cutover. Baris lama untuk bulan depan diabaikan.) **Dijawab 2026-10-31: berakhir di bulan cutover.**
 2. **Nama budget unik** (tanpa beda huruf besar) di antara budget yang tampil di bulan berjalan → 409 `BUDGET_NAME_TAKEN`. Setuju? **Dijawab 2026-10-31: setuju.**
 3. **Tanpa "berlaku mulai bulan depan".** Mengubah budget tanggal 31 ikut mengubah bulan itu. Setuju? **Dijawab 2026-10-31: setuju.**
+
+---
+
+# Modul `net-worth`
+
+Sumber: sesi idea-refine + `/plan` 2026-11-01 ("Net Worth Targets", referensi fitur Net Worth Tracker Monsy) · Spec: [SPEC-net-worth.md](../SPEC-net-worth.md) (draft) · 2026-11-01
+
+## Overview
+
+Pemilik melihat seberapa dekat ia dengan setiap target ("DP Rumah 150 jt"), dengan porsi setoran dan porsi pasar terpisah. Dua bagian, dibangun berurutan: **revaluasi** (tipe transaksi `revaluation` dari sheet "Perbarui nilai" untuk akun reksadana dan emas fisik) lalu **target** (nama, nominal, bulan target opsional, akun-akun yang dihitung, perkiraan dari laju setoran 3 bulan). Harga otomatis, saham, kuantitas, grafik net worth, dan kartu dashboard tidak dikerjakan.
+
+## Kondisi repo saat ini
+
+- Akun `type` `transaction | asset`, `subtype` hanya divalidasi Zod (`lib/schemas/account.ts`), tanpa check constraint di DB, jadi `gold` tidak butuh migrasi.
+- `adjustment` sudah menjadi precedent tipe transaksi sistem bertanda: constraint `transactions_*_check`, satu baris di view `account_balances`, `updateTransaction` menolak edit (`lib/server/transactions.ts`), label dan tanda di `lib/transaction-format.ts`, `type-styles.ts`, `filter-panel.tsx`, `lib/transaction-filters.ts`, kartu `adjustment-card.tsx`. `transactionTotals`, `dashboardSummary`, `budgetUsage` hanya menghitung income/expense/saving.
+- Pola lock: `updateAccount` (`select … for update` + query terpisah sesudah lock), budget (`pg_advisory_xact_lock(hashtext(user_id))` + array id tanpa FK).
+- **DB dipakai bersama oleh tes dan produksi.** Kedua migrasi modul ini hanya memperluas: constraint baru adalah superset yang lama, view baru identik untuk tipe yang ada, tabel `net_worth` baru. Kode produksi lama tidak pernah menulis `revaluation`.
+- Phase 29 (T104–T106) belum selesai dan menyentuh `lib/server/transactions.ts`. T124 hanya mengubah satu cabang `adjustment` di file itu: konflik kecil, rebase biasa. Butir `[ ]` di todo-34 tampaknya sudah dikerjakan (commit `drop budgets`, `rename budget to budgets`) dan perlu dicentang Yogi.
+- Tidak ada komponen `progress` shadcn; `components/budgets/budget-progress.tsx` adalah bar kustom.
+- 732 kasus tes (`it`/`test`) per 2026-11-01.
+
+## Dependency graph
+
+```
+Phase 35  T123 Spec + persetujuan (Yogi) ──────────────────────────────┐
+Phase 36  T124 Tipe revaluation (migrasi + API transaksi) ─┬─► T125 API check-in /api/valuations ─┐
+                                                           └─► T126 Revaluasi di UI transaksi       │
+          T127 Halaman /net-worth: nilai aset + sheet Perbarui nilai (butuh T125) ◄────────────────────┘
+Phase 37  T128 netWorthProjection (murni, hanya butuh T123)
+          T129 Tabel net_worth + query netWorthProgress (butuh T124, T128) ─► T130 POST/GET /api/net-worth
+                                                               └─► T131 PATCH/DELETE/restore
+Phase 38  T132 Kartu target + buat target (butuh T127, T130) ─► T133 Edit, arsip, Urungkan (butuh T131)
+          T134 Verifikasi akhir, ukuran bundle, status spec (butuh T126, T133)
+```
+
+## Phases
+
+| Phase                         | Plan                     | Todo                     | Task      | Checkpoint |
+| ----------------------------- | ------------------------ | ------------------------ | --------- | ---------- |
+| 35. Spec dan persetujuan      | [plan-35.md](plan-35.md) | [todo-35.md](todo-35.md) | T123      | AH         |
+| 36. Revaluasi                 | [plan-36.md](plan-36.md) | [todo-36.md](todo-36.md) | T124–T127 | AI         |
+| 37. Target: model dan API     | [plan-37.md](plan-37.md) | [todo-37.md](todo-37.md) | T128–T131 | AJ         |
+| 38. Target: UI dan penutupan  | [plan-38.md](plan-38.md) | [todo-38.md](todo-38.md) | T132–T134 | AK         |
+| 39. Check-in hari ini + deskripsi | [plan-39.md](plan-39.md) | [todo-39.md](todo-39.md) | T135–T138 | AL         |
+
+## Aturan lintas phase
+
+- **Branch `feat/goals`** dari master. Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
+- **Revaluasi dulu, target kemudian.** Nilai yang jujur adalah prasyarat persen target. Sesudah phase 36, `/net-worth` sudah berguna sendiri (nilai aset, disetor vs pasar, check-in), jadi phase 37–38 bisa berhenti tanpa meninggalkan fitur setengah jadi.
+- **Setiap migrasi didahului `drizzle-kit generate --explain`** dan membaca `migration.sql`. Hanya objek yang tertulis di SPEC-net-worth § Perubahan skema. Tidak ada `ALTER`/`DROP` kolom.
+- **Satu daftar tipe sistem.** T124 menambah `SYSTEM_TRANSACTION_TYPES = ["adjustment", "revaluation"]` di `lib/transaction-types.ts` dan mengganti cek `type === "adjustment"` yang berarti "tipe sistem bertanda" dengan helper itu, supaya tipe ketiga nanti tidak perlu memburu cabang lagi. Cek yang memang khusus adjustment (saldo awal efektif) tetap.
+- **TDD untuk logika baru:** T125, T128, T129 menulis tes merah dulu dengan angka skenario dasar SPEC-net-worth § Acceptance criteria.
+- Setiap resource baru punya tes isolasi A/B dan 401. Tes lama tidak diubah; jumlah tes dicatat di tiap checkpoint.
+- Tidak ada dependency npm baru dan tidak ada komponen shadcn baru.
+
+## Keputusan perencanaan (2026-11-01)
+
+1. **T123 adalah gerbang Ask first:** tabel ke-7 (`net_worth`), perubahan constraint `transactions` dan view, baris `net-worth` di capability map, keputusan terkunci #8, subtype `gold`. Tanpa persetujuan, phase 36 tidak dimulai.
+2. **Dua migrasi, bukan satu.** `revaluation` (T124) dan tabel `net_worth` (T129) terpisah, supaya phase 36 bisa tayang dan dipakai sebelum ada tabel target.
+3. **`/net-worth` lahir di T127 sebagai halaman nilai aset,** dengan nav "Net Worth". Kartu target ditambahkan di T132 di halaman yang sama. Tidak ada halaman sementara di Settings.
+4. **Check-in idempoten tanpa id dari client:** delta dihitung ulang terhadap saldo, jadi ulangan memberi delta 0 (SPEC-net-worth § Aturan tulis).
+5. **`netWorthProgress` dites lewat baris yang ditulis langsung ke DB** di T129 (seperti T111), sebelum route ada, supaya SQL laju dan pembagi dikunci tes lebih dulu.
+6. **Bar progres target memakai ulang `budget-progress.tsx`** jika API-nya cukup (nilai, maksimum, label teks); jika butuh status budget, buat bar kecil sendiri di `components/net-worth/` tanpa mengubah komponen budget.
+
+## Risiko modul
+
+| Risiko                                                                 | Dampak | Mitigasi                                                                                                              |
+| ---------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| Migrasi constraint `transactions` di DB bersama menolak baris produksi | Tinggi | Constraint baru superset lama; `--explain` + baca SQL; tes semua tipe yang ada hijau tanpa diubah (T124)              |
+| Saldo per tanggal salah (adjustment, transfer dua sisi, revaluasi lama) | Tinggi | T125 tes merah dulu: skenario dasar, adjustment hari ini + check-in kemarin, urutan tanggal, ulangan                  |
+| SQL laju salah (transfer internal, antar target, akun terarsip, pembagi) | Tinggi | T129 tes merah dulu dengan baris langsung di DB, invarian `current` = jumlah `GET /api/accounts`                      |
+| Dua tulisan paralel mengklaim akun yang sama                          | Sedang | Advisory lock per user, tes `Promise.all` (T130)                                                                      |
+| Cabang `adjustment` terlewat sehingga revaluasi bisa diedit atau salah tanda | Sedang | `SYSTEM_TRANSACTION_TYPES` + `rg -n '"adjustment"'` di T124 dan T126, tes edit ditolak                                |
+| Konflik dengan phase 29 di `lib/server/transactions.ts`                | Rendah | Perubahan T124 satu cabang; rebase setelah T104–T106 jika selesai lebih dulu                                          |
+| Bundle `/net-worth` membengkak                                            | Rendah | Halaman baru tanpa grafik; ukur di T134, target < 200 KB gzip first load                                              |
+
+## Open questions
+
+Dibawa dari SPEC-net-worth § Open questions, dijawab di T123:
+
+1. **Satu akun, satu target** (keputusan #10): setuju? **Dijawab 2026-11-01: setuju.**
+2. **Laju dari 3 bulan penuh** (keputusan #12), atau ikut bulan berjalan? **Dijawab 2026-11-01: 3 bulan penuh.**
+3. **Kartu Saving di dashboard** tidak menghitung transfer ke akun target: dibiarkan (di luar modul ini), atau masuk backlog `dashboard`? **Dijawab 2026-11-01: dibiarkan.**
+4. **Ambang basi 35 hari** (keputusan #16): setuju? **Dijawab 2026-11-01: setuju.**
+5. **Subtype `gold`** (keputusan #19): tambahkan, atau emas tetap `other`? **Dijawab 2026-11-01: tambahkan.**
+
+## Catatan ukuran net-worth (2026-11-02)
+
+Metode sama dengan Catatan ukuran dashboard (chunk JS yang dirujuk HTML prerender, gzip level 9). Sebelum = `7db9d48` (spec modul, belum ada kode), sesudah = T133.
+
+| Halaman         | Sebelum  | Sesudah  | Selisih |
+| --------------- | -------- | -------- | ------- |
+| `/dashboard`    | 349,8 KB | 350,1 KB | +0,3    |
+| `/transactions` | 343,2 KB | 343,4 KB | +0,2    |
+| `/settings`     | 324,8 KB | 324,6 KB | −0,2    |
+| `/recurring`    | 330,9 KB | 330,9 KB | 0       |
+| `/net-worth`        | —        | 336,1 KB | baru    |
+
+`/net-worth` di atas target 200 KB karena app shell bersama, sama dengan halaman lain (lihat Catatan ukuran dashboard). Halaman ini sendiri menambah ±5 KB di atas `/recurring`; form target dimuat lazy.
+
+## Temuan verifikasi T134 (2026-11-02)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build` (tanpa pesan prerender baru), `pnpm test` 1486 lulus (87 berkas). Semua butir API SPEC-net-worth § Acceptance criteria tercakup tes; "target lama yang bulannya lewat" ditambah di `net-worth-progress.spec.ts` saat T134.
+- Tes lama: tidak ada `tests/api/*.spec.ts` lama yang diubah. Di unit, `account-schema.spec.ts` mengganti contoh subtype tak dikenal `"gold"` → `"stock"` (gold kini valid), dan baris `affectedBy` di `cache-invalidation.spec.ts` diperluas sesuai SPEC-net-worth § Tes.
+- Run penuh kadang gagal di berkas API lama yang tidak disentuh (budgets, recurring, dashboard, seed) karena hook menunggu koneksi pooler, seperti di T89; berkas itu lulus sendiri dan run ulang hijau. Dengan 5 berkas API baru, kemungkinan ini naik. Pertimbangkan memangkas round trip di setup tes atau membatasi paralelisme berkas API (Ask first: `vitest.config.ts`).
+- Kedua migrasi (`20261101161218_revaluation`, `20261101235956_goals_table`) diterapkan ke DB bersama. Cek produksi dengan kode lama belum dilakukan.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir UI SPEC-net-worth dan butir Manual todo-36..38, mode pesawat, kontras di kartu target, layout 360 px dan 1024 px.
+- Keputusan saat build: `AFFECTS.netWorths = ["valuations"]` (spec diperbarui), edit target lewat tombol "Ubah" (spec diperbarui), `hideAmounts` di sheet Perbarui nilai mengosongkan field alih-alih menampilkan saldo, `EXPLAIN` query laju dengan ribuan baris belum diukur.
+
+## Temuan verifikasi T138 (2026-11-03)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` 1512 lulus (87 berkas; +26 dari T134). Butir API revisi 2026-11-02 di SPEC-net-worth § Acceptance criteria tercakup `valuations.spec.ts` dan `valuation-schema.spec.ts`.
+- `rg -n "balancesOn|valuation-date|Pembaruan nilai" lib components` kosong.
+- Tes di luar tiga berkas yang direncanakan: `cache-invalidation.spec.ts` kehilangan `date` di body mock `recordValuations` (typecheck gagal tanpanya, assertion tidak berubah). Plan-39 tidak mencantumkannya.
+- `transactionDateSchema` dihapus (pemakai satu-satunya adalah `valuationSchema`); `transactionDescriptionSchema` di-export untuk `note`.
+- Satu run fokus saat T136 gagal sekali di `valuations.spec.ts` ("opens today again…", 13,7 detik) dan lulus di tiga run ulang. Pola sama dengan tunggu koneksi pooler di Temuan T134; bukan pergantian hari (jam 07.30 WIB).
+- Daftar transaksi menampilkan deskripsi sebagai "{akun} · {deskripsi}" di bawah judul "Revaluasi", dan detail punya baris "Deskripsi" (`adjustment-card.tsx`); tidak ada perubahan di `/transactions`.
+- Belum dicek (butuh login Google di browser sungguhan): butir UI revisi 2026-11-02 dan butir Manual todo-39 (sheet tanpa tanggal, error deskripsi tanpa request, baris "diperbarui hari ini" tanpa tombol sesudah SWR revalidate, layout 360 px dan 1024 px).
+
+---
+
+# Modul `asset-history`
+
+Sumber: sesi idea-refine + `/spec` + `/plan` 2026-11-03 ("histori perubahan aset, tabel standar dan chart yang mudah dipahami") · Spec: [SPEC-asset-history.md](../SPEC-asset-history.md) (draft) · 2026-11-03
+
+## Overview
+
+Section "Histori nilai" di `/net-worth`: kalimat ringkasan, grafik Nilai vs Disetor, dan tabel per bulan (Setoran · Pasar · Nilai), gabungan atau per akun aset, rentang 6/12/Semua. Diturunkan dari `transactions` dengan rumus view `account_balances`. Tanpa skema, migrasi, dependency, atau komponen shadcn baru. Net worth dengan akun transaksi, persen return, dan kartu dashboard tidak dikerjakan.
+
+## Kondisi repo saat ini
+
+- `feat/goals` 30 commit di depan master (modul `net-worth` belum di-merge). Modul ini bergantung pada `/net-worth`, `assetValuations`, dan tipe `revaluation`, jadi branch `feat/asset-history` dibuat dari `feat/goals`.
+- Pola yang dipakai ulang: `generate_series` + `to_char` (`expenseActivity` di `dashboard-summary.ts`), join dua sisi transfer dan `first_month` Asia/Jakarta (`net-worth-progress.ts`), query di-parse dari `searchParams` (`app/api/dashboard/route.ts`), grafik `next/dynamic` + `aria-hidden` + `hideAmounts` (`expense-activity-chart.tsx`).
+- Key `/api/valuations/history` sudah cocok dengan regex resource `valuations` di `lib/cache-invalidation.ts`, jadi tidak ada edge baru.
+- Phase 29 (T104–T106) dan cutover T121–T122 masih terbuka, tetapi tidak menyentuh file modul ini.
+- 1512 tes lulus per T138 (2026-11-03).
+
+## Phases
+
+| Phase                   | Plan                     | Todo                     | Task      | Checkpoint |
+| ----------------------- | ------------------------ | ------------------------ | --------- | ---------- |
+| 40. Histori nilai aset  | [plan-40.md](plan-40.md) | [todo-40.md](todo-40.md) | T139–T144 | AM, AN     |
+
+## Aturan lintas phase
+
+- Satu task = satu commit conventional, gerbang `pnpm lint && pnpm typecheck && pnpm test`. Task UI juga `pnpm build` dan cek manual 360×800 + 1024 (boleh "tertunda: sesi tanpa browser"). UI mengikuti DESIGN.md.
+- TDD: T139, T140, T141 menulis tes merah dulu dengan angka SPEC-asset-history § Acceptance criteria.
+- Tes lama tidak diubah, kecuali tes baru di `cache-invalidation.spec.ts` (T141). Jumlah tes dicatat di setiap checkpoint.
+
+## Catatan ukuran asset-history (2026-11-04)
+
+Metode sama dengan Catatan ukuran dashboard: chunk JS yang dirujuk HTML prerender `/net-worth`, gzip level 9, 1 KB = 1000 byte.
+
+| Titik                               | `/net-worth` |
+| ----------------------------------- | ------------ |
+| Sebelum modul (`bce018a`)           | 342,8 KB     |
+| Sebelum T143 (T142, tanpa grafik)   | 360,2 KB     |
+| T143 (grafik lewat `next/dynamic`)  | 361,8 KB     |
+
+Recharts ada di satu chunk lazy (97,1 KB gzip) dan tidak ada di 22 chunk first load (dicek dengan string `recharts-wrapper`). Target 200 KB tetap terlewati oleh app shell bersama, sama dengan Catatan ukuran dashboard.
+
+Section dan kontrol (T141–T142) menambah 17,4 KB, grafik (T143) 1,6 KB. Zod sudah ada di `/net-worth` sebelumnya (`valuation-sheet.tsx` mengimpor `lib/schemas/valuation`), jadi tambahan T141–T142 kemungkinan besar dari `Select` dan `ToggleGroup` yang sebelumnya hanya dimuat di form lazy. Tidak dipecah lebih jauh. Jika perlu dikurangi, `Select` akun bisa dimuat lazy (keputusan Yogi).
+
+## Temuan verifikasi T144 (2026-11-04)
+
+- Otomatis hijau: `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` 1552 lulus (90 berkas; +40 dari 1512 per T138). Butir API/query SPEC-asset-history § Acceptance criteria tercakup `tests/api/asset-history.spec.ts` (query + route), `tests/unit/asset-history.spec.ts`, dan `tests/unit/asset-history-schema.spec.ts`.
+- Tes lama yang tersentuh: hanya tes baru di `cache-invalidation.spec.ts` (key histori cocok dengan resource `valuations` dan ikut `invalidate("transactions")` / `invalidate("accounts")`), sesuai plan-40. Tidak ada assertion lama yang diubah.
+- Jumlah tes naik 1551 → 1552 di antara T142 dan T143 tanpa tes baru. Run itu melewati tengah malam WIB (2026-11-04), jadi kemungkinan ada `it.each` yang bergantung tanggal. Tidak ditelusuri.
+- Satu run penuh saat T142 gagal sekali di `net-worth-item.spec.ts` ("updates the name, amount and target month…") dan lulus di dua run ulang berkas itu. T142 tidak mengubah kode server. Pesan error run yang gagal tidak tersimpan. Polanya sama dengan Temuan T134/T138.
+- Keputusan saat build: bulan pertama per akun = `least(bulan created_at WIB, bulan transaksi hidup tertua)`. `assetHistory` menyimpulkan `null` dari seri kosong (akun aset aktif selalu punya bulan pertama ≤ bulan `today`). `useAssetHistory` memakai `keepPreviousData` supaya ringkasan dan tabel tidak berkedip saat ganti rentang atau akun. Label bulan memakai `formatTargetMonth` ("Agu 2026" dari ICU; contoh SPEC menulis "Agt"). Tabel memakai `formatMarketGain` untuk Setoran/Pasar penuh dan helper baru `formatShortIDR`/`formatSignedShortIDR` di bawah `sm`.
+- Tidak dikerjakan: `EXPLAIN` dengan beberapa ribu baris (SPEC § Risiko, bukan acceptance criteria).
+- First load `/net-worth` 361,8 KB (sebelum modul 342,8 KB), jadi butir < 200 KB tidak tercapai. Lihat Catatan ukuran asset-history.
+- Belum dicek (butuh login Google di browser sungguhan): semua butir UI SPEC-asset-history dan butir Manual todo-40 (360×800 dan 1024, terang/gelap, `hideAmounts`, mode pesawat, empat kolom muat di 360 px, domain sumbu Y terhadap perubahan ratusan ribu).

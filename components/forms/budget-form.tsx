@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { BudgetCategoryPicker } from "@/components/forms/budget-category-picker";
 import { BudgetDeleteButton } from "@/components/forms/budget-delete-button";
 import { SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
-import { inputClass } from "@/components/forms/field-styles";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
@@ -77,7 +76,7 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
       <FormField id="budget-name" label="Nama budget" error={errors.name?.message}>
         <Input
           id="budget-name"
-          className={inputClass}
+
           autoComplete="off"
           placeholder="mis. Jajan & Hiburan"
           aria-invalid={!!errors.name}
@@ -136,7 +135,7 @@ export function BudgetForm({ categories, usage, budget, onDone }: BudgetFormProp
                 }}
               >
                 {SPENDING_TYPES.map((type) => (
-                  <ToggleGroupItem key={type} value={type} className="h-11 text-base">
+                  <ToggleGroupItem key={type} value={type}>
                     {SPENDING_TYPE_LABELS[type]}
                   </ToggleGroupItem>
                 ))}

@@ -2,7 +2,7 @@ import { archiveLabel } from "@/lib/archived";
 import { formatIDR } from "@/lib/money";
 import { addDays } from "@/lib/period";
 import type { ListTransactionType, Transaction } from "@/lib/schemas/transaction";
-import { ADJUSTMENT_LABEL } from "@/lib/transaction-types";
+import { isSystemTransactionType, transactionTypeLabel } from "@/lib/transaction-types";
 
 // Dates are plain YYYY-MM-DD strings; reading them as UTC keeps the calendar day fixed in any local zone.
 const headingFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -30,6 +30,7 @@ export const AMOUNT_TONE_CLASS: Record<AmountTone, string> = {
 
 /** Colour is never the only cue: `formatSignedAmount` carries the sign too. */
 export function amountTone(type: ListTransactionType, amount: number): AmountTone {
+  if (isSystemTransactionType(type)) return amount < 0 ? "expense" : "income";
   switch (type) {
     case "income":
       return "income";
@@ -39,14 +40,12 @@ export function amountTone(type: ListTransactionType, amount: number): AmountTon
       return "budget";
     case "transfer":
       return "transfer";
-    case "adjustment":
-      return amount < 0 ? "expense" : "income";
   }
 }
 
 export function formatSignedAmount(type: ListTransactionType, amount: number) {
   if (type === "transfer") return formatIDR(amount);
-  const negative = type === "adjustment" ? amount < 0 : type !== "income";
+  const negative = isSystemTransactionType(type) ? amount < 0 : type !== "income";
   return `${negative ? "-" : "+"}${formatIDR(Math.abs(amount))}`;
 }
 
@@ -79,6 +78,6 @@ export function titleOf(
 ) {
   if (t.type === "transfer")
     return `${accounts.get(t.accountId) ?? "Akun"} → ${accounts.get(t.toAccountId!) ?? "Akun"}`;
-  if (t.type === "adjustment") return ADJUSTMENT_LABEL;
+  if (isSystemTransactionType(t.type)) return transactionTypeLabel(t.type);
   return (t.categoryId && categories.get(t.categoryId)) || "Tanpa kategori";
 }

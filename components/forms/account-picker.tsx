@@ -15,7 +15,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { archiveLabel, selectableItems } from "@/lib/archived";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useUIStore } from "@/stores/ui";
-import { selectTriggerClass, selectItemClass } from "@/components/forms/field-styles";
 
 type AccountPickerProps = {
   id: string;
@@ -60,7 +59,7 @@ export function AccountPicker({
         <Button
           type="button"
           variant="outline"
-          className="h-11 text-base"
+
           onClick={() => open("manageAccounts")}
         >
           <PlusIcon aria-hidden />
@@ -76,7 +75,7 @@ export function AccountPicker({
     <Select items={items} value={value || null} onValueChange={(v) => v && onChange(v)}>
       <SelectTrigger
         id={id}
-        className={selectTriggerClass}
+
         aria-invalid={invalid}
         aria-describedby={describedBy}
       >
@@ -84,7 +83,7 @@ export function AccountPicker({
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
         {items.map((item) => (
-          <SelectItem key={item.value} value={item.value} className={selectItemClass}>
+          <SelectItem key={item.value} value={item.value}>
             {item.label}
           </SelectItem>
         ))}

@@ -6,14 +6,16 @@ import {
   date,
   index,
   integer,
-  pgTable,
-  pgView,
+  pgSchema,
   smallint,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+
+// One Supabase project hosts several personal apps, one Postgres schema each.
+export const lontu = pgSchema("lontu");
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const userId = () =>
@@ -22,7 +24,7 @@ const userId = () =>
     .references(() => users.id, { onDelete: "cascade" });
 const money = (name: string) => bigint(name, { mode: "number" });
 
-export const users = pgTable.withRLS("users", {
+export const users = lontu.table.withRLS("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   displayName: text("display_name"),
@@ -33,7 +35,7 @@ export const users = pgTable.withRLS("users", {
   createdAt: createdAt(),
 });
 
-export const accounts = pgTable.withRLS(
+export const accounts = lontu.table.withRLS(
   "accounts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -51,7 +53,7 @@ export const accounts = pgTable.withRLS(
   ],
 );
 
-export const categories = pgTable.withRLS(
+export const categories = lontu.table.withRLS(
   "categories",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -72,7 +74,7 @@ export const categories = pgTable.withRLS(
   ],
 );
 
-export const transactions = pgTable.withRLS(
+export const transactions = lontu.table.withRLS(
   "transactions",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -94,11 +96,11 @@ export const transactions = pgTable.withRLS(
   (t) => [
     check(
       "transactions_type_check",
-      sql`${t.type} in ('income', 'expense', 'saving', 'transfer', 'adjustment')`,
+      sql`${t.type} in ('income', 'expense', 'saving', 'transfer', 'adjustment', 'revaluation')`,
     ),
     check(
       "transactions_amount_check",
-      sql`case when ${t.type} = 'adjustment' then ${t.amount} <> 0 else ${t.amount} > 0 end`,
+      sql`case when ${t.type} in ('adjustment', 'revaluation') then ${t.amount} <> 0 else ${t.amount} > 0 end`,
     ),
     check(
       "transactions_transfer_target_check",
@@ -106,19 +108,20 @@ export const transactions = pgTable.withRLS(
     ),
     check(
       "transactions_category_check",
-      sql`(${t.type} in ('transfer', 'adjustment')) = (${t.categoryId} is null)`,
+      sql`(${t.type} in ('transfer', 'adjustment', 'revaluation')) = (${t.categoryId} is null)`,
     ),
     check("transactions_distinct_accounts_check", sql`${t.toAccountId} <> ${t.accountId}`),
     index("transactions_user_date_idx").on(t.userId, t.date.desc(), t.id.desc()),
     index("transactions_user_account_idx").on(t.userId, t.accountId),
     index("transactions_user_to_account_idx").on(t.userId, t.toAccountId),
     index("transactions_user_category_date_idx").on(t.userId, t.categoryId, t.date),
+    index("transactions_user_account_type_idx").on(t.userId, t.accountId, t.type, t.date),
   ],
 );
 
 // One row = one version of a named budget, in effect from (year, month) until a later version.
 // category_ids has no FK: ownership and kind are checked on write, and categories are never hard-deleted.
-export const budgets = pgTable.withRLS(
+export const budgets = lontu.table.withRLS(
   "budgets",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -142,7 +145,7 @@ export const budgets = pgTable.withRLS(
   ],
 );
 
-export const recurringRules = pgTable.withRLS(
+export const recurringRules = lontu.table.withRLS(
   "recurring_rules",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -175,20 +178,48 @@ export const recurringRules = pgTable.withRLS(
   ],
 );
 
-export const accountBalances = pgView("account_balances", {
-  accountId: uuid("account_id").notNull(),
-  userId: text("user_id").notNull(),
-  balance: money("balance").notNull(),
-}).with({ securityInvoker: true }).as(sql`
+// account_ids has no FK, same as budgets.category_ids: ownership and the one-net-worth rule are checked on write.
+export const netWorths = lontu.table.withRLS(
+  "net_worth",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: userId(),
+    name: text("name").notNull(),
+    targetAmount: money("target_amount").notNull(),
+    targetYear: integer("target_year"),
+    targetMonth: integer("target_month"),
+    accountIds: uuid("account_ids").array().notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("net_worth_amount_check", sql`${t.targetAmount} between 1 and 1000000000000`),
+    check(
+      "net_worth_target_check",
+      sql`(${t.targetYear} is null) = (${t.targetMonth} is null) and (${t.targetMonth} is null or ${t.targetMonth} between 1 and 12)`,
+    ),
+    check("net_worth_account_ids_check", sql`cardinality(${t.accountIds}) between 1 and 20`),
+    index("net_worth_user_idx").on(t.userId),
+  ],
+);
+
+export const accountBalances = lontu
+  .view("account_balances", {
+    accountId: uuid("account_id").notNull(),
+    userId: text("user_id").notNull(),
+    balance: money("balance").notNull(),
+  })
+  .with({ securityInvoker: true }).as(sql`
     select a.id as account_id, a.user_id,
       a.initial_balance + coalesce(sum(case
-        when t.type in ('income', 'adjustment')             then t.amount
-        when t.type in ('expense', 'saving')                then -t.amount
-        when t.type = 'transfer' and t.account_id = a.id    then -t.amount
-        when t.type = 'transfer' and t.to_account_id = a.id then t.amount
+        when t.type in ('income', 'adjustment', 'revaluation') then t.amount
+        when t.type in ('expense', 'saving')                   then -t.amount
+        when t.type = 'transfer' and t.account_id = a.id       then -t.amount
+        when t.type = 'transfer' and t.to_account_id = a.id    then t.amount
       end), 0)::bigint as balance
-    from accounts a
-    left join transactions t
+    from ${accounts} a
+    left join ${transactions} t
       on t.deleted_at is null and (t.account_id = a.id or t.to_account_id = a.id)
     group by a.id
   `);

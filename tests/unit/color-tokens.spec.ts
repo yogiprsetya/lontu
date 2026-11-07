@@ -35,7 +35,7 @@ function contrast(x: [number, number, number], y: [number, number, number]): num
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe.each([":root", ".dark"])("semantic color tokens in %s", (scope) => {
+describe.each([":root"])("semantic color tokens in %s", (scope) => {
   it.each(["income", "expense", "budget", "transfer"])(
     "--%s has at least 4.5:1 contrast on --background",
     (name) => {
@@ -46,7 +46,7 @@ describe.each([":root", ".dark"])("semantic color tokens in %s", (scope) => {
 
 const CHARTS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"];
 
-describe.each([":root", ".dark"])("chart color tokens in %s", (scope) => {
+describe.each([":root"])("chart color tokens in %s", (scope) => {
   // WCAG 1.4.11: graphical objects need 3:1. "Lainnya" uses --muted-foreground.
   it.each([...CHARTS, "muted-foreground"])(
     "--%s has at least 3:1 contrast on --background",

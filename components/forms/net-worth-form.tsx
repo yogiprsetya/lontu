@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { createNetWorth, updateNetWorth, useNetWorths } from "@/hooks/use-net-worth";
+import { useReportSubmitting } from "@/hooks/use-report-submitting";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
 import {
@@ -88,9 +89,11 @@ type NetWorthFormProps = {
   /** Edit this net worth; omit to create one. */
   netWorth?: NetWorth;
   onDone: () => void;
+  /** Reports the save request in flight, for a Simpan button outside the form. */
+  onSubmitting?: (submitting: boolean) => void;
 };
 
-export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
+export function NetWorthForm({ netWorth, onDone, onSubmitting }: NetWorthFormProps) {
   // Archived accounts the net worth already counts stay listed (SPEC-net-worth #15).
   const accounts = useAccounts({ includeArchived: true });
   const netWorths = useNetWorths();
@@ -100,7 +103,7 @@ export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
     control,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, NetWorthCreateInput>({
     resolver: zodResolver(
       netWorth ? netWorthEditSchema(netWorth.targetMonth) : netWorthCreateSchema,
@@ -114,6 +117,7 @@ export function NetWorthForm({ netWorth, onDone }: NetWorthFormProps) {
         }
       : { name: "", targetAmount: 0, targetMonth: null, accountIds: [] },
   });
+  useReportSubmitting(isSubmitting, onSubmitting);
 
   const onSubmit = handleSubmit(async (input) => {
     try {

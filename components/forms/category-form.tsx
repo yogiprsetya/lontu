@@ -8,6 +8,7 @@ import { FormField } from "@/components/forms/form-field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createCategory, renameCategory } from "@/hooks/use-categories";
+import { useReportSubmitting } from "@/hooks/use-report-submitting";
 import { applyServerErrors } from "@/lib/form-errors";
 import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import {
@@ -31,21 +32,30 @@ type CategoryFormProps = {
   /** Rename this category; omit to create one. */
   category?: Category;
   onDone: () => void;
+  /** Reports the save request in flight, for a Simpan button outside the form. */
+  onSubmitting?: (submitting: boolean) => void;
   /** Extra actions for edit mode, rendered above Batal/Simpan. */
   children?: React.ReactNode;
 };
 
-export function CategoryForm({ kind, category, onDone, children }: CategoryFormProps) {
+export function CategoryForm({
+  kind,
+  category,
+  onDone,
+  onSubmitting,
+  children,
+}: CategoryFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: category?.name ?? "", spendingType: category?.spendingType ?? "needs" },
   });
+  useReportSubmitting(isSubmitting, onSubmitting);
 
   const onSubmit = handleSubmit(async ({ name, spendingType }) => {
     try {

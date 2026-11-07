@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createAccount, updateAccount } from "@/hooks/use-accounts";
+import { useReportSubmitting } from "@/hooks/use-report-submitting";
 import { applyServerErrors } from "@/lib/form-errors";
 import {
   ACCOUNT_SUBTYPE_LABELS,
@@ -40,17 +41,19 @@ type AccountFormProps = {
   /** Edit this account; omit to create one. */
   account?: Account;
   onDone: () => void;
+  /** Reports the save request in flight, for a Simpan button outside the form. */
+  onSubmitting?: (submitting: boolean) => void;
   /** Extra actions for edit mode, rendered above Batal/Simpan. */
   children?: React.ReactNode;
 };
 
-export function AccountForm({ account, onDone, children }: AccountFormProps) {
+export function AccountForm({ account, onDone, onSubmitting, children }: AccountFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, AccountCreateInput>({
     resolver: zodResolver(accountCreateSchema),
     defaultValues: account
@@ -62,6 +65,7 @@ export function AccountForm({ account, onDone, children }: AccountFormProps) {
         }
       : { name: "", type: "transaction", subtype: null, initialBalance: 0 },
   });
+  useReportSubmitting(isSubmitting, onSubmitting);
   const initialBalance = useWatch({ control, name: "initialBalance" });
   const balanceChanged = !!account && initialBalance !== account.initialBalance;
 

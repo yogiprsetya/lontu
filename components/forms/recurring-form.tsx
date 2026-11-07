@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createRule, updateRule } from "@/hooks/use-recurring";
+import { useReportSubmitting } from "@/hooks/use-report-submitting";
 import { applyServerErrors } from "@/lib/form-errors";
 import { failureMessage } from "@/lib/offline/network-error";
 import {
@@ -53,20 +54,30 @@ type RecurringFormProps = {
   currentPayday?: RecurringRule;
   today: string;
   onDone: () => void;
+  /** Reports the save request in flight, for a Simpan button outside the form. */
+  onSubmitting?: (submitting: boolean) => void;
 };
 
-export function RecurringForm({ rule, preset, currentPayday, today, onDone }: RecurringFormProps) {
+export function RecurringForm({
+  rule,
+  preset,
+  currentPayday,
+  today,
+  onDone,
+  onSubmitting,
+}: RecurringFormProps) {
   const {
     register,
     control,
     handleSubmit,
     setError,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, RecurringCreateInput>({
     resolver: zodResolver(recurringCreateSchema),
     defaultValues: ruleFormDefaults({ rule, preset }),
   });
+  useReportSubmitting(isSubmitting, onSubmitting);
   const [type, dayOfMonth, isPayday] = useWatch({
     control,
     name: ["type", "dayOfMonth", "isPayday"],

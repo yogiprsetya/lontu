@@ -7,6 +7,7 @@ import { AssetHistory } from "@/components/net-worth/asset-history";
 import { AssetValues, NoAssets } from "@/components/net-worth/asset-values";
 import { NetWorthCard } from "@/components/net-worth/net-worth-card";
 import { ValuationSheet } from "@/components/net-worth/valuation-sheet";
+import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
@@ -188,6 +189,7 @@ export function NetWorthView() {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [saving, setSaving] = useState(false);
   // Archived net worths vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
@@ -300,27 +302,24 @@ export function NetWorthView() {
         open={formOpen}
         onOpenChange={(open) => !open && closeForm()}
         title={editing ? "Ubah target" : "Tambah target"}
+        dismissible={!saving}
         footer={
-          <div className="flex flex-col gap-2">
-            {!online && (
-              <p className="text-center text-sm text-muted-foreground">
-                Butuh koneksi untuk menyimpan.
-              </p>
-            )}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={closeForm}>
-                Batal
-              </Button>
-              <Button type="submit" form="net-worth-form" className="flex-1" disabled={!online}>
-                Simpan
-              </Button>
-            </div>
-          </div>
+          <FormActions
+            form="net-worth-form"
+            onCancel={closeForm}
+            isSubmitting={saving}
+            offline={!online}
+          />
         }
       >
         {formOpen && (
           <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-            <NetWorthForm key={editing?.id ?? "create"} netWorth={editing} onDone={closeForm} />
+            <NetWorthForm
+              key={editing?.id ?? "create"}
+              netWorth={editing}
+              onDone={closeForm}
+              onSubmitting={setSaving}
+            />
           </Suspense>
         )}
       </ResponsiveModal>

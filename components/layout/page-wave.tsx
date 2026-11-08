@@ -8,7 +8,6 @@ const WAVES: [prefix: string, color: string][] = [
   ["/transactions", "text-sky"],
   ["/expenses", "text-sky"],
   ["/add/income", "text-mint"],
-  ["/add/saving", "text-lilac"],
   ["/add/transfer", "text-sky"],
   ["/budget", "text-lilac"],
   ["/settings", "text-mint"],

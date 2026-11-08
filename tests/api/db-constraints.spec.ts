@@ -370,11 +370,40 @@ describe("recurring_rules constraints", () => {
     );
   });
 
-  it("rejects type transfer", async () => {
+  it("rejects type adjustment", async () => {
     await expectPgError(
-      db.insert(recurringRules).values({ ...rule(), type: "transfer" }),
+      db.insert(recurringRules).values({ ...rule(), type: "adjustment" }),
       CHECK_VIOLATION,
       "recurring_rules_type_check",
+    );
+  });
+
+  it("rejects a transfer rule without a destination", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), type: "transfer", categoryId: null }),
+      CHECK_VIOLATION,
+      "recurring_rules_transfer_check",
+    );
+  });
+
+  it("rejects a transfer rule to its own source", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({
+        ...rule(),
+        type: "transfer",
+        categoryId: null,
+        toAccountId: accountA,
+      }),
+      CHECK_VIOLATION,
+      "recurring_rules_distinct_accounts_check",
+    );
+  });
+
+  it("rejects a category-less rule that is not a transfer", async () => {
+    await expectPgError(
+      db.insert(recurringRules).values({ ...rule(), categoryId: null }),
+      CHECK_VIOLATION,
+      "recurring_rules_category_check",
     );
   });
 

@@ -33,7 +33,7 @@ import {
   type RulePreset,
   toUpdateInput,
 } from "@/lib/recurring-form";
-import { RECURRING_GROUPS } from "@/lib/recurring-format";
+import { NEW_RULE_GROUPS, RECURRING_GROUPS } from "@/lib/recurring-format";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
 import {
   type RecurringCreateInput,
@@ -45,6 +45,13 @@ import {
 type FormValues = z.input<typeof recurringCreateSchema>;
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+const NAME_PLACEHOLDERS: Record<RecurringType, string> = {
+  income: "mis. Gaji",
+  expense: "mis. Netflix, Sewa",
+  saving: "mis. Dana darurat",
+  transfer: "mis. Dana darurat",
+};
 
 type RecurringFormProps = {
   /** Edit this rule; omit to create one. */
@@ -78,9 +85,9 @@ export function RecurringForm({
     defaultValues: ruleFormDefaults({ rule, preset }),
   });
   useReportSubmitting(isSubmitting, onSubmitting);
-  const [type, dayOfMonth, isPayday] = useWatch({
+  const [type, dayOfMonth, isPayday, accountId] = useWatch({
     control,
-    name: ["type", "dayOfMonth", "isPayday"],
+    name: ["type", "dayOfMonth", "isPayday", "accountId"],
   });
 
   const onSubmit = handleSubmit(async (input) => {
@@ -101,8 +108,9 @@ export function RecurringForm({
 
   function changeType(next: RecurringType) {
     setValue("type", next);
-    // The category kind follows the type, and only income can be payday.
-    setValue("categoryId", "");
+    // The category kind follows the type, a transfer has none, and only income can be payday.
+    setValue("categoryId", next === "transfer" ? undefined : "");
+    setValue("toAccountId", next === "transfer" ? "" : undefined);
     if (next !== "income") setValue("isPayday", false);
   }
 
@@ -128,7 +136,7 @@ export function RecurringForm({
             value={[type]}
             onValueChange={(next) => next[0] && changeType(next[0] as RecurringType)}
           >
-            {RECURRING_GROUPS.map(({ type: value, label }) => {
+            {NEW_RULE_GROUPS.map(({ type: value, label }) => {
               const { icon: Icon } = TYPE_STYLES[value];
               return (
                 <ToggleGroupItem key={value} value={value}>
@@ -147,13 +155,7 @@ export function RecurringForm({
 
           autoComplete="off"
           maxLength={60}
-          placeholder={
-            type === "income"
-              ? "mis. Gaji"
-              : type === "saving"
-                ? "mis. Dana darurat"
-                : "mis. Netflix, Sewa"
-          }
+          placeholder={NAME_PLACEHOLDERS[type]}
           aria-invalid={!!errors.name}
           aria-describedby="recurring-name-message"
           {...register("name")}
@@ -181,11 +183,16 @@ export function RecurringForm({
         control={control}
         name="accountId"
         render={({ field }) => (
-          <FormField id="recurring-account" label="Akun" error={errors.accountId?.message}>
+          <FormField
+            id="recurring-account"
+            label={type === "transfer" ? "Dari akun" : "Akun"}
+            error={errors.accountId?.message}
+          >
             <AccountPicker
               id="recurring-account"
               value={field.value}
               onChange={field.onChange}
+              accountType="transaction"
               keep={rule?.accountId}
               invalid={!!errors.accountId}
               describedBy="recurring-account-message"
@@ -194,24 +201,49 @@ export function RecurringForm({
         )}
       />
 
-      <Controller
-        control={control}
-        name="categoryId"
-        render={({ field }) => (
-          <FormField id="recurring-category" label="Kategori" error={errors.categoryId?.message}>
-            <CategoryPicker
-              key={type}
-              id="recurring-category"
-              kind={CATEGORY_KIND_FOR[type]}
-              keep={rule?.categoryId}
-              value={field.value}
-              onChange={field.onChange}
-              invalid={!!errors.categoryId}
-              describedBy="recurring-category-message"
-            />
-          </FormField>
-        )}
-      />
+      {type === "transfer" ? (
+        <Controller
+          control={control}
+          name="toAccountId"
+          render={({ field }) => (
+            <FormField
+              id="recurring-to-account"
+              label="Ke akun aset"
+              error={errors.toAccountId?.message}
+            >
+              <AccountPicker
+                id="recurring-to-account"
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                exclude={accountId || undefined}
+                accountType="asset"
+                keep={rule?.toAccountId ?? undefined}
+                invalid={!!errors.toAccountId}
+                describedBy="recurring-to-account-message"
+              />
+            </FormField>
+          )}
+        />
+      ) : (
+        <Controller
+          control={control}
+          name="categoryId"
+          render={({ field }) => (
+            <FormField id="recurring-category" label="Kategori" error={errors.categoryId?.message}>
+              <CategoryPicker
+                key={type}
+                id="recurring-category"
+                kind={CATEGORY_KIND_FOR[type]}
+                keep={rule?.categoryId ?? undefined}
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                invalid={!!errors.categoryId}
+                describedBy="recurring-category-message"
+              />
+            </FormField>
+          )}
+        />
+      )}
 
       <Controller
         control={control}

@@ -12,7 +12,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
@@ -28,15 +28,19 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useBackToList } from "@/hooks/use-back-to-list";
+import { useRecordOccurrence } from "@/hooks/use-recurring";
 import { updateTransaction, useSubmitTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
 import { applyServerErrors } from "@/lib/form-errors";
+import { recurringPostBody, transferOccurrenceDefaults } from "@/lib/recurring-form";
+import type { TransferRule } from "@/lib/schemas/recurring";
 import {
   MIN_TRANSACTION_DATE,
   type Transaction,
   type TransferCreateInput,
   transferCreateSchema,
 } from "@/lib/schemas/transaction";
+import { isDeposit } from "@/lib/transaction-types";
 import { useUIStore } from "@/stores/ui";
 import { failureMessage } from "@/lib/offline/network-error";
 
@@ -237,20 +241,60 @@ function EditTransferFields({ transaction }: { transaction: Transaction }) {
   );
 }
 
+/** Catat for one occurrence of a recurring deposit. */
+export function RecordTransferOccurrenceForm({
+  rule,
+  occurrenceDate,
+  onDone,
+}: {
+  rule: TransferRule;
+  occurrenceDate: string;
+  onDone: () => void;
+}) {
+  const today = todayInJakarta();
+  const { occurrence, record } = useRecordOccurrence(rule, occurrenceDate, onDone);
+  const form = useForm<FormValues, unknown, TransferCreateInput>({
+    resolver: baseResolver,
+    defaultValues: transferOccurrenceDefaults(rule, occurrenceDate, today),
+  });
+  const { isSubmitting } = form.formState;
+
+  const onSubmit = form.handleSubmit(async (input) => {
+    try {
+      await record(recurringPostBody(input, occurrence));
+    } catch (err) {
+      reportSaveError(err, form.setError);
+    }
+  });
+
+  return (
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <TransferFields form={form} today={today} depositOnly />
+      <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+        {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
+        Simpan
+      </Button>
+    </form>
+  );
+}
+
 /**
  * The fields both variants share. `stored` is the transfer being edited, if any;
  * `extraOutflow` is anything else leaving the source account, such as the admin fee.
+ * `depositOnly` offers only a transaction account as source and an asset account as destination.
  */
 function TransferFields({
   form: { control, register, setValue },
   today,
   stored,
   extraOutflow = 0,
+  depositOnly = false,
 }: {
   form: Form;
   today: string;
   stored?: Transaction;
   extraOutflow?: number;
+  depositOnly?: boolean;
 }) {
   const { errors } = useFormState({ control });
   const [accountId, toAccountId, amount] = useWatch({
@@ -262,6 +306,8 @@ function TransferFields({
     -(amount + extraOutflow),
     stored && { accountId: stored.accountId, effect: -stored.amount },
   );
+  const { data: accounts } = useAccounts({ includeArchived: true });
+  const accountOf = (id: string) => accounts?.find((a) => a.id === id);
 
   return (
     <>
@@ -299,6 +345,7 @@ function TransferFields({
                 field.onChange(id);
                 if (id === toAccountId) setValue("toAccountId", "");
               }}
+              accountType={depositOnly ? "transaction" : undefined}
               keep={stored?.accountId}
               invalid={!!errors.accountId}
               describedBy="transfer-account-message"
@@ -311,12 +358,22 @@ function TransferFields({
         control={control}
         name="toAccountId"
         render={({ field }) => (
-          <FormField id="transfer-to-account" label="Ke akun" error={errors.toAccountId?.message}>
+          <FormField
+            id="transfer-to-account"
+            label="Ke akun"
+            error={errors.toAccountId?.message}
+            hint={
+              isDeposit(accountOf(accountId), accountOf(toAccountId))
+                ? "Masuk ke aset dan dihitung sebagai saving."
+                : undefined
+            }
+          >
             <AccountPicker
               id="transfer-to-account"
               value={field.value}
               onChange={field.onChange}
               exclude={accountId || undefined}
+              accountType={depositOnly ? "asset" : undefined}
               keep={stored?.toAccountId ?? undefined}
               invalid={!!errors.toAccountId}
               describedBy="transfer-to-account-message"

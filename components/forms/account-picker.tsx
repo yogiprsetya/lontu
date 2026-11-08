@@ -22,6 +22,8 @@ type AccountPickerProps = {
   onChange: (id: string) => void;
   /** Leaves this account out, e.g. the source when picking a transfer destination. */
   exclude?: string;
+  /** Offers only accounts of this type. */
+  accountType?: "transaction" | "asset";
   /** The stored account of a transaction being edited: still offered, labelled "(arsip)", if archived. */
   keep?: string;
   invalid?: boolean;
@@ -34,12 +36,17 @@ export function AccountPicker({
   value,
   onChange,
   exclude,
+  accountType,
   keep,
   invalid,
   describedBy,
 }: AccountPickerProps) {
   const { data: all, error, mutate } = useAccounts({ includeArchived: !!keep });
-  const data = all && selectableItems(all, keep).filter((a) => a.id !== exclude);
+  const data =
+    all &&
+    selectableItems(all, keep).filter(
+      (a) => a.id !== exclude && (!accountType || a.type === accountType || a.id === keep),
+    );
   const open = useUIStore((s) => s.open);
   const onlyAccount = data?.length === 1 ? data[0].id : undefined;
 
@@ -55,7 +62,9 @@ export function AccountPicker({
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
-        <p className="text-sm text-muted-foreground">Belum ada akun aktif.</p>
+        <p className="text-sm text-muted-foreground">
+          {accountType === "asset" ? "Belum ada akun aset." : "Belum ada akun aktif."}
+        </p>
         <Button
           type="button"
           variant="outline"

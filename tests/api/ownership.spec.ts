@@ -48,8 +48,8 @@ describe("findOwnedAccounts", () => {
     expect(rows).toHaveLength(2);
     expect(rows).toEqual(
       expect.arrayContaining([
-        { id: a1, archivedAt: null },
-        { id: a2, archivedAt },
+        { id: a1, type: "transaction", archivedAt: null },
+        { id: a2, type: "asset", archivedAt },
       ]),
     );
   });

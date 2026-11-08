@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TypeChip } from "@/components/transactions/type-chip";
-import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
+import { ADDABLE_TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 
 const contentClass = "min-w-52";
 
@@ -51,7 +51,7 @@ export function DesktopFabAddMenu() {
 }
 
 function AddMenuItems() {
-  return TRANSACTION_TYPES.map((type) => (
+  return ADDABLE_TRANSACTION_TYPES.map((type) => (
     <DropdownMenuItem key={type} render={<Link href={`/add/${type}`} />}>
       <TypeChip type={type} className="size-9 rounded-lg" />
       {TRANSACTION_TYPE_LABELS[type]}

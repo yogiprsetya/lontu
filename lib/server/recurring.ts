@@ -13,13 +13,15 @@ import type {
   RecurringType,
   RecurringUpdateInput,
 } from "@/lib/schemas/recurring";
-import type { Transaction } from "@/lib/schemas/transaction";
+import type { Transaction, TransactionCreateInput } from "@/lib/schemas/transaction";
+import { findOwnedAccounts } from "@/lib/server/ownership";
 import {
   checkAccounts,
   checkCategory,
   findReplay,
   IdConflict,
   insertSimple,
+  insertTransfer,
   type InvalidReference,
 } from "@/lib/server/transactions";
 
@@ -33,28 +35,62 @@ export type InvalidField = InvalidReference | { field: "isPayday"; message: stri
 export function toRule(row: Row): RecurringRule {
   return {
     id: row.id,
-    type: row.type as RecurringType,
+    type: row.type,
     name: row.name,
     amount: row.amount,
     accountId: row.accountId,
+    toAccountId: row.toAccountId,
     categoryId: row.categoryId,
     dayOfMonth: row.dayOfMonth,
     nextDueDate: row.nextDueDate,
     isPayday: row.isPayday,
     archivedAt: row.archivedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
-  };
+    // The table's checks tie type, to_account_id and category_id together.
+  } as RecurringRule;
 }
 
-/** The transactions checks, so a rule and the transaction it records are validated alike. Omitted refs are skipped. */
+const SAME_ACCOUNT: InvalidReference = {
+  field: "toAccountId",
+  message: "Akun tujuan harus berbeda",
+};
+
+/** A field sent that a rule of this type does not have. */
+function misplacedField(
+  type: RecurringType,
+  { categoryId, toAccountId }: { categoryId?: string; toAccountId?: string },
+): InvalidReference | undefined {
+  if (type === "transfer" && categoryId)
+    return { field: "categoryId", message: "Menabung tidak memakai kategori" };
+  if (type !== "transfer" && toAccountId)
+    return { field: "toAccountId", message: "Aturan ini tidak punya akun tujuan" };
+}
+
+/** Rules only draw on transaction accounts, and a recurring transfer exists only to fill an asset. */
+async function checkRuleAccounts(
+  userId: string,
+  { accountId, toAccountId }: { accountId?: string; toAccountId?: string },
+): Promise<InvalidReference | undefined> {
+  const fields = { ...(accountId && { accountId }), ...(toAccountId && { toAccountId }) };
+  const invalid = await checkAccounts(userId, fields);
+  if (invalid) return invalid;
+  const owned = await findOwnedAccounts(userId, Object.values(fields));
+  const typeOf = (id: string) => owned.find((a) => a.id === id)?.type;
+  if (accountId && typeOf(accountId) !== "transaction")
+    return { field: "accountId", message: "Sumber harus akun transaksi" };
+  if (toAccountId && typeOf(toAccountId) !== "asset")
+    return { field: "toAccountId", message: "Tujuan harus akun aset" };
+}
+
+/** Shared by rule writes and Catat, so a rule and the transaction it records are validated alike. Omitted refs are skipped. */
 export async function checkReferences(
   userId: string,
   type: RecurringType,
-  refs: { accountId?: string; categoryId?: string },
+  refs: { accountId?: string; categoryId?: string; toAccountId?: string },
 ): Promise<InvalidReference | undefined> {
   const [account, category] = await Promise.all([
-    refs.accountId ? checkAccounts(userId, { accountId: refs.accountId }) : undefined,
-    refs.categoryId
+    checkRuleAccounts(userId, refs),
+    type !== "transfer" && refs.categoryId
       ? checkCategory(userId, refs.categoryId, CATEGORY_KIND_FOR[type], "categoryId")
       : undefined,
   ]);
@@ -126,9 +162,14 @@ export async function updateRule(
   if (input.isPayday && type !== "income") {
     return { invalid: { field: "isPayday", message: "Hanya aturan income yang bisa jadi gajian" } };
   }
+  const misplaced = misplacedField(type, input);
+  if (misplaced) return { invalid: misplaced };
+  if ((input.accountId ?? row.accountId) === (input.toAccountId ?? row.toAccountId))
+    return { invalid: SAME_ACCOUNT };
   const invalid = await checkReferences(userId, type, {
     accountId: input.accountId !== row.accountId ? input.accountId : undefined,
     categoryId: input.categoryId !== row.categoryId ? input.categoryId : undefined,
+    toAccountId: input.toAccountId !== row.toAccountId ? input.toAccountId : undefined,
   });
   if (invalid) return { invalid };
 
@@ -197,10 +238,30 @@ async function findPostReplay(userId: string, rule: Row, input: PostInput) {
     t.amount === input.amount &&
     t.date === input.date &&
     t.accountId === input.accountId &&
-    t.categoryId === input.categoryId &&
+    t.categoryId === (input.categoryId ?? null) &&
+    t.toAccountId === (input.toAccountId ?? null) &&
     t.description === input.description &&
     rule.nextDueDate === advanceDate(rule.dayOfMonth, input.occurrenceDate);
   return matches ? { result: { rule: toRule(rule), transaction: t } } : { idTaken: true as const };
+}
+
+/** The row a post records, or which field does not fit the rule's type. */
+function recordedTransaction(
+  type: RecurringType,
+  input: PostInput,
+): { row: TransactionCreateInput } | { invalid: InvalidReference } {
+  const misplaced = misplacedField(type, input);
+  if (misplaced) return { invalid: misplaced };
+
+  const { id, amount, date, accountId, categoryId, toAccountId, description } = input;
+  const shared = { id, amount, date, accountId, description };
+  if (type === "transfer") {
+    if (!toAccountId) return { invalid: { field: "toAccountId", message: "Pilih akun aset" } };
+    if (toAccountId === accountId) return { invalid: SAME_ACCOUNT };
+    return { row: { ...shared, type, toAccountId } };
+  }
+  if (!categoryId) return { invalid: { field: "categoryId", message: "Pilih kategori" } };
+  return { row: { ...shared, type, categoryId } };
 }
 
 /**
@@ -219,9 +280,13 @@ export async function advanceRule(
   if (!rule) return { notFound: true };
   const type = rule.type as RecurringType;
 
+  let row: TransactionCreateInput | undefined;
   if (input.action === "post") {
     const replay = await findPostReplay(userId, rule, input);
     if (replay) return replay;
+    const recorded = recordedTransaction(type, input);
+    if ("invalid" in recorded) return recorded;
+    row = recorded.row;
     const invalid = await checkReferences(userId, type, input);
     if (invalid) return { invalid };
   }
@@ -239,13 +304,10 @@ export async function advanceRule(
       if (!moved) throw new Stale();
 
       let transaction: Transaction | null = null;
-      if (input.action === "post") {
-        const { id: txId, amount, date, accountId, categoryId, description } = input;
-        ({ transaction } = await insertSimple(
-          userId,
-          { type, id: txId, amount, date, accountId, categoryId, description },
-          tx,
-        ));
+      if (row) {
+        ({ transaction } = await (row.type === "transfer"
+          ? insertTransfer(userId, row, tx)
+          : insertSimple(userId, row, tx)));
       }
       return { result: { rule: toRule(moved), transaction } };
     });

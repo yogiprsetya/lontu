@@ -5,6 +5,7 @@ import {
   formatFree,
   formatLateness,
   formatPaydayHeadline,
+  formatRuleAccounts,
   formatSchedule,
 } from "@/lib/recurring-format";
 
@@ -87,5 +88,27 @@ describe("formatFree", () => {
       amount: "Rp•••••",
       short: true,
     });
+  });
+});
+
+describe("formatRuleAccounts", () => {
+  const names = new Map([
+    ["bank", "Bank"],
+    ["gold", "Emas"],
+  ]);
+
+  it("names only the source when money goes nowhere else", () => {
+    expect(formatRuleAccounts({ accountId: "bank", toAccountId: null }, names)).toBe("Bank");
+  });
+
+  it("names source and destination for a deposit", () => {
+    expect(formatRuleAccounts({ accountId: "bank", toAccountId: "gold" }, names)).toBe(
+      "Bank → Emas",
+    );
+  });
+
+  it("falls back for an account not loaded yet", () => {
+    expect(formatRuleAccounts({ accountId: "bank", toAccountId: "x" }, names)).toBe("Bank → Akun");
+    expect(formatRuleAccounts({ accountId: "x", toAccountId: null }, names)).toBe("Akun");
   });
 });

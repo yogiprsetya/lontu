@@ -3,19 +3,21 @@ import {
   occurrenceDefaults,
   paydayHint,
   recurringPostBody,
+  transferOccurrenceDefaults,
   reschedulesMissed,
   ruleFormDefaults,
   toUpdateInput,
 } from "@/lib/recurring-form";
-import type { RecurringRule } from "@/lib/schemas/recurring";
+import type { SimpleRule, TransferRule } from "@/lib/schemas/recurring";
 
-const rule: RecurringRule = {
+const rule: SimpleRule = {
   id: "r1",
   type: "expense",
   name: "Netflix",
   amount: 186_000,
   accountId: "a1",
   categoryId: "c1",
+  toAccountId: null,
   dayOfMonth: 5,
   nextDueDate: "2026-10-05",
   isPayday: false,
@@ -135,5 +137,38 @@ describe("recurringPostBody", () => {
     });
     expect(second.id).toBe(first.id);
     expect(first).not.toHaveProperty("type");
+  });
+});
+
+describe("recurring deposits", () => {
+  const deposit: TransferRule = { ...rule, type: "transfer", categoryId: null, toAccountId: "g1" };
+
+  it("defaults Catat to the rule's accounts, without a category", () => {
+    expect(transferOccurrenceDefaults(deposit, "2026-10-05", "2026-10-27")).toEqual({
+      type: "transfer",
+      amount: 186_000,
+      date: "2026-10-05",
+      accountId: "a1",
+      toAccountId: "g1",
+      description: "Netflix",
+    });
+  });
+
+  it("dates an early occurrence today", () => {
+    expect(transferOccurrenceDefaults(deposit, "2026-11-05", "2026-10-27").date).toBe("2026-10-27");
+  });
+
+  it("posts the destination and no category", () => {
+    const input = transferOccurrenceDefaults(deposit, "2026-10-05", "2026-10-27");
+    expect(recurringPostBody(input, { id: "tx-1", occurrenceDate: "2026-10-05" })).toEqual({
+      action: "post",
+      occurrenceDate: "2026-10-05",
+      id: "tx-1",
+      amount: 186_000,
+      date: "2026-10-05",
+      accountId: "a1",
+      toAccountId: "g1",
+      description: "Netflix",
+    });
   });
 });

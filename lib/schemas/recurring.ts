@@ -1,18 +1,21 @@
 import { z } from "zod";
-import { simpleCreateSchema, type Transaction } from "@/lib/schemas/transaction";
+import {
+  simpleCreateSchema,
+  type SimpleTransactionType,
+  type Transaction,
+} from "@/lib/schemas/transaction";
 
-export const RECURRING_TYPES = ["income", "expense", "saving"] as const;
+// `saving` keeps old rules working; new ones to set money aside are `transfer`.
+export const RECURRING_TYPES = ["income", "expense", "saving", "transfer"] as const;
 
 export type RecurringType = (typeof RECURRING_TYPES)[number];
 
-export type RecurringRule = {
+type RuleBase = {
   id: string;
-  type: RecurringType;
   name: string;
   /** Integer rupiah, 1..1e12. */
   amount: number;
   accountId: string;
-  categoryId: string;
   /** 1..31; shorter months use their last day. */
   dayOfMonth: number;
   nextDueDate: string;
@@ -20,6 +23,17 @@ export type RecurringRule = {
   archivedAt: string | null;
   createdAt: string;
 };
+
+export type SimpleRule = RuleBase & {
+  type: SimpleTransactionType;
+  categoryId: string;
+  toAccountId: null;
+};
+
+/** Sets money aside: always from a transaction account into an asset account. */
+export type TransferRule = RuleBase & { type: "transfer"; categoryId: null; toAccountId: string };
+
+export type RecurringRule = SimpleRule | TransferRule;
 
 export type ForecastItem = { ruleId: string; dueDate: string; amount: number };
 
@@ -58,11 +72,15 @@ const dayOfMonth = z
   .min(1, "Pilih tanggal 1–31")
   .max(31, "Pilih tanggal 1–31");
 
+const categoryId = z.uuid("Pilih kategori").optional();
+const toAccountId = z.uuid("Pilih akun aset").optional();
+
 const editable = {
   name,
   amount,
   accountId: z.uuid("Pilih akun"),
-  categoryId: z.uuid("Pilih kategori"),
+  categoryId,
+  toAccountId,
   dayOfMonth,
   isPayday: z.boolean("Tidak valid"),
 };
@@ -75,7 +93,19 @@ export const recurringCreateSchema = z
     ...editable,
     isPayday: editable.isPayday.default(false),
   })
-  .refine((v) => !v.isPayday || v.type === "income", paydayIssue);
+  .refine((v) => !v.isPayday || v.type === "income", paydayIssue)
+  .refine((v) => (v.type === "transfer" ? !v.categoryId : !!v.categoryId), {
+    path: ["categoryId"],
+    error: "Pilih kategori",
+  })
+  .refine((v) => (v.type === "transfer" ? !!v.toAccountId : !v.toAccountId), {
+    path: ["toAccountId"],
+    error: "Pilih akun aset",
+  })
+  .refine((v) => v.toAccountId !== v.accountId, {
+    path: ["toAccountId"],
+    error: "Akun tujuan harus berbeda",
+  });
 
 /** `type` is never editable; whether `isPayday` fits the stored type is checked on the server. */
 export const recurringUpdateSchema = z
@@ -99,7 +129,8 @@ export const recurringAdvanceSchema = z.discriminatedUnion(
       amount,
       date,
       accountId: z.uuid("Pilih akun"),
-      categoryId: z.uuid("Pilih kategori"),
+      categoryId,
+      toAccountId,
       description,
     }),
   ],

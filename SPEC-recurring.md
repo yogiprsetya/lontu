@@ -22,7 +22,7 @@ Nomor 1–6 diputuskan Yogi pada 2026-10-27 (sesi idea-refine dan pertanyaan spe
 
 1. **Konfirmasi, bukan otomatis.** Tidak ada transaksi yang ditulis tanpa tap pemilik. Karena itu tidak ada cron, tidak ada jalur tulis tanpa session, dan tidak ada perubahan `next.config.ts` atau `vercel.json`. Yang jatuh tempo dihitung saat dibaca, terhadap hari ini di `Asia/Jakarta`.
 2. **Tanpa pencocokan otomatis.** Transaksi yang dicatat manual tidak menandai aturan. Pemilik memakai aksi **Lewati** ("sudah dicatat manual atau tidak terjadi bulan ini"). Tanpa heuristik.
-3. **Hanya jadwal bulanan dengan nominal tetap,** tipe `income | expense | saving`. Tanggal tetap per bulan (`day_of_month` 1–31). Gaji pemilik jatuh di tanggal kalender yang sama.
+3. **Hanya jadwal bulanan dengan nominal tetap,** tipe `income | expense | transfer` (label "Menabung", diubah 2026-11-08, keputusan #9 SPEC.md). Sumber aturan jenis apa pun selalu akun `transaction` (diputuskan 2026-11-08); akun `asset` hanya boleh menjadi tujuan aturan `transfer`. Aturan `transfer` selalu setoran, tanpa kategori. Aturan `saving` lama tetap berjalan, tetapi form tidak lagi menawarkannya. Tanggal tetap per bulan (`day_of_month` 1–31). Gaji pemilik jatuh di tanggal kalender yang sama.
 4. **Saldo "bebas"** = jumlah saldo akun **aktif** dengan `type = "transaction"` dan `subtype` bukan `credit_card` (termasuk `subtype` null). Akun aset (investasi, kripto, tabungan) dan kartu kredit tidak ikut. Tanpa kolom baru di `accounts`.
 5. **Aturan dikelola di halaman baru `/recurring`** (label nav "Recurring"), di sidebar dan di menu More bottom nav.
 6. **Gaji terlambat dicatat → kartu meminta pencatatan.** Jika aturan gajian sudah jatuh tempo (`next_due_date ≤ hari ini`), kartu gajian menampilkan "Gaji belum dicatat" dengan tombol Catat, dan proyeksi disembunyikan sampai itu ditangani.
@@ -47,11 +47,12 @@ Tabel ke-6. Mengubah keputusan terkunci #8 di [SPEC.md](SPEC.md) (disetujui 2026
 export const recurringRules = pgTable.withRLS("recurring_rules", {
   id: uuid().primaryKey().defaultRandom(),
   userId: text().notNull().references(() => users.id, { onDelete: "cascade" }),
-  type: text().notNull(), // income | expense | saving
+  type: text().notNull(), // income | expense | transfer (saving: aturan lama)
   name: text().notNull(), // 1..60, juga deskripsi default transaksi
   amount: bigint({ mode: "number" }).notNull(), // 1..1e12
   accountId: uuid().notNull().references(() => accounts.id),
-  categoryId: uuid().notNull().references(() => categories.id),
+  toAccountId: uuid().references(() => accounts.id), // terisi hanya untuk transfer
+  categoryId: uuid().references(() => categories.id), // null untuk transfer
   dayOfMonth: smallint().notNull(), // 1..31
   nextDueDate: date({ mode: "string" }).notNull(),
   isPayday: boolean().notNull().default(false),
@@ -63,7 +64,10 @@ export const recurringRules = pgTable.withRLS("recurring_rules", {
 
 | Objek                                     | Isi                                                                     |
 | ----------------------------------------- | ----------------------------------------------------------------------- |
-| `recurring_rules_type_check`              | `type in ('income','expense','saving')`                                 |
+| `recurring_rules_type_check`              | `type in ('income','expense','saving','transfer')`                      |
+| `recurring_rules_transfer_check`          | `(type = 'transfer') = (to_account_id is not null)`                     |
+| `recurring_rules_category_check`          | `(type = 'transfer') = (category_id is null)`                           |
+| `recurring_rules_distinct_accounts_check` | `to_account_id <> account_id`                                           |
 | `recurring_rules_amount_check`            | `amount > 0`                                                            |
 | `recurring_rules_day_check`               | `day_of_month between 1 and 31`                                         |
 | `recurring_rules_payday_check`            | `not is_payday or type = 'income'`                                      |
@@ -81,7 +85,7 @@ Semua route memakai `withAuth`, memfilter `user_id` dari session, dan format err
 
 ```ts
 // lib/schemas/recurring.ts (dipakai client & server)
-type RecurringType = "income" | "expense" | "saving";
+type RecurringType = "income" | "expense" | "saving" | "transfer";
 
 type RecurringRule = {
   id: string;
@@ -89,7 +93,8 @@ type RecurringRule = {
   name: string;
   amount: number; // integer rupiah, 1..1e12
   accountId: string;
-  categoryId: string;
+  categoryId: string | null; // null untuk aturan transfer
+  toAccountId: string | null; // terisi hanya untuk aturan transfer
   dayOfMonth: number; // 1..31
   nextDueDate: string; // YYYY-MM-DD
   isPayday: boolean;
@@ -126,7 +131,7 @@ type AdvanceResult = { rule: RecurringRule; transaction: Transaction | null };
 | Method & path                       | Body / query                                  | Sukses                                       | Error                     |
 | ----------------------------------- | --------------------------------------------- | -------------------------------------------- | ------------------------- |
 | `GET /api/recurring`                | `?includeArchived=true` (opsional)            | 200 `RecurringOverview`                      | —                         |
-| `POST /api/recurring`               | `{ type, name, amount, accountId, categoryId, dayOfMonth, isPayday? }` | 201 `RecurringRule` | 400                      |
+| `POST /api/recurring`               | `{ type, name, amount, accountId, categoryId?, toAccountId?, dayOfMonth, isPayday? }` | 201 `RecurringRule` | 400                      |
 | `PATCH /api/recurring/[id]`         | subset field create, kecuali `type`           | 200 `RecurringRule`                          | 400, 404                  |
 | `DELETE /api/recurring/[id]`        | —                                             | 200 `RecurringRule` (`archivedAt` terisi). Idempoten | 404               |
 | `POST /api/recurring/[id]/restore`  | —                                             | 200 `RecurringRule` (aktif). Idempoten       | 404                       |
@@ -151,7 +156,8 @@ type AdvanceResult = { rule: RecurringRule; transaction: Transaction | null };
   amount: number;
   date: string; // aturan tanggal transactions: 2000-01-01 ≤ date ≤ hari ini
   accountId: string;
-  categoryId: string;
+  categoryId?: string; // wajib kecuali aturan transfer
+  toAccountId?: string; // wajib hanya untuk aturan transfer
   description: string | null;
 }
 ```
@@ -171,7 +177,7 @@ Urutan di server, dalam **satu transaksi DB**:
 
 - Body memakai `z.strictObject`. Field tak dikenal (termasuk `userId`, `nextDueDate`) → 400.
 - `name`: trim, 1..60. `amount`: `z.int()`, 1..1e12. `dayOfMonth`: `z.int()`, 1..31. `type`: enum. `isPayday`: boolean, `true` hanya dengan `type = "income"` (refine, `fields.isPayday`).
-- `occurrenceDate`, `date`: `YYYY-MM-DD` valid. `id`, `accountId`, `categoryId`: `z.uuid()`. `description`: sama dengan schema transaksi.
+- `occurrenceDate`, `date`: `YYYY-MM-DD` valid. `id`, `accountId`, `categoryId`: `z.uuid()`. `description`: sama dengan schema transaksi. `toAccountId`: `z.uuid()`. Aturan `transfer` wajib mengirim `toAccountId` dan menolak `categoryId`; aturan lain sebaliknya (400 pada field itu). Sumber aturan jenis apa pun harus akun `transaction` aktif, tujuan aturan `transfer` harus akun `asset` aktif; yang sama berlaku untuk `POST` dan `PATCH` aturan (`PATCH` hanya memeriksa referensi yang berubah).
 - Akun/kategori asing, tidak ada, atau terarsip → 400 pada field yang bersangkutan, pesan sama untuk semua kasus (aturan transactions). Kategori dengan `kind` salah → 400 `fields.categoryId`.
 
 ### Fungsi murni
@@ -185,7 +191,7 @@ Urutan di server, dalam **satu transaksi DB**:
   - Semua aritmetika dari string `YYYY-MM-DD`, tanpa `Date` lokal.
 - `lib/payday-forecast.ts`: `paydayForecast({ rules, spendable, today })` → `PaydayForecast`.
   - Tanpa aturan gajian aktif → `no_payday`. Gajian `nextDueDate ≤ today` → `payday_due`.
-  - Selain itu `payday = nextDueDate` gajian. Untuk setiap aturan aktif `expense | saving`, kejadian = `nextDueDate`, lalu `advanceDate` berulang, selama `< payday`. Setiap kejadian menjadi satu `ForecastItem`. Kejadian tertinggal ikut dihitung.
+  - Selain itu `payday = nextDueDate` gajian. Untuk setiap aturan aktif `expense | saving | transfer`, kejadian = `nextDueDate`, lalu `advanceDate` berulang, selama `< payday`. Setiap kejadian menjadi satu `ForecastItem`. Kejadian tertinggal ikut dihitung.
   - Aturan `income` selain gajian tidak dihitung (konservatif, Open question #2).
 
 ### Query
@@ -223,7 +229,7 @@ Urutan di server, dalam **satu transaksi DB**:
 ### 3. UI
 
 - **`app/(app)/recurring/page.tsx`**, isi di `components/recurring/recurring-view.tsx`.
-  - Daftar aturan dikelompokkan Income / Expense / Saving. Baris: nama, "Rp… · tiap tanggal 25", jatuh tempo berikutnya ("25 Nov", atau "Terlambat · 25 Okt" dengan teks, bukan hanya warna), lencana "Gajian" untuk `isPayday`. Tap → form aturan. Tombol **Catat** selalu terlihat di setiap baris aktif (≥ 44 px, warna utama jika sudah jatuh tempo), tidak disembunyikan di menu; menu baris: Lewati, Arsipkan. Di layar sempit tombol turun ke baris kedua, rata kanan.
+  - Daftar aturan dikelompokkan Income / Expense / Menabung (grup Saving hanya muncul jika ada aturan lama). Baris: nama, "Rp… · tiap tanggal 25" diikuti nama akun (aturan Menabung: "Sumber → Tujuan", dan barisnya boleh turun supaya nama tujuan tidak terpotong), jatuh tempo berikutnya ("25 Nov", atau "Terlambat · 25 Okt" dengan teks, bukan hanya warna), lencana "Gajian" untuk `isPayday`. Tap → form aturan. Tombol **Catat** selalu terlihat di setiap baris aktif (≥ 44 px, warna utama jika sudah jatuh tempo), tidak disembunyikan di menu; menu baris: Lewati, Arsipkan. Di layar sempit tombol turun ke baris kedua, rata kanan.
   - Tombol "Tambah aturan" → `components/forms/recurring-form.tsx` di `ResponsiveModal`: tipe (hanya saat create), nama, `MoneyInput`, `AccountPicker`, `CategoryPicker` (kind dari tipe), tanggal 1–31 (grid 7 kolom di dropdown, sel ≥ 44 px, font 16 px, teks bantuan "Bulan yang lebih pendek memakai hari terakhirnya"), switch "Ini gaji saya" (hanya income; teks bantuan saat akan mengganti gajian lama). Edit `dayOfMonth` pada aturan yang terlambat menampilkan peringatan keputusan #14.
   - Arsipkan → toast "Aturan diarsipkan · Urungkan" (6 detik). Tautan "Lihat arsip" menampilkan aturan terarsip dengan tombol Pulihkan.
   - Empty state: penjelasan satu kalimat + "Tambah gaji" (form dengan income + gajian tercentang) dan "Tambah tagihan".

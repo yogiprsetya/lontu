@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { apiKey, invalidate } from "@/lib/cache-invalidation";
-import { sendJSON } from "@/lib/fetcher";
+import { ApiError, sendJSON } from "@/lib/fetcher";
 import type {
   AdvanceResult,
   RecurringAdvanceInput,
@@ -56,4 +58,38 @@ export async function advanceRule(id: string, input: RecurringAdvanceInput) {
   // A post writes a transaction, which also reaches balances, budgets, the dashboard and recurring.
   await invalidate(input.action === "post" ? "transactions" : "recurring");
   return result;
+}
+
+/** Catat for one occurrence. `record` rethrows only the errors the form itself must report. */
+export function useRecordOccurrence(
+  rule: RecurringRule,
+  occurrenceDate: string,
+  onDone: () => void,
+) {
+  // Once per form, not per submit, so Simpan tapped again after a lost response replays.
+  const [id, setId] = useState(() => crypto.randomUUID());
+
+  async function record(body: RecurringAdvanceInput) {
+    try {
+      await advanceRule(rule.id, body);
+      toast.success(`${rule.name} dicatat`);
+      onDone();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "OCCURRENCE_STALE") {
+        toast("Kejadian ini sudah ditangani");
+        onDone();
+        void revalidateRecurring();
+        return;
+      }
+      // The server proved this id is not this request's, so the next Simpan needs a new one.
+      if (err instanceof ApiError && err.code === "TRANSACTION_ID_TAKEN") {
+        setId(crypto.randomUUID());
+        toast.error("Gagal menyimpan. Coba simpan lagi.");
+        return;
+      }
+      throw err;
+    }
+  }
+
+  return { occurrence: { id, occurrenceDate }, record };
 }

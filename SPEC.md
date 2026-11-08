@@ -18,11 +18,11 @@ Aplikasi PWA mobile-first untuk mencatat keuangan pribadi (referensi UI: Monsy):
 |---|---|---|
 | `foundation` | Auth.js Google + allowlist, skema Drizzle untuk 5 tabel + view + RLS deny-all, `withAuth`, format error, `money.ts`, app shell (bottom nav / sidebar, ResponsiveModal), SWRConfig, store Zustand, manifest | — |
 | `accounts-categories` | CRUD akun & kategori, modal Manage Accounts / Manage Categories, seed kategori default, saldo dari view `account_balances`, halaman Settings | foundation |
-| `transactions` | Form Income/Expense/Saving/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
+| `transactions` | Form Income/Expense/Transfer, All Transactions (filter di URL, paginasi cursor, totals), halaman Expenses, edit/hapus + undo, export CSV, optimistic update | accounts-categories |
 | `budgets` | Budget bernama berversi (beberapa kategori, satu jenis Needs/Wants, berlaku sampai diubah), akhiri + urungkan, query `budgetUsage` | accounts-categories, transactions |
 | `dashboard` | Query `dashboardSummary`, kartu + % vs periode lalu, Account Balance, grafik Expense Activity & donut, Budget Summary, memasang kotak Jatuh tempo & kartu gajian dari `recurring` | transactions, budgets, recurring |
 | `pwa-offline` | Service worker Serwist, cache API di service worker, antrean transaksi offline, banner install & update | transactions |
-| `recurring` | Aturan berulang bulanan (income/expense/saving), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
+| `recurring` | Aturan berulang bulanan (income/expense/menabung), aksi Catat/Lewati, proyeksi "bebas sampai gajian", halaman `/recurring`, komponen kotak Jatuh tempo & kartu gajian | accounts-categories, transactions |
 | `net-worth` | Tipe transaksi `revaluation` + check-in nilai aset (`/api/valuations`), target bernama atas akun (`/api/net-worth`), query `netWorthProgress`, proyeksi `netWorthProjection`, halaman `/net-worth` | accounts-categories, transactions |
 | `asset-history` | Histori nilai aset per bulan (setoran vs pasar) dari transaksi, `GET /api/valuations/history`, query `assetHistory`, section "Histori nilai" (ringkasan, grafik Nilai vs Disetor, tabel) di `/net-worth` | goals, transactions, accounts-categories |
 
@@ -42,6 +42,7 @@ Keputusan ini menggantikan bagian dokumen sumber yang bertentangan.
 6. **Deploy ke Vercel.** Satu project, environment Production + Preview.
 7. Tetap dari dokumen sumber: semua data lewat API route (tanpa server action), shadcn/ui dengan Base UI, Recharts lewat shadcn chart, `react-hook-form` + Zod, SWR untuk data server, Zustand hanya untuk state UI, uang sebagai bigint rupiah (integer, tanpa float).
 8. **7 tabel** (`users`, `accounts`, `categories`, `transactions`, `budgets`, `recurring_rules`, `net_worth`). MVP memakai 5 tabel. `recurring_rules` ditambahkan modul `recurring` (Fase 2), disetujui 2026-10-27. `net_worth` ditambahkan modul `net-worth` (Fase 2), bersama tipe transaksi `revaluation` (constraint + view), disetujui 2026-11-01, diganti nama dari `goals` 2026-11-05 ([SPEC-net-worth.md](SPEC-net-worth.md) § Perubahan skema). `budget` menggantikan `budgets` (budget bernama, disetujui 2026-10-31). Selama transisi keduanya ada, dan `budgets` di-drop saat cutover ([SPEC-budgets.md](SPEC-budgets.md) § Migrasi dan cutover).
+9. **Menabung = transfer ke akun aset (diputuskan 2026-11-08).** Tipe `saving` membuat uang keluar dari akun sumber tanpa masuk ke akun mana pun, jadi menu tambah tidak lagi menawarkannya. **Setoran** adalah transfer dari akun `transaction` ke akun `asset`: saldo aset bertambah, dan Saving di total/dashboard menghitungnya. Baris `saving` lama dibiarkan apa adanya: tetap mengurangi akun sumber, tetap bisa diedit dan dihapus, tetap terhitung Saving. API tetap menerima `type: saving` demi baris lama dan klien lama.
 
 ## Tech stack
 
@@ -88,7 +89,7 @@ app/
   (app)/transactions/page.tsx      # All Transactions
   (app)/expenses/page.tsx
   (app)/budget/page.tsx
-  (app)/add/[type]/page.tsx        # income | expense | saving | transfer
+  (app)/add/[type]/page.tsx        # income | expense | transfer
   (app)/recurring/page.tsx         # aturan berulang (Fase 2)
   (app)/settings/page.tsx
   api/**/route.ts

@@ -26,7 +26,7 @@ Nomor 1–3 diputuskan Yogi pada 2026-10-21 (menjawab Open questions #3–#5 di 
 9. **Urutan daftar** `date desc, created_at desc, id desc` (yang terbaru dicatat tampil paling atas di harinya). Cursor memuat ketiganya. Lihat [Cursor](#cursor).
 10. **Filter hidup di URL, bukan di `usePeriodStore`.** `/transactions` tidak membaca store itu. Modul lain yang menautkan ke daftar harus menyusun URL lengkap (lihat [Kontrak untuk modul lain](#kontrak-untuk-modul-lain)).
 11. **Paginasi dengan tombol "Muat lebih banyak"** (target ≥ 44 px), bukan infinite scroll otomatis.
-12. **Total** mencakup `income`, `expense`, `saving` pada himpunan yang terfilter. `transfer`, `adjustment`, dan `revaluation` tidak dihitung. Baris biaya admin adalah `expense` biasa, jadi ikut terhitung.
+12. **Total** mencakup `income`, `expense`, `saving` pada himpunan yang terfilter. `saving` = baris tipe `saving` lama + **setoran** (transfer dari akun `transaction` ke akun `asset`, keputusan #9 SPEC.md). Penarikan (aset → transaksi), transfer aset → aset, transfer antar akun transaksi, `adjustment`, dan `revaluation` tidak dihitung. Filter `type=saving` memakai definisi yang sama, jadi daftar, total, dan ekspor selalu melihat baris yang sama. Baris biaya admin adalah `expense` biasa, jadi ikut terhitung.
 13. **Label UI** mengikuti keputusan #10 accounts-categories: nav bahasa Inggris, tombol/form/pesan bahasa Indonesia. `adjustment` berlabel "Penyesuaian", `revaluation` (modul `net-worth`) berlabel "Revaluasi".
 
 Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan kosong.
@@ -37,7 +37,7 @@ Tidak ada perubahan skema dan tidak ada migrasi baru. `receipt_url` dibiarkan ko
 | ------------ | ----------------------------------------------------------------------- | ------------------------ | --------------------------------------------- |
 | `income`     | `+amount` pada `account_id`                                             | wajib, `kind = income`   | `accountId`, `categoryId`                     |
 | `expense`    | `−amount`                                                               | wajib, `kind = spending` | idem                                          |
-| `saving`     | `−amount` (uang pindah ke tabungan, tidak dihitung sebagai pengeluaran) | wajib, `kind = saving`   | idem                                          |
+| `saving`     | `−amount` (baris lama; menu tidak lagi membuatnya, keputusan #9 SPEC.md) | wajib, `kind = saving`   | idem                                          |
 | `transfer`   | `−amount` di `account_id`, `+amount` di `to_account_id`                 | tidak ada                | `accountId`, `toAccountId` (≠ `accountId`)    |
 | `adjustment` | bertanda                                                                | tidak ada                | dibuat hanya oleh modul `accounts-categories` |
 | `revaluation` | bertanda                                                               | tidak ada                | dibuat hanya oleh modul `net-worth` (`POST /api/valuations`) |
@@ -292,7 +292,7 @@ Rekomendasi: **(a)**. Ia memenuhi keempat batasan dan target ≤ 2 nama, serta m
 
 ### 3. UI
 
-- **`app/(app)/add/[type]/page.tsx`** menggantikan placeholder. `income/expense/saving` merender `components/forms/transaction-form.tsx`, `transfer` merender `components/forms/transfer-form.tsx`.
+- **`app/(app)/add/[type]/page.tsx`** menggantikan placeholder. `income/expense` merender `components/forms/transaction-form.tsx`, `transfer` merender `components/forms/transfer-form.tsx`. `/add/saving` → 404. Saat tujuan transfer adalah akun aset dan sumbernya akun transaksi, field "Ke akun" menampilkan petunjuk bahwa transfer ini dihitung sebagai saving.
   - Field: nominal (`MoneyInput` yang sudah ada, tanpa tombol ±), tanggal (native, default hari ini Jakarta, `max` hari ini), akun, kategori, deskripsi (opsional). Select kategori hanya memuat `kind` yang cocok; untuk expense dikelompokkan Needs / Wants.
   - Transfer: akun sumber, akun tujuan (tanpa akun sumber), checkbox "Biaya admin" yang membuka nominal + kategori spending (wajib saat dicentang).
   - Satu akun aktif → terpilih otomatis. Tanpa akun atau kategori yang cocok → empty state di picker dengan tombol "Tambah akun" / "Tambah kategori" (`useUIStore().open("manageAccounts")` / `open("manageCategories", { kind })`), tanpa meninggalkan halaman.
@@ -322,7 +322,7 @@ Rekomendasi: **(a)**. Ia memenuhi keempat batasan dan target ≤ 2 nama, serta m
 - [x] `DELETE` mengisi `deleted_at` (baris tetap di DB), baris hilang dari list, totals, dan saldo. `GET`/`PATCH` baris terhapus → 404. `restore` mengembalikannya. Keduanya idempoten.
 - [x] Urutan list `date desc, created_at desc, id desc`. Dengan `limit=2` atas 5 baris, termasuk tiga baris satu tanggal dan dua baris dengan `created_at` yang sama sampai milidetik, gabungan semua halaman = himpunan lengkap, tanpa duplikat atau lompatan. Halaman terakhir `nextCursor = null`. Cursor rusak → 400 `INVALID_CURSOR`. `limit=101` atau `0` → 400.
 - [x] Filter `type`, `categoryId`, `from`/`to` (inklusif di kedua ujung) dan kombinasinya benar. `accountId` mengembalikan transfer di sisi sumber maupun tujuan. `from > to` → 400. `accountId` milik user lain → daftar kosong.
-- [x] `totals` sama dengan jumlah baris terfilter untuk income/expense/saving, tidak menghitung transfer, adjustment, dan baris terhapus, dan mengembalikan `0` untuk hasil kosong.
+- [x] `totals` sama dengan jumlah baris terfilter untuk income/expense/saving (saving termasuk setoran, keputusan #12), tidak menghitung transfer lain, adjustment, dan baris terhapus, dan mengembalikan `0` untuk hasil kosong.
 - [x] `export` mengembalikan `text/csv`, BOM, baris header, jumlah baris sama dengan list pada filter yang sama, nama akun/kategori terarsip terisi, `description` `=1+1` keluar sebagai `'=1+1`, dan `Jumlah` adjustment negatif tetap `-50000`.
 - [x] **Isolasi:** user B mendapat 404 untuk `GET`/`PATCH`/`DELETE`/`restore` transaksi A, list/totals/export B tidak pernah memuat data A, B tidak bisa mereferensikan akun/kategori A di `POST`/`PATCH`, dan `userId` di body diabaikan (400 karena strict).
 - [x] Tanpa session, semua route → 401 `UNAUTHORIZED`.

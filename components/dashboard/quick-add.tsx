@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TYPE_STYLES } from "@/components/transactions/type-styles";
 import { cn } from "@/lib/utils";
-import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
+import { ADDABLE_TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from "@/lib/transaction-types";
 
 export function QuickAdd() {
   return (
@@ -9,8 +9,8 @@ export function QuickAdd() {
       <h2 id="quick-add-title" className="font-heading text-lg font-bold">
         Catat cepat
       </h2>
-      <ul className="grid grid-cols-4 gap-2">
-        {TRANSACTION_TYPES.map((type) => {
+      <ul className="grid grid-cols-3 gap-2">
+        {ADDABLE_TRANSACTION_TYPES.map((type) => {
           const { icon: Icon, pop } = TYPE_STYLES[type];
           return (
             <li key={type}>

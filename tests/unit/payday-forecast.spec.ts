@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { paydayForecast } from "@/lib/payday-forecast";
-import type { RecurringRule } from "@/lib/schemas/recurring";
+import type { SimpleRule, TransferRule } from "@/lib/schemas/recurring";
 
-function rule(overrides: Partial<RecurringRule>): RecurringRule {
+function rule(overrides: Partial<SimpleRule>): SimpleRule {
   return {
     id: overrides.name ?? "r",
     type: "expense",
@@ -10,6 +10,7 @@ function rule(overrides: Partial<RecurringRule>): RecurringRule {
     amount: 100_000,
     accountId: "a",
     categoryId: "c",
+    toAccountId: null,
     dayOfMonth: 1,
     nextDueDate: "2026-12-01",
     isPayday: false,
@@ -59,6 +60,21 @@ describe("paydayForecast", () => {
         { ruleId: "Dana darurat", dueDate: "2026-11-20", amount: 1_000_000 },
       ],
     });
+  });
+
+  it("commits a recurring deposit like an expense", () => {
+    const deposit: TransferRule = {
+      ...rule({ name: "Dana darurat", amount: 500_000, nextDueDate: "2026-11-20" }),
+      type: "transfer",
+      categoryId: null,
+      toAccountId: "gold",
+    };
+    expect(paydayForecast({ rules: [salary, deposit], spendable: 2_000_000, today })).toMatchObject(
+      {
+        committed: 500_000,
+        free: 1_500_000,
+      },
+    );
   });
 
   it("is no_payday without an active payday rule", () => {

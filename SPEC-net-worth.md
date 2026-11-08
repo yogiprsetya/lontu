@@ -25,7 +25,7 @@ Nomor 1–3 diputuskan Yogi pada 2026-11-01 (sesi idea-refine). Sisanya, perubah
 
 1. **Nilai diperbarui manual.** Fase ini fokus pada akun reksadana dan emas fisik. Saham dan harga otomatis menyusul di fase lain, jadi tidak ada dependency atau layanan eksternal baru.
 2. **Pertanyaan utama = progres ke target,** bukan grafik net worth. Total net worth saat ini sudah ada di kartu Account Balance dashboard dan tidak berubah.
-3. **Setoran tercatat sebagai transfer** dari akun transaksi ke akun aset (cara pemilik menabung saat ini). Tipe `saving` tidak dipakai modul ini.
+3. **Setoran tercatat sebagai transfer** dari akun transaksi ke akun aset (keputusan #9 SPEC.md). Tipe `saving` tidak dipakai modul ini.
 4. **Revaluasi = tipe transaksi, bukan tabel nilai.** Paling banyak satu baris `revaluation` hidup per akun per tanggal (keputusan #6), `amount = nilai baru − saldo saat check-in`. Karena semua perubahan saldo tetap berupa transaksi bertanggal, view `account_balances` cukup ditambah satu baris dan riwayat nilai bisa diturunkan nanti tanpa snapshot. Selisih 0 tidak membuat baris (sama dengan adjustment).
 5. **Revaluasi hanya untuk akun aktif dengan `type = "asset"`.** Akun transaksi berubah lewat transaksi biasa.
 6. **Check-in selalu bertanggal hari ini, sekali sehari.** Client tidak mengirim tanggal. Server memberi tanggal `todayInJakarta()` saat request diproses, jadi backdate dan tanggal masa depan tidak bisa dibuat dari kontrak, bukan sekadar ditolak. Nilai yang berubah (delta ≠ 0) ditolak jika akun itu sudah punya revaluasi hidup bertanggal hari ini atau sesudahnya, karena nilai kedua di hari yang sama membuat dua baris untuk satu hari. Item dengan delta 0 tidak menulis apa pun, jadi tidak dicek (ulangan request tetap `recorded: 0`). Menghapus revaluasi hari ini membuka hari itu lagi. Nilai akhir bulan yang baru diketik tanggal 2 tercatat tanggal 2; presisi tanggal pasar (NAB T-1) tidak dikejar. Revaluasi lama yang bertanggal mundur dibiarkan apa adanya. (Diubah 2026-11-02 dua kali: dari "≥ revaluasi terakhir" menjadi "sesudah revaluasi terakhir", lalu backdate dihapus karena picker tanggal hanya menambah langkah, mudah salah sentuh, dan membuat riwayat sulit dibaca.)
@@ -325,6 +325,6 @@ Perintah, gaya kode, dan format error mengikuti [SPEC.md](SPEC.md).
 
 1. ~~Satu akun, satu target (keputusan #10)~~ **Dijawab 2026-11-01: setuju.** Jika satu akun reksadana harus mendanai dua target, alternatifnya akun terpisah per target, bukan alokasi persen (Ask first).
 2. ~~Laju dari 3 bulan penuh (keputusan #12)~~ **Dijawab 2026-11-01: setuju,** bulan berjalan tidak dihitung.
-3. **Kartu Saving di dashboard** hanya menghitung tipe `saving`, padahal pemilik menabung lewat transfer (keputusan #3), jadi kartu itu mendekati 0. Ini keputusan modul `dashboard`, bukan modul ini. **Dijawab 2026-11-01: dibiarkan,** di luar cakupan modul ini.
+3. **Kartu Saving di dashboard** hanya menghitung tipe `saving`, padahal pemilik menabung lewat transfer (keputusan #3), jadi kartu itu mendekati 0. Ini keputusan modul `dashboard`, bukan modul ini. **Dijawab 2026-11-01: dibiarkan,** di luar cakupan modul ini. **Diubah 2026-11-08:** kartu Saving kini menghitung setoran (keputusan #9 SPEC.md).
 4. ~~Ambang basi 35 hari (keputusan #16)~~ **Dijawab 2026-11-01: setuju.**
 5. ~~Subtype `gold` (keputusan #19)~~ **Dijawab 2026-11-01: ditambahkan.**

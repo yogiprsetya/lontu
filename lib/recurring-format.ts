@@ -1,12 +1,16 @@
 import { formatIDR } from "@/lib/money";
 import { daysBetween } from "@/lib/period";
-import type { RecurringType } from "@/lib/schemas/recurring";
+import type { RecurringRule, RecurringType } from "@/lib/schemas/recurring";
 
 export const RECURRING_GROUPS: { type: RecurringType; label: string }[] = [
   { type: "income", label: "Income" },
   { type: "expense", label: "Expense" },
+  { type: "transfer", label: "Menabung" },
   { type: "saving", label: "Saving" },
 ];
+
+/** The form offers no `saving`: new rules that set money aside are transfers. */
+export const NEW_RULE_GROUPS = RECURRING_GROUPS.filter(({ type }) => type !== "saving");
 
 // Dates are plain YYYY-MM-DD strings; reading them as UTC keeps the calendar day fixed in any local zone.
 const dayMonth = new Intl.DateTimeFormat("id-ID", {
@@ -33,6 +37,15 @@ export function formatSchedule(
   money: (amount: number) => string = formatIDR,
 ) {
   return `${money(amount)} · tiap tanggal ${dayOfMonth}`;
+}
+
+/** A deposit also names where the money goes, worded like a transfer in the transaction list. */
+export function formatRuleAccounts(
+  { accountId, toAccountId }: Pick<RecurringRule, "accountId" | "toAccountId">,
+  names: Map<string, string>,
+) {
+  const nameOf = (id: string) => names.get(id) ?? "Akun";
+  return toAccountId ? `${nameOf(accountId)} → ${nameOf(toAccountId)}` : nameOf(accountId);
 }
 
 /** Late is spelled out in the text so it never depends on color alone. */

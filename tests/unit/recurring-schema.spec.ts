@@ -83,7 +83,7 @@ describe("recurringCreateSchema", () => {
     ).toBeDefined();
   });
 
-  it.each(["transfer", "adjustment", "refund"])("rejects type %j", (type) => {
+  it.each(["adjustment", "refund"])("rejects type %j", (type) => {
     expect(errors(recurringCreateSchema.safeParse(rule({ type }))).fieldErrors.type).toBeDefined();
   });
 
@@ -194,5 +194,41 @@ describe("recurringAdvanceSchema", () => {
     expect(
       errors(recurringAdvanceSchema.safeParse(post({ id: undefined }))).fieldErrors.id,
     ).toBeDefined();
+  });
+});
+
+describe("recurringCreateSchema for a deposit", () => {
+  const toAccountId = "5b6c7d8e-9f0a-4b1c-8d2e-3f4a5b6c7d8e";
+  const deposit = (overrides: Record<string, unknown> = {}) =>
+    rule({ type: "transfer", categoryId: undefined, toAccountId, ...overrides });
+
+  it("accepts a destination without a category", () => {
+    expect(recurringCreateSchema.safeParse(deposit()).success).toBe(true);
+  });
+
+  it("requires a destination", () => {
+    const { fieldErrors } = errors(
+      recurringCreateSchema.safeParse(deposit({ toAccountId: undefined })),
+    );
+    expect(fieldErrors.toAccountId).toEqual(["Pilih akun aset"]);
+  });
+
+  it("rejects a category", () => {
+    const { fieldErrors } = errors(recurringCreateSchema.safeParse(deposit({ categoryId })));
+    expect(fieldErrors.categoryId).toBeDefined();
+  });
+
+  it("rejects the source as its own destination", () => {
+    const { fieldErrors } = errors(
+      recurringCreateSchema.safeParse(deposit({ toAccountId: accountId })),
+    );
+    expect(fieldErrors.toAccountId).toEqual(["Akun tujuan harus berbeda"]);
+  });
+
+  it("still requires a category on other rules", () => {
+    const { fieldErrors } = errors(
+      recurringCreateSchema.safeParse(rule({ categoryId: undefined })),
+    );
+    expect(fieldErrors.categoryId).toEqual(["Pilih kategori"]);
   });
 });

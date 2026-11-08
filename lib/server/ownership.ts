@@ -11,7 +11,7 @@ import type { CategoryKind } from "@/lib/schemas/category";
 export async function findOwnedAccounts(userId: string, ids: string[]) {
   if (ids.length === 0) return [];
   return db
-    .select({ id: accounts.id, archivedAt: accounts.archivedAt })
+    .select({ id: accounts.id, type: accounts.type, archivedAt: accounts.archivedAt })
     .from(accounts)
     .where(and(eq(accounts.userId, userId), inArray(accounts.id, ids)));
 }

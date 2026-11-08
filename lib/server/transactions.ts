@@ -14,7 +14,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { db } from "@/db";
-import { transactions } from "@/db/schema";
+import { accounts, transactions } from "@/db/schema";
 import { CATEGORY_KIND_FOR, type CategoryKind } from "@/lib/schemas/category";
 import {
   type ListTransactionType,
@@ -146,11 +146,12 @@ export async function insertSimple(
   return { transaction: toTransaction(row), fee: null };
 }
 
-async function insertTransfer(
+export async function insertTransfer(
   userId: string,
   { fee, ...input }: TransferCreateInput,
+  executor: Executor = db,
 ): Promise<TransactionCreated> {
-  return db.transaction(async (tx) => {
+  return executor.transaction(async (tx) => {
     const [row] = await tx
       .insert(transactions)
       .values({ userId, ...input })
@@ -213,12 +214,23 @@ export async function createTransaction(
 // rows whose created_at differ by microseconds.
 const createdAtMicros = sql<string>`(extract(epoch from ${transactions.createdAt}) * 1000000)::bigint`;
 
+/** Old `saving` rows plus deposits (the SQL form of `isDeposit`). */
+export const isSaving = sql`(${transactions.type} = 'saving' or (${transactions.type} = 'transfer' and exists (
+  select 1 from ${accounts} src join ${accounts} dst on dst.id = ${transactions.toAccountId}
+  where src.id = ${transactions.accountId} and src.type = 'transaction' and dst.type = 'asset'
+)))`;
+
+function matchesType(type: ListTransactionType | undefined) {
+  if (!type) return undefined;
+  return type === "saving" ? isSaving : eq(transactions.type, type);
+}
+
 /** The one `where` for list, totals and export, so the three always see the same rows. */
 export function transactionWhere(userId: string, filters: TransactionFilters) {
   return and(
     eq(transactions.userId, userId),
     isNull(transactions.deletedAt),
-    filters.type ? eq(transactions.type, filters.type) : undefined,
+    matchesType(filters.type),
     filters.accountId
       ? or(
           eq(transactions.accountId, filters.accountId),

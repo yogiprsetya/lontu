@@ -2,8 +2,18 @@ export const TRANSACTION_TYPES = ["income", "expense", "saving", "transfer"] as 
 
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
-export function isTransactionType(value: string): value is TransactionType {
-  return (TRANSACTION_TYPES as readonly string[]).includes(value);
+/** What can be newly recorded. `saving` stays above for old rows: money set aside is now a transfer to an asset account. */
+export const ADDABLE_TRANSACTION_TYPES = ["income", "expense", "transfer"] as const;
+
+export type AddableTransactionType = (typeof ADDABLE_TRANSACTION_TYPES)[number];
+
+export function isAddableTransactionType(value: string): value is AddableTransactionType {
+  return (ADDABLE_TRANSACTION_TYPES as readonly string[]).includes(value);
+}
+
+/** Money moved from a day-to-day account into an asset, which is what counts as saving. */
+export function isDeposit(from?: { type: string }, to?: { type: string }) {
+  return from?.type === "transaction" && to?.type === "asset";
 }
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {

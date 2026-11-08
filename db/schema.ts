@@ -156,9 +156,8 @@ export const recurringRules = lontu.table.withRLS(
     accountId: uuid("account_id")
       .notNull()
       .references(() => accounts.id),
-    categoryId: uuid("category_id")
-      .notNull()
-      .references(() => categories.id),
+    toAccountId: uuid("to_account_id").references(() => accounts.id),
+    categoryId: uuid("category_id").references(() => categories.id),
     dayOfMonth: smallint("day_of_month").notNull(),
     nextDueDate: date("next_due_date", { mode: "string" }).notNull(),
     isPayday: boolean("is_payday").notNull().default(false),
@@ -167,7 +166,19 @@ export const recurringRules = lontu.table.withRLS(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    check("recurring_rules_type_check", sql`${t.type} in ('income', 'expense', 'saving')`),
+    check(
+      "recurring_rules_type_check",
+      sql`${t.type} in ('income', 'expense', 'saving', 'transfer')`,
+    ),
+    check(
+      "recurring_rules_transfer_check",
+      sql`(${t.type} = 'transfer') = (${t.toAccountId} is not null)`,
+    ),
+    check(
+      "recurring_rules_category_check",
+      sql`(${t.type} = 'transfer') = (${t.categoryId} is null)`,
+    ),
+    check("recurring_rules_distinct_accounts_check", sql`${t.toAccountId} <> ${t.accountId}`),
     check("recurring_rules_amount_check", sql`${t.amount} > 0`),
     check("recurring_rules_day_check", sql`${t.dayOfMonth} between 1 and 31`),
     check("recurring_rules_payday_check", sql`not ${t.isPayday} or ${t.type} = 'income'`),

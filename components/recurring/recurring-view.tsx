@@ -25,7 +25,7 @@ import { todayInJakarta } from "@/lib/date";
 import { failureMessage } from "@/lib/offline/network-error";
 import { undoToast } from "@/lib/undo-toast";
 import type { RulePreset } from "@/lib/recurring-form";
-import { RECURRING_GROUPS } from "@/lib/recurring-format";
+import { formatRuleAccounts, RECURRING_GROUPS } from "@/lib/recurring-format";
 import type { RecurringRule } from "@/lib/schemas/recurring";
 import { nameMap } from "@/lib/transaction-format";
 
@@ -147,7 +147,7 @@ function RuleGroups({
             <RuleRow
               key={rule.id}
               rule={rule}
-              accountName={accountNames.get(rule.accountId) ?? "Akun"}
+              accountLabel={formatRuleAccounts(rule, accountNames)}
               today={today}
               onEdit={rule.archivedAt ? undefined : () => onEdit(rule.id)}
             >

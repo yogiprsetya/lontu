@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   rule: RecurringRule;
-  accountName: string;
+  accountLabel: string;
   today: string;
   onEdit?: () => void;
   /** Trailing controls, such as the row menu or Pulihkan. */
   children?: React.ReactNode;
 };
 
-export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
+export function RuleRow({ rule, accountLabel, today, onEdit, children }: Props) {
   const money = useAmountFormat();
   const due = formatDueLabel(rule.nextDueDate, today);
   const status = rule.archivedAt
@@ -34,8 +34,14 @@ export function RuleRow({ rule, accountName, today, onEdit, children }: Props) {
             </span>
           )}
         </span>
-        <span className="truncate text-sm text-muted-foreground tabular-nums">
-          {formatSchedule(rule.amount, rule.dayOfMonth, money)} · {accountName}
+        {/* A deposit wraps: truncating would cut off the destination, the end of the line. */}
+        <span
+          className={cn(
+            "text-sm text-muted-foreground tabular-nums",
+            rule.toAccountId ? "wrap-anywhere" : "truncate",
+          )}
+        >
+          {formatSchedule(rule.amount, rule.dayOfMonth, money)} · {accountLabel}
         </span>
         <span className={cn("text-sm", status.tone)}>{status.text}</span>
       </span>

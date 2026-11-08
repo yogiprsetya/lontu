@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import {
   Controller,
@@ -18,6 +17,7 @@ import type { z } from "zod";
 import { AccountPicker } from "@/components/forms/account-picker";
 import { useShortBalanceWarning } from "@/components/forms/balance-warning";
 import { CategoryPicker } from "@/components/forms/category-picker";
+import { RecordTransferOccurrenceForm } from "@/components/forms/transfer-form";
 import { DateField } from "@/components/forms/date-field";
 import { FormField } from "@/components/forms/form-field";
 import { StickySubmit } from "@/components/forms/sticky-submit";
@@ -25,14 +25,13 @@ import { MoneyInput } from "@/components/forms/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBackToList } from "@/hooks/use-back-to-list";
-import { advanceRule, revalidateRecurring } from "@/hooks/use-recurring";
+import { useRecordOccurrence } from "@/hooks/use-recurring";
 import { updateTransaction, useSubmitTransaction } from "@/hooks/use-transactions";
 import { todayInJakarta } from "@/lib/date";
-import { ApiError } from "@/lib/fetcher";
 import { applyServerErrors } from "@/lib/form-errors";
 import { occurrenceDefaults, recurringPostBody } from "@/lib/recurring-form";
 import { CATEGORY_KIND_FOR } from "@/lib/schemas/category";
-import type { RecurringRule } from "@/lib/schemas/recurring";
+import type { RecurringRule, SimpleRule } from "@/lib/schemas/recurring";
 import {
   MIN_TRANSACTION_DATE,
   type SimpleCreateInput,
@@ -63,7 +62,7 @@ function reportSaveError(err: unknown, setError: UseFormSetError<FormValues>) {
     toast.error(failureMessage(err, "Gagal menyimpan transaksi. Coba lagi."));
 }
 
-/** Income, expense or saving. Waits for the server, then goes to the list. */
+/** Income or expense. Waits for the server, then goes to the list. */
 export function CreateTransactionForm({ type }: { type: SimpleTransactionType }) {
   const router = useRouter();
   const submit = useSubmitTransaction();
@@ -140,40 +139,27 @@ export function EditTransactionForm({
   );
 }
 
+type OccurrenceProps<Rule> = { rule: Rule; occurrenceDate: string; onDone: () => void };
+
 /** Catat for one occurrence of a recurring rule: saving advances the rule instead of a plain create. */
-export function RecordOccurrenceForm({
-  rule,
-  occurrenceDate,
-  onDone,
-}: {
-  rule: RecurringRule;
-  occurrenceDate: string;
-  onDone: () => void;
-}) {
+export function RecordOccurrenceForm({ rule, ...rest }: OccurrenceProps<RecurringRule>) {
+  return rule.type === "transfer" ? (
+    <RecordTransferOccurrenceForm rule={rule} {...rest} />
+  ) : (
+    <RecordSimpleOccurrenceForm rule={rule} {...rest} />
+  );
+}
+
+function RecordSimpleOccurrenceForm({ rule, occurrenceDate, onDone }: OccurrenceProps<SimpleRule>) {
   const today = todayInJakarta();
-  // Once per form, not per submit, so Simpan tapped again after a lost response replays.
-  const [transactionId, setTransactionId] = useState(() => crypto.randomUUID());
+  const { occurrence, record } = useRecordOccurrence(rule, occurrenceDate, onDone);
   const form = useTransactionForm(occurrenceDefaults(rule, occurrenceDate, today));
   const { isSubmitting } = form.formState;
 
   const onSubmit = form.handleSubmit(async (input) => {
     try {
-      await advanceRule(rule.id, recurringPostBody(input, { id: transactionId, occurrenceDate }));
-      toast.success(`${rule.name} dicatat`);
-      onDone();
+      await record(recurringPostBody(input, occurrence));
     } catch (err) {
-      if (err instanceof ApiError && err.code === "OCCURRENCE_STALE") {
-        toast("Kejadian ini sudah ditangani");
-        onDone();
-        void revalidateRecurring();
-        return;
-      }
-      // The server proved this id is not this request's, so the next Simpan needs a new one.
-      if (err instanceof ApiError && err.code === "TRANSACTION_ID_TAKEN") {
-        setTransactionId(crypto.randomUUID());
-        toast.error("Gagal menyimpan. Coba simpan lagi.");
-        return;
-      }
       reportSaveError(err, form.setError);
     }
   });
@@ -182,7 +168,7 @@ export function RecordOccurrenceForm({
     // No bottom nav to clear in a modal, so the button sits inline.
     <form onSubmit={onSubmit} noValidate className={formClass}>
       <FixedType type={rule.type} />
-      <TransactionFields form={form} type={rule.type} today={today} />
+      <TransactionFields form={form} type={rule.type} today={today} accountType="transaction" />
       <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
         {isSubmitting && <Loader2Icon className="animate-spin" aria-hidden />}
         Simpan
@@ -206,11 +192,13 @@ function TransactionFields({
   type,
   today,
   stored,
+  accountType,
 }: {
   form: Form;
   type: SimpleTransactionType;
   today: string;
   stored?: Transaction;
+  accountType?: "transaction";
 }) {
   const { errors } = useFormState({ control });
   const [accountId, amount] = useWatch({ control, name: ["accountId", "amount"] });
@@ -253,6 +241,7 @@ function TransactionFields({
               id="transaction-account"
               value={field.value}
               onChange={field.onChange}
+              accountType={accountType}
               keep={stored?.accountId}
               invalid={!!errors.accountId}
               describedBy="transaction-account-message"

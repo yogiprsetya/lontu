@@ -4,8 +4,10 @@ import type {
   RecurringRule,
   RecurringType,
   RecurringUpdateInput,
+  SimpleRule,
+  TransferRule,
 } from "@/lib/schemas/recurring";
-import type { SimpleCreateInput } from "@/lib/schemas/transaction";
+import type { SimpleCreateInput, TransferCreateInput } from "@/lib/schemas/transaction";
 
 export type RulePreset = { type: RecurringType; isPayday?: boolean };
 
@@ -17,8 +19,17 @@ export function ruleFormDefaults({
   preset?: RulePreset;
 }): RecurringCreateInput {
   if (rule) {
-    const { type, name, amount, accountId, categoryId, dayOfMonth, isPayday } = rule;
-    return { type, name, amount, accountId, categoryId, dayOfMonth, isPayday };
+    const { type, name, amount, accountId, categoryId, toAccountId, dayOfMonth, isPayday } = rule;
+    return {
+      type,
+      name,
+      amount,
+      accountId,
+      categoryId: categoryId ?? undefined,
+      toAccountId: toAccountId ?? undefined,
+      dayOfMonth,
+      isPayday,
+    };
   }
   return {
     type: preset?.type ?? "expense",
@@ -36,10 +47,11 @@ export function toUpdateInput({
   amount,
   accountId,
   categoryId,
+  toAccountId,
   dayOfMonth,
   isPayday,
 }: RecurringCreateInput): RecurringUpdateInput {
-  return { name, amount, accountId, categoryId, dayOfMonth, isPayday };
+  return { name, amount, accountId, categoryId, toAccountId, dayOfMonth, isPayday };
 }
 
 /** Shown under the payday switch when saving will move the flag off another rule. */
@@ -62,25 +74,48 @@ export function reschedulesMissed(
 }
 
 /** Catat form defaults (spec decision #11). An early occurrence is dated today: no future transactions. */
+function occurrenceFields(rule: RecurringRule, occurrenceDate: string, today: string) {
+  return {
+    amount: rule.amount,
+    date: occurrenceDate > today ? today : occurrenceDate,
+    accountId: rule.accountId,
+    description: rule.name,
+  };
+}
+
 export function occurrenceDefaults(
-  rule: RecurringRule,
+  rule: SimpleRule,
   occurrenceDate: string,
   today: string,
 ): SimpleCreateInput {
   return {
+    ...occurrenceFields(rule, occurrenceDate, today),
     type: rule.type,
-    amount: rule.amount,
-    date: occurrenceDate > today ? today : occurrenceDate,
-    accountId: rule.accountId,
     categoryId: rule.categoryId,
-    description: rule.name,
+  };
+}
+
+export function transferOccurrenceDefaults(
+  rule: TransferRule,
+  occurrenceDate: string,
+  today: string,
+): TransferCreateInput {
+  return {
+    ...occurrenceFields(rule, occurrenceDate, today),
+    type: "transfer",
+    toAccountId: rule.toAccountId,
   };
 }
 
 /** `id` is created once per form, so a resubmit after a lost response replays instead of posting twice. */
 export function recurringPostBody(
-  { amount, date, accountId, categoryId, description }: SimpleCreateInput,
+  input: SimpleCreateInput | TransferCreateInput,
   { id, occurrenceDate }: { id: string; occurrenceDate: string },
 ): Extract<RecurringAdvanceInput, { action: "post" }> {
-  return { action: "post", occurrenceDate, id, amount, date, accountId, categoryId, description };
+  const { amount, date, accountId, description } = input;
+  const target =
+    input.type === "transfer"
+      ? { toAccountId: input.toAccountId }
+      : { categoryId: input.categoryId };
+  return { action: "post", occurrenceDate, id, amount, date, accountId, description, ...target };
 }

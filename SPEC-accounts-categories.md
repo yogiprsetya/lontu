@@ -161,7 +161,7 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
 
 - **Settings (`app/(app)/settings/page.tsx`)** menggantikan placeholder. Section berurutan:
   1. **Profil:** form `displayName`, `phone`, `location` (react-hook-form + `profileSchema`), tombol Simpan, toast sukses.
-  2. **Keuangan:** tombol "Kelola akun" dan "Kelola kategori" (membuka modal lewat `useUIStore`), toggle "Sembunyikan nominal" (`hideAmounts`).
+  2. **Keuangan:** tombol "Kelola akun", "Kelola kategori", dan "Arsip" (membuka modal lewat `useUIStore`), toggle "Sembunyikan nominal" (`hideAmounts`).
   3. **Logout.**
      (Section Tampilan dengan `ThemeToggle` dihapus 2026-11-06 bersama dark mode.)
      Bagian yang membaca data memakai SWR di komponen client dengan skeleton. Halaman tetap memenuhi aturan `cacheComponents`.
@@ -174,6 +174,7 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
   - Tab Income / Saving / Spending. Tab Spending dikelompokkan Needs dan Wants.
   - Form tambah berisi nama dan, untuk spending, pilihan needs/wants. Form edit hanya berisi nama, dengan teks kecil yang menjelaskan bahwa jenis kategori tidak bisa diubah. Arsip/pulihkan sama seperti akun.
   - `modalProps.kind` memilih tab awal.
+- **`components/modals/archived-items.tsx`:** daftar aturan berulang dan target terarsip, masing-masing dengan tombol "Pulihkan" (nonaktif saat offline). Toggle "Tampilkan arsip" hanya ada di Kelola akun dan Kelola kategori; halaman `/recurring` dan `/net-worth` tidak menampilkan arsip.
 - **`components/modals/modal-host.tsx`** di-mount di `app/(app)/layout.tsx` dan merender modal sesuai `useUIStore().modal`. `components/settings/manage-accounts-placeholder.tsx` dihapus.
 - Empty state di setiap daftar, error SWR dengan tombol "Coba lagi", tombol submit nonaktif + spinner saat request berjalan.
 - Mobile: semua target sentuh ≥ 44×44 px, input 16 px, tanpa horizontal scroll di 360 px. Input nominal memakai `inputMode="numeric"`, dengan tombol ± untuk tanda minus karena keypad numerik iOS tidak punya minus.

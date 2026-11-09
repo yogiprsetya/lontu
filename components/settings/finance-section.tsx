@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRightIcon, TagsIcon, WalletIcon } from "lucide-react";
+import { ArchiveIcon, ChevronRightIcon, TagsIcon, WalletIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useUIStore } from "@/stores/ui";
 
@@ -22,6 +22,11 @@ export function FinanceSection() {
       <button type="button" className={rowClass} onClick={() => open("manageCategories")}>
         <TagsIcon className="size-5 text-muted-foreground" aria-hidden />
         <span className="flex-1">Kelola kategori</span>
+        <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+      </button>
+      <button type="button" className={rowClass} onClick={() => open("archivedItems")}>
+        <ArchiveIcon className="size-5 text-muted-foreground" aria-hidden />
+        <span className="flex-1">Arsip</span>
         <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
       </button>
       {/* The whole row is the label so the tap target is 44px tall, not just the switch.

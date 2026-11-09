@@ -5,6 +5,10 @@ export function selectableItems<T extends Archivable>(items: T[], keepId?: strin
   return items.filter((item) => !item.archivedAt || item.id === keepId);
 }
 
+export function archivedItems<T extends Archivable>(items: T[]) {
+  return items.filter((item) => item.archivedAt);
+}
+
 export function archiveLabel({ name, archivedAt }: Archivable) {
   return archivedAt ? `${name} (arsip)` : name;
 }

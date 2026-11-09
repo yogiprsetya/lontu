@@ -6,22 +6,13 @@ import { CategoryForm } from "@/components/forms/category-form";
 import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-labels";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import {
-  ArchiveButton,
-  RestoreButton,
-  ShowArchivedSwitch,
-} from "@/components/modals/archive-controls";
+import { ArchiveButton } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  archiveCategory,
-  groupBySpendingType,
-  restoreCategory,
-  useCategories,
-} from "@/hooks/use-categories";
+import { archiveCategory, groupBySpendingType, useCategories } from "@/hooks/use-categories";
 import {
   CATEGORY_KINDS,
   type Category,
@@ -46,7 +37,6 @@ type ManageCategoriesProps = {
 export function ManageCategories({ open, onClose, initialKind }: ManageCategoriesProps) {
   const [tab, setTab] = useState<CategoryKind>(initialKind ?? "income");
   const [view, setView] = useState<View>({ kind: "list" });
-  const [showArchived, setShowArchived] = useState(false);
   const [saving, setSaving] = useState(false);
   const toList = () => setView({ kind: "list" });
 
@@ -94,17 +84,10 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
             ))}
           </TabsList>
 
-          <ShowArchivedSwitch
-            id="show-archived-categories"
-            checked={showArchived}
-            onCheckedChange={setShowArchived}
-          />
-
           {CATEGORY_KINDS.map((kind) => (
             <TabsContent key={kind} value={kind}>
               <CategoryList
                 kind={kind}
-                includeArchived={showArchived}
                 onEdit={(category) => setView({ kind: "edit", category })}
               />
             </TabsContent>
@@ -136,12 +119,11 @@ export function ManageCategories({ open, onClose, initialKind }: ManageCategorie
 
 type CategoryListProps = {
   kind: CategoryKind;
-  includeArchived: boolean;
   onEdit: (category: Category) => void;
 };
 
-function CategoryList({ kind, includeArchived, onEdit }: CategoryListProps) {
-  const { data, error, mutate } = useCategories({ kind, includeArchived });
+function CategoryList({ kind, onEdit }: CategoryListProps) {
+  const { data, error, mutate } = useCategories({ kind });
 
   if (error) {
     return <LoadError onRetry={() => void mutate()} message="Gagal memuat kategori." />;
@@ -209,27 +191,15 @@ function CategoryItems({
     <ul className="flex flex-col">
       {categories.map((category) => (
         <li key={category.id}>
-          {category.archivedAt ? (
-            <div className="flex min-h-11 items-center gap-3 pl-2">
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-muted-foreground">{category.name}</span>
+          <button
+            type="button"
+            onClick={() => onEdit(category)}
+            className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50"
+          >
+            <span className="min-w-0 flex-1 truncate">{category.name}</span>
 
-                <span className="text-xs text-muted-foreground">Diarsipkan</span>
-              </span>
-
-              <RestoreButton name={category.name} restore={() => restoreCategory(category.id)} />
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onEdit(category)}
-              className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50"
-            >
-              <span className="min-w-0 flex-1 truncate">{category.name}</span>
-
-              <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-            </button>
-          )}
+            <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          </button>
         </li>
       ))}
     </ul>

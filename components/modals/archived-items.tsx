@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { KIND_LABELS } from "@/components/forms/category-labels";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { RestoreButton } from "@/components/modals/archive-controls";
 import { RestoreNetWorthButton } from "@/components/net-worth/restore-net-worth";
@@ -8,15 +9,16 @@ import { RuleRow } from "@/components/recurring/rule-row";
 import { LoadError } from "@/components/settings/load-error";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAccounts } from "@/hooks/use-accounts";
-import { useAmountFormat } from "@/hooks/use-amount-format";
+import { restoreAccount, useAccounts } from "@/hooks/use-accounts";
+import { type AmountFormat, useAmountFormat } from "@/hooks/use-amount-format";
+import { restoreCategory, useCategories } from "@/hooks/use-categories";
 import { useNetWorths } from "@/hooks/use-net-worth";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { restoreRule, useRecurring } from "@/hooks/use-recurring";
 import { archivedItems } from "@/lib/archived";
 import { todayInJakarta } from "@/lib/date";
 import { formatRuleAccounts } from "@/lib/recurring-format";
-import type { NetWorthProgress } from "@/lib/schemas/net-worth";
+import { ACCOUNT_SUBTYPE_LABELS, type Account } from "@/lib/schemas/account";
 import { nameMap } from "@/lib/transaction-format";
 
 export function ArchivedItems({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -25,7 +27,7 @@ export function ArchivedItems({ open, onClose }: { open: boolean; onClose: () =>
       open={open}
       onOpenChange={(next) => !next && onClose()}
       title="Arsip"
-      description="Aturan berulang dan target yang sudah diarsipkan."
+      description="Akun, kategori, aturan berulang, dan target yang sudah diarsipkan."
     >
       <ScrollArea className="w-full lg:h-64 pr-2">
         <ArchivedList />
@@ -43,44 +45,52 @@ function ArchivedSection({ title, children }: { title: string; children: React.R
   );
 }
 
-function ArchivedTargetRow({ target, online }: { target: NetWorthProgress; online: boolean }) {
-  const money = useAmountFormat();
+type ArchivedRowProps = {
+  name: string;
+  detail: string;
+  /** The Pulihkan button. */
+  children: React.ReactNode;
+};
+
+function ArchivedRow({ name, detail, children }: ArchivedRowProps) {
   return (
     <li className="flex min-h-16 items-center gap-3 py-3">
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-bold">{target.name}</span>
-        <span className="text-sm text-muted-foreground tabular-nums">
-          Target {money(target.targetAmount)}
-        </span>
+        <span className="truncate font-bold">{name}</span>
+        <span className="text-sm text-muted-foreground tabular-nums">{detail}</span>
         <span className="text-sm text-muted-foreground">Diarsipkan</span>
       </span>
-      <RestoreNetWorthButton netWorth={target} disabled={!online} />
+      {children}
     </li>
   );
 }
 
+function accountDetail(account: Account, money: AmountFormat) {
+  const balance = money(account.balance);
+  return account.subtype ? `${ACCOUNT_SUBTYPE_LABELS[account.subtype]} · ${balance}` : balance;
+}
+
 function ArchivedList() {
   const online = useOnlineStatus();
+  const money = useAmountFormat();
   const recurring = useRecurring({ includeArchived: true });
   const netWorths = useNetWorths({ includeArchived: true });
   const accounts = useAccounts({ includeArchived: true });
+  const categories = useCategories({ includeArchived: true });
   const accountNames = useMemo(() => nameMap(accounts.data), [accounts.data]);
   const today = todayInJakarta();
 
-  if (recurring.error || netWorths.error || accounts.error) {
+  const sources = [recurring, netWorths, accounts, categories];
+  if (sources.some((source) => source.error)) {
     return (
       <LoadError
         message="Gagal memuat arsip."
-        onRetry={() => {
-          void recurring.mutate();
-          void netWorths.mutate();
-          void accounts.mutate();
-        }}
+        onRetry={() => sources.forEach((source) => void source.mutate())}
       />
     );
   }
 
-  if (!recurring.data || !netWorths.data || !accounts.data) {
+  if (!recurring.data || !netWorths.data || !accounts.data || !categories.data) {
     return (
       <div className="flex flex-col gap-2 pb-2" aria-busy="true" aria-label="Memuat arsip">
         {[0, 1, 2].map((i) => (
@@ -90,19 +100,52 @@ function ArchivedList() {
     );
   }
 
-  const rules = archivedItems(recurring.data.rules);
-  const targets = archivedItems(netWorths.data);
+  const archivedAccounts = archivedItems(accounts.data);
+  const archivedCategories = archivedItems(categories.data);
+  const archivedRules = archivedItems(recurring.data.rules);
+  const archivedTargets = archivedItems(netWorths.data);
+  const lists = [archivedAccounts, archivedCategories, archivedRules, archivedTargets];
 
-  if (rules.length === 0 && targets.length === 0) {
+  if (lists.every((list) => list.length === 0)) {
     return <p className="py-6 text-center text-muted-foreground">Belum ada yang diarsipkan.</p>;
   }
 
   return (
     <div className="flex flex-col gap-4 pb-2">
       {!online && <p className="text-sm text-muted-foreground">Butuh koneksi untuk memulihkan.</p>}
-      {rules.length > 0 && (
+      {archivedAccounts.length > 0 && (
+        <ArchivedSection title="Akun">
+          {archivedAccounts.map((account) => (
+            <ArchivedRow
+              key={account.id}
+              name={account.name}
+              detail={accountDetail(account, money)}
+            >
+              <RestoreButton
+                name={account.name}
+                restore={() => restoreAccount(account.id)}
+                disabled={!online}
+              />
+            </ArchivedRow>
+          ))}
+        </ArchivedSection>
+      )}
+      {archivedCategories.length > 0 && (
+        <ArchivedSection title="Kategori">
+          {archivedCategories.map((category) => (
+            <ArchivedRow key={category.id} name={category.name} detail={KIND_LABELS[category.kind]}>
+              <RestoreButton
+                name={category.name}
+                restore={() => restoreCategory(category.id)}
+                disabled={!online}
+              />
+            </ArchivedRow>
+          ))}
+        </ArchivedSection>
+      )}
+      {archivedRules.length > 0 && (
         <ArchivedSection title="Aturan berulang">
-          {rules.map((rule) => (
+          {archivedRules.map((rule) => (
             <RuleRow
               key={rule.id}
               rule={rule}
@@ -118,10 +161,16 @@ function ArchivedList() {
           ))}
         </ArchivedSection>
       )}
-      {targets.length > 0 && (
+      {archivedTargets.length > 0 && (
         <ArchivedSection title="Target">
-          {targets.map((target) => (
-            <ArchivedTargetRow key={target.id} target={target} online={online} />
+          {archivedTargets.map((target) => (
+            <ArchivedRow
+              key={target.id}
+              name={target.name}
+              detail={`Target ${money(target.targetAmount)}`}
+            >
+              <RestoreNetWorthButton netWorth={target} disabled={!online} />
+            </ArchivedRow>
           ))}
         </ArchivedSection>
       )}

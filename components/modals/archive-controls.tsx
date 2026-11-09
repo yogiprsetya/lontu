@@ -15,24 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { failureMessage } from "@/lib/offline/network-error";
-
-type ShowArchivedSwitchProps = {
-  id: string;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-};
-
-export function ShowArchivedSwitch({ id, checked, onCheckedChange }: ShowArchivedSwitchProps) {
-  return (
-    <Label htmlFor={id} variant="row">
-      Tampilkan arsip
-      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
-    </Label>
-  );
-}
 
 type ArchiveButtonProps = {
   /** Button text, e.g. "Arsipkan akun". */

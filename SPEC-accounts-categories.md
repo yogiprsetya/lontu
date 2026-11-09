@@ -169,12 +169,12 @@ Filter per kind dilakukan di client (`useCategories`). Jumlah kategori kecil (pu
   - Daftar dikelompokkan "Transaksi" dan "Aset". Setiap baris berisi nama, label subtype, dan saldo (`formatIDR`, disamarkan jika `hideAmounts`, merah jika negatif).
   - Tombol "Tambah akun" membuka form dengan field nama, type (segmented), subtype (select, opsional), dan saldo awal (input ribuan, boleh minus).
   - Tap baris membuka form edit. Di form edit ada "Arsipkan" dengan konfirmasi yang menyebut saldo saat ini jika ≠ 0.
-  - Toggle "Tampilkan arsip" menampilkan item terarsip (redup) dengan tombol "Pulihkan".
+  - Daftar hanya berisi akun aktif. Akun terarsip dilihat dan dipulihkan dari Settings → Arsip.
 - **`components/modals/manage-categories.tsx`:**
   - Tab Income / Saving / Spending. Tab Spending dikelompokkan Needs dan Wants.
-  - Form tambah berisi nama dan, untuk spending, pilihan needs/wants. Form edit hanya berisi nama, dengan teks kecil yang menjelaskan bahwa jenis kategori tidak bisa diubah. Arsip/pulihkan sama seperti akun.
+  - Form tambah berisi nama dan, untuk spending, pilihan needs/wants. Form edit hanya berisi nama, dengan teks kecil yang menjelaskan bahwa jenis kategori tidak bisa diubah. Arsip sama seperti akun, dan kategori terarsip dipulihkan dari Settings → Arsip.
   - `modalProps.kind` memilih tab awal.
-- **`components/modals/archived-items.tsx`:** daftar aturan berulang dan target terarsip, masing-masing dengan tombol "Pulihkan" (nonaktif saat offline). Toggle "Tampilkan arsip" hanya ada di Kelola akun dan Kelola kategori; halaman `/recurring` dan `/net-worth` tidak menampilkan arsip.
+- **`components/modals/archived-items.tsx`:** satu-satunya tempat melihat item terarsip: daftar akun, kategori, aturan berulang, dan target terarsip, masing-masing dengan tombol "Pulihkan" (nonaktif saat offline). Kelola akun, Kelola kategori, `/recurring`, dan `/net-worth` tidak menampilkan arsip.
 - **`components/modals/modal-host.tsx`** di-mount di `app/(app)/layout.tsx` dan merender modal sesuai `useUIStore().modal`. `components/settings/manage-accounts-placeholder.tsx` dihapus.
 - Empty state di setiap daftar, error SWR dengan tombol "Coba lagi", tombol submit nonaktif + spinner saat request berjalan.
 - Mobile: semua target sentuh ≥ 44×44 px, input 16 px, tanpa horizontal scroll di 360 px. Input nominal memakai `inputMode="numeric"`, dengan tombol ± untuk tanda minus karena keypad numerik iOS tidak punya minus.

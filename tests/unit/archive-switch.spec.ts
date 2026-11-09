@@ -8,16 +8,11 @@ function usersOfSwitch(dir: string): string[] {
   return readdirSync(path.join(ROOT, dir), { withFileTypes: true, recursive: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".tsx"))
     .map((entry) => path.relative(ROOT, path.join(entry.parentPath, entry.name)))
-    .filter((file) => file !== "components/modals/archive-controls.tsx")
-    .filter((file) => readFileSync(path.join(ROOT, file), "utf8").includes("ShowArchivedSwitch"))
-    .sort();
+    .filter((file) => readFileSync(path.join(ROOT, file), "utf8").includes("Tampilkan arsip"));
 }
 
 describe('"Tampilkan arsip" switch', () => {
-  it("appears only in the Settings management modals", () => {
-    expect([...usersOfSwitch("app"), ...usersOfSwitch("components")]).toEqual([
-      "components/modals/manage-accounts.tsx",
-      "components/modals/manage-categories.tsx",
-    ]);
+  it("is gone: archived items are only listed in Settings → Arsip", () => {
+    expect([...usersOfSwitch("app"), ...usersOfSwitch("components")]).toEqual([]);
   });
 });

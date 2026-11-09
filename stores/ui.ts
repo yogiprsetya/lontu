@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export type ModalId = "manageAccounts" | "manageCategories" | "signOut";
+export type ModalId = "manageAccounts" | "manageCategories" | "archivedItems" | "signOut";
 
 type UIState = {
   modal: ModalId | null;

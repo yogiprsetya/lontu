@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { archiveLabel, selectableItems } from "@/lib/archived";
+import { archivedItems, archiveLabel, selectableItems } from "@/lib/archived";
 
 const active = { id: "a", name: "Kas", archivedAt: null };
 const old = { id: "b", name: "Lama", archivedAt: "2026-01-01T00:00:00Z" };
@@ -16,6 +16,16 @@ describe("selectableItems", () => {
 
   it("ignores a kept id that is not in the list", () => {
     expect(selectableItems([active], "zzz")).toEqual([active]);
+  });
+});
+
+describe("archivedItems", () => {
+  it("keeps only archived items, in their original order", () => {
+    expect(archivedItems([old, active, other])).toEqual([old, other]);
+  });
+
+  it("is empty when nothing is archived", () => {
+    expect(archivedItems([active])).toEqual([]);
   });
 });
 

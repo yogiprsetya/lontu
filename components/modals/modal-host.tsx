@@ -11,6 +11,9 @@ const ManageAccounts = lazy(() =>
 const ManageCategories = lazy(() =>
   import("@/components/modals/manage-categories").then((m) => ({ default: m.ManageCategories })),
 );
+const ArchivedItems = lazy(() =>
+  import("@/components/modals/archived-items").then((m) => ({ default: m.ArchivedItems })),
+);
 const SignOutConfirm = lazy(() =>
   import("@/components/modals/sign-out-confirm").then((m) => ({ default: m.SignOutConfirm })),
 );
@@ -43,6 +46,11 @@ export function ModalHost() {
             onClose={close}
             initialKind={asCategoryKind(modalProps?.kind)}
           />
+        </Suspense>
+      )}
+      {opened.has("archivedItems") && (
+        <Suspense fallback={null}>
+          <ArchivedItems open={modal === "archivedItems"} onClose={close} />
         </Suspense>
       )}
       {opened.has("signOut") && (

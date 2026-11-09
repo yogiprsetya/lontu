@@ -98,7 +98,7 @@ components/
   ui/                              # shadcn, jangan diedit manual kecuali lewat CLI
   layout/                          # BottomNav, Sidebar, ResponsiveModal
   forms/                           # TransactionForm, TransferForm, BudgetForm
-  modals/                          # ManageAccounts, ManageCategories
+  modals/                          # ManageAccounts, ManageCategories, ArchivedItems
   dashboard/
 db/
   schema.ts                        # tabel + view Drizzle

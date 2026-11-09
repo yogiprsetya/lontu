@@ -60,14 +60,7 @@ export function RuleRow({ rule, accountLabel, today, onEdit, children }: Props) 
           {body}
         </button>
       ) : (
-        <div
-          className={cn(
-            "flex min-w-0 flex-1 basis-48 items-center gap-3",
-            rule.archivedAt && "opacity-80",
-          )}
-        >
-          {body}
-        </div>
+        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">{body}</div>
       )}
       {children && <div className="ms-auto flex shrink-0 items-center gap-2">{children}</div>}
     </li>

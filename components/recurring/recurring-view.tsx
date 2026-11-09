@@ -5,7 +5,6 @@ import { EllipsisVerticalIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import { RestoreButton, ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { RecordOccurrenceModal } from "@/components/recurring/occurrence-actions";
 import { skipOccurrence } from "@/components/recurring/skip-occurrence";
 import { RuleRow } from "@/components/recurring/rule-row";
@@ -81,33 +80,19 @@ function RowMenu({ rule, online, onArchive }: RowMenuProps) {
   );
 }
 
-function EmptyRules({
-  showArchived,
-  onCreate,
-}: {
-  showArchived: boolean;
-  onCreate: (preset: RulePreset) => void;
-}) {
+function EmptyRules({ onCreate }: { onCreate: (preset: RulePreset) => void }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
       <p className="text-muted-foreground">
-        {showArchived
-          ? "Belum ada aturan, termasuk arsip."
-          : "Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian."}
+        Daftarkan gaji dan tagihan tetap supaya kamu tahu berapa yang bebas dipakai sampai gajian.
       </p>
-      {!showArchived && (
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button onClick={() => onCreate({ type: "income", isPayday: true })}>Tambah gaji</Button>
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button onClick={() => onCreate({ type: "income", isPayday: true })}>Tambah gaji</Button>
 
-          <Button
-            variant="outline"
-
-            onClick={() => onCreate({ type: "expense" })}
-          >
-            Tambah tagihan
-          </Button>
-        </div>
-      )}
+        <Button variant="outline" onClick={() => onCreate({ type: "expense" })}>
+          Tambah tagihan
+        </Button>
+      </div>
     </div>
   );
 }
@@ -149,24 +134,17 @@ function RuleGroups({
               rule={rule}
               accountLabel={formatRuleAccounts(rule, accountNames)}
               today={today}
-              onEdit={rule.archivedAt ? undefined : () => onEdit(rule.id)}
+              onEdit={() => onEdit(rule.id)}
             >
-              {rule.archivedAt ? (
-                <RestoreButton name={rule.name} restore={() => restoreRule(rule.id)} />
-              ) : (
-                <>
-                  {/* Always visible, not in the menu; filled once the occurrence is due. */}
-                  <Button
-                    variant={rule.nextDueDate <= today ? "default" : "outline"}
-
-                    disabled={!online}
-                    onClick={() => onRecord(rule.id)}
-                  >
-                    Catat
-                  </Button>
-                  <RowMenu rule={rule} online={online} onArchive={() => onArchive(rule)} />
-                </>
-              )}
+              {/* Always visible, not in the menu; filled once the occurrence is due. */}
+              <Button
+                variant={rule.nextDueDate <= today ? "default" : "outline"}
+                disabled={!online}
+                onClick={() => onRecord(rule.id)}
+              >
+                Catat
+              </Button>
+              <RowMenu rule={rule} online={online} onArchive={() => onArchive(rule)} />
             </RuleRow>
           ))}
         </ul>
@@ -176,14 +154,13 @@ function RuleGroups({
 }
 
 export function RecurringView() {
-  const [showArchived, setShowArchived] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<Editing>(null);
   const [recordingId, setRecordingId] = useState<string | null>(null);
   // Archived rows vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
-  const recurring = useRecurring({ includeArchived: showArchived });
+  const recurring = useRecurring();
   const accounts = useAccounts({ includeArchived: true });
   const accountNames = useMemo(() => nameMap(accounts.data), [accounts.data]);
   const today = todayInJakarta();
@@ -191,8 +168,8 @@ export function RecurringView() {
   const rules = recurring.data?.rules.filter((r) => !archiving.has(r.id));
   const editingRule =
     editing?.kind === "edit" ? recurring.data?.rules.find((r) => r.id === editing.id) : undefined;
-  const recording = recurring.data?.rules.find((r) => r.id === recordingId && !r.archivedAt);
-  const currentPayday = recurring.data?.rules.find((r) => r.isPayday && !r.archivedAt);
+  const recording = recurring.data?.rules.find((r) => r.id === recordingId);
+  const currentPayday = recurring.data?.rules.find((r) => r.isPayday);
   const close = () => setEditing(null);
 
   function settle(id: string) {
@@ -230,12 +207,7 @@ export function RecurringView() {
   } else if (!rules || !accounts.data) {
     content = <ViewSkeleton />;
   } else if (rules.length === 0) {
-    content = (
-      <EmptyRules
-        showArchived={showArchived}
-        onCreate={(preset) => setEditing({ kind: "create", preset })}
-      />
-    );
+    content = <EmptyRules onCreate={(preset) => setEditing({ kind: "create", preset })} />;
   } else {
     content = (
       <RuleGroups
@@ -259,11 +231,6 @@ export function RecurringView() {
           <PlusIcon aria-hidden />
           Tambah aturan
         </Button>
-        <ShowArchivedSwitch
-          id="show-archived-rules"
-          checked={showArchived}
-          onCheckedChange={setShowArchived}
-        />
         {!online && (
           <p className="text-sm text-muted-foreground">
             Butuh koneksi untuk mencatat, melewati, atau mengarsipkan.

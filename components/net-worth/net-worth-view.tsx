@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { AssetHistory } from "@/components/net-worth/asset-history";
 import { AssetValues, NoAssets } from "@/components/net-worth/asset-values";
 import { NetWorthCard } from "@/components/net-worth/net-worth-card";
+import { restoreWithMessage } from "@/components/net-worth/restore-net-worth";
 import { ValuationSheet } from "@/components/net-worth/valuation-sheet";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
-import { ShowArchivedSwitch } from "@/components/modals/archive-controls";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,11 +20,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAccounts } from "@/hooks/use-accounts";
-import { archiveNetWorth, restoreNetWorth, useNetWorths } from "@/hooks/use-net-worth";
+import { archiveNetWorth, useNetWorths } from "@/hooks/use-net-worth";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useValuations } from "@/hooks/use-valuations";
 import { todayInJakarta } from "@/lib/date";
-import { ApiError } from "@/lib/fetcher";
 import { failureMessage } from "@/lib/offline/network-error";
 import type { Account } from "@/lib/schemas/account";
 import type { NetWorthProgress } from "@/lib/schemas/net-worth";
@@ -43,44 +42,6 @@ function ViewSkeleton() {
         <Skeleton key={i} className="h-20 w-full" />
       ))}
     </div>
-  );
-}
-
-/** A 409 names the net worth or account that is now taken, so its message is shown as is. */
-async function restoreWithMessage(netWorth: NetWorthProgress) {
-  try {
-    await restoreNetWorth(netWorth.id);
-    toast.success(`${netWorth.name} dipulihkan`);
-  } catch (err) {
-    toast.error(
-      err instanceof ApiError && err.status === 409
-        ? err.message
-        : failureMessage(err, "Gagal memulihkan target. Coba lagi."),
-    );
-  }
-}
-
-function RestoreNetWorthButton({
-  netWorth,
-  online,
-}: {
-  netWorth: NetWorthProgress;
-  online: boolean;
-}) {
-  const [pending, setPending] = useState(false);
-  return (
-    <Button
-      variant="outline"
-
-      disabled={!online || pending}
-      onClick={async () => {
-        setPending(true);
-        await restoreWithMessage(netWorth);
-        setPending(false);
-      }}
-    >
-      Pulihkan
-    </Button>
   );
 }
 
@@ -116,15 +77,13 @@ function NetWorthMenu({
   );
 }
 
-function NoNetWorths({ showArchived, onCreate }: { showArchived: boolean; onCreate: () => void }) {
+function NoNetWorths({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center">
       <p className="text-muted-foreground">
-        {showArchived
-          ? "Belum ada target, termasuk arsip."
-          : "Buat target seperti DP rumah atau dana darurat, lalu pilih akun yang menabung untuknya."}
+        Buat target seperti DP rumah atau dana darurat, lalu pilih akun yang menabung untuknya.
       </p>
-      {!showArchived && <Button onClick={onCreate}>Tambah target</Button>}
+      <Button onClick={onCreate}>Tambah target</Button>
     </div>
   );
 }
@@ -166,18 +125,14 @@ function NetWorthList({
           accounts={accounts}
           lastValuedAt={lastValuedAt}
           today={today}
-          onValue={netWorth.archivedAt ? undefined : onValue}
+          onValue={onValue}
         >
-          {netWorth.archivedAt ? (
-            <RestoreNetWorthButton netWorth={netWorth} online={online} />
-          ) : (
-            <NetWorthMenu
-              netWorth={netWorth}
-              online={online}
-              onEdit={() => onEdit(netWorth.id)}
-              onArchive={() => onArchive(netWorth)}
-            />
-          )}
+          <NetWorthMenu
+            netWorth={netWorth}
+            online={online}
+            onEdit={() => onEdit(netWorth.id)}
+            onArchive={() => onArchive(netWorth)}
+          />
         </NetWorthCard>
       ))}
     </section>
@@ -188,12 +143,11 @@ export function NetWorthView() {
   const [valuingId, setValuingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showArchived, setShowArchived] = useState(false);
   const [saving, setSaving] = useState(false);
   // Archived net worths vanish at once; the id leaves this set when the request settles.
   const [archiving, setArchiving] = useState<ReadonlySet<string>>(new Set());
   const online = useOnlineStatus();
-  const netWorths = useNetWorths({ includeArchived: showArchived });
+  const netWorths = useNetWorths();
   const valuations = useValuations();
   const accounts = useAccounts({ includeArchived: true });
   const accountsById = useMemo(
@@ -204,7 +158,7 @@ export function NetWorthView() {
   const assets = valuations.data;
   const valuing = assets?.find((a) => a.accountId === valuingId);
   const visibleNetWorths = netWorths.data?.filter((g) => !archiving.has(g.id));
-  const editing = visibleNetWorths?.find((g) => g.id === editingId && !g.archivedAt);
+  const editing = visibleNetWorths?.find((g) => g.id === editingId);
   const formOpen = creating || !!editing;
   const closeForm = () => {
     setCreating(false);
@@ -246,7 +200,7 @@ export function NetWorthView() {
     content = (
       <>
         {visibleNetWorths.length === 0 ? (
-          <NoNetWorths showArchived={showArchived} onCreate={() => setCreating(true)} />
+          <NoNetWorths onCreate={() => setCreating(true)} />
         ) : (
           <NetWorthList
             netWorths={visibleNetWorths}
@@ -286,11 +240,6 @@ export function NetWorthView() {
             Tambah target
           </Button>
         </div>
-        <ShowArchivedSwitch
-          id="show-archived-net-worth"
-          checked={showArchived}
-          onCheckedChange={setShowArchived}
-        />
         {!online && (
           <p className="text-sm text-muted-foreground">
             Butuh koneksi untuk menyimpan, mengarsipkan, atau memperbarui nilai.

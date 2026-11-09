@@ -100,9 +100,11 @@ export function ArchiveButton({
 export function RestoreButton({
   name,
   restore,
+  disabled,
 }: {
   name: string;
   restore: () => Promise<unknown>;
+  disabled?: boolean;
 }) {
   const [pending, setPending] = useState(false);
 
@@ -122,7 +124,7 @@ export function RestoreButton({
     <Button
       variant="outline"
       className="shrink-0"
-      disabled={pending}
+      disabled={disabled || pending}
       onClick={() => void handleClick()}
     >
       Pulihkan

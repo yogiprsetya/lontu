@@ -26,7 +26,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Tambah Expense",
         short_name: "Expense",
         url: "/add/expense",
-        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+        icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
       },
     ],
   };

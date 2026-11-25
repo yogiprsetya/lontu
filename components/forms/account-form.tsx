@@ -7,13 +7,8 @@ import type { z } from "zod";
 import { FormField } from "@/components/forms/form-field";
 import { MoneyInput } from "@/components/forms/money-input";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createAccount, updateAccount } from "@/hooks/use-accounts";
 import { useReportSubmitting } from "@/hooks/use-report-submitting";
@@ -90,7 +85,6 @@ export function AccountForm({ account, onDone, onSubmitting, children }: Account
       <FormField id="account-name" label="Nama akun" error={errors.name?.message}>
         <Input
           id="account-name"
-
           autoComplete="off"
           placeholder="mis. BCA, GoPay"
           aria-invalid={!!errors.name}
@@ -133,23 +127,22 @@ export function AccountForm({ account, onDone, onSubmitting, children }: Account
             label="Subjenis (opsional)"
             error={errors.subtype?.message}
           >
-            <Select
+            <ResponsiveSelect
               items={subtypeItems}
               value={field.value ?? null}
               onValueChange={(v) => field.onChange(v)}
+              trigger={
+                <SelectTrigger id="account-subtype">
+                  <SelectValue />
+                </SelectTrigger>
+              }
             >
-              <SelectTrigger id="account-subtype">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent alignItemWithTrigger={false}>
-                {subtypeItems.map((item) => (
-                  <SelectItem key={item.value ?? "none"} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {subtypeItems.map((item) => (
+                <SelectItem key={item.value ?? "none"} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </ResponsiveSelect>
           </FormField>
         )}
       />

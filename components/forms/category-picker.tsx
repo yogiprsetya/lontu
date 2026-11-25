@@ -5,14 +5,13 @@ import { KIND_LABELS, SPENDING_TYPE_LABELS } from "@/components/forms/category-l
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { archiveLabel, selectableItems } from "@/lib/archived";
 import { groupBySpendingType, useCategories } from "@/hooks/use-categories";
@@ -51,12 +50,7 @@ export function CategoryPicker({
     return (
       <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Belum ada kategori {KIND_LABELS[kind]}.</p>
-        <Button
-          type="button"
-          variant="outline"
-
-          onClick={() => open("manageCategories", { kind })}
-        >
+        <Button type="button" variant="outline" onClick={() => open("manageCategories", { kind })}>
           <PlusIcon aria-hidden />
           Tambah kategori
         </Button>
@@ -67,35 +61,30 @@ export function CategoryPicker({
   const groups = groupBySpendingType(data);
 
   return (
-    <Select
+    <ResponsiveSelect
       items={data.map((c) => ({ value: c.id, label: archiveLabel(c) }))}
       value={value || null}
       onValueChange={(v) => v && onChange(v)}
+      trigger={
+        <SelectTrigger id={id} aria-invalid={invalid} aria-describedby={describedBy}>
+          <SelectValue placeholder="Pilih kategori" />
+        </SelectTrigger>
+      }
     >
-      <SelectTrigger
-        id={id}
-
-        aria-invalid={invalid}
-        aria-describedby={describedBy}
-      >
-        <SelectValue placeholder="Pilih kategori" />
-      </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false}>
-        {kind === "spending" ? (
-          SPENDING_TYPES.map(
-            (type) =>
-              groups[type].length > 0 && (
-                <SelectGroup key={type}>
-                  <SelectLabel>{SPENDING_TYPE_LABELS[type]}</SelectLabel>
-                  <CategoryItems categories={groups[type]} />
-                </SelectGroup>
-              ),
-          )
-        ) : (
-          <CategoryItems categories={data} />
-        )}
-      </SelectContent>
-    </Select>
+      {kind === "spending" ? (
+        SPENDING_TYPES.map(
+          (type) =>
+            groups[type].length > 0 && (
+              <SelectGroup key={type}>
+                <SelectLabel>{SPENDING_TYPE_LABELS[type]}</SelectLabel>
+                <CategoryItems categories={groups[type]} />
+              </SelectGroup>
+            ),
+        )
+      ) : (
+        <CategoryItems categories={data} />
+      )}
+    </ResponsiveSelect>
   );
 }
 

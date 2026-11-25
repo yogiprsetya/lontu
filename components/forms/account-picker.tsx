@@ -4,13 +4,8 @@ import { useEffect, useEffectEvent } from "react";
 import { PlusIcon } from "lucide-react";
 import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { archiveLabel, selectableItems } from "@/lib/archived";
 import { useAccounts } from "@/hooks/use-accounts";
@@ -65,12 +60,7 @@ export function AccountPicker({
         <p className="text-sm text-muted-foreground">
           {accountType === "asset" ? "Belum ada akun aset." : "Belum ada akun aktif."}
         </p>
-        <Button
-          type="button"
-          variant="outline"
-
-          onClick={() => open("manageAccounts")}
-        >
+        <Button type="button" variant="outline" onClick={() => open("manageAccounts")}>
           <PlusIcon aria-hidden />
           Tambah akun
         </Button>
@@ -81,22 +71,21 @@ export function AccountPicker({
   const items = data.map((a) => ({ value: a.id, label: archiveLabel(a) }));
 
   return (
-    <Select items={items} value={value || null} onValueChange={(v) => v && onChange(v)}>
-      <SelectTrigger
-        id={id}
-
-        aria-invalid={invalid}
-        aria-describedby={describedBy}
-      >
-        <SelectValue placeholder="Pilih akun" />
-      </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false}>
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <ResponsiveSelect
+      items={items}
+      value={value || null}
+      onValueChange={(v) => v && onChange(v)}
+      trigger={
+        <SelectTrigger id={id} aria-invalid={invalid} aria-describedby={describedBy}>
+          <SelectValue placeholder="Pilih akun" />
+        </SelectTrigger>
+      }
+    >
+      {items.map((item) => (
+        <SelectItem key={item.value} value={item.value}>
+          {item.label}
+        </SelectItem>
+      ))}
+    </ResponsiveSelect>
   );
 }

@@ -6,13 +6,8 @@ import { HistoryIcon } from "lucide-react";
 import { SectionTitle } from "@/components/layout/section-title";
 import { LoadError } from "@/components/settings/load-error";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAmountFormat } from "@/hooks/use-amount-format";
@@ -198,22 +193,22 @@ export function AssetHistory({
             <Label htmlFor="asset-history-account" className="sr-only">
               Akun
             </Label>
-            <Select
+            <ResponsiveSelect
               items={accountItems}
               value={accountId ?? ALL}
               onValueChange={(v) => v && setSelected(v)}
+              trigger={
+                <SelectTrigger id="asset-history-account">
+                  <SelectValue />
+                </SelectTrigger>
+              }
             >
-              <SelectTrigger id="asset-history-account">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                {accountItems.map((a) => (
-                  <SelectItem key={a.value} value={a.value}>
-                    {a.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {accountItems.map((a) => (
+                <SelectItem key={a.value} value={a.value}>
+                  {a.label}
+                </SelectItem>
+              ))}
+            </ResponsiveSelect>
           </div>
         )}
       </div>

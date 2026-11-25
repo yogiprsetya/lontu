@@ -2,13 +2,8 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { todayInJakarta } from "@/lib/date";
 import {
   formatPeriodLabel,
@@ -71,25 +66,24 @@ export function PeriodStepper({ period, onChange, modes = ["month", "year"] }: P
         </Button>
       </div>
 
-      <Select
+      <ResponsiveSelect
         items={items}
         value={mode}
         onValueChange={(value) =>
           value && onChange(switchPeriodMode(period, value as PeriodMode, today))
         }
+        trigger={
+          <SelectTrigger variant="raised" size="lg" className="w-40" aria-label="Rentang periode">
+            <SelectValue />
+          </SelectTrigger>
+        }
       >
-        <SelectTrigger variant="raised" size="lg" className="w-40" aria-label="Rentang periode">
-          <SelectValue />
-        </SelectTrigger>
-
-        <SelectContent alignItemWithTrigger={false}>
-          {items.map((m) => (
-            <SelectItem key={m.value} value={m.value}>
-              {m.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {items.map((m) => (
+          <SelectItem key={m.value} value={m.value}>
+            {m.label}
+          </SelectItem>
+        ))}
+      </ResponsiveSelect>
     </div>
   );
 }

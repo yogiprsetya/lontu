@@ -4,11 +4,10 @@ import { useState } from "react";
 import { SlidersHorizontalIcon } from "lucide-react";
 import { KIND_LABELS } from "@/components/forms/category-labels";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
+import { ResponsiveSelect } from "@/components/layout/responsive-select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
@@ -108,7 +107,6 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
           <>
             <Button
               variant="outline"
-
               disabled={active === 0}
               onClick={() => onChange(normalizeFilters(resetFilters(filters), kindOf, lockedType))}
             >
@@ -121,7 +119,7 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
         <div className="flex flex-col gap-4">
           {!lockedType && (
             <Field id="filter-type" label="Jenis">
-              <Select
+              <ResponsiveSelect
                 items={types}
                 value={filters.type ?? ALL}
                 onValueChange={(v) =>
@@ -130,61 +128,61 @@ export function FilterPanel({ filters, onChange, lockedType }: FilterPanelProps)
                     type: v === ALL ? undefined : (v as ListTransactionType),
                   })
                 }
+                trigger={
+                  <SelectTrigger id="filter-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                }
               >
-                <SelectTrigger id="filter-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false}>
-                  {types.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {types.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </ResponsiveSelect>
             </Field>
           )}
           <Field id="filter-account" label="Akun">
-            <Select
+            <ResponsiveSelect
               items={accountItems}
               value={filters.accountId ?? ALL}
               onValueChange={(v) => v && set({ accountId: v === ALL ? undefined : v })}
+              trigger={
+                <SelectTrigger id="filter-account">
+                  <SelectValue />
+                </SelectTrigger>
+              }
             >
-              <SelectTrigger id="filter-account">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                {accountItems.map((a) => (
-                  <SelectItem key={a.value} value={a.value}>
-                    {a.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {accountItems.map((a) => (
+                <SelectItem key={a.value} value={a.value}>
+                  {a.label}
+                </SelectItem>
+              ))}
+            </ResponsiveSelect>
           </Field>
           {takesCategory && (
             <Field id="filter-category" label="Kategori">
-              <Select
+              <ResponsiveSelect
                 items={categoryItems}
                 value={filters.categoryId ?? ALL}
                 onValueChange={(v) => v && set({ categoryId: v === ALL ? undefined : v })}
+                trigger={
+                  <SelectTrigger id="filter-category">
+                    <SelectValue />
+                  </SelectTrigger>
+                }
               >
-                <SelectTrigger id="filter-category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false}>
-                  <SelectItem value={ALL}>Semua kategori</SelectItem>
-                  {CATEGORY_KINDS.filter((kind) => !allowedKind || kind === allowedKind).map(
-                    (kind) => (
-                      <CategoryGroup
-                        key={kind}
-                        label={KIND_LABELS[kind]}
-                        categories={categoryList.filter((c) => c.kind === kind)}
-                      />
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
+                <SelectItem value={ALL}>Semua kategori</SelectItem>
+                {CATEGORY_KINDS.filter((kind) => !allowedKind || kind === allowedKind).map(
+                  (kind) => (
+                    <CategoryGroup
+                      key={kind}
+                      label={KIND_LABELS[kind]}
+                      categories={categoryList.filter((c) => c.kind === kind)}
+                    />
+                  ),
+                )}
+              </ResponsiveSelect>
             </Field>
           )}
         </div>

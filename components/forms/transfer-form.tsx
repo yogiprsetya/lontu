@@ -64,12 +64,7 @@ export function CreateTransferForm() {
     return (
       <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed px-4 py-4">
         <p className="text-sm text-muted-foreground">Transfer butuh minimal dua akun aktif.</p>
-        <Button
-          type="button"
-          variant="outline"
-
-          onClick={() => open("manageAccounts")}
-        >
+        <Button type="button" variant="outline" onClick={() => open("manageAccounts")}>
           <PlusIcon aria-hidden />
           Tambah akun
         </Button>
@@ -111,6 +106,7 @@ function CreateTransferFields() {
       await submit(input, {
         sentMessage: input.fee ? "Transfer dan biaya admin tersimpan" : "Transfer tersimpan",
       });
+      form.reset();
       router.push("/transactions");
     } catch (err) {
       reportSaveError(err, form.setError);
@@ -408,7 +404,6 @@ function TransferFields({
       >
         <Input
           id="transfer-description"
-
           autoComplete="off"
           maxLength={200}
           aria-invalid={!!errors.description}

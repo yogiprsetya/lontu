@@ -79,6 +79,7 @@ export function CreateTransactionForm({ type }: { type: SimpleTransactionType })
   const onSubmit = form.handleSubmit(async (input) => {
     try {
       await submit(input, { sentMessage: `${TRANSACTION_TYPE_LABELS[type]} tersimpan` });
+      form.reset();
       router.push("/transactions");
     } catch (err) {
       reportSaveError(err, form.setError);

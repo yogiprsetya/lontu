@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronRightIcon, PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronRightIcon, PlusIcon, CloudSyncIcon } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { AccountForm } from "@/components/forms/account-form";
+import { FormField } from "@/components/forms/form-field";
+import { MoneyInput } from "@/components/forms/money-input";
+import { Input } from "@/components/ui/input";
 import { FormActions } from "@/components/layout/form-actions";
 import { ResponsiveModal } from "@/components/layout/responsive-modal";
 import { ArchiveButton } from "@/components/modals/archive-controls";
@@ -10,23 +16,32 @@ import { LoadError } from "@/components/settings/load-error";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { archiveAccount, useAccounts } from "@/hooks/use-accounts";
+import { archiveAccount, reconcileAccount, useAccounts } from "@/hooks/use-accounts";
 import { useAmountFormat } from "@/hooks/use-amount-format";
 import { formatIDR } from "@/lib/money";
 import {
   ACCOUNT_SUBTYPE_LABELS,
   ACCOUNT_TYPE_LABELS,
   ACCOUNT_TYPES,
+  accountReconcileSchema,
   type Account,
 } from "@/lib/schemas/account";
+import { applyServerErrors } from "@/lib/form-errors";
+import { failureMessage } from "@/lib/offline/network-error";
 import { cn } from "@/lib/utils";
+import type { z } from "zod";
 
-type View = { kind: "list" } | { kind: "create" } | { kind: "edit"; account: Account };
+type View =
+  | { kind: "list" }
+  | { kind: "create" }
+  | { kind: "edit"; account: Account }
+  | { kind: "reconcile"; account: Account };
 
 const titles = {
   list: "Kelola akun",
   create: "Tambah akun",
   edit: "Ubah akun",
+  reconcile: "Koreksi saldo",
 };
 
 export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -53,49 +68,77 @@ export function ManageAccounts({ open, onClose }: { open: boolean; onClose: () =
             <PlusIcon aria-hidden />
             Tambah akun
           </Button>
+        ) : view.kind === "reconcile" ? (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={toList}
+              disabled={saving}
+            >
+              Batal
+            </Button>
+
+            <Button type="submit" form="reconcile-form" className="flex-1" disabled={saving}>
+              {saving ? "Menyimpan…" : "Koreksi saldo"}
+            </Button>
+          </div>
         ) : (
           <FormActions form="account-form" onCancel={toList} isSubmitting={saving} />
         )
       }
     >
-      <ScrollArea className="w-full lg:h-64 pr-2">
-        {view.kind === "list" && (
+      {view.kind === "list" && (
+        <ScrollArea className="w-full lg:h-80 pr-1">
           <div className="pb-2">
-            <AccountList onEdit={(account) => setView({ kind: "edit", account })} />
-          </div>
-        )}
-        {view.kind === "create" && <AccountForm onDone={toList} onSubmitting={setSaving} />}
-        {view.kind === "edit" && (
-          <AccountForm
-            key={view.account.id}
-            account={view.account}
-            onDone={toList}
-            onSubmitting={setSaving}
-          >
-            <ArchiveButton
-              label="Arsipkan akun"
-              name={view.account.name}
-              description={
-                <>
-                  {view.account.balance !== 0 && (
-                    <>Saldo saat ini {formatIDR(view.account.balance)}. </>
-                  )}
-                  Akun disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi
-                  lama. Kamu bisa memulihkannya kapan saja.
-                </>
-              }
-              archive={() => archiveAccount(view.account.id)}
-              onArchived={toList}
-              disabled={saving}
+            <AccountList
+              onEdit={(account) => setView({ kind: "edit", account })}
+              onReconcile={(account) => setView({ kind: "reconcile", account })}
             />
-          </AccountForm>
-        )}
-      </ScrollArea>
+          </div>
+        </ScrollArea>
+      )}
+      {view.kind === "create" && <AccountForm onDone={toList} onSubmitting={setSaving} />}
+      {view.kind === "edit" && (
+        <AccountForm
+          key={view.account.id}
+          account={view.account}
+          onDone={toList}
+          onSubmitting={setSaving}
+        >
+          <ArchiveButton
+            label="Arsipkan akun"
+            name={view.account.name}
+            description={
+              <>
+                {view.account.balance !== 0 && (
+                  <>Saldo saat ini {formatIDR(view.account.balance)}. </>
+                )}
+                Akun disembunyikan dari daftar dan pilihan, tetapi tetap tercatat di transaksi lama.
+                Kamu bisa memulihkannya kapan saja.
+              </>
+            }
+            archive={() => archiveAccount(view.account.id)}
+            onArchived={toList}
+            disabled={saving}
+          />
+        </AccountForm>
+      )}
+      {view.kind === "reconcile" && (
+        <ReconcileForm account={view.account} onDone={toList} onSubmitting={setSaving} />
+      )}
     </ResponsiveModal>
   );
 }
 
-function AccountList({ onEdit }: { onEdit: (account: Account) => void }) {
+function AccountList({
+  onEdit,
+  onReconcile,
+}: {
+  onEdit: (account: Account) => void;
+  onReconcile: (account: Account) => void;
+}) {
   const { data, error, mutate } = useAccounts();
 
   if (error) {
@@ -125,6 +168,7 @@ function AccountList({ onEdit }: { onEdit: (account: Account) => void }) {
       {ACCOUNT_TYPES.map((type) => {
         const accounts = data.filter((a) => a.type === type);
         if (accounts.length === 0) return null;
+
         return (
           <section
             key={type}
@@ -134,20 +178,37 @@ function AccountList({ onEdit }: { onEdit: (account: Account) => void }) {
             <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {ACCOUNT_TYPE_LABELS[type]}
             </h3>
+
             <ul className="flex flex-col">
               {accounts.map((account) => (
-                <li key={account.id}>
+                <li key={account.id} className="flex gap-1 items-center">
                   <button
                     type="button"
                     onClick={() => onEdit(account)}
-                    className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 text-left outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <AccountSummary account={account} />
+
                     <ChevronRightIcon
                       className="size-4 shrink-0 text-muted-foreground"
                       aria-hidden
                     />
                   </button>
+
+                  {account.type === "transaction" && (
+                    <div className="shrink-0">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Koreksi saldo ${account.name}`}
+                        title="Koreksi saldo"
+                        onClick={() => onReconcile(account)}
+                      >
+                        <CloudSyncIcon aria-hidden />
+                      </Button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -155,6 +216,85 @@ function AccountList({ onEdit }: { onEdit: (account: Account) => void }) {
         );
       })}
     </div>
+  );
+}
+
+type ReconcileValues = z.infer<typeof accountReconcileSchema>;
+
+function ReconcileForm({
+  account,
+  onDone,
+  onSubmitting,
+}: {
+  account: Account;
+  onDone: () => void;
+  onSubmitting: (value: boolean) => void;
+}) {
+  const {
+    control,
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<ReconcileValues>({
+    resolver: zodResolver(accountReconcileSchema),
+    defaultValues: { balance: account.balance },
+  });
+
+  useEffect(() => {
+    onSubmitting(isSubmitting);
+  }, [isSubmitting, onSubmitting]);
+
+  const submit = handleSubmit(async ({ balance, description }) => {
+    try {
+      await reconcileAccount(account.id, balance, description);
+      toast.success("Saldo akun dikoreksi");
+      onDone();
+    } catch (err) {
+      if (!applyServerErrors(err, setError)) {
+        toast.error(failureMessage(err, "Gagal mengoreksi saldo. Coba lagi."));
+      }
+    }
+  });
+
+  return (
+    <form id="reconcile-form" onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        Saldo saat ini {formatIDR(account.balance)}. Masukkan saldo aktual; selisih akan dicatat
+        sebagai transaksi koreksi.
+      </p>
+      <Controller
+        control={control}
+        name="balance"
+        render={({ field }) => (
+          <FormField id="reconcile-balance" label="Saldo aktual" error={errors.balance?.message}>
+            <MoneyInput
+              id="reconcile-balance"
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              invalid={!!errors.balance}
+              describedBy="reconcile-balance-message"
+            />
+          </FormField>
+        )}
+      />
+      <FormField
+        id="reconcile-description"
+        label="Deskripsi (opsional)"
+        error={errors.description?.message}
+        hint="Maksimal 200 karakter."
+      >
+        <Input
+          id="reconcile-description"
+          placeholder="mis. Saldo rekening per akhir bulan"
+          maxLength={200}
+          aria-invalid={!!errors.description}
+          aria-describedby="reconcile-description-message"
+          {...register("description")}
+        />
+      </FormField>
+    </form>
   );
 }
 

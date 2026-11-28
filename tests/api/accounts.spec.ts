@@ -11,6 +11,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 const { auth } = await import("@/lib/auth");
 const collection = await import("@/app/api/accounts/route");
 const item = await import("@/app/api/accounts/[id]/route");
+const reconcileRoute = await import("@/app/api/accounts/[id]/reconcile/route");
 const restoreRoute = await import("@/app/api/accounts/[id]/restore/route");
 const mockedAuth = vi.mocked(auth as unknown as () => Promise<unknown>);
 
@@ -41,6 +42,17 @@ function update(id: string, body: unknown) {
   return item.PATCH(
     new Request(`http://localhost/api/accounts/${id}`, {
       method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    idParams(id),
+  );
+}
+
+function reconcile(id: string, body: unknown) {
+  return reconcileRoute.POST(
+    new Request(`http://localhost/api/accounts/${id}/reconcile`, {
+      method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }),
@@ -381,6 +393,148 @@ describe("PATCH /api/accounts/[id]", () => {
   it("returns 400 for an empty body", async () => {
     const id = await createAs(userA, { name: "Kosong", type: "asset" });
     expect((await update(id, {})).status).toBe(400);
+  });
+});
+
+describe("POST /api/accounts/[id]/reconcile", () => {
+  it.each([
+    { target: 400_000, delta: 100_000 },
+    { target: 200_000, delta: -100_000 },
+  ])("sets the current balance to $target with adjustment $delta", async ({ target, delta }) => {
+    const id = await createAs(userA, {
+      name: `Rekonsiliasi ${target}`,
+      type: "transaction",
+      initialBalance: 300_000,
+    });
+
+    const res = await reconcile(id, { balance: target });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ id, initialBalance: 300_000, balance: target });
+    expect(await adjustmentsOf(id)).toEqual([
+      { amount: delta, date: todayInJakarta(), description: "Koreksi saldo" },
+    ]);
+  });
+
+  it("does not add an adjustment when the current balance already matches", async () => {
+    const id = await createAs(userA, {
+      name: "Sudah cocok",
+      type: "transaction",
+      initialBalance: 300_000,
+    });
+
+    const res = await reconcile(id, { balance: 300_000 });
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).balance).toBe(300_000);
+    expect(await adjustmentsOf(id)).toHaveLength(0);
+  });
+
+  it("stores an optional description on the correction adjustment", async () => {
+    const id = await createAs(userA, {
+      name: "Deskripsi koreksi",
+      type: "transaction",
+      initialBalance: 100_000,
+    });
+
+    const res = await reconcile(id, {
+      balance: 120_000,
+      description: "Saldo rekening akhir bulan",
+    });
+
+    expect(res.status).toBe(200);
+    expect(await adjustmentsOf(id)).toEqual([
+      { amount: 20_000, date: todayInJakarta(), description: "Saldo rekening akhir bulan" },
+    ]);
+  });
+
+  it("does not change effective initial balance", async () => {
+    const id = await createAs(userA, {
+      name: "Saldo awal tetap",
+      type: "transaction",
+      initialBalance: 50_000,
+    });
+
+    const res = await reconcile(id, { balance: 300_000 });
+
+    expect(await res.json()).toMatchObject({ initialBalance: 50_000, balance: 300_000 });
+  });
+
+  it("does not include koreksi saldo in a later edit of saldo awal", async () => {
+    const id = await createAs(userA, {
+      name: "Koreksi lalu edit",
+      type: "transaction",
+      initialBalance: 100_000,
+    });
+    await reconcile(id, { balance: 300_000 });
+
+    const res = await update(id, { initialBalance: 150_000 });
+
+    expect(await res.json()).toMatchObject({ initialBalance: 150_000, balance: 350_000 });
+    expect((await adjustmentsOf(id)).map((entry) => [entry.amount, entry.description])).toEqual([
+      [200_000, "Koreksi saldo"],
+      [50_000, "Penyesuaian saldo awal"],
+    ]);
+  });
+
+  it("excludes a custom reconciliation description from effective initial balance", async () => {
+    const id = await createAs(userA, {
+      name: "Koreksi deskripsi khusus",
+      type: "transaction",
+      initialBalance: 100_000,
+    });
+    await reconcile(id, { balance: 300_000, description: "Saldo akhir bulan" });
+
+    const res = await update(id, { initialBalance: 150_000 });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ initialBalance: 150_000, balance: 350_000 });
+    expect((await adjustmentsOf(id)).map((entry) => [entry.amount, entry.description])).toEqual([
+      [200_000, "Saldo akhir bulan"],
+      [50_000, "Penyesuaian saldo awal"],
+    ]);
+  });
+
+  it("does not reconcile an account owned by another user", async () => {
+    const id = await createAs(userA, {
+      name: "Akun privat",
+      type: "transaction",
+      initialBalance: 100_000,
+    });
+    signInAs(userB);
+
+    const res = await reconcile(id, { balance: 500_000 });
+
+    expect(res.status).toBe(404);
+    expect((await res.json()).error.code).toBe("ACCOUNT_NOT_FOUND");
+    expect(await adjustmentsOf(id)).toHaveLength(0);
+  });
+
+  it("validates reconciliation ids and bodies", async () => {
+    signInAs(userA);
+    expect((await reconcile("not-a-uuid", { balance: 100 })).status).toBe(404);
+
+    const id = await createAs(userA, { name: "Validasi", type: "transaction" });
+    for (const body of [
+      {},
+      { balance: 1.5 },
+      { balance: 1e12 + 1 },
+      { balance: 10, extra: true },
+    ]) {
+      const res = await reconcile(id, body);
+      expect(res.status).toBe(400);
+      expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
+    }
+  });
+
+  it("rejects asset accounts", async () => {
+    const id = await createAs(userA, { name: "Aset", type: "asset", initialBalance: 300_000 });
+
+    const res = await reconcile(id, { balance: 400_000 });
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).error.fields.account).toBeDefined();
+    expect(await adjustmentsOf(id)).toHaveLength(0);
   });
 });
 

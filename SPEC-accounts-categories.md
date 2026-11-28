@@ -9,7 +9,7 @@ Pengguna bisa mengelola daftar akun (rekening, e-wallet, kartu kredit, aset) dan
 
 Modul ini juga pemilik **kontrak** `GET /api/accounts` dan `GET /api/categories`, hook SWR-nya, dan aturan kepemilikan/arsip yang wajib dipatuhi modul `transactions` dan `budgets`.
 
-Di luar cakupan: transaksi apa pun (termasuk penyesuaian saldo lewat transaksi), budget, urutan manual (drag to reorder), ikon/warna kategori, total saldo gabungan (milik `dashboard`).
+Di luar cakupan: pencatatan transaksi umum, budget, urutan manual (drag to reorder), ikon/warna kategori, total saldo gabungan (milik `dashboard`). Koreksi saldo akun transaksi dijelaskan di bawah.
 
 ## Keputusan
 
@@ -23,6 +23,7 @@ Di luar cakupan: transaksi apa pun (termasuk penyesuaian saldo lewat transaksi),
 8. **Satu perubahan skema, tanpa kolom baru:** tipe transaksi `adjustment` (constraint + view, lihat di bawah). Disetujui 2026-10-20.
 9. **Arsip akun dengan saldo ≠ 0 diizinkan.** Konfirmasi menampilkan saldo saat ini sebagai peringatan.
 10. **Label UI:** nav tetap bahasa Inggris seperti foundation. Tombol, form, dan pesan memakai bahasa Indonesia.
+11. **Koreksi saldo terpisah dari edit saldo awal.** Koreksi hanya tersedia untuk akun bertipe `transaction`; pengguna memasukkan saldo aktual, lalu sistem membuat adjustment sebesar selisih saldo aktual dengan saldo saat ini.
 
 ## Transaksi penyesuaian
 
@@ -39,9 +40,18 @@ Migrasi baru (bukan mengubah/menghapus kolom) mengganti constraint `transactions
 Aturan:
 
 - Dibuat **hanya** oleh `PATCH /api/accounts/[id]` saat `initialBalance` berubah: `amount = initialBalance baru − saldo awal efektif`, `date` = hari ini (Asia/Jakarta), `description = "Penyesuaian saldo awal"`, `to_account_id` dan `category_id` null. Selisih 0 tidak membuat baris.
-- **Saldo awal efektif** = `initial_balance + sum(amount adjustment yang tidak dihapus)`. Inilah nilai `Account.initialBalance` di respons, jadi dari sisi client field itu berperilaku seperti bisa diedit langsung.
+- **Saldo awal efektif** = `initial_balance + sum(amount adjustment saldo awal yang tidak dihapus)`. Adjustment `"Koreksi saldo"` tidak dihitung ke `Account.initialBalance`; ia hanya mengubah saldo saat ini.
 - Insert adjustment dan pembacaan saldo awal efektif berjalan dalam satu transaksi DB dengan `select … for update` pada baris akun, supaya dua edit bersamaan tidak menghitung selisih dari angka yang sama.
 - `adjustment` **tidak** ditambahkan ke `TRANSACTION_TYPES` (`lib/transaction-types.ts`), jadi tidak bisa dibuat lewat `/add/[type]` atau API transaksi. Modul `transactions` menampilkannya di daftar sebagai "Penyesuaian" dan boleh soft-delete (saldo ikut kembali). Modul `dashboard` dan `budgets` hanya menghitung income/expense/saving, jadi adjustment otomatis tidak ikut.
+
+## Koreksi saldo
+
+- Aksi khusus untuk akun `transaction`, bukan perubahan pada `PATCH /api/accounts/[id]` dan bukan edit saldo awal. Akun `asset` tidak dapat dikoreksi melalui UI maupun API.
+- Endpoint `POST /api/accounts/[id]/reconcile` menerima `{ balance: number, description?: string }`, yakni saldo aktual yang dibaca pengguna dari rekening/dompet. Saldo adalah integer rupiah dalam rentang −1e12..1e12; deskripsi opsional maksimal 200 karakter.
+- `delta = balance aktual − balance akun saat ini`. Nilai delta menjadi `amount` pada transaksi `adjustment` bertanggal hari ini (Asia/Jakarta), deskripsi dari input atau default `"Koreksi saldo"`, tanpa `to_account_id` dan `category_id`. Delta positif atau negatif diperbolehkan; delta 0 tidak membuat transaksi.
+- Contoh: saldo saat ini 300.000, target aktual 400.000 → adjustment +100.000 dan saldo akhir 400.000; target 200.000 → adjustment −100.000 dan saldo akhir 200.000.
+- Pemeriksaan kepemilikan dan tipe akun, pembacaan saldo, serta insert adjustment dilakukan dalam satu transaksi DB dengan lock baris akun. Operasi mengembalikan `Account` terbarui; transaksi lama dan `initial_balance` tidak berubah.
+- Id tidak valid/tidak dimiliki/tidak ditemukan → 404 `ACCOUNT_NOT_FOUND`; body tidak valid → 400 `VALIDATION_ERROR`; akun bukan tipe `transaction` → 400 `VALIDATION_ERROR` pada field `account`.
 
 ## Kategori default
 
@@ -99,6 +109,7 @@ type Category = {
 | `GET /api/accounts`               | `?include=archived` (opsional)                        | 200 `Account[]`: tanpa param hanya yang aktif, dengan param aktif + terarsip. Urut `type` (transaction dulu), lalu `lower(name)` | —                                                      |
 | `POST /api/accounts`              | `{ name, type, subtype?, initialBalance? }`           | 201 `Account`                                                                                                                    | 400 `VALIDATION_ERROR`, 409 `ACCOUNT_NAME_TAKEN`       |
 | `PATCH /api/accounts/[id]`        | subset dari `{ name, type, subtype, initialBalance }` | 200 `Account`                                                                                                                    | 400, 404 `ACCOUNT_NOT_FOUND`, 409 `ACCOUNT_NAME_TAKEN` |
+| `POST /api/accounts/[id]/reconcile` | `{ balance, description? }` saldo aktual dan deskripsi opsional; hanya akun `transaction` | 200 `Account` dengan saldo terkoreksi                                                        | 400 `VALIDATION_ERROR`, 404 `ACCOUNT_NOT_FOUND` |
 | `DELETE /api/accounts/[id]`       | —                                                     | 200 `Account` (terarsip). Idempoten: arsip ulang tidak mengubah `archived_at`                                                    | 404                                                    |
 | `POST /api/accounts/[id]/restore` | —                                                     | 200 `Account` (aktif). Idempoten                                                                                                 | 404                                                    |
 

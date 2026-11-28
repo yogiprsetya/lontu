@@ -15,7 +15,8 @@ import type {
 // ${accounts.id} as a bare "id", which inside the subquery would bind to t.id.
 const effectiveInitialBalance = sql<number>`(${accounts.initialBalance} + coalesce((
   select sum(t.amount) from ${transactions} t
-  where t.account_id = "accounts"."id" and t.type = 'adjustment' and t.deleted_at is null
+  where t.account_id = "accounts"."id" and t.type = 'adjustment'
+    and t.description is distinct from 'Koreksi saldo' and t.deleted_at is null
 ), 0))::bigint`.mapWith(Number);
 
 async function selectAccounts(where: SQL | undefined): Promise<Account[]> {
@@ -101,6 +102,44 @@ export async function updateAccount(userId: string, id: string, input: AccountUp
     return true;
   });
   return found ? getAccount(userId, id) : undefined;
+}
+
+export async function reconcileAccountBalance(
+  userId: string,
+  id: string,
+  balance: number,
+  description?: string,
+) {
+  const owned = and(eq(accounts.userId, userId), eq(accounts.id, id));
+  const result = await db.transaction(async (tx) => {
+    const [locked] = await tx
+      .select({ id: accounts.id, type: accounts.type })
+      .from(accounts)
+      .where(owned)
+      .for("update");
+    if (!locked) return "missing" as const;
+    if (locked.type !== "transaction") return "invalid-type" as const;
+
+    const [current] = await tx
+      .select({ balance: accountBalances.balance })
+      .from(accountBalances)
+      .where(eq(accountBalances.accountId, id));
+    const delta = balance - current.balance;
+    if (delta !== 0) {
+      await tx.insert(transactions).values({
+        userId,
+        type: "adjustment",
+        amount: delta,
+        date: todayInJakarta(),
+        accountId: id,
+        description: description || "Koreksi saldo",
+      });
+    }
+    return "updated" as const;
+  });
+  if (result === "missing") return undefined;
+  if (result === "invalid-type") return null;
+  return getAccount(userId, id);
 }
 
 export async function setAccountArchived(userId: string, id: string, archived: boolean) {

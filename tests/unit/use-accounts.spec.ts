@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { accountsKey } from "@/hooks/use-accounts";
+import { affectedBy } from "@/lib/cache-invalidation";
 import { isResourceKey } from "@/lib/cache-invalidation";
 
 describe("accounts SWR keys", () => {
@@ -18,4 +19,10 @@ describe("accounts SWR keys", () => {
       expect(isResourceKey("accounts", key)).toBe(false);
     },
   );
+});
+
+describe("account reconciliation invalidation", () => {
+  it("refreshes account balances and transaction history", () => {
+    expect(affectedBy("accounts")).toContain("transactions");
+  });
 });

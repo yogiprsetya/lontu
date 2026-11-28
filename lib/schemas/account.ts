@@ -60,5 +60,10 @@ export const accountUpdateSchema = z
   .partial()
   .refine((v) => Object.keys(v).length > 0, "Tidak ada perubahan");
 
+export const accountReconcileSchema = z.strictObject({
+  balance: initialBalance,
+  description: z.string().trim().max(200, "Maksimal 200 karakter").optional(),
+});
+
 export type AccountCreateInput = z.infer<typeof accountCreateSchema>;
 export type AccountUpdateInput = z.infer<typeof accountUpdateSchema>;

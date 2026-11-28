@@ -27,6 +27,15 @@ export async function updateAccount(id: string, input: AccountUpdateInput) {
   return account;
 }
 
+export async function reconcileAccount(id: string, balance: number, description?: string) {
+  const account = await sendJSON<Account>(`/api/accounts/${id}/reconcile`, "POST", {
+    balance,
+    description,
+  });
+  await invalidate("accounts");
+  return account;
+}
+
 export async function archiveAccount(id: string) {
   const account = await sendJSON<Account>(`/api/accounts/${id}`, "DELETE");
   await invalidate("accounts");
